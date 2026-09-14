@@ -6,8 +6,8 @@ Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js)
 |---|---|---|---|
 | `nakedSingles` | Gol enojček | Poišče celico, ki ima samo še enega možnega kandidata, in vanjo vpiše to številko. | ne |
 | `hiddenSingles` | Skriti enojček | Poišče enoto, kjer je določena številka možna samo še v eni celici, in jo tja vpiše. | ne |
-| `pointing` | Pointing pair/triple | Če je kandidat v bloku možen samo v celicah ene same vrstice ali stolpca, ga izbriše iz preostanka te vrstice/stolpca zunaj bloka. | ne |
-| `boxLineReduction` | Box-line reduction | Če je kandidat v vrstici ali stolpcu možen samo znotraj enega bloka, ga izbriše iz preostanka tega bloka. | ne |
+| `pointing` | Pointing pair/triple | Če je kandidat v bloku možen samo v celicah ene same vrstice ali stolpca, ga izbriše iz preostanka te vrstice/stolpca zunaj bloka. | da |
+| `boxLineReduction` | Box-line reduction | Če je kandidat v vrstici ali stolpcu možen samo znotraj enega bloka, ga izbriše iz preostanka tega bloka. | da |
 | `nakedPairs` | Naked pair | Poišče dve celici v isti enoti, ki imata skupaj natanko dva kandidata, in ju izbriše iz preostalih celic enote. | da |
 | `hiddenPairs` | Hidden pair | Poišče dve številki, ki sta v enoti možni samo v istih dveh celicah, in izbriše vse druge kandidate iz teh dveh celic. | da |
 | `nakedTriples` | Naked triple | Poišče tri celice v isti enoti, ki skupaj pokrivajo natanko tri kandidate, in te kandidate izbriše iz preostanka enote. | da |
