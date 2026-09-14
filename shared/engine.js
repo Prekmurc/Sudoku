@@ -367,7 +367,7 @@ function xyWing(b) {
           if (elim.length) {
             steps.push({
               technique: 'XY-Wing', cells: [pivot, w1, w2], assign: [], eliminate: elim,
-              message: `Pivot ${cellLabel(pivot)} {${x},${y}} ima dva kraka: ${cellLabel(w1)} in ${cellLabel(w2)}, ki oba delita kandidata ${z} -> ${z} lahko izbrišemo iz celic, ki vidijo oba kraka (${cellsLabel(elim.map(e => e[0]))}).`
+              message: `Pivot ${cellLabel(pivot)} {${x},${y}} ima dve krili: ${cellLabel(w1)} in ${cellLabel(w2)}, ki obe delita kandidata ${z} -> ${z} lahko izbrišemo iz celic, ki vidijo obe krili (${cellsLabel(elim.map(e => e[0]))}).`
             });
           }
         }

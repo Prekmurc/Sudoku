@@ -155,17 +155,6 @@ function buildFullGridLayout(div,ex,M){
   return{cellEls,countEls};
 }
 
-// Besedilo koraka v izrazoslovju treninga (CLAUDE.md: pivot, krilo). Sporočila iz
-// shared/engine.js za XY-Wing tu ne uporabimo, ker govori o "krakih".
-function xyWingText(ex,step){
-  const [p,w1,w2]=step.cells;
-  const slotOf=idx=>ex.slots.find(s=>s.idx===idx);
-  const lbl=idx=>{const s=slotOf(idx);return `${s.pos} {${s.c.join(',')}}`;};
-  const z=step.eliminate.length?step.eliminate[0][1]:null;
-  const elim=[...new Set(step.eliminate.map(e=>e[0]))].map(i=>slotOf(i).pos).join(', ');
-  return `Pivot ${lbl(p)}, krili ${lbl(w1)} in ${lbl(w2)}. Obe krili vidita pivota in si z njim delita po eno številko, skupna jima je ${z} → ${z} izbrišemo iz celic, ki vidijo obe krili (${elim}).`;
-}
-
 function renderExercise(){
   const M=MODES[mode];
   if(exNum>=MAX_EX){
@@ -333,13 +322,9 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
-    if(M.isPointing||M.isBoxLine||M.isUR){
+    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR){
       const step=exDigitStep();
       return step?step.message:'(ni najdenega vzorca)';
-    }
-    if(M.isXYWing){
-      const step=exDigitStep();
-      return step?xyWingText(ex,step):'(ni najdenega vzorca)';
     }
     if(M.isXWing||M.isSwordfish){
       const expSize=M.isSwordfish?3:2;
@@ -495,7 +480,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       scoreRight++;updateScore();
       const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
       fb.className='fb ok';
-      fb.innerHTML=`<b>Pravilno!</b> ${M.isXYWing?xyWingText(ex,match):match.message}`;
+      fb.innerHTML=`<b>Pravilno!</b> ${match.message}`;
       selected.forEach(si=>cellEls[si].classList.add('correct'));
       match.eliminate.forEach(([cidx,dig])=>{
         const si=idxToSi.get(cidx);if(si===undefined)return;

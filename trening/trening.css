@@ -8,6 +8,11 @@
   --indigo:#4B3F91;--indigo-bg:#E3DFF5;
   --cyan:#0E6E8A;--cyan-bg:#D5EAF2;--orange:#9A5218;--orange-bg:#F6E2D0;
   --cs:min(10.6vw,46px);
+  /* Velikost celice v mrežnih prikazih 9x9. Poleg celic mreža zasede še glavo
+     vrstic (~22px) ter odmike .container (2x14px) in .exercise (2x18px), zato
+     --cs zanje ni dovolj majhen in mreža pri ožjem oknu uide iz kartice.
+     Odštetih 104px = 22 + 28 + 36 + rezerva za drsnik. */
+  --gs:min(46px,(min(560px,100vw) - 104px)/9);
 }
 /* *{box-sizing:border-box} in body{margin:0;color:var(--ink);font-family:'Inter',sans-serif}
    sta v shared/base.css - tu je samo tisto, kar je specifično za to aplikacijo. */
@@ -123,6 +128,12 @@ button.peek-btn:active{background:#F0F2F5}
 .xw-cell.peek-elim{background:var(--red-bg)!important}
 .xw-cell.peek-elim .xd{text-decoration:line-through}
 .xw-cell.xw-sf-correct{background:#E8F5E9!important;box-shadow:inset 0 0 0 2px #2E7D32}
+
+/* Oba mrežna prikaza 9x9 (X-Wing/Swordfish in XY-Wing/Unique Rectangle) uporabljata
+   manjšo celico --gs, da se mreža v celoti vidi tudi v ožjem oknu. Vse notranje mere
+   (širina/višina celic, velikost kandidatov) se računajo iz --cs, zato ga je dovolj
+   prevezati tu - posamezna pravila spodaj ostanejo nespremenjena. */
+.xw-grid,.g9{--cs:var(--gs)}
 
 /* X-Wing: mini 9x9 mreža, prikaže samo eno številko */
 .xw-grid{display:grid;grid-template-columns:22px repeat(9,var(--cs));grid-template-rows:22px repeat(9,var(--cs));justify-content:center;margin:0 auto 8px;gap:0}
