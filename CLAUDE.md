@@ -9,19 +9,37 @@ Projekt ima dve aplikaciji s skupno kodo:
 Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 
 ## Struktura
-[DOPOLNI: glavne mape in datoteke ter čemu služijo]
+- `shared/` – skupna osnova za obe aplikaciji.
+  - `base.css` – skupni reset (`*{box-sizing:border-box}`, osnovni `body`), ki ga uvozita `app/` in `trening/`.
+  - `engine.js` – motor za reševanje: mreža/enote (`ROWS`/`COLS`/`BOXES`/`PEERS`), razred `Board`, vse tehnike reševanja (glej spodaj), sestopanje (`tryBifurcation`) in `solve()`, ki vrne rešeno mrežo + dnevnik korakov z razlago.
+- `app/` – Sudoku reševalec (vnos uganke → rešitev po korakih).
+  - `index.html` – markup strani, nalaga `shared/engine.js` in `app.js`.
+  - `app.css` – stili reševalca (vnosna mreža, kandidati, koraki, lightbox).
+  - `app.js` – UI: vnos v mrežo, preverjanje konfliktov, klic `solve()`, izris rešitve/kandidatov/korakov, lightbox.
+- `trening/` – vadba posameznih tehnik z naključno generiranimi vajami.
+  - `index.html` – markup strani (meni tehnik + prostor za vajo), nalaga `generators.js` in `trening.js`.
+  - `trening.css` – stili trenerja (kartice v meniju, mreža vaje, X-Wing/Swordfish mreža, povratne informacije).
+  - `generators.js` – generatorji naključnih vaj za vsako tehniko (`genNakedPair`, `genHiddenPair`, `genNakedTriple`, `genHiddenTriple`, `genXWing`, `genSwordfish`) in `MODES` – osrednja definicija vsake tehnike (generator, barve, št. celic za izbiro, opis, posebnosti UI).
+  - `trening.js` – UI/tok vadbe: izbira tehnike v meniju, izris vaje, preverjanje odgovora (`checkPhase1`/`checkPhase2`), namig/rešitev na dotik, štetje rezultata.
+- `docs/naloge/` – specifikacije posameznih nalog/popravkov za to sejo (naloga na datoteko, oštevilčeno).
+- `old/` – arhiv starejših verzij treninga pred refaktoriranjem (zunaj projekta, ni v gitu).
+- `CLAUDE.md` – ta datoteka.
+
+Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v eni enoti oz. umetno 9×9 mrežo za X-Wing/Swordfish) – ne uporablja `shared/engine.js` in ne rešuje pravih ugank, zato od `shared/` ni odvisen.
 
 ## Zagon in testi
-- Zagon reševalca: [DOPOLNI]
-- Zagon treninga: [DOPOLNI]
-- Zagon testov: [DOPOLNI]
+- Zagon reševalca: odpri `app/index.html` neposredno v brskalniku, ali iz korena projekta poženi lokalni strežnik (npr. `python -m http.server`) in obišči `http://localhost:<vrata>/app/`.
+- Zagon treninga: enako, `trening/index.html`.
+- Zagon testov: projekt trenutno nima avtomatskih testov. Posnetek obnašanja reševalca in regresijski testi so predvideni v `docs/naloge/02-regresijski-testi.md`, a še niso napisani.
 - Okolje: Windows 10, VS Code. Če projekt uporablja Python: uporabljaj conda okolje `py312_env` (Python 3.12). Pred zagonom preveri `python --version`; če ni 3.12, zaganjaj prek okolja (npr. `conda run -n py312_env python ...`).
 
 ## Arhitektura
 - Logika tehnik (iskanje vzorcev, izločanje kandidatov) je samo v `shared/`. `app/` in `trening/` jo le kličeta – logike ne podvajaj.
-- Vsaka tehnika ima definicijo na enem mestu: [DOPOLNI: kje]. Lastnosti, ki se med tehnikami razlikujejo (npr. kateri gumbi so vidni v treningu), so zapisane v tej definiciji – ne kot posebni primeri (`if tehnika == ...`) po kodi.
-- Vrstni red tehnik v reševalcu: [DOPOLNI]. Nove tehnike dodajaj na konec, razen če izrecno zahtevam drugače.
-- Zapis celic v razlagah: [DOPOLNI: kot je že v kodi, npr. V5S3 ali r5c3].
+- Vsaka tehnika ima definicijo na enem mestu:
+  - V reševalcu (`app/`): en vnos `[ime, funkcija]` v `ALL_TECHNIQUES` v `shared/engine.js`.
+  - V treningu (`trening/`): en vnos v `MODES` v `trening/generators.js` (generator vaje + `selClass`/`hlClass`/`btnClass`/`pickN`/`desc`/`showCandidateCount` ipd.). Gumb »Pokaži število kandidatov« je viden natanko takrat, ko ima tehnika `showCandidateCount:true` (trenutno pri vseh razen X-Wing in Swordfish) – glej `docs/naloge/01-swordfish-gumb.md`.
+- Vrstni red tehnik v reševalcu (`ALL_TECHNIQUES` v `shared/engine.js`): Gol enojček → Skriti enojček → Pointing pair/triple → Box-line reduction → Naked pair → Hidden pair → Naked triple → Hidden triple → X-Wing → XY-Wing → Unique Rectangle → (če nič od tega ne najde koraka) sestopanje/forcing chain (`tryBifurcation`). Nove tehnike dodajaj na konec, razen če izrecno zahtevam drugače.
+- Zapis celic v razlagah: `V<vrstica>S<stolpec>` (1–9), npr. `V5S3` (funkciji `cellLabel`/`cellsLabel` v `shared/engine.js`).
 
 ## Pravila dela
 - Pred vsako večjo spremembo predlagaj načrt in počakaj na potrditev.

@@ -403,16 +403,16 @@ function addLabels(slots,ut,ui){
 function unitLbl(ut,ui){return ut==='row'?`Vrstica ${ui}`:ut==='col'?`Stolpec ${ui}`:`Blok ${ui}`;}
 
 const MODES={
-  'naked-pair':{gen:genNakedPair,name:'Očitna para',selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,
+  'naked-pair':{gen:genNakedPair,name:'Očitna para',selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,showCandidateCount:true,
     desc:'Najdi 2 celici z natanko istima dvema kandidatoma.'},
-  'hidden-pair':{gen:genHiddenPair,name:'Skrita para',selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,
+  'hidden-pair':{gen:genHiddenPair,name:'Skrita para',selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,showCandidateCount:true,
     desc:'Najdi 2 celici, ki skrivata par – nato izberi kateri 2 številki tvorita par.'},
-  'naked-triple':{gen:genNakedTriple,name:'Očitna trojica',selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,
+  'naked-triple':{gen:genNakedTriple,name:'Očitna trojica',selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,showCandidateCount:true,
     desc:'Najdi 3 celice, ki skupaj pokrijejo natanko 3 kandidate.'},
-  'hidden-triple':{gen:genHiddenTriple,name:'Skrita trojica',selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,
+  'hidden-triple':{gen:genHiddenTriple,name:'Skrita trojica',selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,showCandidateCount:true,
     desc:'Najdi 3 celice, ki skrivajo trojico – nato izberi katere 3 številke jo tvorijo.'},
-  'x-wing':{gen:genXWing,name:'X-Wing',selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,
+  'x-wing':{gen:genXWing,name:'X-Wing',selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,showCandidateCount:false,
     desc:'Najdi pravokotnik 4 celic za označeno številko.'},
-  'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,
+  'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false,
     desc:'Najdi 3 vrstice (ali stolpce), kjer se številka pojavi samo na istih 3 stolpcih (ali vrsticah).'},
 };

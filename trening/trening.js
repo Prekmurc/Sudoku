@@ -127,8 +127,8 @@ function renderExercise(){
     cellEls=layout.cellEls;countEls=layout.countEls;
   }
 
-  // Gumb za stevilo kandidatov (ne za X-Wing)
-  if(!M.isXWing&&!M.isSwordfish){
+  // Gumb za stevilo kandidatov - vidnost je lastnost tehnike (M.showCandidateCount), ne poseben primer po imenu tehnike
+  if(M.showCandidateCount){
     const ctBtn=document.createElement('button');ctBtn.className='sm-btn';ctBtn.textContent='Pokaži število kandidatov';
     ctBtn.style.cssText='margin-bottom:10px;display:block';
     ctBtn.addEventListener('click',()=>{
