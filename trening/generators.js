@@ -148,6 +148,43 @@ function genBoxLineCore(n, kind){
 function genPointing(n){return genBoxLineCore(n,'pointing');}
 function genBoxLineReduction(n){return genBoxLineCore(n,'boxline');}
 
+/* --- Sporočilo motorja za vaje v eni enoti (očitna/skrita para in trojica) ---
+   Vaja prikaže samo 9 celic ene enote, zato iz nje sestavimo 81-celično desko (kot
+   pri Pointing/XY-Wing: vse ostale celice so "dane") in poiščemo korak prave tehnike
+   iz shared/engine.js. Ujemanje po celicah samo ne zadošča: na taki deski so celice
+   vaje edine prazne v svojem bloku, zato motor tam najde tudi vzorce, ki jih vaja ne
+   prikazuje (npr. skrito paro v bloku, ki seka vrstico vaje) - ti imajo lahko iste
+   celice, a druge številke. Zato filtriramo po celicah, številkah IN enoti koraka. */
+function unitCellsOf(ut,ui){return ut==='row'?ROWS[ui-1]:ut==='col'?COLS[ui-1]:BOXES[ui-1];}
+
+function subsetSolutionMessage(slots,ut,ui,targetSlots,targetDigits,techFn,hidden){
+  const unitCells=unitCellsOf(ut,ui);
+  const grid=new Array(81).fill(1),cand=new Array(81).fill(0);
+  slots.forEach((sl,i)=>{
+    const idx=unitCells[i];
+    if(sl.fixed!==undefined) grid[idx]=sl.fixed;
+    else { grid[idx]=0; cand[idx]=sl.c.reduce((m,d)=>m|(1<<d),0); }
+  });
+  const want=new Set(targetSlots.map(i=>unitCells[i]));
+  const cilj=[...targetDigits].sort((a,b)=>a-b).join(',');
+  const match=techFn({grid,cand}).find(st=>{
+    if(st.unit!==unitCells) return false;
+    if(st.cells.length!==want.size||!st.cells.every(c=>want.has(c))) return false;
+    // Številke vzorca: pri očitnem so unija kandidatov celic, pri skritem tisto,
+    // kar v teh celicah ostane po izbrisu.
+    let mask=0;
+    if(hidden){
+      let odstranjeni=0;
+      for(const [,d] of st.eliminate) odstranjeni|=(1<<d);
+      for(const c of st.cells) mask|=cand[c]&~odstranjeni;
+    } else {
+      for(const c of st.cells) mask|=cand[c];
+    }
+    return bitsOf(mask).join(',')===cilj;
+  });
+  return match?match.message:null;
+}
+
 function genNakedPair(n){
   for(let attempt=0;attempt<50;attempt++){
     const ut=['row','col','block'][n%3],ui=randInt(1,9);
@@ -173,7 +210,9 @@ function genNakedPair(n){
     // Preveri da par celice imata se vedno 2 kandidata
     if(pp.some(p=>slots[p].c.length!==2)) continue;
     addLabels(slots,ut,ui);
-    return{slots,targetSlots:pp,targetDigits:pd,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'naked-pair'};
+    const msg=subsetSolutionMessage(slots,ut,ui,pp,pd,nakedPairs,false);
+    if(!msg) continue;
+    return{slots,targetSlots:pp,targetDigits:pd,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'naked-pair',solutionMessage:msg};
   }
   // Fallback (ne bi smelo priti sem)
   return genNakedPair(n+10);
@@ -226,7 +265,9 @@ function genHiddenPair(n){
       }
     if(hasNP) continue;
     addLabels(slots,ut,ui);
-    return{slots,targetSlots:hp,targetDigits:hd,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'hidden-pair'};
+    const msg=subsetSolutionMessage(slots,ut,ui,hp,hd,hiddenPairs,true);
+    if(!msg) continue;
+    return{slots,targetSlots:hp,targetDigits:hd,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'hidden-pair',solutionMessage:msg};
   }
   return genHiddenPair(n+10);
 }
@@ -267,7 +308,9 @@ function genNakedTriple(n){
     }
     if(!hasElim) continue;
     addLabels(slots,ut,ui);
-    return{slots,targetSlots:tp,targetDigits:td,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'naked-triple'};
+    const msg=subsetSolutionMessage(slots,ut,ui,tp,td,nakedTriples,false);
+    if(!msg) continue;
+    return{slots,targetSlots:tp,targetDigits:td,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'naked-triple',solutionMessage:msg};
   }
   return genNakedTriple(n+10);
 }
@@ -350,7 +393,9 @@ function genHiddenTriple(n){
       }
     if(hasNakedTriple||hasNakedPair) continue;
     addLabels(slots,ut,ui);
-    return{slots,targetSlots:hp,targetDigits:hd,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'hidden-triple'};
+    const msg=subsetSolutionMessage(slots,ut,ui,hp,hd,hiddenTriples,true);
+    if(!msg) continue;
+    return{slots,targetSlots:hp,targetDigits:hd,unitLabel:unitLbl(ut,ui),unitType:ut,mode:'hidden-triple',solutionMessage:msg};
   }
   return genHiddenTriple(n+10);
 }

@@ -366,6 +366,9 @@ function renderExercise(){
       const techName=M.isSwordfish?'Swordfish':'X-Wing';
       return `<b>Vse veljavne ${techName} kombinacije (${combos.length}):</b><br>${combos.join('<br>')}`;
     }
+    // Očitna para/trojica: sporočilo motorja (pove tudi celice izbrisa). Pri skritih
+    // vzorcih ga ne kažemo - tam se pokaže šele po 2. fazi (glej checkPhase2).
+    if(!M.hasPhase2&&ex.solutionMessage) return ex.solutionMessage;
     const cells=ex.targetSlots.map(p=>ex.slots[p].pos).join(', ');
     const digits=ex.targetDigits.join(', ');
     return `<b>Celice:</b> ${cells} · <b>Številke:</b> {${digits}}`;
@@ -634,7 +637,12 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     const ds=isTarget?new Set(ex.targetDigits):union;
     const ps=isTarget?ex.targetSlots:sorted;
     fb.className='fb ok';
-    fb.innerHTML=`<b>Pravilno!</b> {${[...ds].sort((a,b)=>a-b).join(', ')}} v ${ps.map(p=>ex.slots[p].pos).join(', ')}.`;
+    // Pri načrtovanem vzorcu pokažemo sporočilo iz shared/engine.js (pove tudi, kje
+    // kandidati odpadejo); če je uporabnik našel drug veljaven par/trojico, sporočilo
+    // generatorja zanj ne velja, zato besedilo sestavimo iz njegove izbire.
+    fb.innerHTML=`<b>Pravilno!</b> ${isTarget&&ex.solutionMessage
+      ? ex.solutionMessage
+      : `{${[...ds].sort((a,b)=>a-b).join(', ')}} v ${ps.map(p=>ex.slots[p].pos).join(', ')}.`}`;
     ps.forEach(si=>{cellEls[si].classList.add('correct');cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(ds.has(+cd.dataset.d)&&!cd.classList.contains('hide'))cd.classList.add('hl',M.hlClass);});});
     ex.slots.forEach((slot,si)=>{if(ps.includes(si)||!slot.c)return;cellEls[si].querySelectorAll('.cd').forEach(cd=>{const d=+cd.dataset.d;if(ds.has(d)&&slot.c.includes(d))cd.classList.add('elim');});});
     checkBtn.style.display='none';nextBtn.style.display='inline-block';
@@ -657,7 +665,10 @@ function checkPhase2(ex,M,cellEls,ch2,nextBtn,fb){
     const ds=new Set(t);
     const cellNames=ex.targetSlots.map(p=>ex.slots[p].pos).join(', ');
     fb.className='fb ok';
-    fb.innerHTML=`<b>Pravilno!</b> {${t.join(', ')}} se v enoti pojavljajo samo v ${cellNames}. Iz teh celic izbrišeš vse ostale kandidate.`;
+    // Sporočilo motorja šele tu (2. faza) - po 1. fazi bi izdalo številke, ki jih
+    // mora uporabnik šele izbrati.
+    fb.innerHTML=`<b>Pravilno!</b> ${ex.solutionMessage
+      || `{${t.join(', ')}} se v enoti pojavljajo samo v ${cellNames}. Iz teh celic izbrišeš vse ostale kandidate.`}`;
     ex.targetSlots.forEach(si=>{cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(cd.classList.contains('hide'))return;if(ds.has(+cd.dataset.d))cd.classList.add('hl',M.hlClass);else cd.classList.add('elim');});});
     ch2.style.display='none';nextBtn.style.display='inline-block';
   } else {

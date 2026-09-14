@@ -240,7 +240,10 @@ function nakedSubsets(b, size, name) {
         }
         if (elim.length) {
           steps.push({
-            technique: name, cells: combo.slice(), assign: [], eliminate: elim,
+            // unit: enota, v kateri je vzorec najden (referenca iz ALL_UNITS). Isti
+            // celice so lahko veljaven vzorec v dveh enotah hkrati (npr. par v vrstici,
+            // ki leži tudi v istem bloku), zato je enota del identitete koraka.
+            technique: name, cells: combo.slice(), unit, assign: [], eliminate: elim,
             message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'številki' : 'številke'}) -> te številke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
           });
         }
@@ -274,7 +277,8 @@ function hiddenSubsets(b, size, name) {
       }
       if (elim.length) {
         steps.push({
-          technique: name, cells: [...spots], assign: [], eliminate: elim,
+          // unit: glej opombo pri nakedSubsets.
+          technique: name, cells: [...spots], unit, assign: [], eliminate: elim,
           message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta številki' : 'so številke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
         });
       }
