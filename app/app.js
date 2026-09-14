@@ -78,7 +78,7 @@ let lastSolve = null; // { givens, grid, log } - napolnjeno po uspešnem "Reši"
 function tagClass(tech) {
   if (tech === 'Gol enojček' || tech === 'Skriti enojček') return 't-single';
   if (tech.includes('pair') || tech.includes('triple') || tech.includes('Pair') || tech.includes('Triple') || tech === 'Box-line reduction') return 't-pair';
-  if (tech === 'X-Wing' || tech === 'XY-Wing' || tech === 'Unique Rectangle' || tech.includes('Coloring')) return 't-advanced';
+  if (tech === 'X-Wing' || tech === 'Swordfish' || tech === 'XY-Wing' || tech === 'Unique Rectangle' || tech.includes('Coloring')) return 't-advanced';
   if (tech.includes('forcing') || tech.includes('protislovje')) return 't-chain';
   return 't-basic';
 }

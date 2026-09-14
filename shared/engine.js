@@ -305,6 +305,43 @@ function xWing(b) {
   return steps;
 }
 
+function swordfish(b) {
+  const steps = [];
+  for (let d = 1; d <= 9; d++) {
+    const bit = 1 << d;
+    for (const [baseUnits, crossUnits, baseName, crossName, crossIndex] of [
+      [ROWS, COLS, 'vrsticah', 'stolpcih', c => c % 9],
+      [COLS, ROWS, 'stolpcih', 'vrsticah', c => Math.floor(c / 9)],
+    ]) {
+      const lines = [];
+      for (const u of baseUnits) {
+        const spots = u.filter(c => b.grid[c] === 0 && (b.cand[c] & bit));
+        if (spots.length >= 2 && spots.length <= 3) lines.push([u, spots]);
+      }
+      for (const combo of combinations(lines, 3)) {
+        const [[u1, s1], [u2, s2], [u3, s3]] = combo;
+        const idxUnion = new Set([...s1, ...s2, ...s3].map(crossIndex));
+        if (idxUnion.size !== 3) continue;
+        const elim = [];
+        for (const idx of idxUnion) {
+          const line = crossUnits[idx];
+          for (const c of line) {
+            if (s1.includes(c) || s2.includes(c) || s3.includes(c)) continue;
+            if (b.grid[c] === 0 && (b.cand[c] & bit)) elim.push([c, d]);
+          }
+        }
+        if (elim.length) {
+          steps.push({
+            technique: 'Swordfish', cells: [...s1, ...s2, ...s3], assign: [], eliminate: elim,
+            message: `Kandidat ${d} je v treh ${baseName} (${unitName(u1)}, ${unitName(u2)}, ${unitName(u3)}) možen samo na istih treh mestih -> tvori Swordfish. ${d} lahko izbrišemo iz preostanka teh ${crossName} (${cellsLabel(elim.map(e => e[0]))}).`
+          });
+        }
+      }
+    }
+  }
+  return steps;
+}
+
 function xyWing(b) {
   const steps = [];
   const bivalue = [];
@@ -389,6 +426,7 @@ const ALL_TECHNIQUES = [
   ['Naked triple', nakedTriples],
   ['Hidden triple', hiddenTriples],
   ['X-Wing', xWing],
+  ['Swordfish', swordfish],
   ['XY-Wing', xyWing],
   ['Unique Rectangle', uniqueRectangle],
 ];

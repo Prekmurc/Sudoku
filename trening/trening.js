@@ -314,46 +314,69 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       return;
     }
     // Preveri obe smeri
-    let valid=false, usedBases=[], usedCrosses=[], baseIsRow=true;
-    for(const tryRow of [true,false]){
-      const baseSet=tryRow?rows:cols;
-      const crossSet=tryRow?cols:rows;
-      if(baseSet.size!==expSize||crossSet.size<2||crossSet.size>expSize) continue;
-      let ok=true;
-      for(const b of baseSet){
-        let count=0;
-        for(let i=0;i<9;i++){
-          const idx=tryRow?b*9+i:i*9+b;
-          if(ex.grid[idx]){
-            count++;
-            // Preveri da je ta pojavitev znotraj crossSet
-            const crossIdx=tryRow?i:i;
-            if(!crossSet.has(crossIdx)){ok=false;break;}
+    let valid=false, usedBases=[], usedCrosses=[], baseIsRow=true, elimNow=[];
+    if(M.isSwordfish){
+      // Jedro zaznave vzorca in izračun izbrisov je ista koda kot v reševalcu
+      // (shared/engine.js swordfish()) - sprejme katero koli veljavno kombinacijo
+      // izbranih celic, ne samo tisto, ki jo je sestavil generator.
+      const bit=1<<ex.digit;
+      const fakeBoard={grid:new Array(81).fill(0),cand:ex.grid.map(has=>has?bit:0)};
+      const selSet=new Set(selected);
+      const match=swordfish(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
+      if(match){
+        valid=true;
+        elimNow=match.eliminate.map(([c])=>c);
+        // Katera os je "baza" - samo za izpis besedila spodaj (shared koda tega ne vrača).
+        baseIsRow=[...rows].every(r=>{
+          let count=0,ok=true;
+          for(let i=0;i<9;i++){ if(ex.grid[r*9+i]){count++; if(!cols.has(i)) ok=false;} }
+          return ok&&count>=2&&count<=3;
+        });
+        usedBases=baseIsRow?[...rows]:[...cols];
+        usedCrosses=baseIsRow?[...cols]:[...rows];
+      }
+    } else {
+      for(const tryRow of [true,false]){
+        const baseSet=tryRow?rows:cols;
+        const crossSet=tryRow?cols:rows;
+        if(baseSet.size!==expSize||crossSet.size<2||crossSet.size>expSize) continue;
+        let ok=true;
+        for(const b of baseSet){
+          let count=0;
+          for(let i=0;i<9;i++){
+            const idx=tryRow?b*9+i:i*9+b;
+            if(ex.grid[idx]){
+              count++;
+              // Preveri da je ta pojavitev znotraj crossSet
+              const crossIdx=tryRow?i:i;
+              if(!crossSet.has(crossIdx)){ok=false;break;}
+            }
+          }
+          if(!ok) break;
+          if(count<2||count>expSize){ok=false;break;}
+        }
+        if(ok){
+          valid=true;
+          usedBases=[...baseSet];
+          usedCrosses=[...crossSet];
+          baseIsRow=tryRow;
+          break;
+        }
+      }
+      if(valid){
+        for(const cr of usedCrosses){
+          for(let i=0;i<9;i++){
+            const idx=baseIsRow?i*9+cr:cr*9+i;
+            const realBase=baseIsRow?Math.floor(idx/9):idx%9;
+            if(usedBases.includes(realBase)) continue;
+            if(ex.grid[idx]) elimNow.push(idx);
           }
         }
-        if(!ok) break;
-        if(count<2||count>expSize){ok=false;break;}
-      }
-      if(ok){
-        valid=true;
-        usedBases=[...baseSet];
-        usedCrosses=[...crossSet];
-        baseIsRow=tryRow;
-        break;
       }
     }
     scoreTotal++;
     if(valid){
       scoreRight++;updateScore();
-      const elimNow=[];
-      for(const cr of usedCrosses){
-        for(let i=0;i<9;i++){
-          const idx=baseIsRow?i*9+cr:cr*9+i;
-          const realBase=baseIsRow?Math.floor(idx/9):idx%9;
-          if(usedBases.includes(realBase)) continue;
-          if(ex.grid[idx]) elimNow.push(idx);
-        }
-      }
       const typeLabel=baseIsRow?'Vrstični':'Stolpčni';
       const techName=M.isSwordfish?'Swordfish':'X-Wing';
       const baseWord=baseIsRow?'vrsticah':'stolpcih';
