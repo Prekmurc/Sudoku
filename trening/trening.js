@@ -72,6 +72,57 @@ function buildLayout(div,ex,M){
   return{cellEls,countEls};
 }
 
+// Prikaz za Pointing pair/triple in Box-line reduction: primarna enota (blok
+// ali vrstica/stolpec, 9 celic) + preostanek druge enote zunaj nje (6 celic).
+// ex.slots je en plosk seznam 15 rež (najprej primarne, nato sekundarne) -
+// indeks v njem (si) je isti, kot ga uporablja makeCell/selected.
+function buildBoxLineLayout(div,ex,M){
+  const countEls=[],cellEls=[];
+  const primarySlots=[],secondarySlots=[];
+  ex.slots.forEach((slot,si)=>(slot.group==='primary'?primarySlots:secondarySlots).push([slot,si]));
+
+  const primLbl=document.createElement('div');primLbl.className='bl-section-label';primLbl.textContent=ex.primaryLabel;
+  div.appendChild(primLbl);
+
+  if(ex.primaryType==='block'){
+    const lg=document.createElement('div');lg.className='block-labels';
+    primarySlots.forEach(([slot])=>{const s=document.createElement('span');s.textContent=slot.pos;lg.appendChild(s);});
+    div.appendChild(lg);
+    const grid=document.createElement('div');grid.className='layout-block';
+    primarySlots.forEach(([slot,si])=>{const gc=makeCell(slot,si,M);grid.appendChild(gc);cellEls[si]=gc;});
+    div.appendChild(grid);
+    const bc=document.createElement('div');bc.className='block-counts';
+    primarySlots.forEach(([slot,si])=>{const s=document.createElement('span');s.textContent=slot.c?slot.c.length:'';bc.appendChild(s);countEls[si]=s;});
+    div.appendChild(bc);
+  } else {
+    const strip=document.createElement('div');strip.className=ex.primaryType==='row'?'layout-row':'layout-col';
+    primarySlots.forEach(([slot,si])=>{
+      const cw=document.createElement('div');cw.className='cw';
+      const lbl=document.createElement('div');lbl.className='clbl';lbl.textContent=slot.pos;cw.appendChild(lbl);
+      const gc=makeCell(slot,si,M);cw.appendChild(gc);cellEls[si]=gc;
+      const cnt=document.createElement('div');cnt.className='ccnt';cnt.textContent=slot.c?slot.c.length:'';cw.appendChild(cnt);countEls[si]=cnt;
+      strip.appendChild(cw);
+    });
+    div.appendChild(strip);
+  }
+
+  const secLbl=document.createElement('div');secLbl.className='bl-section-label';
+  const outsideOf=ex.primaryType==='block'?'bloka':(ex.primaryType==='row'?'vrstice':'stolpca');
+  secLbl.textContent=`${ex.secondaryLabel} (izven ${outsideOf})`;
+  div.appendChild(secLbl);
+  const rest=document.createElement('div');rest.className='layout-rest';
+  secondarySlots.forEach(([slot,si])=>{
+    const cw=document.createElement('div');cw.className='cw';
+    const lbl=document.createElement('div');lbl.className='clbl';lbl.textContent=slot.pos;cw.appendChild(lbl);
+    const gc=makeCell(slot,si,M);cw.appendChild(gc);cellEls[si]=gc;
+    const cnt=document.createElement('div');cnt.className='ccnt';cnt.textContent=slot.c?slot.c.length:'';cw.appendChild(cnt);countEls[si]=cnt;
+    rest.appendChild(cw);
+  });
+  div.appendChild(rest);
+
+  return{cellEls,countEls};
+}
+
 function renderExercise(){
   const M=MODES[mode];
   if(exNum>=MAX_EX){
@@ -122,6 +173,12 @@ function renderExercise(){
       }
     }
     div.appendChild(xg);
+  } else if(M.isPointing||M.isBoxLine){
+    const dlabel=document.createElement('div');dlabel.className='xw-digit-label';
+    dlabel.textContent=`Označena številka: ${ex.digit}`;
+    div.appendChild(dlabel);
+    const layout=buildBoxLineLayout(div,ex,M);
+    cellEls=layout.cellEls;countEls=layout.countEls;
   } else {
     const layout=buildLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
@@ -182,9 +239,23 @@ function renderExercise(){
   // --- Namig in Rešitev gumba (prikaže se samo med držanjem) ---
   const peekRow=document.createElement('div');peekRow.className='peek-row';
 
+  // Za Pointing/Box-line: korak shared logike, ki ga je generator preveril in
+  // shranil (glej trening/generators.js) - uporabljata ga namig, rešitev in
+  // poudarjanje celic, da vedno kažeta na isti, načrtovani vzorec (na plošči
+  // lahko po naključju obstaja tudi kak drug veljaven vzorec za isto številko;
+  // preverjanje odgovora v checkPhase1 tak vzorec še vedno sprejme).
+  function exDigitStep(){
+    if(!ex.solutionCells) return null;
+    return {cells:ex.solutionCells,eliminate:ex.solutionEliminate,message:ex.solutionMessage};
+  }
+
   // Besedilo namiga glede na tip
   function buildHintText(){
-    if(M.isXWing||M.isSwordfish){
+    if(M.isPointing||M.isBoxLine){
+      const withDigit=ex.slots.filter(s=>s.group==='primary'&&s.c&&s.c.includes(ex.digit)).map(s=>s.pos);
+      const seek=M.isPointing?'eni vrstici ali stolpcu':'enem bloku';
+      return `Kandidat ${ex.digit} se v ${ex.primaryLabel.toLowerCase()} pojavlja v celicah: ${withDigit.join(', ')||'(nikjer)'}. Ali vse ležijo v ${seek}?`;
+    } else if(M.isXWing||M.isSwordfish){
       // Preštej v koliko celicah se digit pojavi v vsaki vrstici in stolpcu
       const rowCounts=[],colCounts=[];
       for(let i=0;i<9;i++){
@@ -207,6 +278,10 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
+    if(M.isPointing||M.isBoxLine){
+      const step=exDigitStep();
+      return step?step.message:'(ni najdenega vzorca)';
+    }
     if(M.isXWing||M.isSwordfish){
       const expSize=M.isSwordfish?3:2;
       const combos=[];
@@ -259,7 +334,14 @@ function renderExercise(){
     overlay.innerHTML=text;
     overlay.classList.add('visible');
     if(showHL){
-      if(M.isXWing||M.isSwordfish){
+      if(M.isPointing||M.isBoxLine){
+        const step=exDigitStep();
+        if(step){
+          const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
+          step.cells.forEach(cidx=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-hl');});
+          step.eliminate.forEach(([cidx])=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-elim');});
+        }
+      } else if(M.isXWing||M.isSwordfish){
         const hlCells=ex.rect||ex.sfCells||[];
         hlCells.forEach(([r,c])=>cellEls[r*9+c].classList.add('peek-hl'));
         (ex.elimCells||[]).forEach(([r,c])=>cellEls[r*9+c].classList.add('peek-elim'));
@@ -300,8 +382,44 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     if(selected.length<6||selected.length>9){fb.className='fb err';fb.textContent='Izberi 6–9 celic (vse celice s to številko v 3 vrsticah ali stolpcih).';return;}
   } else if(M.isXWing){
     if(selected.length!==4){fb.className='fb err';fb.textContent='Izberi natanko 4 celice.';return;}
+  } else if(M.isPointing||M.isBoxLine){
+    if(selected.length<2||selected.length>3){fb.className='fb err';fb.textContent='Izberi 2 ali 3 celice.';return;}
   } else {
     if(selected.length!==M.pickN){fb.className='fb err';fb.textContent=`Izberi natanko ${M.pickN} celice.`;return;}
+  }
+
+  if(M.isPointing||M.isBoxLine){
+    // Jedro zaznave (pointing()/boxLineReduction()) je ista koda kot v reševalcu
+    // (shared/engine.js) - sprejme katero koli veljavno kombinacijo izbranih
+    // celic za označeno številko, ne samo tisto, ki jo je sestavil generator.
+    const techFn=M.isPointing?pointing:boxLineReduction;
+    const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
+    const selSet=new Set(selected.map(si=>ex.slots[si].idx));
+    const steps=techFn(fakeBoard).filter(s=>s.eliminate.length&&s.eliminate[0][1]===ex.digit);
+    const match=steps.find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
+    scoreTotal++;
+    if(match){
+      scoreRight++;updateScore();
+      const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
+      fb.className='fb ok';
+      fb.innerHTML=`<b>Pravilno!</b> ${match.message}`;
+      selected.forEach(si=>cellEls[si].classList.add('correct'));
+      match.eliminate.forEach(([cidx,dig])=>{
+        const si=idxToSi.get(cidx);if(si===undefined)return;
+        cellEls[si].classList.add('elimcell');
+        const cd=cellEls[si].querySelector(`.cd[data-d="${dig}"]`);
+        if(cd) cd.classList.add('elim');
+      });
+      checkBtn.style.display='none';nextBtn.style.display='inline-block';
+    } else {
+      updateScore();
+      const where=M.isPointing?'bloku':(ex.primaryType==='row'?'vrstici':'stolpcu');
+      const target=M.isPointing?'eno vrstico/stolpec':'en blok';
+      fb.className='fb err';
+      fb.innerHTML=`<b>To še ni pravi vzorec.</b> Izberi tiste 2–3 celice, kjer je kandidat ${ex.digit} v ${where} omejen na ${target}.`;
+      selected.forEach(si=>cellEls[si].classList.remove(M.selClass));selected=[];
+    }
+    return;
   }
 
   if(M.isXWing||M.isSwordfish){
