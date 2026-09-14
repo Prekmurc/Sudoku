@@ -75,6 +75,18 @@ function numsLabel(nums) {
   return a.length < 2 ? String(a[0]) : `${a.slice(0, -1).join(', ')} in ${a[a.length - 1]}`;
 }
 
+// Naštevanje izbrisov po celicah: "V1S2 (2), V5S2 (4,7)". Uporabno pri tehnikah,
+// kjer ista celica izgubi več kandidatov (Naked/Hidden par in trojica).
+function elimLabel(elim) {
+  const byCell = new Map();
+  for (const [cell, d] of elim) {
+    if (!byCell.has(cell)) byCell.set(cell, []);
+    byCell.get(cell).push(d);
+  }
+  return [...byCell.keys()].sort((a, b) => a - b)
+    .map(c => `${cellLabel(c)} (${byCell.get(c).sort((a, b) => a - b).join(',')})`).join(', ');
+}
+
 class Board {
   constructor(givens) {
     this.grid = new Array(81).fill(0);
@@ -229,7 +241,7 @@ function nakedSubsets(b, size, name) {
         if (elim.length) {
           steps.push({
             technique: name, cells: combo.slice(), assign: [], eliminate: elim,
-            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'številki' : 'številke'}) -> te številke lahko izbrišemo iz preostanka enote.`
+            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'številki' : 'številke'}) -> te številke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
           });
         }
       }
@@ -263,7 +275,7 @@ function hiddenSubsets(b, size, name) {
       if (elim.length) {
         steps.push({
           technique: name, cells: [...spots], assign: [], eliminate: elim,
-          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta številki' : 'so številke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo.`
+          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta številki' : 'so številke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
         });
       }
     }
