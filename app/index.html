@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Sudoku reševalec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="top">
+  <p class="eyebrow">Reševalec &middot; z razlago vsakega koraka</p>
+  <h1>Sudoku reševalec</h1>
+  <p>Vtipkaj začetne številke naravnost v mrežo (samo pojdi od celice do celice), nato pritisni "Reši". Podvojene številke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
+</header>
+
+<main>
+  <div class="card">
+    <div id="inputGrid"></div>
+    <div class="btn-row">
+      <button class="primary" id="solveBtn">Reši</button>
+      <button id="candBtn">Prikaži kandidate</button>
+      <button id="clearBtn">Počisti</button>
+      <button id="exampleBtn">Primer</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="candSection" style="display:none;">
+    <h2>Možni kandidati</h2>
+    <p class="cand-hint">Modra celica = tvoj vnos. Ostalo so vse številke, ki jih glede na vrstico/stolpec/blok še ni mogoče izključiti (brez naprednih tehnik - enako kot "hitri svinčnik" v aplikaciji).</p>
+    <div id="candidateGrid"></div>
+  </div>
+
+  <div class="card" id="results">
+    <h2>Rešitev</h2>
+    <div class="legend-grid">
+      <span><span class="sw" style="background:#DDE7F3;border-color:#0B4FCC"></span>tvoj vnos</span>
+      <span><span class="sw" style="background:#fff"></span>izpeljano</span>
+    </div>
+    <div id="solvedGrid"></div>
+    <p class="cand-hint" style="margin-top:-6px;">Tapni mrežo za povečan prikaz.</p>
+    <div class="summary" id="summary"></div>
+    <button class="primary" id="openStepsBtn" style="width:100%;">Prikaži korake reševanja</button>
+  </div>
+
+  <div class="card" id="stepsCard" style="display:none;">
+    <h2>Koraki reševanja</h2>
+    <div class="steps-toolbar">
+      <span id="progress"></span>
+      <button id="resetChecks">Počisti kljukice</button>
+    </div>
+    <ol id="steps"></ol>
+  </div>
+</main>
+
+<div id="lightbox">
+  <span id="lightboxHint">tapni za zapiranje</span>
+  <button id="lightboxClose" type="button">✕</button>
+  <div id="lightboxScroll"><div id="lightboxInner"></div></div>
+</div>
+
+<footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor). Modra številka v rešeni mreži = tvoj vnos, črna = izpeljano.</footer>
+
+<script src="../shared/engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+/* shared/base.css — skupne osnove za obe Sudoku aplikaciji (reševalec in trening tehnik).
+   Vsebuje samo tisto, kar je bilo v obeh izvornih datotekah dobesedno enako. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}

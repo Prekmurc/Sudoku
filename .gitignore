@@ -1,0 +1,16 @@
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+*.code-workspace
+
+# Node (za primer, da se kdaj doda orodje/testni runner)
+node_modules/
+npm-debug.log*
+
+# Začasno/generirano
+*.tmp
+*.log

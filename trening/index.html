@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku trening tehnik</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="trening.css">
+</head>
+<body>
+<header>
+  <h1>Sudoku trening tehnik</h1>
+  <p>Izberi tehniko in vadi z naključno generiranimi vajami.</p>
+</header>
+<div class="container">
+  <div id="menu">
+    <div class="menu-card" data-mode="naked-pair">
+      <span class="badge badge-pair">SREDNJE</span>
+      <h3>Očitna para (Naked Pair)</h3>
+      <p>Najdi dve celici z natanko istima dvema kandidatoma.</p>
+    </div>
+    <div class="menu-card" data-mode="hidden-pair">
+      <span class="badge badge-hpair">SREDNJE</span>
+      <h3>Skrita para (Hidden Pair)</h3>
+      <p>Najdi dve številki, ki se pojavljata samo v istih dveh celicah.</p>
+    </div>
+    <div class="menu-card" data-mode="naked-triple">
+      <span class="badge badge-triple">ZAHTEVNO</span>
+      <h3>Očitna trojica (Naked Triple)</h3>
+      <p>Najdi tri celice, ki skupaj pokrijejo natanko tri kandidate.</p>
+    </div>
+    <div class="menu-card" data-mode="hidden-triple">
+      <span class="badge badge-htriple">ZAHTEVNO</span>
+      <h3>Skrita trojica (Hidden Triple)</h3>
+      <p>Najdi tri številke, ki se v enoti pojavljajo samo v istih treh celicah.</p>
+    </div>
+    <div class="menu-card" data-mode="x-wing">
+      <span class="badge badge-xwing">NAPREDNO</span>
+      <h3>X-Wing</h3>
+      <p>Kandidat se v dveh vrsticah/stolpcih pojavi na istih dveh mestih – tvori pravokotnik.</p>
+    </div>
+    <div class="menu-card" data-mode="swordfish">
+      <span class="badge badge-swordfish">NAPREDNO</span>
+      <h3>Tehnika mečarice (Swordfish)</h3>
+      <p>Razširjen X-Wing: 3 vrstice × 3 stolpci. Isti princip, večji vzorec.</p>
+    </div>
+  </div>
+  <div id="trainer">
+    <button class="back-btn" id="backBtn">← Nazaj na izbiro</button>
+    <div class="score-bar"><span>Pravilno: <b id="scoreRight">0</b> / <b id="scoreTotal">0</b></span><span id="scorePercent"></span></div>
+    <div id="exerciseArea"></div>
+  </div>
+</div>
+
+<script src="generators.js"></script>
+<script src="trening.js"></script>
+</body>
+</html>
