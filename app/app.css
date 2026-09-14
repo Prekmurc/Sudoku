@@ -202,6 +202,7 @@
   }
   #status.err{ color: var(--red); }
   #status.ok{ color: var(--green); }
+  #status.warn{ color: var(--amber); }
 
   /* ---------- rezultati ---------- */
   #results{ display:none; }

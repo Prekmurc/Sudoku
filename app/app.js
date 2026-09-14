@@ -359,7 +359,7 @@ document.getElementById('solveBtn').addEventListener('click', () => {
       statusEl.className = 'err';
       return;
     }
-    const { board, log } = result;
+    const { board, log, solutionCount } = result;
 
     solvedGridEl.innerHTML = '';
     for (let i = 0; i < 81; i++) {
@@ -381,7 +381,16 @@ document.getElementById('solveBtn').addEventListener('click', () => {
     lastSolve = { givens, grid: board.grid.slice(), log };
     resultsEl.style.display = 'block';
 
-    if (board.isSolved()) {
+    if (solutionCount === 0) {
+      statusEl.textContent = 'Uganka nima rešitve - preveri vnesene številke.';
+      statusEl.className = 'err';
+    } else if (solutionCount === 'unknown') {
+      statusEl.textContent = 'Enoličnosti uganke ni bilo mogoče preveriti v razumnem času - tehnika Unique Rectangle zato ni bila uporabljena, prikazana rešitev morda ni edina.';
+      statusEl.className = 'warn';
+    } else if (solutionCount !== 1) {
+      statusEl.textContent = 'Uganka nima natanko ene rešitve (najdenih je več kot ena) - prikazana rešitev je le ena od možnih, tehnika Unique Rectangle zato ni bila uporabljena.';
+      statusEl.className = 'warn';
+    } else if (board.isSolved()) {
       statusEl.textContent = `Rešeno v ${log.length} korakih.`;
       statusEl.className = 'ok';
     } else {

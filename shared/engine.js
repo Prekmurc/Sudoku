@@ -464,6 +464,44 @@ function tryBifurcation(b, budgetPerTry = 20000) {
   return null;
 }
 
+/* ===================== ŠTETJE REŠITEV (preverjanje enoličnosti) ===================== */
+
+// Prešteje rešitve dane uganke (z backtrackingom + propagacijo), a se ustavi
+// takoj, ko najde `limit` rešitev - za vprašanje "ali je rešitev natanko ena"
+// ni treba iskati dlje. `attemptBudget` je varovalo proti predolgemu iskanju
+// pri patoloških mrežah: če se izčrpa, preden je iskanje končano ali preden
+// je najdenih `limit` rešitev, dejanskega števila ni mogoče zanesljivo
+// določiti in funkcija vrne niz 'unknown'.
+function countSolutionsRec(b, limit, budget, counter) {
+  if (counter.count >= limit) return;
+  if (budget[0] <= 0) { counter.unknown = true; return; }
+  budget[0]--;
+  if (!fastPropagate(b)) return; // protislovje na tej veji -> 0 rešitev od tu naprej
+  if (b.isSolved()) { counter.count++; return; }
+  const empties = [];
+  for (let c = 0; c < 81; c++) if (b.grid[c] === 0) empties.push(c);
+  empties.sort((a, c) => popcount(b.cand[a]) - popcount(b.cand[c]));
+  const cell = empties[0];
+  for (const d of bitsOf(b.cand[cell])) {
+    if (counter.count >= limit || counter.unknown) return;
+    const branch = b.clone();
+    branch.assign(cell, d);
+    countSolutionsRec(branch, limit, budget, counter);
+  }
+}
+
+// Vrne 0, 1 ali `limit` (kar pomeni "limit ali več") najdenih rešitev za
+// dane začetne danosti (`givens`), ali niz 'unknown', če varovalo prekine
+// iskanje, preden je odgovor zanesljivo znan.
+function countSolutions(givens, limit = 2, attemptBudget = 50000) {
+  const b = new Board(givens);
+  if (!b.isValid()) return 0; // takojšnje protislovje med samimi danostmi
+  const counter = { count: 0, unknown: false };
+  countSolutionsRec(b, limit, [attemptBudget], counter);
+  if (counter.unknown && counter.count < limit) return 'unknown';
+  return counter.count;
+}
+
 function digitsOfStep(step) {
   const ds = new Set();
   for (const [, d] of step.assign) ds.add(d);
@@ -476,6 +514,16 @@ function solve(givens, maxSteps = 500) {
   const log = [];
   let focusDigit = null;
 
+  // Enoličnost se preveri ENKRAT na uganko, na vnesenih danostih (`givens`),
+  // ne pri vsakem koraku in ne na mreži, ki se med reševanjem spreminja.
+  // Unique Rectangle sklepa "če bi bilo tudi tu ..., bi uganka imela dve
+  // rešitvi" - ta sklep drži samo, če ima uganka dejansko natanko eno
+  // rešitev, zato jo pri vsem drugem izpustimo.
+  const solutionCount = countSolutions(givens, 2);
+  const techniques = solutionCount === 1
+    ? ALL_TECHNIQUES
+    : ALL_TECHNIQUES.filter(([name]) => name !== 'Unique Rectangle');
+
   for (let iter = 0; iter < maxSteps; iter++) {
     if (b.isSolved()) break;
     let found = null;
@@ -485,7 +533,7 @@ function solve(givens, maxSteps = 500) {
     // samo korake, ki se tičejo focusDigit. Tako se dokončajo vse možne
     // poteze za eno številko, preden preskočimo na naslednjo.
     if (focusDigit !== null) {
-      for (const [name, fn] of ALL_TECHNIQUES) {
+      for (const [name, fn] of techniques) {
         const steps = fn(b).filter(s => digitsOfStep(s).has(focusDigit));
         if (steps.length) { found = steps[0]; break; }
       }
@@ -494,7 +542,7 @@ function solve(givens, maxSteps = 500) {
     // Če za trenutno številko ni več nič najti, izberemo novo (karkoli je
     // na vrsti po običajni prioriteti) in se "usidramo" nanjo naprej.
     if (!found) {
-      for (const [name, fn] of ALL_TECHNIQUES) {
+      for (const [name, fn] of techniques) {
         const steps = fn(b);
         if (steps.length) { found = steps[0]; break; }
       }
@@ -521,6 +569,6 @@ function solve(givens, maxSteps = 500) {
       break;
     }
   }
-  return { board: b, log };
+  return { board: b, log, solutionCount };
 }
 
