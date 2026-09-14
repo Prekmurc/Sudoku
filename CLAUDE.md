@@ -4,7 +4,7 @@
 Projekt ima dve aplikaciji s skupno kodo:
 
 1. **Reševalec** (`app/`) – vnos uganke, reševanje po korakih z razlago, grafični prikaz mreže in kandidatov.
-2. **Trening tehnik** (`trening/`) – vaje za tehnike: Pointing pair/triple, Box-line reduction, Očitna para, Skrita para, Očitna trojica, Skrita trojica, X-Wing, Swordfish.
+2. **Trening tehnik** (`trening/`) – vaje za tehnike: Pointing pair/triple, Box-line reduction, Očitna para, Skrita para, Očitna trojica, Skrita trojica, X-Wing, Swordfish, XY-Wing, Unique Rectangle.
 
 Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 
@@ -19,13 +19,13 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 - `trening/` – vadba posameznih tehnik z naključno generiranimi vajami.
   - `index.html` – markup strani (meni tehnik + prostor za vajo), nalaga `shared/engine.js`, `generators.js` in `trening.js`.
   - `trening.css` – stili trenerja (kartice v meniju, mreža vaje, X-Wing/Swordfish mreža, povratne informacije).
-  - `generators.js` – generatorji naključnih vaj za vsako tehniko (`genPointing`, `genBoxLineReduction`, `genNakedPair`, `genHiddenPair`, `genNakedTriple`, `genHiddenTriple`, `genXWing`, `genSwordfish`) in `MODES` – osrednja definicija vsake tehnike (generator, barve, št. celic za izbiro, opis, posebnosti UI).
-  - `trening.js` – UI/tok vadbe: izbira tehnike v meniju, izris vaje, preverjanje odgovora (`checkPhase1`/`checkPhase2`), namig/rešitev na dotik, štetje rezultata. Za Pointing pair/triple, Box-line reduction in Swordfish preverjanje kliče ustrezno funkcijo (`pointing()`, `boxLineReduction()`, `swordfish()`) iz `shared/engine.js` (zgradi začasno "desko" iz vaje in preveri, ali izbrane celice ustrezajo najdenemu vzorcu) namesto lastne kopije logike.
+  - `generators.js` – generatorji naključnih vaj za vsako tehniko (`genPointing`, `genBoxLineReduction`, `genNakedPair`, `genHiddenPair`, `genNakedTriple`, `genHiddenTriple`, `genXWing`, `genSwordfish`, `genXYWing`, `genUniqueRectangle`) in `MODES` – osrednja definicija vsake tehnike (generator, barve, št. celic za izbiro, opis, posebnosti UI).
+  - `trening.js` – UI/tok vadbe: izbira tehnike v meniju, izris vaje, preverjanje odgovora (`checkPhase1`/`checkPhase2`), namig/rešitev na dotik, štetje rezultata. Za Pointing pair/triple, Box-line reduction, Swordfish, XY-Wing in Unique Rectangle preverjanje kliče ustrezno funkcijo (`pointing()`, `boxLineReduction()`, `swordfish()`, `xyWing()`, `uniqueRectangle()`) iz `shared/engine.js` (zgradi začasno "desko" iz vaje in preveri, ali izbrane celice ustrezajo najdenemu vzorcu) namesto lastne kopije logike.
 - `docs/naloge/` – specifikacije posameznih nalog/popravkov za to sejo (naloga na datoteko, oštevilčeno).
 - `old/` – arhiv starejših verzij treninga pred refaktoriranjem (zunaj projekta, ni v gitu).
 - `CLAUDE.md` – ta datoteka.
 
-Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v eni ali dveh enotah oz. umetno 9×9 mrežo za X-Wing/Swordfish) – ne rešuje pravih ugank. Za Pointing pair/triple in Box-line reduction pri sestavljanju uporablja `BOXES`/`ROWS`/`COLS` iz `shared/engine.js` (za pravilno definicijo enot) in vsak sestavljeni primer pred vrnitvijo preveri s klicem `pointing()`/`boxLineReduction()` (da dejansko najde veljaven korak) – za te dve tehniki torej ni več neodvisen od `shared/`. Pri ostalih tehnikah (Naked/Hidden pair/triple, X-Wing, Swordfish) generatorji od `shared/` ostajajo neodvisni. `trening/trening.js` pa za preverjanje odgovora pri Pointing, Box-line reduction in Swordfish vajah `shared/engine.js` uporablja (glej zgoraj).
+Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v eni ali dveh enotah oz. umetno 9×9 mrežo za X-Wing/Swordfish/XY-Wing/Unique Rectangle) – ne rešuje pravih ugank. Za Pointing pair/triple in Box-line reduction pri sestavljanju uporablja `BOXES`/`ROWS`/`COLS` iz `shared/engine.js` (za pravilno definicijo enot) in vsak sestavljeni primer pred vrnitvijo preveri s klicem `pointing()`/`boxLineReduction()` (da dejansko najde veljaven korak) – za te dve tehniki torej ni več neodvisen od `shared/`. Enako velja za XY-Wing in Unique Rectangle: ker ti dve delujeta na pravih odnosih "katera celica vidi katero" (`PEERS`, `boxOf`), generator sestavi celo 81-celično desko (prazne so samo celice vaje, ostale so "dane") in jo preveri s klicem `xyWing()`/`uniqueRectangle()`; zahteva se, da najde načrtovani vzorec in nobenega drugega – s tem je preverjeno tudi, da moteče celice res ne tvorijo veljavnega vzorca (pri XY-Wing trojica, kjer eno krilo ne vidi pivota; pri Unique Rectangle pravokotnik čez štiri bloke namesto čez dva). Pri ostalih tehnikah (Naked/Hidden pair/triple, X-Wing, Swordfish) generatorji od `shared/` ostajajo neodvisni. `trening/trening.js` pa za preverjanje odgovora pri Pointing, Box-line reduction in Swordfish vajah `shared/engine.js` uporablja (glej zgoraj).
 
 ## Zagon in testi
 - Zagon reševalca: odpri `app/index.html` neposredno v brskalniku, ali iz korena projekta poženi lokalni strežnik (npr. `python -m http.server`) in obišči `http://localhost:<vrata>/app/`.

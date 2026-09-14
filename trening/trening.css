@@ -6,6 +6,7 @@
   --amber:#8A6010;--amber-bg:#F2E6C8;--teal:#0E7A7A;--teal-bg:#D2EFEF;
   --purple:#6840A0;--purple-bg:#E4DAF2;--blue:#1758A8;--blue-bg:#D8E5F4;
   --indigo:#4B3F91;--indigo-bg:#E3DFF5;
+  --cyan:#0E6E8A;--cyan-bg:#D5EAF2;--orange:#9A5218;--orange-bg:#F6E2D0;
   --cs:min(10.6vw,46px);
 }
 /* *{box-sizing:border-box} in body{margin:0;color:var(--ink);font-family:'Inter',sans-serif}
@@ -31,6 +32,8 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .badge-swordfish{background:#E8F5E9;color:#2E7D32}
 .badge-pointing{background:var(--blue-bg);color:var(--blue)}
 .badge-boxline{background:var(--indigo-bg);color:var(--indigo)}
+.badge-xywing{background:var(--cyan-bg);color:var(--cyan)}
+.badge-ur{background:var(--orange-bg);color:var(--orange)}
 
 /* --- VAJE --- */
 #trainer{display:none}
@@ -74,6 +77,8 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .gc.selected-forest{background:#E8F5E9!important;box-shadow:inset 0 0 0 2.5px #2E7D32}
 .gc.selected-blue{background:var(--blue-bg)!important;box-shadow:inset 0 0 0 2.5px var(--blue)}
 .gc.selected-indigo{background:var(--indigo-bg)!important;box-shadow:inset 0 0 0 2.5px var(--indigo)}
+.gc.selected-cyan{background:var(--cyan-bg)!important;box-shadow:inset 0 0 0 2.5px var(--cyan)}
+.gc.selected-orange{background:var(--orange-bg)!important;box-shadow:inset 0 0 0 2.5px var(--orange)}
 .gc.correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--green)}
 .gc.elimcell{background:var(--red-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
 .gc.peek-elim{background:var(--red-bg)!important}
@@ -92,6 +97,8 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .cd.hl-forest{color:#2E7D32}
 .cd.hl-blue{color:var(--blue)}
 .cd.hl-indigo{color:var(--indigo)}
+.cd.hl-cyan{color:var(--cyan)}
+.cd.hl-orange{color:var(--orange)}
 
 .phase2{margin:10px 0 0;display:none}
 .phase2 p{font-size:14px;color:#3C4854;margin:0 0 8px}
@@ -135,6 +142,21 @@ button.peek-btn:active{background:#F0F2F5}
 .xw-cell[data-r="8"]{border-bottom:2px solid var(--ink)}
 .xw-digit-label{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pencil);text-align:center;margin:0 0 8px}
 
+/* XY-Wing in Unique Rectangle: cela mreža 9x9 s kandidati (vidi se, katera celica
+   vidi katero). Celice so navadne .gc, le brez zaobljenih robov in z debelejšimi
+   črtami med bloki; sive (.given) so tiste, ki niso del vaje. */
+.g9{display:grid;grid-template-columns:20px repeat(9,var(--cs));grid-template-rows:20px repeat(9,var(--cs));justify-content:center;margin:0 auto 6px;gap:0}
+.g9-hdr{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--pencil)}
+.g9 .gc{position:relative;border-radius:0;border:1px solid #E0E3E7}
+.g9 .gc.given{background:#F1F3F5}
+.g9 .gc[data-c="0"]{border-left:2px solid var(--ink)}
+.g9 .gc[data-c="2"],.g9 .gc[data-c="5"],.g9 .gc[data-c="8"]{border-right:2px solid var(--ink)}
+.g9 .gc[data-r="0"]{border-top:2px solid var(--ink)}
+.g9 .gc[data-r="2"],.g9 .gc[data-r="5"],.g9 .gc[data-r="8"]{border-bottom:2px solid var(--ink)}
+.g9 .gcnt{position:absolute;top:0;right:0;font-family:'JetBrains Mono',monospace;font-size:8px;line-height:1.2;padding:0 1.5px;color:var(--amber);background:#fff;border-bottom-left-radius:3px;visibility:hidden}
+.g9 .gcnt.vis{visibility:visible}
+.g9-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--pencil);text-align:center;margin:0 0 8px}
+
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 0}
 button.pri{font-family:'Inter',sans-serif;font-weight:600;font-size:14px;padding:11px 20px;border-radius:8px;border:none;color:#fff;cursor:pointer}
 button.pri:active{opacity:.85}
@@ -146,6 +168,8 @@ button.pri-rose{background:#A02050}
 button.pri-forest{background:#2E7D32}
 button.pri-blue{background:var(--blue)}
 button.pri-indigo{background:var(--indigo)}
+button.pri-cyan{background:var(--cyan)}
+button.pri-orange{background:var(--orange)}
 button.pri-green{background:var(--green);display:none}
 button.sm-btn{font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--pencil);cursor:pointer}
 button.back-btn{font-size:13px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-weight:600;margin:16px 0 0}

@@ -524,6 +524,133 @@ function genSwordfish(n){
   return genSwordfish(n+10);
 }
 
+/* --- XY-Wing in Unique Rectangle ---
+   Drugače kot ostale tehnike ti dve delujeta na pravih odnosih "katera celica
+   vidi katero" po celi mreži, zato generatorja sestavita celo 81-celično desko:
+   vse celice so privzeto "dane" (grid=1, tehniki ju preskočita), prazne (grid=0
+   s kandidati) so samo tiste, ki jih vaja prikaže. Vsak primer je pred vrnitvijo
+   preverjen s klicem prave tehnike iz shared/engine.js (xyWing()/uniqueRectangle()):
+   zahtevamo, da najde načrtovani vzorec IN nobenega drugega - s tem je preverjeno
+   tudi, da moteče celice res ne tvorijo veljavnega vzorca. */
+function emptyBoard(){return{grid:new Array(81).fill(1),cand:new Array(81).fill(0)};}
+function setCell(board,idx,digits){board.grid[idx]=0;board.cand[idx]=digits.reduce((m,d)=>m|(1<<d),0);}
+function slotsFromBoard(board){
+  const slots=[];
+  for(let i=0;i<81;i++) if(board.grid[i]===0) slots.push({idx:i,pos:cellPos(i),c:bitsOf(board.cand[i])});
+  return slots;
+}
+const ALL_IDX=Array.from({length:81},(_,i)=>i);
+
+function genXYWing(n){
+  const all9=[0,1,2,3,4,5,6,7,8];
+  for(let attempt=0;attempt<300;attempt++){
+    const ds=shuffle([1,2,3,4,5,6,7,8,9]);
+    const [x,y,z,da,db,dc]=ds; // x,y,z: pravi vzorec; da,db,dc: motilec (ločeni množici številk)
+    const fill=ds.slice(6);    // preostale 3 številke za celici izbrisa (da nista bivalue)
+
+    // Pravi vzorec: pivot {x,y}, krilo 1 v isti vrstici {x,z}, krilo 2 v istem
+    // stolpcu {y,z}. Celica izbrisa E vidi obe krili (stolpec krila 1, vrstica krila 2).
+    const pr=randInt(0,8),pc=randInt(0,8);
+    const c1=shuffle(all9.filter(c=>c!==pc))[0];
+    const r2=shuffle(all9.filter(r=>r!==pr))[0];
+    const P=pr*9+pc,W1=pr*9+c1,W2=r2*9+pc,E=r2*9+c1;
+    if(boxOf(P)===boxOf(E)) continue; // celica izbrisa naj ne vidi pivota
+
+    // Motilec: trojica s popolnim vzorcem številk (da,db / da,dc / db,dc) in celico,
+    // kjer bi brisala - spodleti pri natanko enem pogoju: drugo krilo (d3) ne vidi
+    // pivota (d1). Da vzorec ne bi bil veljaven z drugim pivotom, d3 ne vidi ne d1 ne d2.
+    const used=new Set([P,W1,W2,E]);
+    const d1=shuffle(ALL_IDX.filter(i=>!used.has(i)))[0];
+    const d2pool=[...PEERS[d1]].filter(i=>!used.has(i));
+    if(!d2pool.length) continue;
+    const d2=shuffle(d2pool)[0];
+    const d3pool=ALL_IDX.filter(i=>!used.has(i)&&i!==d1&&i!==d2&&!PEERS[d1].has(i)&&!PEERS[d2].has(i));
+    if(!d3pool.length) continue;
+    const d3=shuffle(d3pool)[0];
+    const e2pool=[...PEERS[d2]].filter(i=>PEERS[d3].has(i)&&!used.has(i)&&i!==d1&&i!==d3);
+    if(!e2pool.length) continue;
+    const E2=shuffle(e2pool)[0];
+
+    const board=emptyBoard();
+    setCell(board,P,[x,y]);
+    setCell(board,W1,[x,z]);
+    setCell(board,W2,[y,z]);
+    setCell(board,E,[z,...randSub(fill,2)]);
+    setCell(board,d1,[da,db]);
+    setCell(board,d2,[da,dc]);
+    setCell(board,d3,[db,dc]);
+    setCell(board,E2,[dc,...randSub(fill,2)]);
+
+    const want=new Set([P,W1,W2]);
+    const steps=xyWing(board);
+    if(!steps.length) continue;
+    if(!steps.every(s=>s.cells.length===3&&s.cells.every(c=>want.has(c)))) continue;
+    const match=steps[0];
+
+    return{
+      mode:'xy-wing',
+      slots:slotsFromBoard(board),
+      boardGrid:board.grid,boardCand:board.cand,
+      // Korak, ki ga je generator dejansko preveril (shared/engine.js) - uporabljata
+      // ga namig/rešitev v trening.js.
+      solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
+      unitLabel:'XY-Wing: pivot in dve krili',
+    };
+  }
+  return genXYWing(n+7);
+}
+
+function genUniqueRectangle(n){
+  for(let attempt=0;attempt<300;attempt++){
+    const ds=shuffle([1,2,3,4,5,6,7,8,9]);
+    const [x,y,da,db]=ds; // {x,y}: par pravega pravokotnika; {da,db}: par motilca
+    const fill=ds.slice(4);
+
+    // Pravi vzorec: 2 vrstici x 2 stolpca v natanko DVEH blokih - bodisi vrstici
+    // v istem pasu treh vrstic (stolpca iz različnih pasov) ali obratno.
+    let r1,r2,c1,c2;
+    if(Math.random()<0.5){
+      const band=randInt(0,2),rs=randSub([0,1,2],2).map(i=>band*3+i);r1=rs[0];r2=rs[1];
+      const cb=randSub([0,1,2],2);c1=cb[0]*3+randInt(0,2);c2=cb[1]*3+randInt(0,2);
+    } else {
+      const band=randInt(0,2),cs=randSub([0,1,2],2).map(i=>band*3+i);c1=cs[0];c2=cs[1];
+      const rb=randSub([0,1,2],2);r1=rb[0]*3+randInt(0,2);r2=rb[1]*3+randInt(0,2);
+    }
+    const corners=[r1*9+c1,r1*9+c2,r2*9+c1,r2*9+c2];
+    if(new Set(corners.map(boxOf)).size!==2) continue;
+    const fourth=corners[randInt(0,3)]; // vogal z dodatnimi kandidati
+
+    // Motilec: enak vzorec kandidatov (trije vogali z istim parom + četrti z dodatnimi),
+    // a pravokotnik leži v ŠTIRIH blokih - spodleti pri natanko tem enem pogoju.
+    const rb2=randSub([0,1,2],2),cb2=randSub([0,1,2],2);
+    const mr1=rb2[0]*3+randInt(0,2),mr2=rb2[1]*3+randInt(0,2);
+    const mc1=cb2[0]*3+randInt(0,2),mc2=cb2[1]*3+randInt(0,2);
+    const mCorners=[mr1*9+mc1,mr1*9+mc2,mr2*9+mc1,mr2*9+mc2];
+    if(new Set(mCorners.map(boxOf)).size!==4) continue;
+    if(mCorners.some(i=>corners.includes(i))) continue;
+    const mFourth=mCorners[randInt(0,3)];
+
+    const board=emptyBoard();
+    corners.forEach(i=>setCell(board,i,i===fourth?[x,y,...randSub(fill,randInt(1,2))]:[x,y]));
+    mCorners.forEach(i=>setCell(board,i,i===mFourth?[da,db,...randSub(fill,randInt(1,2))]:[da,db]));
+
+    const want=new Set(corners);
+    const steps=uniqueRectangle(board);
+    if(!steps.length) continue;
+    if(!steps.every(s=>s.cells.length===4&&s.cells.every(c=>want.has(c)))) continue;
+    const match=steps[0];
+
+    return{
+      mode:'unique-rectangle',
+      slots:slotsFromBoard(board),
+      boardGrid:board.grid,boardCand:board.cand,
+      solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
+      unitLabel:'Unique Rectangle: smrtonosni vzorec',
+    };
+  }
+  return genUniqueRectangle(n+7);
+}
+
 function addLabels(slots,ut,ui){
   for(let i=0;i<9;i++){
     if(ut==='row') slots[i].pos=`V${ui}S${i+1}`;
@@ -550,4 +677,8 @@ const MODES={
     desc:'Najdi pravokotnik 4 celic za označeno številko.'},
   'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false,
     desc:'Najdi 3 vrstice (ali stolpce), kjer se številka pojavi samo na istih 3 stolpcih (ali vrsticah).'},
+  'xy-wing':{gen:genXYWing,name:'XY-Wing',selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true,
+    desc:'Med prikazanimi celicami poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno številko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok). Izberi pivota in obe krili (3 celice).'},
+  'unique-rectangle':{gen:genUniqueRectangle,name:'Unique Rectangle',selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true,
+    desc:'Poišči pravokotnik štirih celic (2 vrstici × 2 stolpca, v natanko dveh blokih): trije vogali imajo natanko isti par kandidatov {x, y}, četrti pa poleg x in y še vsaj en dodaten kandidat. Ker ima uganka natanko eno rešitev, četrti vogal ne sme ostati samo na {x, y} (to bi dopuščalo dve rešitvi) – iz njega zato izbrišemo x in y. Izberi vse štiri celice pravokotnika.'},
 };

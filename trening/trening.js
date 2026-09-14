@@ -123,6 +123,49 @@ function buildBoxLineLayout(div,ex,M){
   return{cellEls,countEls};
 }
 
+// Prikaz za XY-Wing in Unique Rectangle: cela mreža 9x9 s kandidati, ker je pri
+// teh dveh tehnikah bistveno videti, katera celica "vidi" katero (ista vrstica,
+// stolpec ali blok). Celice vaje (ex.slots) so klikljive, vse ostale so prikazane
+// kot že rešene (sive, brez številke - sintetična deska ni prava uganka).
+function buildFullGridLayout(div,ex,M){
+  const cellEls=[],countEls=[];
+  const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
+  const g=document.createElement('div');g.className='g9';
+  const corner=document.createElement('div');corner.className='g9-hdr';g.appendChild(corner);
+  for(let c=0;c<9;c++){const h=document.createElement('div');h.className='g9-hdr';h.textContent='S'+(c+1);g.appendChild(h);}
+  for(let r=0;r<9;r++){
+    const rh=document.createElement('div');rh.className='g9-hdr';rh.textContent='V'+(r+1);g.appendChild(rh);
+    for(let c=0;c<9;c++){
+      const idx=r*9+c,si=idxToSi.get(idx);
+      let gc;
+      if(si===undefined){gc=document.createElement('div');gc.className='gc given';}
+      else{
+        gc=makeCell(ex.slots[si],si,M);
+        const cnt=document.createElement('div');cnt.className='gcnt';cnt.textContent=ex.slots[si].c.length;
+        gc.appendChild(cnt);countEls[si]=cnt;cellEls[si]=gc;
+      }
+      gc.dataset.r=r;gc.dataset.c=c;
+      g.appendChild(gc);
+    }
+  }
+  div.appendChild(g);
+  const note=document.createElement('div');note.className='g9-note';
+  note.textContent='Sive celice so že rešene; prikazani so kandidati praznih celic.';
+  div.appendChild(note);
+  return{cellEls,countEls};
+}
+
+// Besedilo koraka v izrazoslovju treninga (CLAUDE.md: pivot, krilo). Sporočila iz
+// shared/engine.js za XY-Wing tu ne uporabimo, ker govori o "krakih".
+function xyWingText(ex,step){
+  const [p,w1,w2]=step.cells;
+  const slotOf=idx=>ex.slots.find(s=>s.idx===idx);
+  const lbl=idx=>{const s=slotOf(idx);return `${s.pos} {${s.c.join(',')}}`;};
+  const z=step.eliminate.length?step.eliminate[0][1]:null;
+  const elim=[...new Set(step.eliminate.map(e=>e[0]))].map(i=>slotOf(i).pos).join(', ');
+  return `Pivot ${lbl(p)}, krili ${lbl(w1)} in ${lbl(w2)}. Obe krili vidita pivota in si z njim delita po eno številko, skupna jima je ${z} → ${z} izbrišemo iz celic, ki vidijo obe krili (${elim}).`;
+}
+
 function renderExercise(){
   const M=MODES[mode];
   if(exNum>=MAX_EX){
@@ -178,6 +221,10 @@ function renderExercise(){
     dlabel.textContent=`Označena številka: ${ex.digit}`;
     div.appendChild(dlabel);
     const layout=buildBoxLineLayout(div,ex,M);
+    cellEls=layout.cellEls;countEls=layout.countEls;
+  } else if(M.isXYWing||M.isUR){
+    // Brez oznake "Označena številka": ti dve tehniki nista vezani na eno samo številko.
+    const layout=buildFullGridLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
   } else {
     const layout=buildLayout(div,ex,M);
@@ -255,6 +302,14 @@ function renderExercise(){
       const withDigit=ex.slots.filter(s=>s.group==='primary'&&s.c&&s.c.includes(ex.digit)).map(s=>s.pos);
       const seek=M.isPointing?'eni vrstici ali stolpcu':'enem bloku';
       return `Kandidat ${ex.digit} se v ${ex.primaryLabel.toLowerCase()} pojavlja v celicah: ${withDigit.join(', ')||'(nikjer)'}. Ali vse ležijo v ${seek}?`;
+    } else if(M.isXYWing){
+      const bi=ex.slots.filter(s=>s.c.length===2).map(s=>`${s.pos}{${s.c.join(',')}}`);
+      return `Celice z natanko dvema kandidatoma: ${bi.join(', ')}. Pivot je tisti, ki ga <b>obe</b> krili vidita (ista vrstica, stolpec ali blok) – ena trojica ima prave številke, a eno krilo pivota ne vidi.`;
+    } else if(M.isUR){
+      const byPair={};
+      ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(',');(byPair[k]=byPair[k]||[]).push(s.pos);});
+      const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
+      return `Pari kandidatov: ${lines}. Trije vogali z istim parom morajo ležati v 2 vrsticah, 2 stolpcih in <b>natanko dveh blokih</b> – če je pravokotnik razpet čez štiri bloke, tehnika ne velja.`;
     } else if(M.isXWing||M.isSwordfish){
       // Preštej v koliko celicah se digit pojavi v vsaki vrstici in stolpcu
       const rowCounts=[],colCounts=[];
@@ -278,9 +333,13 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
-    if(M.isPointing||M.isBoxLine){
+    if(M.isPointing||M.isBoxLine||M.isUR){
       const step=exDigitStep();
       return step?step.message:'(ni najdenega vzorca)';
+    }
+    if(M.isXYWing){
+      const step=exDigitStep();
+      return step?xyWingText(ex,step):'(ni najdenega vzorca)';
     }
     if(M.isXWing||M.isSwordfish){
       const expSize=M.isSwordfish?3:2;
@@ -334,7 +393,7 @@ function renderExercise(){
     overlay.innerHTML=text;
     overlay.classList.add('visible');
     if(showHL){
-      if(M.isPointing||M.isBoxLine){
+      if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR){
         const step=exDigitStep();
         if(step){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
@@ -417,6 +476,40 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       const target=M.isPointing?'eno vrstico/stolpec':'en blok';
       fb.className='fb err';
       fb.innerHTML=`<b>To še ni pravi vzorec.</b> Izberi tiste 2–3 celice, kjer je kandidat ${ex.digit} v ${where} omejen na ${target}.`;
+      selected.forEach(si=>cellEls[si].classList.remove(M.selClass));selected=[];
+    }
+    return;
+  }
+
+  if(M.isXYWing||M.isUR){
+    // Jedro zaznave je ista koda kot v reševalcu (shared/engine.js xyWing() /
+    // uniqueRectangle()). Ti dve tehniki nista vezani na eno "označeno" številko
+    // (vsak vzorec ima svoje), zato se ujemanje preverja samo po množici izbranih
+    // celic - sprejme katero koli veljavno kombinacijo, ne le tiste iz generatorja.
+    const techFn=M.isXYWing?xyWing:uniqueRectangle;
+    const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
+    const selSet=new Set(selected.map(si=>ex.slots[si].idx));
+    const match=techFn(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
+    scoreTotal++;
+    if(match){
+      scoreRight++;updateScore();
+      const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
+      fb.className='fb ok';
+      fb.innerHTML=`<b>Pravilno!</b> ${M.isXYWing?xyWingText(ex,match):match.message}`;
+      selected.forEach(si=>cellEls[si].classList.add('correct'));
+      match.eliminate.forEach(([cidx,dig])=>{
+        const si=idxToSi.get(cidx);if(si===undefined)return;
+        cellEls[si].classList.add('elimcell');
+        const cd=cellEls[si].querySelector(`.cd[data-d="${dig}"]`);
+        if(cd) cd.classList.add('elim');
+      });
+      checkBtn.style.display='none';nextBtn.style.display='inline-block';
+    } else {
+      updateScore();
+      fb.className='fb err';
+      fb.innerHTML=M.isXYWing
+        ? '<b>To še ni veljaven XY-Wing.</b> Pivot mora imeti natanko dva kandidata, <b>obe krili</b> morata pivota videti (ista vrstica, stolpec ali blok) in si z njim deliti po eno številko, skupna pa jima mora biti tretja številka.'
+        : '<b>To še ni veljaven Unique Rectangle.</b> Potrebuješ 4 celice v 2 vrsticah in 2 stolpcih, ki ležijo v <b>natanko dveh blokih</b>: trije vogali z natanko istim parom kandidatov, četrti pa z istim parom in še dodatnimi.';
       selected.forEach(si=>cellEls[si].classList.remove(M.selClass));selected=[];
     }
     return;
