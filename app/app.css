@@ -192,6 +192,18 @@
   }
   button.primary:active{ opacity:0.85; }
   button:not(.primary):active{ background: var(--paper); }
+  /* spustni seznam "Primer" - videz kot ostali gumbi v vrstici */
+  .btn-row select{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background:#fff;
+    color: var(--ink);
+    cursor:pointer;
+  }
 
   #status{
     font-size:13px;

@@ -274,7 +274,7 @@ document.getElementById('clearBtn').addEventListener('click', () => {
 });
 
 // Vpiše danosti (81 znakov, '0' ali '.' = prazna celica) v vnosno mrežo in
-// skrije prejšnjo rešitev/kandidate - uporabljata jo gumb "Primer" in zbirka.
+// skrije prejšnjo rešitev/kandidate - uporabljata jo seznam "Primer" in zbirka.
 function naloziDanosti(danosti, sporocilo) {
   danosti.split('').forEach((ch, i) => { inputs[i].value = (ch === '0' || ch === '.') ? '' : ch; });
   checkConflicts();
@@ -287,9 +287,27 @@ function naloziDanosti(danosti, sporocilo) {
   lastSolve = null;
 }
 
-document.getElementById('exampleBtn').addEventListener('click', () => {
-  const example = '000800020900000600000000000604000900000720003500000000000056000080009000070000010';
-  naloziDanosti(example, 'Naložen je bil primer uganke (Ekstrem, 17 danih številk).');
+// Vgrajeni primeri (spustni seznam "Primer"). Nov primer = nova vrstica tu.
+// Danosti morajo biti preverjene (countSolutions() === 1) in zapisane v
+// docs/uganke.md; '0' ali '.' = prazna celica.
+const PRIMERI = [
+  { ime: 'Primer 1 (z ugibanjem)', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
+  { ime: 'Primer 2 (Ekstrem, brez ugibanja)', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
+];
+
+const exampleSelect = document.getElementById('exampleSelect');
+PRIMERI.forEach((p, i) => {
+  const o = document.createElement('option');
+  o.value = i;
+  o.textContent = p.ime;
+  exampleSelect.appendChild(o);
+});
+exampleSelect.addEventListener('change', () => {
+  const p = PRIMERI[exampleSelect.value];
+  exampleSelect.selectedIndex = 0; // nazaj na "Primer", da gre isti primer izbrati znova
+  if (!p) return;
+  const danih = p.danosti.replace(/[.0]/g, '').length;
+  naloziDanosti(p.danosti, `Naložen je ${p.ime} - danih številk: ${danih}.`);
 });
 
 const candBtn = document.getElementById('candBtn');

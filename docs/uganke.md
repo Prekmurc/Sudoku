@@ -23,6 +23,7 @@ ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`).
 - **Danosti:** `8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4`
 - **Vir:** Oakever, Ekstrem (Lv4); aplikacija Oakever je zanjo uporabila W-Wing,
   XY-Wing, Skyscraper, Jellyfish, X-Wing.
+- **Vgrajen primer:** `app/app.js` (polje `PRIMERI`, "Primer 2 (Ekstrem, brez ugibanja)").
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** naš `solve()` (`shared/engine.js`) jo reši brez sestopanja
@@ -36,6 +37,6 @@ ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`).
 ### example-app
 
 - **Danosti:** `000800020900000600000000000604000900000720003500000000000056000080009000070000010`
-- **Vir:** vgrajen primer v `app/app.js` (gumb "Primer").
+- **Vir:** vgrajen primer v `app/app.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši.
 - **Značilnost:** `tryBifurcation` se uporabi enkrat, na indeksu koraka 50 od 77.
