@@ -255,9 +255,16 @@ document.getElementById('openStepsBtn').addEventListener('click', () => {
 
 
 
+// Skrije kartico "Koraki reševanja" (ob novi uganki bi kazala stare korake).
+function skrijKorake() {
+  stepsCard.style.display = 'none';
+  document.getElementById('openStepsBtn').textContent = 'Prikaži korake reševanja';
+}
+
 document.getElementById('clearBtn').addEventListener('click', () => {
   inputs.forEach(inp => { inp.value = ''; inp.classList.remove('conflict', 'given-style'); });
   resultsEl.style.display = 'none';
+  skrijKorake();
   document.getElementById('candSection').style.display = 'none';
   document.getElementById('candBtn').textContent = 'Prikaži kandidate';
   statusEl.textContent = '';
@@ -272,6 +279,7 @@ function naloziDanosti(danosti, sporocilo) {
   danosti.split('').forEach((ch, i) => { inputs[i].value = (ch === '0' || ch === '.') ? '' : ch; });
   checkConflicts();
   resultsEl.style.display = 'none';
+  skrijKorake();
   document.getElementById('candSection').style.display = 'none';
   document.getElementById('candBtn').textContent = 'Prikaži kandidate';
   statusEl.textContent = sporocilo;
@@ -401,8 +409,11 @@ document.getElementById('solveBtn').addEventListener('click', () => {
       statusEl.textContent = `Rešeno v ${log.length} korakih.`;
       statusEl.className = 'ok';
     } else {
-      statusEl.textContent = 'Uganke ni bilo mogoče do konca rešiti - najverjetneje je nekje napaka pri vnosu (preveri rdeče konflikte in vsako številko še enkrat).';
-      statusEl.className = 'err';
+      // Sem pridemo samo pri solutionCount === 1 - vnos je torej pravilen,
+      // odpovedal je reševalec.
+      const reseno = board.grid.filter(v => v !== 0).length;
+      statusEl.textContent = `Uganka ima eno rešitev, a je reševalec z razpoložljivimi tehnikami ni rešil do konca (rešenih ${reseno} od 81 celic).`;
+      statusEl.className = 'warn';
     }
     // Namenoma NE skočimo avtomatsko na rezultat - vnosna mreža in
     // kandidati naj ostanejo vidni/dosegljivi brez posebnega scrollanja.
