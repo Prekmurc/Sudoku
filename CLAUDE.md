@@ -22,6 +22,10 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
   - `trening.css` – stili trenerja (kartice v meniju, mreža vaje, X-Wing/Swordfish mreža, povratne informacije).
   - `generators.js` – generatorji naključnih vaj za vsako tehniko (`genPointing`, `genBoxLineReduction`, `genNakedPair`, `genHiddenPair`, `genNakedTriple`, `genHiddenTriple`, `genXWing`, `genSwordfish`, `genXYWing`, `genUniqueRectangle`) in `MODES` – osrednja definicija vsake tehnike (generator, barve, št. celic za izbiro, opis, posebnosti UI).
   - `trening.js` – UI/tok vadbe: izbira tehnike v meniju, izris vaje, preverjanje odgovora (`checkPhase1`/`checkPhase2`), namig/rešitev na dotik, štetje rezultata. Za Pointing pair/triple, Box-line reduction, Swordfish, XY-Wing in Unique Rectangle preverjanje kliče ustrezno funkcijo (`pointing()`, `boxLineReduction()`, `swordfish()`, `xyWing()`, `uniqueRectangle()`) iz `shared/engine.js` (zgradi začasno "desko" iz vaje in preveri, ali izbrane celice ustrezajo najdenemu vzorcu) namesto lastne kopije logike.
+- `tests/` – avtomatski testi (Node, vgrajeni `node:test`).
+  - `load-engine.js` – naloži `shared/engine.js` v Node (prek `node:vm`, brez sprememb motorja), prebere uganke iz `docs/uganke.md` in pretvarja stanje kandidatov v berljiv zapis in nazaj.
+  - `turbot-fish.test.js` – testi tehnike Turbot Fish (Skyscraper, Zmaj z dvema vrvicama, pozicija brez vzorca) in rešljivosti vseh ugank iz `docs/uganke.md` (nova uganka tam je samodejno vključena). Testne pozicije so posnetki stanja med reševanjem pravih ugank, ne sestavljene na pamet.
+- `docs/uganke.md` – preverjene testne uganke z opisom obnašanja reševalca; `docs/tehnike.md` – tabela tehnik iz `ALL_TECHNIQUES`.
 - `docs/naloge/` – specifikacije posameznih nalog/popravkov za to sejo (naloga na datoteko, oštevilčeno).
 - `old/` – arhiv starejših verzij treninga pred refaktoriranjem (zunaj projekta, ni v gitu).
 - `CLAUDE.md` – ta datoteka.
@@ -31,7 +35,7 @@ Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v 
 ## Zagon in testi
 - Zagon reševalca: odpri `app/index.html` neposredno v brskalniku, ali iz korena projekta poženi lokalni strežnik (npr. `python -m http.server`) in obišči `http://localhost:<vrata>/app/`.
 - Zagon treninga: enako, `trening/index.html`.
-- Zagon testov: projekt trenutno nima avtomatskih testov. Posnetek obnašanja reševalca in regresijski testi so predvideni v `docs/naloge/02-regresijski-testi.md`, a še niso napisani.
+- Zagon testov: iz korena projekta `node --test "tests/*.test.js"` (Node 24 ne sprejme mape kot argumenta, zato vzorec datotek v narekovajih). Testi uporabljajo samo Node-ov vgrajeni `node:test`/`node:assert` – brez `package.json` in odvisnosti. Popoln posnetek obnašanja reševalca iz `docs/naloge/02-regresijski-testi.md` še ni napisan.
 - Okolje: Windows 10, VS Code. Če projekt uporablja Python: uporabljaj conda okolje `py312_env` (Python 3.12). Pred zagonom preveri `python --version`; če ni 3.12, zaganjaj prek okolja (npr. `conda run -n py312_env python ...`).
 
 ## Arhitektura
@@ -39,7 +43,7 @@ Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v 
 - Vsaka tehnika ima definicijo na enem mestu:
   - V reševalcu (`app/`): en vnos `[ime, funkcija]` v `ALL_TECHNIQUES` v `shared/engine.js`.
   - V treningu (`trening/`): en vnos v `MODES` v `trening/generators.js` (generator vaje + `selClass`/`hlClass`/`btnClass`/`pickN`/`desc`/`showCandidateCount` ipd.). Gumb »Pokaži število kandidatov« je viden natanko takrat, ko ima tehnika `showCandidateCount:true` (trenutno pri vseh razen X-Wing in Swordfish) – glej `docs/naloge/01-swordfish-gumb.md`.
-- Vrstni red tehnik v reševalcu (`ALL_TECHNIQUES` v `shared/engine.js`): Gol enojček → Skriti enojček → Pointing pair/triple → Box-line reduction → Naked pair → Hidden pair → Naked triple → Hidden triple → X-Wing → Swordfish → XY-Wing → Unique Rectangle → (če nič od tega ne najde koraka) sestopanje/forcing chain (`tryBifurcation`). Nove tehnike dodajaj na konec, razen če izrecno zahtevam drugače.
+- Vrstni red tehnik v reševalcu (`ALL_TECHNIQUES` v `shared/engine.js`): Gol enojček → Skriti enojček → Pointing pair/triple → Box-line reduction → Naked pair → Hidden pair → Naked triple → Hidden triple → X-Wing → Swordfish → Turbot Fish (podtipa Skyscraper in Zmaj z dvema vrvicama; samo močne povezave v vrsticah in stolpcih, podtip je v sporočilu, ne v imenu tehnike) → XY-Wing → Unique Rectangle → (če nič od tega ne najde koraka) sestopanje/forcing chain (`tryBifurcation`). Nove tehnike dodajaj na konec, razen če izrecno zahtevam drugače.
 - Zapis celic v razlagah: `V<vrstica>S<stolpec>` (1–9), npr. `V5S3` (funkciji `cellLabel`/`cellsLabel` v `shared/engine.js`).
 
 ## Pravila dela

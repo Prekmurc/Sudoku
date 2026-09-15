@@ -366,6 +366,67 @@ function swordfish(b) {
   return steps;
 }
 
+// Turbot Fish: dve močni povezavi za isto številko d (vrstica ali stolpec, kjer je d
+// mogoč v natanko dveh celicah), A-B in C-D, pri čemer se konca B in C vidita.
+// Če B ni d, je d v A; če je B = d, C ni d in je d v D - vsaj ena od A, D je torej d,
+// zato d izbrišemo iz celic, ki vidijo obe. Podtipi (glede na obliko):
+//   Skyscraper - vzporedni povezavi (dve vrstici ali dva stolpca), B in C v isti liniji,
+//   Two-String Kite (Zmaj z dvema vrvicama) - vrstica + stolpec, B in C v istem bloku,
+//     A in D zunaj njega,
+//   ostalo - splošni Turbot Fish.
+// Močne povezave znotraj bloka niso vključene.
+function turbotFish(b) {
+  const steps = [];
+  for (let d = 1; d <= 9; d++) {
+    const bit = 1 << d;
+    const links = [];
+    for (const [units, kind] of [[ROWS, 'row'], [COLS, 'col']]) {
+      for (const u of units) {
+        const spots = u.filter(c => b.grid[c] === 0 && (b.cand[c] & bit));
+        if (spots.length === 2) links.push({ unit: u, kind, cells: spots });
+      }
+    }
+    for (let i = 0; i < links.length; i++) for (let j = i + 1; j < links.length; j++) {
+      const L1 = links[i], L2 = links[j];
+      if (L1.cells.some(c => L2.cells.includes(c))) continue;
+      for (const [bEnd, aEnd] of [[L1.cells[0], L1.cells[1]], [L1.cells[1], L1.cells[0]]]) {
+        for (const [cEnd, dEnd] of [[L2.cells[0], L2.cells[1]], [L2.cells[1], L2.cells[0]]]) {
+          if (!PEERS[bEnd].has(cEnd)) continue;
+          const pattern = [aEnd, bEnd, cEnd, dEnd];
+          const elim = [];
+          for (let c = 0; c < 81; c++) {
+            if (pattern.includes(c) || b.grid[c] !== 0 || !(b.cand[c] & bit)) continue;
+            if (PEERS[aEnd].has(c) && PEERS[dEnd].has(c)) elim.push([c, d]);
+          }
+          if (!elim.length) continue;
+          let variant = 'Turbot Fish';
+          if (L1.kind === L2.kind) {
+            const sameLine = L1.kind === 'row' ? bEnd % 9 === cEnd % 9
+              : Math.floor(bEnd / 9) === Math.floor(cEnd / 9);
+            if (sameLine) variant = 'Skyscraper';
+          } else if (boxOf(bEnd) === boxOf(cEnd) && boxOf(aEnd) !== boxOf(bEnd) && boxOf(dEnd) !== boxOf(bEnd)) {
+            variant = 'Two-String Kite';
+          }
+          const patternName = {
+            'Skyscraper': 'Skyscraper (Turbot Fish)',
+            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (Two-String Kite, Turbot Fish)',
+            'Turbot Fish': 'Turbot Fish',
+          }[variant];
+          // Enota, ki povezuje B in C: prednost ima vrstica/stolpec (UNITS_OF je v
+          // vrstnem redu vrstice, stolpci, bloki).
+          const linkUnit = UNITS_OF[bEnd].find(u => u.includes(cEnd));
+          const [bc1, bc2] = [bEnd, cEnd].sort((x, y) => x - y);
+          steps.push({
+            technique: 'Turbot Fish', variant, cells: pattern, assign: [], eliminate: elim,
+            message: `Kandidat ${d} je v ${unitNameLoc(L1.unit)} mogoč samo v celicah ${cellsLabel(L1.cells)}, v ${unitNameLoc(L2.unit)} pa samo v celicah ${cellsLabel(L2.cells)}. Celici ${cellLabel(bc1)} in ${cellLabel(bc2)} ležita v ${unitNameLoc(linkUnit)}, zato je vsaj ena od celic ${cellsLabel([aEnd, dEnd])} enaka ${d} -> tvori ${patternName}. ${d} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+          });
+        }
+      }
+    }
+  }
+  return steps;
+}
+
 function xyWing(b) {
   const steps = [];
   const bivalue = [];
@@ -451,6 +512,7 @@ const ALL_TECHNIQUES = [
   ['Hidden triple', hiddenTriples],
   ['X-Wing', xWing],
   ['Swordfish', swordfish],
+  ['Turbot Fish', turbotFish],
   ['XY-Wing', xyWing],
   ['Unique Rectangle', uniqueRectangle],
 ];
