@@ -497,4 +497,147 @@
     color: var(--pencil);
     line-height:1.6;
   }
+
+  /* ---------- zbirka ugank ---------- */
+  .top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin: 0 0 6px;
+  }
+  header.top .top-row .eyebrow{ margin:0; }
+  .lib-open{
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:6px;
+    color: var(--blue);
+    flex-shrink:0;
+  }
+
+  .save-row{
+    border-top:1px dashed var(--line);
+    padding-top:12px;
+    margin-bottom:14px;
+  }
+  #saveMsg{
+    font-size:12.5px;
+    font-weight:600;
+    color: var(--green);
+    margin-bottom:8px;
+  }
+  #saveMsg.err{ color: var(--red); }
+  .save-fields{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 14px;
+  }
+  .save-fields label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:#3C4854;
+  }
+  .save-fields label:last-child{ flex:1; min-width:180px; }
+  .save-fields select, .save-fields input{
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    color: var(--ink);
+  }
+  .save-fields input{ flex:1; min-width:0; }
+
+  #library{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:1500;
+    background: rgba(36,48,61,0.6);
+    overflow:auto;
+    padding: 24px 16px;
+  }
+  .lib-panel{
+    max-width:480px;
+    margin:0 auto;
+    background: var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+  }
+  .lib-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .lib-header h2{
+    font-family:'Source Serif 4', serif;
+    font-size:18px;
+    margin:0;
+  }
+  #libClose{
+    width:36px;
+    height:36px;
+    padding:0;
+    border-radius:18px;
+    font-size:16px;
+  }
+  .lib-tools{
+    display:flex;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .lib-status{
+    font-size:13px;
+    color: var(--green);
+    min-height:18px;
+    margin-bottom:8px;
+    line-height:1.5;
+  }
+  .lib-status.err{ color: var(--red); }
+  #libList{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+  }
+  #libList li{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:11px 13px;
+  }
+  #libList li.lib-empty{
+    font-size:13px;
+    color: var(--pencil);
+    background:transparent;
+    border-style:dashed;
+  }
+  .lib-line{ font-size:14px; font-weight:600; }
+  .lib-info{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color: var(--pencil);
+    margin-top:3px;
+  }
+  .lib-note{
+    font-size:13.5px;
+    color:#3C4854;
+    margin-top:6px;
+    line-height:1.45;
+    overflow-wrap:anywhere;
+  }
+  .lib-actions{
+    display:flex;
+    gap:8px;
+    margin-top:9px;
+  }
+  .lib-actions button{ font-size:12.5px; padding:7px 12px; }
+  .lib-actions button.danger{ color: var(--red); }
 </style>

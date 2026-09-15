@@ -12,7 +12,10 @@
 <body>
 
 <header class="top">
-  <p class="eyebrow">Reševalec &middot; z razlago vsakega koraka</p>
+  <div class="top-row">
+    <p class="eyebrow">Reševalec &middot; z razlago vsakega koraka</p>
+    <button type="button" id="libraryBtn" class="lib-open">Zbirka (0)</button>
+  </div>
   <h1>Sudoku reševalec</h1>
   <p>Vtipkaj začetne številke naravnost v mrežo (samo pojdi od celice do celice), nato pritisni "Reši". Podvojene številke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
 </header>
@@ -44,6 +47,13 @@
     <div id="solvedGrid"></div>
     <p class="cand-hint" style="margin-top:-6px;">Tapni mrežo za povečan prikaz.</p>
     <div class="summary" id="summary"></div>
+    <div id="saveRow" class="save-row" style="display:none;">
+      <div id="saveMsg"></div>
+      <div id="saveFields" class="save-fields">
+        <label>Težavnost <select id="saveDifficulty"></select></label>
+        <label>Opomba <input type="text" id="saveNote" maxlength="200" placeholder="neobvezno" autocomplete="off"></label>
+      </div>
+    </div>
     <button class="primary" id="openStepsBtn" style="width:100%;">Prikaži korake reševanja</button>
   </div>
 
@@ -63,9 +73,27 @@
   <div id="lightboxScroll"><div id="lightboxInner"></div></div>
 </div>
 
-<footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor). Modra številka v rešeni mreži = tvoj vnos, črna = izpeljano.</footer>
+<div id="library" role="dialog" aria-modal="true" aria-labelledby="libTitle">
+  <div class="lib-panel">
+    <div class="lib-header">
+      <h2 id="libTitle">Zbirka ugank</h2>
+      <button type="button" id="libClose" aria-label="Zapri">✕</button>
+    </div>
+    <div class="lib-tools">
+      <button type="button" id="libExport">Izvozi</button>
+      <button type="button" id="libImport">Uvozi</button>
+      <input type="file" id="libFile" accept=".md,.txt,text/markdown,text/plain" hidden>
+    </div>
+    <p class="cand-hint">Izvoz zapiše vse uganke v datoteko Markdown (enaka oblika kot docs/uganke.md). Uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke.</p>
+    <div id="libStatus" class="lib-status"></div>
+    <ul id="libList"></ul>
+  </div>
+</div>
+
+<footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor), tudi zbirka ugank se hrani samo v njem. Modra številka v rešeni mreži = tvoj vnos, črna = izpeljano.</footer>
 
 <script src="../shared/engine.js"></script>
 <script src="app.js"></script>
+<script src="zbirka.js"></script>
 </body>
 </html>

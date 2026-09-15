@@ -13,9 +13,10 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
   - `base.css` – skupni reset (`*{box-sizing:border-box}`, osnovni `body`), ki ga uvozita `app/` in `trening/`.
   - `engine.js` – motor za reševanje: mreža/enote (`ROWS`/`COLS`/`BOXES`/`PEERS`), razred `Board`, vse tehnike reševanja (glej spodaj), sestopanje (`tryBifurcation`) in `solve()`, ki vrne rešeno mrežo + dnevnik korakov z razlago.
 - `app/` – Sudoku reševalec (vnos uganke → rešitev po korakih).
-  - `index.html` – markup strani, nalaga `shared/engine.js` in `app.js`.
-  - `app.css` – stili reševalca (vnosna mreža, kandidati, koraki, lightbox).
-  - `app.js` – UI: vnos v mrežo, preverjanje konfliktov, klic `solve()`, izris rešitve/kandidatov/korakov, lightbox.
+  - `index.html` – markup strani, nalaga `shared/engine.js`, `app.js` in `zbirka.js`.
+  - `app.css` – stili reševalca (vnosna mreža, kandidati, koraki, lightbox, zbirka ugank).
+  - `app.js` – UI: vnos v mrežo, preverjanje konfliktov, klic `solve()`, izris rešitve/kandidatov/korakov, lightbox; `naloziDanosti()` vpiše uganko v mrežo (gumb »Primer« in zbirka).
+  - `zbirka.js` – zbirka ugank: samodejno shranjevanje ob reševanju (v `localStorage`, samo uganke z enolično rešitvijo – tudi delno rešene), težavnost/opomba v kartici »Rešitev«, seznam (gumb »Zbirka« v glavi) z »Naloži«/»Izbriši«, izvoz/uvoz v Markdown v obliki `docs/uganke.md` (uvoz dopolni, ne prepiše; uganke se ločijo po nizu danosti).
 - `trening/` – vadba posameznih tehnik z naključno generiranimi vajami.
   - `index.html` – markup strani (meni tehnik + prostor za vajo), nalaga `shared/engine.js`, `generators.js` in `trening.js`.
   - `trening.css` – stili trenerja (kartice v meniju, mreža vaje, X-Wing/Swordfish mreža, povratne informacije).

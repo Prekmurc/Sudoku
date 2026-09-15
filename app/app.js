@@ -266,16 +266,22 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   focusCell(0);
 });
 
-document.getElementById('exampleBtn').addEventListener('click', () => {
-  const example = '000800020900000600000000000604000900000720003500000000000056000080009000070000010';
-  example.split('').forEach((ch, i) => { inputs[i].value = ch === '0' ? '' : ch; });
+// Vpiše danosti (81 znakov, '0' ali '.' = prazna celica) v vnosno mrežo in
+// skrije prejšnjo rešitev/kandidate - uporabljata jo gumb "Primer" in zbirka.
+function naloziDanosti(danosti, sporocilo) {
+  danosti.split('').forEach((ch, i) => { inputs[i].value = (ch === '0' || ch === '.') ? '' : ch; });
   checkConflicts();
   resultsEl.style.display = 'none';
   document.getElementById('candSection').style.display = 'none';
   document.getElementById('candBtn').textContent = 'Prikaži kandidate';
-  statusEl.textContent = 'Naložen je bil primer uganke (Ekstrem, 17 danih številk).';
+  statusEl.textContent = sporocilo;
   statusEl.className = '';
   lastSolve = null;
+}
+
+document.getElementById('exampleBtn').addEventListener('click', () => {
+  const example = '000800020900000600000000000604000900000720003500000000000056000080009000070000010';
+  naloziDanosti(example, 'Naložen je bil primer uganke (Ekstrem, 17 danih številk).');
 });
 
 const candBtn = document.getElementById('candBtn');
@@ -380,6 +386,7 @@ document.getElementById('solveBtn').addEventListener('click', () => {
 
     lastSolve = { givens, grid: board.grid.slice(), log };
     resultsEl.style.display = 'block';
+    zbirkaPoResevanju(givens, board, log, solutionCount); // app/zbirka.js
 
     if (solutionCount === 0) {
       statusEl.textContent = 'Uganka nima rešitve - preveri vnesene številke.';
