@@ -11,12 +11,20 @@ const NAMES = [
   'cellLabel', 'bitsOf', 'popcount', 'FULL', 'turbotFish',
 ];
 
-function loadEngine(code) {
+// extra.files: dodatne skripte (pot od korena projekta, npr. 'trening/generators.js'),
+// naložene za motorjem v isti kontekst - kot zaporedni <script> v brskalniku (delijo si
+// globalne const/let). extra.names: dodatna imena, ki jih vrne.
+function loadEngine(code, extra = {}) {
   if (code === undefined) {
     code = fs.readFileSync(path.join(__dirname, '..', 'shared', 'engine.js'), 'utf8');
   }
-  const exportExpr = '\n;({' + NAMES.map(n => `${n}: typeof ${n} === 'undefined' ? undefined : ${n}`).join(', ') + '})';
-  return vm.runInContext(code + exportExpr, vm.createContext({}));
+  const ctx = vm.createContext({});
+  vm.runInContext(code, ctx);
+  for (const f of extra.files || []) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), ctx, { filename: f });
+  }
+  const names = [...NAMES, ...(extra.names || [])];
+  return vm.runInContext('({' + names.map(n => `${n}: typeof ${n} === 'undefined' ? undefined : ${n}`).join(', ') + '})', ctx);
 }
 
 // Uganke iz docs/uganke.md: [{ ime, danosti }] (naslov ### + vrstica **Danosti...:** `...`).

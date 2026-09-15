@@ -696,6 +696,127 @@ function genUniqueRectangle(n){
   return genUniqueRectangle(n+7);
 }
 
+/* --- Turbot Fish ---
+   Kot XY-Wing/Unique Rectangle: sintetična 81-celična deska (prazne so samo celice
+   vaje), preverjena s klicem turbotFish() iz shared/engine.js - zahteva se, da najde
+   načrtovani vzorec in nobenega drugega (tudi ne na polnilnih kandidatih drugih
+   številk). Vaja je vezana na eno številko d; vsaka prazna celica ima d in 1-2
+   polnilna kandidata. Moteči vzorec (en na vajo) spodleti pri natanko enem pogoju:
+     'konca-se-ne-vidita' - dve močni povezavi in celica z d, ki vidi po en konec
+        vsake, a noben konec prve povezave ne vidi nobenega konca druge;
+     'povezava-ni-mocna' - veljavna oblika (konca se vidita, celica izbrisa obstaja),
+        a v eni od obeh vrstic/stolpcev je d v treh celicah; generator preveri, da bi
+        turbotFish() brez tretje celice vzorec našel. */
+const ALL9=[0,1,2,3,4,5,6,7,8];
+function tfCell(kind,line,cross){return kind==='row'?line*9+cross:cross*9+line;}
+function tfLine(kind,line){return kind==='row'?ROWS[line]:COLS[line];}
+function tfPick(a){return a[randInt(0,a.length-1)];}
+
+// Skyscraper: A-B v eni vrstici (stolpcu), C-D v drugi; B in C v istem stolpcu (vrstici).
+function tfPlanSkyscraper(){
+  const kind=Math.random()<0.5?'row':'col';
+  const [l1,l2]=randSub(ALL9,2),[x,a,e]=randSub(ALL9,3);
+  return{A:tfCell(kind,l1,a),B:tfCell(kind,l1,x),C:tfCell(kind,l2,x),D:tfCell(kind,l2,e),
+    lines:[tfLine(kind,l1),tfLine(kind,l2)]};
+}
+// Zmaj z dvema vrvicama: A-B v vrstici r, C-D v stolpcu c; B in C v bloku, kjer se
+// sekata pas vrstice r in sklad stolpca c, A in D zunaj tega bloka.
+function tfPlanKite(){
+  const r=randInt(0,8),c=randInt(0,8),band=r-r%3,stack=c-c%3;
+  const cb=tfPick([0,1,2].map(i=>stack+i).filter(i=>i!==c));
+  const rc=tfPick([0,1,2].map(i=>band+i).filter(i=>i!==r));
+  const ca=tfPick(ALL9.filter(i=>i-i%3!==stack));
+  const rd=tfPick(ALL9.filter(i=>i-i%3!==band));
+  return{A:r*9+ca,B:r*9+cb,C:rc*9+c,D:rd*9+c,lines:[ROWS[r],COLS[c]]};
+}
+// Celice motilca ne smejo biti med že uporabljenimi ali v vrsticah/stolpcih pravega
+// vzorca (tam bi pokvarile močni povezavi); njegove vrstice/stolpci ne smejo vsebovati
+// uporabljenih celic (pokvarile bi njegovi povezavi).
+function tfFree(cells,lines,used,protectedLines){
+  if(cells.some(i=>used.has(i)||protectedLines.some(l=>l.includes(i)))) return false;
+  return lines.every(l=>l.every(i=>!used.has(i)));
+}
+function tfWitnessPool(used,lines,seesA,seesD){
+  return ALL_IDX.filter(i=>!used.has(i)&&!lines.some(l=>l.includes(i))&&seesA(i)&&seesD(i));
+}
+function tfDistractorNoSee(used,protectedLines){
+  for(let t=0;t<30;t++){
+    const kind=Math.random()<0.5?'row':'col';
+    const [l1,l2]=randSub(ALL9,2),[p1,q1,p2,q2]=randSub(ALL9,4);
+    const L1=[tfCell(kind,l1,p1),tfCell(kind,l1,q1)],L2=[tfCell(kind,l2,p2),tfCell(kind,l2,q2)];
+    const lines=[tfLine(kind,l1),tfLine(kind,l2)];
+    if(L1.some(u=>L2.some(v=>PEERS[u].has(v)))) continue; // edini pogoj, ki spodleti
+    if(!tfFree([...L1,...L2],lines,used,protectedLines)) continue;
+    const wPool=tfWitnessPool(used,[...protectedLines,...lines],
+      i=>L1.some(u=>PEERS[u].has(i)),i=>L2.some(v=>PEERS[v].has(i)));
+    if(!wPool.length) continue;
+    const W=tfPick(wPool);
+    return{type:'konca-se-ne-vidita',links:[L1,L2],witness:W,cells:[...L1,...L2,W]};
+  }
+  return null;
+}
+function tfDistractorNotStrong(used,protectedLines){
+  for(let t=0;t<30;t++){
+    const P=Math.random()<0.5?tfPlanSkyscraper():tfPlanKite();
+    const pat=[P.A,P.B,P.C,P.D];
+    // Tretja celica z d - samo v eni od obeh vrstic/stolpcev (pri zmaju bi presečišče
+    // vrstice in stolpca pokvarilo obe povezavi, torej dva pogoja namesto enega).
+    const k=randInt(0,1);
+    const X=tfPick(P.lines[k].filter(i=>!pat.includes(i)&&!P.lines[1-k].includes(i)));
+    if(!tfFree([...pat,X],P.lines,used,protectedLines)) continue;
+    const wPool=tfWitnessPool(used,[...protectedLines,...P.lines],i=>PEERS[P.A].has(i),i=>PEERS[P.D].has(i));
+    if(!wPool.length) continue;
+    const W=tfPick(wPool);
+    return{type:'povezava-ni-mocna',pattern:pat,extra:X,witness:W,cells:[...pat,X,W]};
+  }
+  return null;
+}
+
+function genTurbotFish(n){
+  const variant=n%2===0?'Skyscraper':'Two-String Kite'; // izmenično, da sta v seriji oba
+  // Tip motilca izberemo enkrat na vajo (ne ob vsakem poskusu) - sicer bi prevladal
+  // tip, ki se lažje sestavi.
+  const noSee=Math.random()<0.5;
+  for(let attempt=0;attempt<500;attempt++){
+    const d=randInt(1,9);
+    const fill=[1,2,3,4,5,6,7,8,9].filter(x=>x!==d);
+    const P=variant==='Skyscraper'?tfPlanSkyscraper():tfPlanKite();
+    const pattern=[P.A,P.B,P.C,P.D];
+    const ePool=tfWitnessPool(new Set(pattern),P.lines,i=>PEERS[P.A].has(i),i=>PEERS[P.D].has(i));
+    if(!ePool.length) continue;
+    const elimCells=randSub(ePool,randInt(1,2));
+    const used=new Set([...pattern,...elimCells]);
+    const dis=noSee?tfDistractorNoSee(used,P.lines):tfDistractorNotStrong(used,P.lines);
+    if(!dis) continue;
+
+    const board=emptyBoard();
+    for(const i of [...used,...dis.cells]) setCell(board,i,[d,...randSub(fill,randInt(1,2))]);
+
+    const want=new Set(pattern);
+    const steps=turbotFish(board);
+    if(!steps.length) continue;
+    if(!steps.every(s=>s.cells.every(c=>want.has(c))&&s.eliminate.every(([,dd])=>dd===d))) continue;
+    const match=steps.find(s=>s.variant===variant&&elimCells.every(i=>s.eliminate.some(([c])=>c===i)));
+    if(!match) continue;
+    if(dis.type==='povezava-ni-mocna'){
+      const b2={grid:board.grid.slice(),cand:board.cand.slice()};
+      b2.grid[dis.extra]=1;b2.cand[dis.extra]=0;
+      const dWant=new Set(dis.pattern);
+      if(!turbotFish(b2).some(s=>s.cells.every(c=>dWant.has(c)))) continue;
+    }
+
+    return{
+      mode:'turbot-fish',digit:d,variant,
+      slots:slotsFromBoard(board),
+      boardGrid:board.grid,boardCand:board.cand,
+      solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
+      distractor:dis,
+      unitLabel:`Turbot Fish za številko ${d}`,
+    };
+  }
+  return genTurbotFish(n+2);
+}
+
 function addLabels(slots,ut,ui){
   for(let i=0;i<9;i++){
     if(ut==='row') slots[i].pos=`V${ui}S${i+1}`;
@@ -722,6 +843,8 @@ const MODES={
     desc:'Najdi pravokotnik 4 celic za označeno številko.'},
   'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false,
     desc:'Najdi 3 vrstice (ali stolpce), kjer se številka pojavi samo na istih 3 stolpcih (ali vrsticah).'},
+  'turbot-fish':{gen:genTurbotFish,name:'Turbot Fish',selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false,
+    desc:'Za označeno številko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta številka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Skyscraper, vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama. Izberi vse štiri celice vzorca.'},
   'xy-wing':{gen:genXYWing,name:'XY-Wing',selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true,
     desc:'Med prikazanimi celicami poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno številko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok). Izberi pivota in obe krili (3 celice).'},
   'unique-rectangle':{gen:genUniqueRectangle,name:'Unique Rectangle',selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true,

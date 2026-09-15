@@ -7,6 +7,7 @@
   --purple:#6840A0;--purple-bg:#E4DAF2;--blue:#1758A8;--blue-bg:#D8E5F4;
   --indigo:#4B3F91;--indigo-bg:#E3DFF5;
   --cyan:#0E6E8A;--cyan-bg:#D5EAF2;--orange:#9A5218;--orange-bg:#F6E2D0;
+  --plum:#8A2F7A;--plum-bg:#F3DDEF;
   --cs:min(10.6vw,46px);
   /* Velikost celice v mrežnih prikazih 9x9. Poleg celic mreža zasede še glavo
      vrstic (~22px) ter odmike .container (2x14px) in .exercise (2x18px), zato
@@ -39,6 +40,7 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .badge-boxline{background:var(--indigo-bg);color:var(--indigo)}
 .badge-xywing{background:var(--cyan-bg);color:var(--cyan)}
 .badge-ur{background:var(--orange-bg);color:var(--orange)}
+.badge-turbot{background:var(--plum-bg);color:var(--plum)}
 
 /* --- VAJE --- */
 #trainer{display:none}
@@ -84,6 +86,7 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .gc.selected-indigo{background:var(--indigo-bg)!important;box-shadow:inset 0 0 0 2.5px var(--indigo)}
 .gc.selected-cyan{background:var(--cyan-bg)!important;box-shadow:inset 0 0 0 2.5px var(--cyan)}
 .gc.selected-orange{background:var(--orange-bg)!important;box-shadow:inset 0 0 0 2.5px var(--orange)}
+.gc.selected-plum{background:var(--plum-bg)!important;box-shadow:inset 0 0 0 2.5px var(--plum)}
 .gc.correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--green)}
 .gc.elimcell{background:var(--red-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
 .gc.peek-elim{background:var(--red-bg)!important}
@@ -104,6 +107,10 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .cd.hl-indigo{color:var(--indigo)}
 .cd.hl-cyan{color:var(--cyan)}
 .cd.hl-orange{color:var(--orange)}
+.cd.hl-plum{color:var(--plum)}
+/* Turbot Fish ima označeno številko pobarvano že ob prikazu (.hl-plum); ko je
+   izbrisana, mora prevladati rdeča iz .cd.elim. */
+.cd.hl-plum.elim{color:var(--red)}
 
 .phase2{margin:10px 0 0;display:none}
 .phase2 p{font-size:14px;color:#3C4854;margin:0 0 8px}
@@ -181,9 +188,9 @@ button.pri-blue{background:var(--blue)}
 button.pri-indigo{background:var(--indigo)}
 button.pri-cyan{background:var(--cyan)}
 button.pri-orange{background:var(--orange)}
+button.pri-plum{background:var(--plum)}
 button.pri-green{background:var(--green);display:none}
 button.sm-btn{font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--pencil);cursor:pointer}
 button.back-btn{font-size:13px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-weight:600;margin:16px 0 0}
 .score-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 18px;margin:16px 0 0;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pencil)}
 .score-bar b{color:var(--ink)}
-</style>

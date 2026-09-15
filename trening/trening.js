@@ -141,6 +141,8 @@ function buildFullGridLayout(div,ex,M){
       if(si===undefined){gc=document.createElement('div');gc.className='gc given';}
       else{
         gc=makeCell(ex.slots[si],si,M);
+        // Vaja na eni številki (Turbot Fish): kandidat ex.digit poudarimo z barvo tehnike.
+        if(ex.digit) gc.querySelectorAll(`.cd[data-d="${ex.digit}"]:not(.hide)`).forEach(s=>s.classList.add('hl',M.hlClass));
         const cnt=document.createElement('div');cnt.className='gcnt';cnt.textContent=ex.slots[si].c.length;
         gc.appendChild(cnt);countEls[si]=cnt;cellEls[si]=gc;
       }
@@ -211,8 +213,14 @@ function renderExercise(){
     div.appendChild(dlabel);
     const layout=buildBoxLineLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
-  } else if(M.isXYWing||M.isUR){
-    // Brez oznake "Označena številka": ti dve tehniki nista vezani na eno samo številko.
+  } else if(M.isXYWing||M.isUR||M.isTurbot){
+    // Oznaka "Označena številka" samo pri Turbot Fish - XY-Wing in Unique Rectangle
+    // nista vezani na eno samo številko.
+    if(M.isTurbot){
+      const dlabel=document.createElement('div');dlabel.className='xw-digit-label';
+      dlabel.textContent=`Označena številka: ${ex.digit}`;
+      div.appendChild(dlabel);
+    }
     const layout=buildFullGridLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
   } else {
@@ -299,6 +307,13 @@ function renderExercise(){
       ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(',');(byPair[k]=byPair[k]||[]).push(s.pos);});
       const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
       return `Pari kandidatov: ${lines}. Trije vogali z istim parom morajo ležati v 2 vrsticah, 2 stolpcih in <b>natanko dveh blokih</b> – če je pravokotnik razpet čez štiri bloke, tehnika ne velja.`;
+    } else if(M.isTurbot){
+      const bit=1<<ex.digit,links=[];
+      for(const [units,lbl] of [[ROWS,'V'],[COLS,'S']]) units.forEach((u,i)=>{
+        const spots=u.filter(c=>ex.boardGrid[c]===0&&(ex.boardCand[c]&bit));
+        if(spots.length===2) links.push(`${lbl}${i+1}: ${spots.map(cellPos).join(', ')}`);
+      });
+      return `Vrstice in stolpci, kjer je ${ex.digit} mogoč v natanko dveh celicah (močne povezave): ${links.join(' · ')||'(nobena)'}. Poišči dve taki povezavi, pri katerih se en konec prve in en konec druge vidita (ista vrstica, stolpec ali blok).`;
     } else if(M.isXWing||M.isSwordfish){
       // Preštej v koliko celicah se digit pojavi v vsaki vrstici in stolpcu
       const rowCounts=[],colCounts=[];
@@ -322,7 +337,7 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
-    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR){
+    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot){
       const step=exDigitStep();
       return step?step.message:'(ni najdenega vzorca)';
     }
@@ -381,7 +396,7 @@ function renderExercise(){
     overlay.innerHTML=text;
     overlay.classList.add('visible');
     if(showHL){
-      if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR){
+      if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot){
         const step=exDigitStep();
         if(step){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
@@ -469,12 +484,13 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     return;
   }
 
-  if(M.isXYWing||M.isUR){
+  if(M.isXYWing||M.isUR||M.isTurbot){
     // Jedro zaznave je ista koda kot v reševalcu (shared/engine.js xyWing() /
-    // uniqueRectangle()). Ti dve tehniki nista vezani na eno "označeno" številko
-    // (vsak vzorec ima svoje), zato se ujemanje preverja samo po množici izbranih
+    // uniqueRectangle() / turbotFish()). Ujemanje se preverja samo po množici izbranih
     // celic - sprejme katero koli veljavno kombinacijo, ne le tiste iz generatorja.
-    const techFn=M.isXYWing?xyWing:uniqueRectangle;
+    // (Pri Turbot Fish generator zagotovi, da so na deski vaje vsi vzorci na
+    // označeni številki.)
+    const techFn=M.isXYWing?xyWing:M.isUR?uniqueRectangle:turbotFish;
     const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
     const selSet=new Set(selected.map(si=>ex.slots[si].idx));
     const match=techFn(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
@@ -497,6 +513,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       fb.className='fb err';
       fb.innerHTML=M.isXYWing
         ? '<b>To še ni veljaven XY-Wing.</b> Pivot mora imeti natanko dva kandidata, <b>obe krili</b> morata pivota videti (ista vrstica, stolpec ali blok) in si z njim deliti po eno številko, skupna pa jima mora biti tretja številka.'
+        : M.isTurbot
+        ? `<b>To še ni veljaven Turbot Fish.</b> Potrebuješ dve vrstici ali stolpca, kjer je ${ex.digit} mogoč v natanko dveh celicah, en konec prve in en konec druge povezave pa se morata videti (ista vrstica, stolpec ali blok).`
         : '<b>To še ni veljaven Unique Rectangle.</b> Potrebuješ 4 celice v 2 vrsticah in 2 stolpcih, ki ležijo v <b>natanko dveh blokih</b>: trije vogali z natanko istim parom kandidatov, četrti pa z istim parom in še dodatnimi.';
       selected.forEach(si=>cellEls[si].classList.remove(M.selClass));selected=[];
     }
