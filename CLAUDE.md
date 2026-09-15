@@ -56,6 +56,7 @@ Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v 
 - Sudoku ugank in testnih pozicij ne sestavljaj na pamet. Vsaka uganka mora biti preverjena s programom (natanko ena rešitev).
 - Besedila v uporabniškem vmesniku so v slovenščini.
 - Na koncu naloge napiši povzetek: spremenjene datoteke, kaj je narejeno, kaj naj ročno preverim.
+- Po vsakem commitu naredi tudi `git push` (trenutna veja na `origin`). Če push ne uspe (npr. oddaljeni repozitorij ni nastavljen ali zahteva prijavo), mi pokaži napako – ne uporabljaj `--force` in ne spreminjaj nastavitev oddaljenega repozitorija brez vprašanja.
 
 ## Izrazi
 | Slovensko | Angleško |
