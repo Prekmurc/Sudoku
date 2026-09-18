@@ -1,13 +1,42 @@
 # Testne uganke
 
 Zbirka ugank za ročno analizo in regresijske teste reševalca (glej
-`docs/naloge/02-regresijski-testi.md`). Testa `tests/turbot-fish.test.js` in
-`tests/w-wing.test.js` samodejno prebereta vse uganke od tu in preverita, da so enolične,
-da jih `solve()` reši brez napačnih vpisov/izbrisov in da noben najden vzorec teh dveh
-tehnik ne izbriše pravilne številke. Vsaka uganka je zapisana kot 81-znakovni
+`docs/naloge/02-regresijski-testi.md`). Testi `tests/turbot-fish.test.js`,
+`tests/w-wing.test.js` in `tests/xy-wing.test.js` samodejno preberejo vse uganke od tu in
+preverijo, da so enolične, da jih `solve()` reši brez napačnih vpisov/izbrisov in da noben
+najden vzorec teh treh tehnik ne izbriše pravilne številke. Vsaka uganka je zapisana kot 81-znakovni
 niz vrstica-za-vrstico, `.` = prazna celica. Preden se uganka doda sem, mora biti
 preverjena z `countSolutions()` iz `shared/engine.js` (natanko ena rešitev) –
 ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`).
+
+## Pokritost tehnik
+
+Stanje 2026-09-18 za zgornje štiri uganke. »Uporabljena« pomeni, da `solve()` korak te
+tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike vzorec v
+kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak cenejše
+tehnike. Preglednico je mogoče osvežiti z zanko čez `ALL_TECHNIQUES` nad posnetki
+`snapshotGrid`/`snapshotCand` iz dnevnika.
+
+| Tehnika | Uporabljena v ugankah | Opomba |
+|---|---|---|
+| Gol enojček, Skriti enojček, Pointing pair/triple, Hidden pair | vse 4 | |
+| Box-line reduction | hard-17-a, example-app | |
+| Naked pair | oakever-ekstrem-lv4, example-app | |
+| Naked triple | hard-17-a, oakever-ekstrem-17-a | |
+| W-Wing | hard-17-a, oakever-ekstrem-lv4 | |
+| Turbot Fish | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a | |
+| Unique Rectangle | hard-17-a, oakever-ekstrem-lv4 | |
+| Hidden triple | example-app | edina uganka, ki jo pokriva |
+| X-Wing | oakever-ekstrem-lv4 | edina uganka, ki jo pokriva |
+| **Swordfish** | **nobeni** | samo najdena (v vseh 4); `solve()` je ne izbere, ker X-Wing ali cenejša tehnika najde korak prej |
+| **XY-Wing** | **nobeni** | samo najdena (hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a); od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
+
+Vsaka tehnika iz `ALL_TECHNIQUES` je torej v teh štirih ugankah vsaj *najdena*, zato je
+vsako mogoče pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish,
+W-Wing in XY-Wing), brez novih ugank. Za pokritost prek dnevnika `solve()` manjkata
+Swordfish in XY-Wing: potrebni bi bili 1–2 novi uganki (ena, če bi ena uganka zahtevala
+obe tehniki). Da nobena tehnika ne bi bila odvisna od ene same uganke, bi bili potrebni
+še po en primer za Hidden triple in X-Wing.
 
 ## Zapisane uganke
 
