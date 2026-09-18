@@ -1,7 +1,8 @@
 /* ==================== IGRA: UI ====================
    Izris mreže in nizov gumbov, izbira celice, vpis/odstranjevanje kandidatov,
-   razveljavi/ponovi, poudarjanje števke, zbirka in vnos nove uganke. Stanje in
-   poteze so v stanje.js, hramba zbirke v ../shared/zbirka.js. */
+   razveljavi/ponovi, poudarjanje števke, pomoč (Naslednji korak, Preveri),
+   zbirka in vnos nove uganke. Stanje in poteze so v stanje.js, hramba zbirke
+   v ../shared/zbirka.js, korak in rešitev da motor (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
 const nizPoudariEl = document.getElementById('nizPoudari');
@@ -16,12 +17,21 @@ const opisUgankeEl = document.getElementById('opisUganke');
 const statusEl = document.getElementById('status');
 const zbirkaBtn = document.getElementById('zbirkaBtn');
 const razlogNizovEl = document.getElementById('razlogNizov');
+const korakBtn = document.getElementById('korakBtn');
+const preveriBtn = document.getElementById('preveriBtn');
+const pomocEl = document.getElementById('pomocVsebina');
 
 let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
 let izbrana = null;     // indeks izbrane celice ali null
 let poudarjena = null;  // poudarjena števka (1-9) ali null
 let sporocilo = null;   // { besedilo, razred } - enkratno sporočilo v kartici Uganka
+// Vsebina kartice Pomoč: null, { korak, fokus } (prikazan korak motorja; fokus =
+// poudarjena števka ob iskanju) ali { besedilo, razred, vrniPred } (vrniPred =
+// številka poteze za gumb "Vrni na stanje pred potezo"). Izgine ob vsaki
+// spremembi igre (osvezi).
+let pomoc = null;
+let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob prvi potrebi
 
 /* ---------- gradnja mreže in nizov ---------- */
 
@@ -86,6 +96,7 @@ function zbrisiVpis() {
 // Po vsaki spremembi igre: novo stanje, shrani, izriši.
 function osvezi() {
   stanje = stanjeIgre(igra);
+  pomoc = null;
   if (!igraShrani(igra)) {
     sporocilo = { besedilo: 'Igre ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', razred: 'err' };
   }
@@ -119,10 +130,17 @@ function izrisi() {
   izrisiMrezo();
   izrisiNize();
   izrisiStanje();
+  izrisiPomoc();
 }
 
 function izrisiMrezo() {
   mrezaEl.classList.toggle('prazna', !igra);
+  // Prikazan korak: celice vzorca, kandidati za izbris, števke za vpis.
+  const korak = pomoc && pomoc.korak;
+  const vzorec = new Set(korak ? korak.cells : []);
+  const izbris = new Set(korak ? korak.eliminate.map(([c, d]) => c * 10 + d) : []);
+  const izbrisCelice = new Set(korak ? korak.eliminate.map(([c]) => c) : []);
+  const zaVpis = new Map(korak ? korak.assign : []);
   for (let i = 0; i < 81; i++) {
     const el = celice[i];
     el.innerHTML = '';
@@ -143,11 +161,16 @@ function izrisiMrezo() {
         if (k & (1 << d)) {
           s.textContent = d;
           if (d === poudarjena) s.classList.add('poud');
+          if (izbris.has(i * 10 + d)) s.classList.add('k-izbris');
+          if (zaVpis.get(i) === d) s.classList.add('k-vpis');
         }
         mreza.appendChild(s);
       }
       el.appendChild(mreza);
     }
+    if (zaVpis.has(i)) el.classList.add('k-vpis');
+    else if (vzorec.has(i)) el.classList.add('k-vzorec');
+    else if (izbrisCelice.has(i)) el.classList.add('k-izbris');
     if (izbrana !== null) {
       if (i === izbrana) el.classList.add('izbrana');
       else if (PEERS[izbrana].has(i)) el.classList.add('soseda');
@@ -186,6 +209,8 @@ function izrisiNize() {
   razveljaviBtn.disabled = !igra || !lahkoRazveljavi(igra);
   ponoviBtn.disabled = !igra || !lahkoPonovi(igra);
   znovaBtn.disabled = !igra || igra.kazalec === 0;
+  korakBtn.disabled = !igra;
+  preveriBtn.disabled = !igra;
   stevecPotezEl.textContent = igra ? `poteza ${igra.kazalec} / ${igra.poteze.length}` : '';
 }
 
@@ -227,6 +252,119 @@ function opisUganke(danosti) {
   if (!z) return `Danih števk: ${danih}. Uganke ni v zbirki.`;
   const deli = [z.tezavnost || 'težavnost ni določena', `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`];
   return deli.join(' · ') + (z.opomba ? ` — ${z.opomba}` : '');
+}
+
+/* ---------- pomoč: Naslednji korak, Preveri ---------- */
+
+function resitev() {
+  if (!resitevIgre || resitevIgre.danosti !== igra.danosti) {
+    resitevIgre = { danosti: igra.danosti, resitev: solutionOf(igra.danosti) };
+  }
+  return resitevIgre.resitev;
+}
+
+function nastaviPomoc(p) {
+  pomoc = p;
+  izrisi();
+}
+
+korakBtn.addEventListener('click', () => {
+  if (!igra) return;
+  if (jeResena(stanje)) return nastaviPomoc({ besedilo: 'Uganka je rešena - ni več korakov.', razred: 'ok' });
+  const res = resitev();
+  if (!res) return nastaviPomoc({ besedilo: 'Rešitve uganke ni bilo mogoče izračunati.', razred: 'err' });
+  // Korak na napačni mreži bi temeljil na napačnih kandidatih - ne pokažemo ga.
+  if (prvaNapaka(igra, res) !== null) {
+    return nastaviPomoc({ besedilo: 'Na mreži je napaka, zato korak ne bi bil zanesljiv. Pritisni »Preveri«.', razred: 'err' });
+  }
+  const iskanje = { besedilo: 'Iščem korak ...', razred: '' };
+  nastaviPomoc(iskanje);
+  const fokus = poudarjena;
+  setTimeout(() => {
+    if (pomoc !== iskanje) return; // vmes poteza, Skrij ali Preveri
+    const korak = nextStep(stanje.deska, ALL_TECHNIQUES, fokus);
+    nastaviPomoc(korak ? { korak, fokus } : { besedilo: 'Noben znan korak ne najde ničesar.', razred: 'err' });
+  }, 20);
+});
+
+preveriBtn.addEventListener('click', () => {
+  if (!igra) return;
+  const res = resitev();
+  if (!res) return nastaviPomoc({ besedilo: 'Rešitve uganke ni bilo mogoče izračunati.', razred: 'err' });
+  const n = prvaNapaka(igra, res);
+  if (n === null) {
+    return nastaviPomoc(jeResena(stanje)
+      ? { besedilo: 'Uganka je rešena brez napak.', razred: 'ok' }
+      : { besedilo: 'Med vpisanimi števkami in odstranjenimi kandidati ni napake.', razred: 'ok' });
+  }
+  nastaviPomoc({
+    besedilo: `Na mreži je napaka. Nastala je pri potezi ${n} (od ${igra.kazalec}) – od takrat je na mreži ves čas vsaj ena napaka.`,
+    razred: 'err',
+    vrniPred: n,
+  });
+});
+
+function vrniPredPotezo(n) {
+  igra.kazalec = n - 1;
+  sporocilo = null;
+  osvezi();
+  nastaviPomoc({
+    besedilo: `Vrnjeno na stanje pred potezo ${n}, na mreži ni napake. Razveljavljene poteze lahko vrneš s »Ponovi«, dokler ne narediš nove poteze.`,
+    razred: 'ok',
+  });
+}
+
+function izrisiPomoc() {
+  pomocEl.innerHTML = '';
+  if (!pomoc) return;
+  if (pomoc.korak) {
+    const k = pomoc.korak;
+    const tag = document.createElement('span');
+    tag.className = `tag ${tagClass(k.technique)}`;
+    tag.textContent = k.technique;
+    const msg = document.createElement('p');
+    msg.className = 'pomoc-msg';
+    msg.textContent = k.message;
+    pomocEl.append(tag, msg);
+    if (pomoc.fokus !== null && !k.assign.concat(k.eliminate).some(([, d]) => d === pomoc.fokus)) {
+      const op = document.createElement('p');
+      op.className = 'pomoc-opomba';
+      op.textContent = `Za poudarjeno števko ${pomoc.fokus} ni koraka – prikazan je korak z drugo števko.`;
+      pomocEl.appendChild(op);
+    }
+    const legenda = document.createElement('div');
+    legenda.className = 'pomoc-legenda';
+    const del = (razred, besedilo) => `<span><span class="sw ${razred}"></span>${besedilo}</span>`;
+    // Celica za vpis je obarvana zeleno, tudi če je del vzorca (enojčki).
+    const vzorec = k.cells.some(c => !k.assign.some(([a]) => a === c));
+    legenda.innerHTML = (vzorec ? del('sw-vzorec', 'celice vzorca') : '')
+      + (k.eliminate.length ? del('sw-izbris', 'kandidat za izbris') : '')
+      + (k.assign.length ? del('sw-vpis', 'števka za vpis') : '');
+    pomocEl.appendChild(legenda);
+  } else {
+    const p = document.createElement('p');
+    p.className = `pomoc-msg ${pomoc.razred || ''}`;
+    p.textContent = pomoc.besedilo;
+    pomocEl.appendChild(p);
+  }
+  const gumbi = document.createElement('div');
+  gumbi.className = 'pomoc-gumbi';
+  if (pomoc.vrniPred) {
+    const n = pomoc.vrniPred;
+    const vrni = document.createElement('button');
+    vrni.type = 'button';
+    vrni.className = 'majhen';
+    vrni.textContent = `Vrni na stanje pred potezo ${n}`;
+    vrni.addEventListener('click', () => vrniPredPotezo(n));
+    gumbi.appendChild(vrni);
+  }
+  const skrij = document.createElement('button');
+  skrij.type = 'button';
+  skrij.className = 'majhen';
+  skrij.textContent = 'Skrij';
+  skrij.addEventListener('click', () => nastaviPomoc(null));
+  gumbi.appendChild(skrij);
+  pomocEl.appendChild(gumbi);
 }
 
 /* ---------- začetek igre ---------- */

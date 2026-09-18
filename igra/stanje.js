@@ -16,17 +16,19 @@ function novaIgra(danosti) {
   return { danosti, poteze: [], kazalec: 0 };
 }
 
-// Odigra prvih n potez: vpisi[c] = uporabnikova števka (0 = brez vpisa),
+// Odigra eno potezo: vpisi[c] = uporabnikova števka (0 = brez vpisa),
 // odstranjeni[c] = maska ročno odstranjenih kandidatov.
+function odigrajPotezo(vpisi, odstranjeni, p) {
+  if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
+  else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
+  else odstranjeni[p.celica] &= ~(1 << p.stevka);
+}
+
+// Odigra prvih n potez.
 function odigrajPoteze(danosti, poteze, n) {
   const vpisi = new Array(81).fill(0);
   const odstranjeni = new Array(81).fill(0);
-  for (let i = 0; i < n; i++) {
-    const p = poteze[i];
-    if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
-    else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
-    else odstranjeni[p.celica] &= ~(1 << p.stevka);
-  }
+  for (let i = 0; i < n; i++) odigrajPotezo(vpisi, odstranjeni, poteze[i]);
   return { vpisi, odstranjeni };
 }
 
@@ -119,6 +121,35 @@ function steviloVpisanih(stanje) {
 
 function jeResena(stanje) {
   return stanje.grid.every(v => v !== 0) && stanje.deska.isValid();
+}
+
+/* ---------- preverjanje (resitev = solutionOf(danosti)) ---------- */
+
+// Ali je v stanju (vpisi, odstranjeni) napaka: vpis, ki ni enak rešitvi, ali
+// prazna celica, iz katere je ročno odstranjen njen pravilni kandidat (tudi
+// taka uganka ni več rešljiva).
+function imaNapako(danosti, vpisi, odstranjeni, resitev) {
+  for (let c = 0; c < 81; c++) {
+    if (danosti[c] !== '0') continue;
+    if (vpisi[c] ? vpisi[c] !== resitev[c] : (odstranjeni[c] & (1 << resitev[c]))) return true;
+  }
+  return false;
+}
+
+// Številka poteze (1 = prva), pri kateri je nastala napaka, ki je na mreži
+// zdaj, ali null, če je mreža brez napak. To je poteza tik za zadnjim stanjem
+// brez napake: od nje naprej je na mreži ves čas vsaj ena napaka, vrnitev na
+// stanje pred njo pa da najpoznejše stanje brez napake. Napake, ki jih je
+// igralec vmes že sam popravil, se ne štejejo.
+function prvaNapaka(igra, resitev) {
+  const vpisi = new Array(81).fill(0);
+  const odstranjeni = new Array(81).fill(0);
+  let zadnjeBrez = 0; // zadnje stanje (število odigranih potez) brez napake
+  for (let i = 0; i < igra.kazalec; i++) {
+    odigrajPotezo(vpisi, odstranjeni, igra.poteze[i]);
+    if (!imaNapako(igra.danosti, vpisi, odstranjeni, resitev)) zadnjeBrez = i + 1;
+  }
+  return zadnjeBrez === igra.kazalec ? null : zadnjeBrez + 1;
 }
 
 /* ---------- shranjevanje ---------- */

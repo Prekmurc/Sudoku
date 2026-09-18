@@ -565,6 +565,17 @@ const ALL_TECHNIQUES = [
   ['Unique Rectangle', uniqueRectangle],
 ];
 
+// Skupina tehnike za barvo oznake v prikazu koraka (CSS razredi .tag.t-* v
+// app/app.css in igra/igra.css). Nova tehnika v ALL_TECHNIQUES naj dobi
+// skupino tudi tu.
+function tagClass(tech) {
+  if (tech === 'Gol enojček' || tech === 'Skriti enojček') return 't-single';
+  if (tech.includes('pair') || tech.includes('triple') || tech.includes('Pair') || tech.includes('Triple') || tech === 'Box-line reduction') return 't-pair';
+  if (tech === 'X-Wing' || tech === 'Swordfish' || tech === 'Turbot Fish' || tech === 'W-Wing' || tech === 'XY-Wing' || tech === 'Unique Rectangle' || tech.includes('Coloring')) return 't-advanced';
+  if (tech.includes('forcing') || tech.includes('protislovje')) return 't-chain';
+  return 't-basic';
+}
+
 /* ===================== BIFURKACIJA (forcing chain) ===================== */
 
 function applyStep(b, step) {
@@ -674,11 +685,58 @@ function countSolutions(givens, limit = 2, attemptBudget = 50000) {
   return counter.count;
 }
 
+// Rešitev uganke kot polje 81 števk ali null, če je nima (ali če varovalo
+// prekine iskanje). Pri uganki z več rešitvami vrne prvo najdeno - enoličnost
+// preveri countSolutions().
+function solutionOf(givens, attemptBudget = 50000) {
+  const budget = [attemptBudget];
+  const rec = (b) => {
+    if (budget[0] <= 0) return null;
+    budget[0]--;
+    if (!fastPropagate(b)) return null;
+    if (b.isSolved()) return b.grid.slice();
+    const empties = [];
+    for (let c = 0; c < 81; c++) if (b.grid[c] === 0) empties.push(c);
+    empties.sort((a, c) => popcount(b.cand[a]) - popcount(b.cand[c]));
+    const cell = empties[0];
+    for (const d of bitsOf(b.cand[cell])) {
+      const branch = b.clone();
+      branch.assign(cell, d);
+      const res = rec(branch);
+      if (res) return res;
+    }
+    return null;
+  };
+  const b = new Board(givens);
+  return b.isValid() ? rec(b) : null;
+}
+
 function digitsOfStep(step) {
   const ds = new Set();
   for (const [, d] of step.assign) ds.add(d);
   for (const [, d] of step.eliminate) ds.add(d);
   return ds;
+}
+
+// En naslednji korak na deski `b` (deske ne spremeni) ali null. Tehnike se
+// preizkušajo po vrstnem redu v `techniques`, na koncu tryBifurcation().
+// Če je podana `focusDigit`, ima prednost korak s to številko: najprej gremo
+// skozi VSE tehnike (od najpreprostejših do najzahtevnejših), a upoštevamo
+// samo korake, ki se tičejo focusDigit - tako solve() dokonča vse možne poteze
+// za eno številko, preden preskoči na naslednjo. Šele ko takega koraka ni,
+// vzamemo karkoli je na vrsti po običajni prioriteti.
+function nextStep(b, techniques = ALL_TECHNIQUES, focusDigit = null) {
+  if (focusDigit !== null) {
+    for (const [, fn] of techniques) {
+      const steps = fn(b).filter(s => digitsOfStep(s).has(focusDigit));
+      if (steps.length) return steps[0];
+    }
+  }
+  for (const [, fn] of techniques) {
+    const steps = fn(b);
+    if (steps.length) return steps[0];
+  }
+  return tryBifurcation(b);
 }
 
 function solve(givens, maxSteps = 500) {
@@ -698,31 +756,14 @@ function solve(givens, maxSteps = 500) {
 
   for (let iter = 0; iter < maxSteps; iter++) {
     if (b.isSolved()) break;
-    let found = null;
+    const found = nextStep(b, techniques, focusDigit);
 
-    // Najprej poskusimo ostati pri trenutno "aktivni" številki - gremo skozi
-    // VSE tehnike (od najpreprostejših do najzahtevnejših), a upoštevamo
-    // samo korake, ki se tičejo focusDigit. Tako se dokončajo vse možne
-    // poteze za eno številko, preden preskočimo na naslednjo.
-    if (focusDigit !== null) {
-      for (const [name, fn] of techniques) {
-        const steps = fn(b).filter(s => digitsOfStep(s).has(focusDigit));
-        if (steps.length) { found = steps[0]; break; }
-      }
-    }
-
-    // Če za trenutno številko ni več nič najti, izberemo novo (karkoli je
-    // na vrsti po običajni prioriteti) in se "usidramo" nanjo naprej.
-    if (!found) {
-      for (const [name, fn] of techniques) {
-        const steps = fn(b);
-        if (steps.length) { found = steps[0]; break; }
-      }
-      if (!found) found = tryBifurcation(b);
-      if (found) {
-        const ds = [...digitsOfStep(found)];
-        focusDigit = ds.length ? Math.min(...ds) : null;
-      }
+    // Če za trenutno številko ni bilo več nič najti, je korak z drugo
+    // številko (karkoli je na vrsti po običajni prioriteti) - "usidramo" se
+    // na novo številko naprej.
+    if (found && (focusDigit === null || !digitsOfStep(found).has(focusDigit))) {
+      const ds = [...digitsOfStep(found)];
+      focusDigit = ds.length ? Math.min(...ds) : null;
     }
 
     if (!found) {

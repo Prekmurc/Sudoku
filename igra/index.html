@@ -46,6 +46,14 @@
 
   <aside class="stranski">
     <div class="card">
+      <h2>Pomoč</h2>
+      <div class="pomoc-gumbi">
+        <button type="button" id="korakBtn" class="primary">Naslednji korak</button>
+        <button type="button" id="preveriBtn">Preveri</button>
+      </div>
+      <div id="pomocVsebina" class="pomoc-vsebina" aria-live="polite"></div>
+    </div>
+    <div class="card">
       <h2>Uganka</h2>
       <div id="opisUganke" class="opis-uganke"></div>
       <div id="status"></div>
@@ -54,6 +62,7 @@
     <div class="card pomoc-tipke">
       <h2>Kako</h2>
       <p>Klikni celico, nato števko v nizu <b>Vpiši</b> ali <b>Odstrani kandidata</b>. Omogočene so samo števke, ki so za izbrano celico smiselne.</p>
+      <p><b>Naslednji korak</b> pokaže en korak na mreži (sam ga ne izvede); če imaš poudarjeno števko, ima prednost korak s to števko. <b>Preveri</b> pove, ali je med vpisi napaka, in te lahko vrne na stanje pred njo.</p>
       <p>Tipkovnica: puščice premikajo izbiro, <kbd>1</kbd>–<kbd>9</kbd> vpiše, <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>9</kbd> odstrani ali vrne kandidata, <kbd>Backspace</kbd> zbriše vpis, <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> razveljavi / ponovi.</p>
     </div>
   </aside>

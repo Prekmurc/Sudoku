@@ -15,6 +15,8 @@
   --green-bg:#DCEEE5;
   --amber:#9C6B12;
   --amber-bg:#F1E5C9;
+  --purple:#7548A0;
+  --purple-bg:#E7DEF0;
   /* poudarjena števka: svetlo modra podlaga s temno števko (kot Oakever) */
   --poud:#AECBFA;
   --poud-ink:#1D4F9C;
@@ -141,6 +143,42 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
 }
 #status.err{ color: var(--red); }
 #status.ok{ color: var(--green); font-weight:600; }
+/* kartica Pomoč */
+.pomoc-gumbi{ display:flex; flex-wrap:wrap; gap:8px; }
+.pomoc-gumbi .primary{ flex:1; }
+.pomoc-vsebina:not(:empty){ margin-top:12px; }
+.pomoc-vsebina .pomoc-gumbi{ margin-top:10px; }
+.pomoc-msg{ font-size:14px; line-height:1.55; color:#3C4854; margin:6px 0 0; }
+.pomoc-msg.err{ color: var(--red); }
+.pomoc-msg.ok{ color: var(--green); font-weight:600; }
+.pomoc-opomba{ font-size:12.5px; color: var(--pencil); line-height:1.45; margin:6px 0 0; }
+.tag{
+  display:inline-block;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  padding:3px 8px;
+  border-radius:5px;
+}
+.tag.t-single{ background:var(--green-bg); color:var(--green); }
+.tag.t-pair{ background:var(--amber-bg); color:var(--amber); }
+.tag.t-advanced{ background:var(--purple-bg); color:var(--purple); }
+.tag.t-chain{ background:var(--red-bg); color:var(--red); }
+.tag.t-basic{ background:var(--blue-bg); color:var(--blue); }
+.pomoc-legenda{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 14px;
+  font-size:11.5px;
+  color: var(--pencil);
+  margin-top:10px;
+}
+.pomoc-legenda > span{ display:inline-flex; align-items:center; gap:5px; }
+.pomoc-legenda .sw{ width:12px; height:12px; border-radius:3px; border:1px solid; }
+.pomoc-legenda .sw-vzorec{ background: var(--amber-bg); border-color: var(--amber); }
+.pomoc-legenda .sw-izbris{ background: var(--red-bg); border-color: var(--red); }
+.pomoc-legenda .sw-vpis{ background: var(--green); border-color: var(--green); }
 .pomoc-tipke p{ font-size:12.5px; color:#3C4854; line-height:1.55; margin:0 0 8px; }
 .pomoc-tipke p:last-child{ margin:0; }
 kbd{
@@ -220,6 +258,25 @@ kbd{
 .kand.poud{
   background: var(--poud);
   color: var(--poud-stevka);
+  font-weight:700;
+  border-radius:3px;
+  margin:0.5px;
+}
+/* prikazan korak (Naslednji korak): celice vzorca jantarno, celice z
+   izbrisom rdečkasto, kandidat za izbris rdeč prečrtan, števka za vpis zelena
+   - kot na mini mreži v reševalcu; ima prednost pred sivino izbire */
+.celica.k-vzorec{ background: var(--amber-bg); }
+.celica.k-izbris{ background: var(--red-bg); }
+.celica.k-vpis{ background: var(--green-bg); }
+.kand.k-izbris{
+  color: var(--red);
+  font-weight:700;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.kand.k-vpis{
+  background: var(--green);
+  color:#fff;
   font-weight:700;
   border-radius:3px;
   margin:0.5px;

@@ -75,14 +75,6 @@ solvedGridEl.addEventListener('click', () => {
 const summaryEl = document.getElementById('summary');
 let lastSolve = null; // { givens, grid, log } - napolnjeno po uspešnem "Reši"
 
-function tagClass(tech) {
-  if (tech === 'Gol enojček' || tech === 'Skriti enojček') return 't-single';
-  if (tech.includes('pair') || tech.includes('triple') || tech.includes('Pair') || tech.includes('Triple') || tech === 'Box-line reduction') return 't-pair';
-  if (tech === 'X-Wing' || tech === 'Swordfish' || tech === 'Turbot Fish' || tech === 'W-Wing' || tech === 'XY-Wing' || tech === 'Unique Rectangle' || tech.includes('Coloring')) return 't-advanced';
-  if (tech.includes('forcing') || tech.includes('protislovje')) return 't-chain';
-  return 't-basic';
-}
-
 const stepsCard = document.getElementById('stepsCard');
 const stepsEl = document.getElementById('steps');
 const lightbox = document.getElementById('lightbox');

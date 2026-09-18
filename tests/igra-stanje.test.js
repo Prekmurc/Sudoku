@@ -10,7 +10,7 @@ const E = loadEngine(undefined, {
   files: ['igra/stanje.js'],
   names: ['novaIgra', 'stanjeIgre', 'mozneAkcije', 'dodajPotezo', 'razveljavi', 'ponovi',
     'lahkoRazveljavi', 'lahkoPonovi', 'seManjka', 'steviloVpisanih', 'jeResena',
-    'igraVZapis', 'igraIzZapisa'],
+    'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf'],
 });
 
 // Uganka, ki jo solve() reši v celoti brez ugibanja - njena rešitev je znana.
@@ -159,6 +159,107 @@ test('zapis za shrambo: krožno ohrani poteze in "ponovi" rep; poškodovan zapis
   assert.equal(odrezan.poteze.length, 2);
   assert.equal(odrezan.kazalec, 2);
   assert.equal(E.igraIzZapisa(danosti, null).poteze.length, 0);
+});
+
+// Prazna celica (po vrsti iz `prve`, od indeksa `od`) z napačnim kandidatom.
+function napacenKandidat(igra, od = 0) {
+  const s = E.stanjeIgre(igra);
+  for (const c of prve.slice(od)) {
+    if (s.grid[c]) continue;
+    const w = bits(s.kandidati[c]).find(d => d !== resitev[c]);
+    if (w) return { c, w };
+  }
+  throw new Error('ni napačnega kandidata');
+}
+const vpis = (igra, c, d) => assert.equal(E.dodajPotezo(igra, { tip: 'vpis', celica: c, stevka: d }), true, `vpis ${d} v ${E.cellLabel(c)}`);
+const kand = (igra, c, d, odstrani) => assert.equal(E.dodajPotezo(igra, { tip: 'kandidat', celica: c, stevka: d, odstrani }), true);
+// Celice brez napak za "polnilne" poteze (pravilni vpisi), ločene od celic z napakami.
+const pravilne = prve.slice(40);
+
+test('solutionOf: rešitev uganke je enaka rešitvi iz solve()', () => {
+  assert.deepEqual([...E.solutionOf(danosti)], resitev);
+});
+
+test('prvaNapaka: pravilni vpisi in odstranjeni napačni kandidati niso napaka', () => {
+  const igra = E.novaIgra(danosti);
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  const { c, w } = napacenKandidat(igra);
+  kand(igra, c, w, true);
+  vpis(igra, pravilne[1], resitev[pravilne[1]]);
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+});
+
+test('prvaNapaka: napačen vpis - številka poteze; vrnitev pred njo da stanje brez napake, poteze ostanejo v "ponovi"', () => {
+  const igra = E.novaIgra(danosti);
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  vpis(igra, pravilne[1], resitev[pravilne[1]]);
+  const { c, w } = napacenKandidat(igra);
+  vpis(igra, c, w); // poteza 3
+  vpis(igra, pravilne[2], resitev[pravilne[2]]);
+  vpis(igra, pravilne[3], resitev[pravilne[3]]);
+  assert.equal(E.prvaNapaka(igra, resitev), 3);
+
+  igra.kazalec = 3 - 1;
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+  assert.equal(igra.poteze.length, 5);
+  E.ponovi(igra);
+  assert.equal(E.prvaNapaka(igra, resitev), 3, 'napaka v "ponovi" repu se ne šteje, dokler je ne ponoviš');
+});
+
+test('prvaNapaka: napaka, ki jo je igralec sam popravil, se ne šteje', () => {
+  const igra = E.novaIgra(danosti);
+  const { c, w } = napacenKandidat(igra);
+  vpis(igra, c, w);
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  vpis(igra, c, 0);
+  vpis(igra, c, resitev[c]);
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+});
+
+test('prvaNapaka: ročno odstranjen pravilni kandidat je napaka; ko ga vrneš, ni več', () => {
+  const igra = E.novaIgra(danosti);
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  const c = prve.find(x => E.popcount(E.stanjeIgre(igra).kandidati[x]) > 1);
+  kand(igra, c, resitev[c], true); // poteza 2
+  vpis(igra, pravilne[1], resitev[pravilne[1]]);
+  assert.equal(E.prvaNapaka(igra, resitev), 2);
+  kand(igra, c, resitev[c], false);
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+
+  // Odstrani, vrni in spet odstrani: šteje zadnja odstranitev. Nato napačen
+  // vpis v to celico in njegovo brisanje - napaka je na mreži ves čas, od
+  // poteze, ki je kandidata odstranila.
+  const igra2 = E.novaIgra(danosti);
+  kand(igra2, c, resitev[c], true); // poteza 1
+  kand(igra2, c, resitev[c], false);
+  kand(igra2, c, resitev[c], true); // poteza 3
+  assert.equal(E.prvaNapaka(igra2, resitev), 3);
+  const w = bits(E.stanjeIgre(igra2).kandidati[c])[0];
+  vpis(igra2, c, w); // napačen vpis (pravilni kandidat je odstranjen)
+  vpis(igra2, c, 0);
+  assert.equal(E.prvaNapaka(igra2, resitev), 3, 'napaka je na mreži neprekinjeno od poteze 3');
+});
+
+test('prvaNapaka: več napak - šteje najzgodnejša, ki je od takrat neprekinjeno na mreži', () => {
+  const igra = E.novaIgra(danosti);
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  const a = napacenKandidat(igra);
+  vpis(igra, a.c, a.w); // poteza 2
+  vpis(igra, pravilne[1], resitev[pravilne[1]]);
+  const b = napacenKandidat(igra, prve.indexOf(a.c) + 1);
+  vpis(igra, b.c, b.w); // poteza 4
+  assert.equal(E.prvaNapaka(igra, resitev), 2);
+
+  // Prvo napako popravi, druga ostane: stanje pred potezo 4 še vsebuje prvo
+  // napako, zato je stanje brez napake šele pred potezo 2.
+  vpis(igra, a.c, 0);
+  assert.equal(E.prvaNapaka(igra, resitev), 2);
+  // Druga napaka popravljena, nova napaka pozneje: šteje samo nova.
+  vpis(igra, b.c, 0);
+  vpis(igra, pravilne[2], resitev[pravilne[2]]);
+  vpis(igra, a.c, a.w); // poteza 8
+  assert.equal(E.prvaNapaka(igra, resitev), 8);
 });
 
 test('vpis celotne rešitve: uganka je rešena, števci so 0', () => {
