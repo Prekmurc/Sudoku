@@ -19,7 +19,7 @@ const describe = step => plain({
   eliminate: step.eliminate.map(([c, d]) => `${E.cellLabel(c)}≠${d}`),
 });
 
-// hard-17-a, stanje pred korakom 27.
+// hard-17-a, stanje pred korakom 27 (indeks velja za vrstni red tehnik pred 2026-09-18).
 const KITE_POS = `
 [2347] [38] [3478] [467] 1 5 [279] [347] [34679]
 [347] 9 [15] [467] 8 2 [157] [13457] [34567]
@@ -31,7 +31,8 @@ const KITE_POS = `
 8 [247] [69] [35] [2467] 1 [579] [3457] [34579]
 1 [247] [69] [35] [2467] [467] [5789] [34578] [34579]`;
 
-// oakever-ekstrem-17-a, stanje pred korakom 37.
+// oakever-ekstrem-17-a, stanje pred korakom 37 (indeks velja za vrstni red tehnik pred
+// 2026-09-18).
 const SKYSCRAPER_POS = `
 8 1 5 7 [234] [234] [34] 6 9
 [46] [3467] [3467] 1 5 9 [34] 2 8
@@ -43,8 +44,8 @@ const SKYSCRAPER_POS = `
 3 [28] [8] 5 1 [467] [26] 9 [467]
 9 5 [467] 3 [467] [467] [26] 8 1`;
 
-// hard-17-a, stanje pred korakom 28 (takoj po zmaju iz KITE_POS; tu
-// nobena tehnika ne najde koraka in reševalec ugiba).
+// hard-17-a, stanje pred korakom 28 (indeks velja za vrstni red tehnik pred 2026-09-18;
+// takoj po zmaju iz KITE_POS; tu nobena tehnika ne najde koraka in reševalec ugiba).
 const NO_PATTERN_POS = `
 [2347] [38] [3478] [467] 1 5 [279] [347] [34679]
 [347] 9 [15] [467] 8 2 [157] [13457] [34567]
