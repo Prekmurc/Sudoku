@@ -122,7 +122,6 @@ function izrisi() {
 
 function izrisiMrezo() {
   mrezaEl.classList.toggle('prazna', !igra);
-  const bitP = poudarjena ? 1 << poudarjena : 0;
   for (let i = 0; i < 81; i++) {
     const el = celice[i];
     el.innerHTML = '';
@@ -135,7 +134,6 @@ function izrisiMrezo() {
       if (v === poudarjena) el.classList.add('poud-stevka');
     } else {
       const k = stanje.kandidati[i];
-      if (k & bitP) el.classList.add('poud-kand');
       const mreza = document.createElement('div');
       mreza.className = 'kandidati';
       for (let d = 1; d <= 9; d++) {

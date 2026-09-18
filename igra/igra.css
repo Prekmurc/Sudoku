@@ -172,37 +172,51 @@ kbd{
   cursor:pointer;
   position:relative;
 }
-.celica.dana{ color: var(--ink); font-weight:800; background: var(--given-bg); }
+/* danosti črne, vpisi modri */
+.celica.dana{ color:#000; font-weight:800; background: var(--given-bg); }
 .celica.vpis{ color: var(--blue); font-weight:700; }
 .celica.soseda{ background: var(--peer-bg); }
 .celica.dana.soseda{ background: #E4E9EE; }
-/* poudarjena števka: kandidat (svetlo) in vpisana/dana števka (močneje) */
-.celica.poud-kand{ background: var(--purple-bg); }
+/* poudarjena števka, vpisana ali dana: cela celica (kandidati: glej .kand.poud) */
 .celica.poud-stevka{ background: var(--purple-mid); }
 .celica.izbrana{ box-shadow: inset 0 0 0 3px var(--blue); }
-.celica.izbrana:not(.poud-kand):not(.poud-stevka){ background: var(--blue-bg); }
+.celica.izbrana:not(.poud-stevka){ background: var(--blue-bg); }
 .celica[data-c="0"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="3"], .celica[data-c="6"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="8"]{ border-right: 2px solid var(--ink); }
 .celica[data-r="0"]{ border-top: 2px solid var(--ink); }
 .celica[data-r="3"], .celica[data-r="6"]{ border-top: 2px solid var(--ink); }
 .celica[data-r="8"]{ border-bottom: 2px solid var(--ink); }
+/* Kandidati na stalnih mestih (1 levo zgoraj ... 9 desno spodaj). minmax(0,1fr):
+   vse vrstice in stolpci so enako veliki - prazna vrstica se ne stisne, zato
+   kandidat ne zdrsne s svojega mesta. */
 .kandidati{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  grid-template-rows:repeat(3,1fr);
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  grid-template-rows:repeat(3, minmax(0, 1fr));
   width:100%;
   height:100%;
+  padding:1px;
 }
 .kand{
   display:flex;
   align-items:center;
   justify-content:center;
+  min-width:0;
+  min-height:0;
+  line-height:1;
   font-size: calc(var(--gcs) * 0.26);
   font-weight:500;
   color: var(--pencil);
 }
-.kand.poud{ color: var(--purple); font-weight:800; }
+/* poudarjen kandidat: podlaga pod samo to števko */
+.kand.poud{
+  background: var(--purple-mid);
+  color:#3E1F63;
+  font-weight:800;
+  border-radius:3px;
+  margin:0.5px;
+}
 .mreza.prazna .celica{ cursor:default; }
 
 /* ---------- nizi gumbov (poravnani s stolpci mreže) ---------- */
