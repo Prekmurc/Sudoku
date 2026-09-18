@@ -34,18 +34,11 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .menu-card h3::before{content:counter(tehnika) ". ";color:var(--pencil)}
 .menu-card p{font-size:13px;color:#4A5664;line-height:1.5;margin:0}
 .menu-card .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:6px}
-.badge-pair{background:var(--amber-bg);color:var(--amber)}
-.badge-hpair{background:var(--purple-bg);color:var(--purple)}
-.badge-triple{background:var(--teal-bg);color:var(--teal)}
-.badge-htriple{background:#DCE8F8;color:#2956A0}
-.badge-xwing{background:#FCE4EC;color:#A02050}
-.badge-swordfish{background:#E8F5E9;color:#2E7D32}
-.badge-pointing{background:var(--blue-bg);color:var(--blue)}
-.badge-boxline{background:var(--indigo-bg);color:var(--indigo)}
-.badge-xywing{background:var(--cyan-bg);color:var(--cyan)}
-.badge-ur{background:var(--orange-bg);color:var(--orange)}
-.badge-turbot{background:var(--plum-bg);color:var(--plum)}
-.badge-wwing{background:var(--olive-bg);color:var(--olive)}
+/* Barva značke pove težavnost (ne tehnike - te ločijo barve izbire v vaji, glej MODES). */
+.badge-lazje{background:var(--green-bg);color:var(--green)}
+.badge-srednje{background:var(--blue-bg);color:var(--blue)}
+.badge-zahtevno{background:var(--amber-bg);color:var(--amber)}
+.badge-napredno{background:var(--red-bg);color:var(--red)}
 
 /* --- VAJE --- */
 #trainer{display:none}
