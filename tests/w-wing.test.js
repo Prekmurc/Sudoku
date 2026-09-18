@@ -124,9 +124,9 @@ test('brez vzorca', () => {
   assert.deepEqual(plain(E.wWing(boardFromText(E, NO_PATTERN_POS))), []);
 });
 
-test('W-Wing je v ALL_TECHNIQUES takoj za Turbot Fish', () => {
+test('W-Wing je v ALL_TECHNIQUES takoj za Swordfish', () => {
   const names = E.ALL_TECHNIQUES.map(([n]) => n);
-  assert.equal(names[names.indexOf('Turbot Fish') + 1], 'W-Wing');
+  assert.equal(names[names.indexOf('Swordfish') + 1], 'W-Wing');
 });
 
 for (const { ime, danosti } of loadPuzzles()) {

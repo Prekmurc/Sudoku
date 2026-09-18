@@ -85,9 +85,10 @@ test('brez vzorca', () => {
   assert.deepEqual(plain(E.turbotFish(boardFromText(E, NO_PATTERN_POS))), []);
 });
 
-test('Turbot Fish je v ALL_TECHNIQUES takoj za Swordfish', () => {
+test('Turbot Fish je v ALL_TECHNIQUES takoj za X-Wing in pred Swordfish', () => {
   const names = E.ALL_TECHNIQUES.map(([n]) => n);
-  assert.equal(names[names.indexOf('Swordfish') + 1], 'Turbot Fish');
+  assert.equal(names[names.indexOf('X-Wing') + 1], 'Turbot Fish');
+  assert.equal(names[names.indexOf('Turbot Fish') + 1], 'Swordfish');
 });
 
 for (const { ime, danosti } of loadPuzzles()) {

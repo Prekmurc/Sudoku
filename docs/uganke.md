@@ -11,33 +11,36 @@ ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`).
 
 ## Pokritost tehnik
 
-Stanje 2026-09-18 za spodnjih pet ugank. »Uporabljena« pomeni, da `solve()` korak te
-tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike vzorec v
-kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak cenejše
-tehnike. Preglednico osveži `node tools/analiziraj-zbirko.js <zbirka.md>`, ki tudi pove,
-katera uganka iz izvožene zbirke bi zaprla katero vrzel.
+Stanje 2026-09-18 za spodnjih pet ugank, z vrstnim redom tehnik po težavnosti opažanja
+za človeka (glej `CLAUDE.md`, razdelek Arhitektura). »Uporabljena« pomeni, da `solve()`
+korak te tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike
+vzorec v kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak
+tehnike, ki je v `ALL_TECHNIQUES` pred njo. Preglednico osveži
+`node tools/analiziraj-zbirko.js <zbirka.md>`, ki tudi pove, katera uganka iz izvožene
+zbirke bi zaprla katero vrzel.
 
 | Tehnika | Št. ugank | Uporabljena v |
 |---|---|---|
 | Gol enojček, Skriti enojček, Pointing pair/triple, Hidden pair | 5 | vseh pet |
+| Naked pair | 4 | vse razen oakever-ekstrem-17-b (tam samo najdena) |
 | Turbot Fish | 4 | vse razen example-app |
 | Naked triple | 3 | hard-17-a, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
 | W-Wing | 3 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-b |
-| Box-line reduction | 2 | hard-17-a, example-app |
-| Naked pair | 2 | oakever-ekstrem-lv4, example-app |
-| Hidden pair… Unique Rectangle | 2 | hard-17-a, oakever-ekstrem-lv4 |
+| Unique Rectangle | 2 | hard-17-a, oakever-ekstrem-lv4 |
 | Hidden triple | 2 | example-app (blok), oakever-ekstrem-17-b (vrstica) |
+| **Box-line reduction** | **1** | samo hard-17-a; v ostalih štirih samo najdena (v example-app je bila uporabljena do spremembe vrstnega reda 2026-09-18, zdaj isti izbris naredi Naked pair) |
 | **X-Wing** | **1** | samo oakever-ekstrem-lv4 |
-| **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing ali cenejša tehnika najde korak prej |
+| **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing, Turbot Fish ali tehnika pred njima najde korak prej |
 | **XY-Wing** | **0** | samo najdena; od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
 
 Vsaka tehnika iz `ALL_TECHNIQUES` je v teh ugankah vsaj *najdena*, zato je vsako mogoče
 pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish, W-Wing in
 XY-Wing), brez novih ugank. Za pokritost prek dnevnika `solve()` manjkata Swordfish in
 XY-Wing (1–2 novi uganki, ena, če bi ena uganka zahtevala obe), za odpravo odvisnosti od
-ene same uganke pa še X-Wing. Teh treh iskanje po težavnosti ne zadene zanesljivo –
-odloča vrstni red v `ALL_TECHNIQUES`: Swordfish pride na vrsto šele, ko odpove X-Wing,
-XY-Wing pa šele, ko odpove tudi W-Wing.
+ene same uganke pa še X-Wing in Box-line reduction. Teh tehnik iskanje po težavnosti ne
+zadene zanesljivo – odloča vrstni red v `ALL_TECHNIQUES`: Swordfish pride na vrsto šele,
+ko odpovesta X-Wing in Turbot Fish, XY-Wing šele, ko odpove tudi W-Wing, Box-line
+reduction pa šele, ko odpovesta Naked pair in Pointing pair/triple.
 
 ## Zapisane uganke
 
@@ -47,13 +50,19 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
 - **Vir:** posredoval uporabnik (2026-09-14), kot primer "težje uganke". Prej imenovana
   `hard-17-bifurcation-x3`.
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši.
-- **Značilnost:** `solve()` (`shared/engine.js`) jo reši v 84 korakih: Skriti enojček (40),
-  Gol enojček (24), Pointing pair/triple (6), Hidden pair (4), Box-line reduction (3),
-  Naked triple (2), Turbot Fish (2), W-Wing (1), Unique Rectangle (1) in enkrat
-  `tryBifurcation` ("Poskus in protislovje (forcing chain)"), na indeksu koraka 28 od 84
-  (V1S2≠8). Turbot Fish: Zmaj z dvema vrvicama (4) na indeksu 27, Skyscraper (4) na
-  indeksu 36. W-Wing: par {4,7} v V2S1 in V3S4 (povezava na 7 v vrstici 1) na indeksu 45.
-- **Zgodovina:** 3 ugibanja pred Turbot Fish, 1 po njem; W-Wing (2026-09-18) števila
+- **Značilnost:** `solve()` (`shared/engine.js`) jo reši v 83 korakih: Skriti enojček (39),
+  Gol enojček (25), Hidden pair (4), Box-line reduction (3), Naked triple (3), Naked pair
+  (2), Pointing pair/triple (2), Turbot Fish (2), W-Wing (1), Unique Rectangle (1) in
+  enkrat `tryBifurcation` ("Poskus in protislovje (forcing chain)"), na indeksu koraka 27
+  od 83 (V1S2≠8). Turbot Fish: Zmaj z dvema vrvicama (4) na indeksu 26, Skyscraper (4) na
+  indeksu 35. W-Wing: par {4,7} v V2S1 in V3S4 (povezava na 7 v vrstici 1) na indeksu 44.
+  Unique Rectangle na indeksu 55.
+- **Zgodovina:** pred spremembo vrstnega reda tehnik (2026-09-18; Naked pair pred
+  Pointing/Box-line, Hidden pair za njima, Turbot Fish pred Swordfish) 84 korakov:
+  Skriti enojček (40), Gol enojček (24), Pointing pair/triple (6), Hidden pair (4),
+  Box-line reduction (3), Naked triple (2), Turbot Fish (2), W-Wing (1), Unique Rectangle
+  (1) in isto ugibanje (V1S2≠8) na indeksu 28; dnevnika se razideta na indeksu 5.
+  3 ugibanja pred Turbot Fish, 1 po njem; W-Wing (2026-09-18) števila
   ugibanj ni spremenil. Pred W-Wing je imel dnevnik 83 korakov – Skriti enojček (39),
   Gol enojček (25), sicer enako; novi korak W-Wing se vrine na indeks 45 in vse nadaljnje
   zamakne za enega. Pred Turbot Fish (2026-09-14) je imel dnevnik 86 korakov,
@@ -69,14 +78,17 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** naš `solve()` (`shared/engine.js`) jo reši brez sestopanja
-  (`tryBifurcation` – "Poskus in protislovje" – se ne uporabi niti enkrat), v 77
+  (`tryBifurcation` – "Poskus in protislovje" – se ne uporabi niti enkrat), v 75
   korakih. Uporabljene tehnike in število uporab: Skriti enojček (51), Gol enojček
-  (13), Pointing pair/triple (6), Turbot Fish (2 – Zmaj z dvema vrvicama in
-  Skyscraper, oba na številki 9), Hidden pair (1), X-Wing (1), Naked pair (1), W-Wing
-  (1), Unique Rectangle (1). Od tehnik, ki jih je navedel Oakever, reševalec uporabi
-  Skyscraper (kot Turbot Fish), X-Wing in W-Wing; Jellyfish (ki ga nima) ne potrebuje,
-  XY-Wing pa od uvedbe W-Wing ni več na vrsti.
-- **Zgodovina:** pred W-Wing (do 2026-09-18) prav tako 77 korakov brez ugibanja; na
+  (13), Pointing pair/triple (3), Turbot Fish (2 – Zmaj z dvema vrvicama in
+  Skyscraper, oba na številki 9, na indeksih 41 in 42), Naked pair (2), Hidden pair (1),
+  X-Wing (1, na indeksu 44), W-Wing (1, izbris V2S5≠3 na indeksu 48), Unique Rectangle
+  (1). Od tehnik, ki jih je navedel Oakever, reševalec uporabi Skyscraper (kot Turbot
+  Fish), X-Wing in W-Wing; Jellyfish (ki ga nima) ne potrebuje, XY-Wing pa od uvedbe
+  W-Wing ni več na vrsti.
+- **Zgodovina:** pred spremembo vrstnega reda tehnik (2026-09-18) 77 korakov brez
+  ugibanja: Pointing pair/triple (6), Naked pair (1), W-Wing na indeksu 50, sicer enako;
+  dnevnika se razideta na indeksu 45. Pred W-Wing (do 2026-09-18) prav tako 77 korakov brez ugibanja; na
   indeksu 50 je bil namesto W-Wing (izbris V2S5≠3) uporabljen XY-Wing (izbris V1S3≠3),
   vse ostalo enako. Pred Turbot Fish (do 2026-09-15) 76 korakov, prav tako brez ugibanja:
   Skriti enojček (51), Gol enojček (13), Pointing pair/triple (5), XY-Wing (3), X-Wing
@@ -88,7 +100,12 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
 - **Vir:** vgrajen primer v `app/app.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)");
   tam je isti niz zapisan z ničlami namesto pik.
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši.
-- **Značilnost:** `tryBifurcation` se uporabi enkrat, na indeksu koraka 50 od 77.
+- **Značilnost:** `tryBifurcation` se uporabi enkrat, na indeksu koraka 50 od 77
+  (V1S6≠7). Hidden triple (številke 2,7,8 v bloku 1) na indeksu 41.
+- **Zgodovina:** pred spremembo vrstnega reda tehnik (2026-09-18) enako število korakov
+  in isto ugibanje; razlika je samo na indeksu 37, kjer izbris V7S4≠3, V8S4≠3 namesto
+  Box-line reduction zdaj naredi Naked pair (Box-line reduction se v tej uganki zato ne
+  uporabi več).
 
 ### oakever-ekstrem-17-a
 
@@ -100,16 +117,21 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** `solve()` jo reši v 78 korakih: Skriti enojček (41), Gol enojček (23),
-  Pointing pair/triple (6), Hidden pair (4), Turbot Fish (2), Naked triple (1) in enkrat
-  `tryBifurcation` ("Poskus in protislovje (forcing chain)"), na indeksu koraka 51 od 78
-  (V1S5≠2). Turbot Fish: Skyscraper (7) na indeksu 37, Zmaj z dvema vrvicama (4) na
-  indeksu 47. Na mestu ugibanja `turbotFish()` ne najde ničesar. Merilni primer za
-  Turbot Fish in W-Wing.
+  Pointing pair/triple (4), Hidden pair (4), Naked pair (2), Turbot Fish (2), Naked
+  triple (1) in enkrat `tryBifurcation` ("Poskus in protislovje (forcing chain)"), na
+  indeksu koraka 51 od 78 (V1S5≠2). Turbot Fish: Skyscraper (7) na indeksu 37, Zmaj z
+  dvema vrvicama (4) na indeksu 47. Na mestu ugibanja `turbotFish()` ne najde ničesar.
+  Merilni primer za Turbot Fish in W-Wing.
 - **W-Wing (2026-09-18):** dnevnik je ostal popolnoma nespremenjen – še vedno 78 korakov
   in eno ugibanje (V1S5≠2). `wWing()` v tej uganki vzorce najde (koraki 36–45, izbrisa
   V2S2≠4 in V3S5≠4), a jih `solve()` ne uporabi, ker iste celice prej razrešijo cenejše
-  tehnike; na samem mestu ugibanja (korak 51) W-Wing ne najde ničesar.
-- **Zgodovina:** 3 ugibanja pred Turbot Fish, 1 po njem. Pred Turbot Fish (2026-09-15):
+  tehnike; na samem mestu ugibanja (korak 51) W-Wing ne najde ničesar. Po spremembi
+  vrstnega reda tehnik (2026-09-18) jih najde na korakih 36–43; izbris V2S2≠4 na
+  indeksu 42 zdaj naredi Naked pair.
+- **Zgodovina:** pred spremembo vrstnega reda tehnik (2026-09-18) enako število korakov,
+  isto ugibanje in isti indeksi Turbot Fish; Pointing pair/triple (6) namesto 4 in brez
+  Naked pair; dnevnika se razideta na indeksu 32.
+  3 ugibanja pred Turbot Fish, 1 po njem. Pred Turbot Fish (2026-09-15):
   77 korakov – Skriti enojček (42), Gol enojček (22), Pointing pair/triple (5), Hidden
   pair (4), Naked pair (1) in `tryBifurcation` na indeksih 47, 51 in 54 (V1S5≠2, V2S2≠3,
   V3S5≠6). Takratna analiza: na vseh treh mestih so bili prisotni vzorci, ki jih
@@ -131,7 +153,8 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
   enojček (19), Pointing pair/triple (7), Hidden pair (3), Turbot Fish (2), Hidden triple
   (1), Naked triple (1), W-Wing (1). Hidden triple: številke 1,6,7 v vrstici 1, na indeksu
   9. Turbot Fish: Skyscraper in Zmaj z dvema vrvicama, oba na številki 3, na indeksih 54
-  in 55. W-Wing: par {3,5} v V2S9 in V8S8, na indeksu 56.
+  in 55. W-Wing: par {3,5} v V2S9 in V8S8, na indeksu 56. Sprememba vrstnega reda
+  tehnik (2026-09-18) dnevnika ni spremenila (korak za korakom enak).
 - **Zakaj je tu:** druga uganka, ki sproži Hidden triple (prva je `example-app`), in edina,
   kjer je ta v vrstici in ne v bloku. Izbrana 2026-09-18 iz izvožene zbirke z orodjem
   `tools/analiziraj-zbirko.js`; ostale uganke iz iste serije so bodisi že tu bodisi ne
