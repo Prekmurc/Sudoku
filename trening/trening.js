@@ -213,7 +213,7 @@ function renderExercise(){
     div.appendChild(dlabel);
     const layout=buildBoxLineLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
-  } else if(M.isXYWing||M.isUR||M.isTurbot){
+  } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
     // Oznaka "Označena številka" samo pri Turbot Fish - XY-Wing in Unique Rectangle
     // nista vezani na eno samo številko.
     if(M.isTurbot){
@@ -307,6 +307,11 @@ function renderExercise(){
       ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(',');(byPair[k]=byPair[k]||[]).push(s.pos);});
       const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
       return `Pari kandidatov: ${lines}. Trije vogali z istim parom morajo ležati v 2 vrsticah, 2 stolpcih in <b>natanko dveh blokih</b> – če je pravokotnik razpet čez štiri bloke, tehnika ne velja.`;
+    } else if(M.isWWing){
+      const byPair={};
+      ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(',');(byPair[k]=byPair[k]||[]).push(s.pos);});
+      const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
+      return `Pari kandidatov: ${lines}. Celici para se <b>ne smeta videti</b> (ne ista vrstica, stolpec ali blok) – za pravi par nato poišči enoto, kjer je druga številka para mogoča samo v dveh celicah, od katerih vsaka vidi po eno celico para.`;
     } else if(M.isTurbot){
       const bit=1<<ex.digit,links=[];
       for(const [units,lbl] of [[ROWS,'V'],[COLS,'S']]) units.forEach((u,i)=>{
@@ -337,7 +342,7 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
-    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot){
+    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
       const step=exDigitStep();
       return step?step.message:'(ni najdenega vzorca)';
     }
@@ -396,7 +401,7 @@ function renderExercise(){
     overlay.innerHTML=text;
     overlay.classList.add('visible');
     if(showHL){
-      if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot){
+      if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
         const step=exDigitStep();
         if(step){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
@@ -484,13 +489,13 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     return;
   }
 
-  if(M.isXYWing||M.isUR||M.isTurbot){
+  if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
     // Jedro zaznave je ista koda kot v reševalcu (shared/engine.js xyWing() /
     // uniqueRectangle() / turbotFish()). Ujemanje se preverja samo po množici izbranih
     // celic - sprejme katero koli veljavno kombinacijo, ne le tiste iz generatorja.
     // (Pri Turbot Fish generator zagotovi, da so na deski vaje vsi vzorci na
     // označeni številki.)
-    const techFn=M.isXYWing?xyWing:M.isUR?uniqueRectangle:turbotFish;
+    const techFn=M.isXYWing?xyWing:M.isUR?uniqueRectangle:M.isWWing?wWing:turbotFish;
     const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
     const selSet=new Set(selected.map(si=>ex.slots[si].idx));
     const match=techFn(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
@@ -513,6 +518,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       fb.className='fb err';
       fb.innerHTML=M.isXYWing
         ? '<b>To še ni veljaven XY-Wing.</b> Pivot mora imeti natanko dva kandidata, <b>obe krili</b> morata pivota videti (ista vrstica, stolpec ali blok) in si z njim deliti po eno številko, skupna pa jima mora biti tretja številka.'
+        : M.isWWing
+        ? '<b>To še ni veljaven W-Wing.</b> Celici para morata imeti natanko isti par kandidatov in se <b>ne</b> videti. Celici povezave morata biti edini celici v svoji vrstici, stolpcu ali bloku z drugo številko para, nobena od njiju ne sme biti celica para, in vsaka mora videti po eno celico para.'
         : M.isTurbot
         ? `<b>To še ni veljaven Turbot Fish.</b> Potrebuješ dve vrstici ali stolpca, kjer je ${ex.digit} mogoč v natanko dveh celicah, en konec prve in en konec druge povezave pa se morata videti (ista vrstica, stolpec ali blok).`
         : '<b>To še ni veljaven Unique Rectangle.</b> Potrebuješ 4 celice v 2 vrsticah in 2 stolpcih, ki ležijo v <b>natanko dveh blokih</b>: trije vogali z natanko istim parom kandidatov, četrti pa z istim parom in še dodatnimi.';

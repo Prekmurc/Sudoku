@@ -817,6 +817,109 @@ function genTurbotFish(n){
   return genTurbotFish(n+2);
 }
 
+/* --- W-Wing ---
+   Kot Turbot Fish: sintetična 81-celična deska (prazne so samo celice vaje), preverjena
+   s klicem wWing() iz shared/engine.js - zahteva se, da najde načrtovani vzorec in
+   nobenega drugega. Pravi vzorec uporablja števki {a,b}, motilec ločeni {c,d}, polnila
+   pa preostalih pet številk; ker se množice števk ne prekrivajo, vzorca ne moreta motiti
+   drug drugega in je dovolj, da so celice različne.
+   Zakaj noben drug vzorec: wWing() zavrne povezavo, katere celica je celica para, zato so
+   edine možne močne povezave na b prav pari celic povezave (isti odgovor, morda najden
+   prek več enot). Celici para sta edini bivalue celici s svojo masko.
+   Moteči vzorec (en na vajo, izmenično po zaporedni številki vaje) spodleti pri natanko
+   enem pogoju:
+     'para-se-vidi'      - vse ostalo je izpolnjeno (močna povezava, konca vidita vsak
+        svojo celico para, obstaja celica izbrisa), a se celici para vidita;
+     'povezava-ni-mocna' - veljavna oblika, a ima enota povezave tretjo celico z d;
+        generator preveri, da bi wWing() brez nje vzorec našel. */
+
+// Oblika W-Wing: enota U z močno povezavo (X,Y), celici para P1,P2 zunaj U (P1 vidi X,
+// P2 vidi Y) in celice, kjer bi vzorec brisal. Celici para morata biti zunaj U - v njej
+// bi bili tretja in četrta celica z vezno števko in povezava ne bi bila močna.
+// parSeVidi: ali naj se celici para vidita (motilec) ali ne (pravi vzorec).
+function wwShape(used,parSeVidi){
+  for(let t=0;t<40;t++){
+    const U=tfPick(ALL_UNITS);
+    const [X,Y]=randSub(U,2);
+    if(used.has(X)||used.has(Y)) continue;
+    const p1pool=[...PEERS[X]].filter(i=>!U.includes(i)&&!used.has(i));
+    if(!p1pool.length) continue;
+    const P1=tfPick(p1pool);
+    const p2pool=[...PEERS[Y]].filter(i=>!U.includes(i)&&!used.has(i)&&i!==P1&&
+      (parSeVidi?PEERS[P1].has(i):!PEERS[P1].has(i)));
+    if(!p2pool.length) continue;
+    const P2=tfPick(p2pool);
+    const ePool=ALL_IDX.filter(i=>!used.has(i)&&i!==P1&&i!==P2&&i!==X&&i!==Y&&
+      PEERS[P1].has(i)&&PEERS[P2].has(i));
+    if(!ePool.length) continue;
+    // Celici izbrisa se ne smeta videti: dve celici z izbrisano števko v isti enoti bi
+    // tvorili močno povezavo in s tem veljaven W-Wing z zamenjanima vlogama števk.
+    const elim=[tfPick(ePool)];
+    if(Math.random()<0.5){
+      const more=ePool.filter(i=>i!==elim[0]&&!PEERS[elim[0]].has(i));
+      if(more.length) elim.push(tfPick(more));
+    }
+    return{P1,P2,X,Y,unit:U,elim,cells:[P1,P2,X,Y,...elim]};
+  }
+  return null;
+}
+
+function genWWing(n){
+  // Tip motilca po zaporedni številki vaje, da sta v seriji oba (fallback n+2 ga ohrani).
+  const disType=n%2===0?'para-se-vidi':'povezava-ni-mocna';
+  for(let attempt=0;attempt<300;attempt++){
+    const ds=shuffle([1,2,3,4,5,6,7,8,9]);
+    const [a,b,c,d]=ds;  // a,b: pravi vzorec (b je vezna, a izbrisana); c,d: motilec
+    const fill=ds.slice(4);
+
+    const R=wwShape(new Set(),false);
+    if(!R) continue;
+    const D=wwShape(new Set(R.cells),disType==='para-se-vidi');
+    if(!D) continue;
+
+    let extra=null;
+    if(disType==='povezava-ni-mocna'){
+      const pool=D.unit.filter(i=>i!==D.X&&i!==D.Y&&!R.cells.includes(i)&&!D.cells.includes(i));
+      if(!pool.length) continue;
+      extra=tfPick(pool);
+    }
+
+    const board=emptyBoard();
+    setCell(board,R.P1,[a,b]);setCell(board,R.P2,[a,b]);
+    setCell(board,R.X,[b,...randSub(fill,2)]);setCell(board,R.Y,[b,...randSub(fill,2)]);
+    R.elim.forEach(i=>setCell(board,i,[a,...randSub(fill,2)]));
+    setCell(board,D.P1,[c,d]);setCell(board,D.P2,[c,d]);
+    setCell(board,D.X,[d,...randSub(fill,2)]);setCell(board,D.Y,[d,...randSub(fill,2)]);
+    D.elim.forEach(i=>setCell(board,i,[c,...randSub(fill,2)]));
+    if(extra) setCell(board,extra,[d,...randSub(fill,2)]);
+
+    const want=new Set([R.P1,R.P2,R.X,R.Y]);
+    const steps=wWing(board);
+    if(!steps.length) continue;
+    if(!steps.every(s=>s.cells.every(i=>want.has(i)))) continue;
+    const match=steps.find(s=>R.elim.every(i=>s.eliminate.some(([ci])=>ci===i)));
+    if(!match) continue;
+    if(extra){
+      const b2={grid:board.grid.slice(),cand:board.cand.slice()};
+      b2.grid[extra]=1;b2.cand[extra]=0;
+      const dWant=new Set([D.P1,D.P2,D.X,D.Y]);
+      if(!wWing(b2).some(s=>s.cells.every(i=>dWant.has(i)))) continue;
+    }
+
+    return{
+      mode:'w-wing',digits:[a,b],
+      pair:[R.P1,R.P2],link:[R.X,R.Y],
+      slots:slotsFromBoard(board),
+      boardGrid:board.grid,boardCand:board.cand,
+      solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
+      distractor:{type:disType,pair:[D.P1,D.P2],link:[D.X,D.Y],elim:D.elim,extra,
+        cells:extra?[...D.cells,extra]:D.cells},
+      unitLabel:'W-Wing: celici para in celici povezave',
+    };
+  }
+  return genWWing(n+2);
+}
+
 function addLabels(slots,ut,ui){
   for(let i=0;i<9;i++){
     if(ut==='row') slots[i].pos=`V${ui}S${i+1}`;
@@ -845,6 +948,8 @@ const MODES={
     desc:'Najdi 3 vrstice (ali stolpce), kjer se številka pojavi samo na istih 3 stolpcih (ali vrsticah).'},
   'turbot-fish':{gen:genTurbotFish,name:'Turbot Fish',selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false,
     desc:'Za označeno številko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta številka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Skyscraper, vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama. Izberi vse štiri celice vzorca.'},
+  'w-wing':{gen:genWWing,name:'W-Wing',selClass:'selected-olive',hlClass:'hl-olive',btnClass:'pri-olive',isWWing:true,pickN:4,showCandidateCount:true,
+    desc:'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).'},
   'xy-wing':{gen:genXYWing,name:'XY-Wing',selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true,
     desc:'Med prikazanimi celicami poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno številko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok). Izberi pivota in obe krili (3 celice).'},
   'unique-rectangle':{gen:genUniqueRectangle,name:'Unique Rectangle',selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true,
