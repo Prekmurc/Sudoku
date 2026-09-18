@@ -34,7 +34,7 @@ for (let i = 0; i < 81; i++) {
   el.setAttribute('role', 'gridcell');
   el.addEventListener('click', () => {
     if (!igra) return;
-    izbrana = i;
+    izbrana = izbrana === i ? null : i; // ponoven klik prekliče izbiro
     izrisi();
   });
   mrezaEl.appendChild(el);
