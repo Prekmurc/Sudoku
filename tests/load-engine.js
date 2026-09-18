@@ -8,7 +8,7 @@ const vm = require('node:vm');
 
 const NAMES = [
   'Board', 'solve', 'countSolutions', 'ALL_TECHNIQUES', 'PEERS', 'ROWS', 'COLS', 'BOXES',
-  'cellLabel', 'bitsOf', 'popcount', 'FULL', 'turbotFish',
+  'cellLabel', 'bitsOf', 'popcount', 'FULL', 'turbotFish', 'wWing',
 ];
 
 // extra.files: dodatne skripte (pot od korena projekta, npr. 'trening/generators.js'),

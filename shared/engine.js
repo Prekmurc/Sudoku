@@ -427,6 +427,53 @@ function turbotFish(b) {
   return steps;
 }
 
+// W-Wing (v aplikaciji Oakever "Krilo W"): dve celici z natanko istim parom kandidatov
+// {a,b}, ki se med sabo ne vidita, in močna povezava na b - enota, kjer je b mogoč samo
+// v dveh celicah X in Y (nobena od njiju ni celica para), pri čemer X vidi prvo celico
+// para, Y pa drugo. Če nobena od celic para ni a, sta obe b; potem X ni b (vidi prvo) in
+// Y ni b (vidi drugo), pa bi enota ostala brez b - protislovje. Vsaj ena od celic para je
+// torej a, zato a izbrišemo iz vseh celic, ki vidijo obe.
+function wWing(b) {
+  const steps = [];
+  const pairs = new Map();
+  for (let c = 0; c < 81; c++) {
+    if (b.grid[c] === 0 && popcount(b.cand[c]) === 2) {
+      if (!pairs.has(b.cand[c])) pairs.set(b.cand[c], []);
+      pairs.get(b.cand[c]).push(c);
+    }
+  }
+  for (const [mask, cells] of pairs) {
+    const digits = bitsOf(mask);
+    for (const [p1, p2] of combinations(cells, 2)) {
+      if (PEERS[p1].has(p2)) continue;
+      // Vlogi števk: ena je povezovalna (linkD, močna povezava), druga izbrisana (elimD).
+      for (const [elimD, linkD] of [digits, [digits[1], digits[0]]]) {
+        const bit = 1 << linkD;
+        for (const unit of ALL_UNITS) {
+          const spots = unit.filter(c => b.grid[c] === 0 && (b.cand[c] & bit));
+          if (spots.length !== 2) continue;
+          if (spots.includes(p1) || spots.includes(p2)) continue;
+          let x = null, y = null; // x vidi p1, y vidi p2
+          if (PEERS[spots[0]].has(p1) && PEERS[spots[1]].has(p2)) [x, y] = spots;
+          else if (PEERS[spots[1]].has(p1) && PEERS[spots[0]].has(p2)) [x, y] = [spots[1], spots[0]];
+          else continue;
+          const elim = [];
+          for (let c = 0; c < 81; c++) {
+            if (c === p1 || c === p2 || b.grid[c] !== 0 || !(b.cand[c] & (1 << elimD))) continue;
+            if (PEERS[p1].has(c) && PEERS[p2].has(c)) elim.push([c, elimD]);
+          }
+          if (!elim.length) continue;
+          steps.push({
+            technique: 'W-Wing', cells: [p1, p2, x, y], assign: [], eliminate: elim,
+            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} -> tvori W-Wing in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+          });
+        }
+      }
+    }
+  }
+  return steps;
+}
+
 function xyWing(b) {
   const steps = [];
   const bivalue = [];
@@ -513,6 +560,7 @@ const ALL_TECHNIQUES = [
   ['X-Wing', xWing],
   ['Swordfish', swordfish],
   ['Turbot Fish', turbotFish],
+  ['W-Wing', wWing],
   ['XY-Wing', xyWing],
   ['Unique Rectangle', uniqueRectangle],
 ];
