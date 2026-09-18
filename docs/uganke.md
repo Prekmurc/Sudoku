@@ -84,8 +84,9 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
 
 ### example-app
 
-- **Danosti:** `000800020900000600000000000604000900000720003500000000000056000080009000070000010`
-- **Vir:** vgrajen primer v `app/app.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)").
+- **Danosti:** `...8...2.9.....6...........6.4...9.....72...35............56....8...9....7.....1.`
+- **Vir:** vgrajen primer v `app/app.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)");
+  tam je isti niz zapisan z ničlami namesto pik.
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši.
 - **Značilnost:** `tryBifurcation` se uporabi enkrat, na indeksu koraka 50 od 77.
 
