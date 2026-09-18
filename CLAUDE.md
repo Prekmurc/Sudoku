@@ -1,32 +1,40 @@
 # Sudoku – navodila za Claude Code
 
 ## O projektu
-Projekt ima dve aplikaciji s skupno kodo:
+Projekt ima tri aplikacije s skupno kodo:
 
 1. **Reševalec** (`app/`) – vnos uganke, reševanje po korakih z razlago, grafični prikaz mreže in kandidatov.
 2. **Trening tehnik** (`trening/`) – vaje za tehnike: Pointing pair/triple, Box-line reduction, Očitna para, Skrita para, Očitna trojica, Skrita trojica, X-Wing, Swordfish, Turbot Fish (Skyscraper, Zmaj z dvema vrvicama), W-Wing (Krilo W), XY-Wing, Unique Rectangle.
+3. **Igra** (`igra/`) – igralna površina: uganko rešujem sam, reševalec pomaga, ko obtičim (načrt v treh fazah; narejena je faza 1 – igralna osnova, »Naslednji korak«, »Preveri« in seznami manjkajočih števk še niso).
 
 Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 
 ## Struktura
 - `shared/` – skupna osnova za obe aplikaciji.
   - `base.css` – skupni reset (`*{box-sizing:border-box}`, osnovni `body`), ki ga uvozita `app/` in `trening/`.
+  - `zbirka.js` – zbirka ugank brez DOM-a: hramba v `localStorage` (ključ `sudoku.zbirka.v1`), `zbirkaShraniResitev()` (podatki iz `solve()`), izvoz/uvoz v Markdown v obliki `docs/uganke.md`, `zbirkaZdruzi()` (uvoz dopolni, ne prepiše), `zbirkaZaSeznam()` (vrstni red v seznamu). Naloži se za `engine.js`; uporabljata jo `app/` in `igra/`.
   - `engine.js` – motor za reševanje: mreža/enote (`ROWS`/`COLS`/`BOXES`/`PEERS`), razred `Board`, vse tehnike reševanja (glej spodaj), sestopanje (`tryBifurcation`) in `solve()`, ki vrne rešeno mrežo + dnevnik korakov z razlago.
 - `app/` – Sudoku reševalec (vnos uganke → rešitev po korakih).
-  - `index.html` – markup strani, nalaga `shared/engine.js`, `app.js` in `zbirka.js`.
+  - `index.html` – markup strani, nalaga `shared/engine.js`, `shared/zbirka.js`, `app.js` in `zbirka.js`.
   - `app.css` – stili reševalca (vnosna mreža, kandidati, koraki, lightbox, zbirka ugank).
   - `app.js` – UI: vnos v mrežo, preverjanje konfliktov, klic `solve()`, izris rešitve/kandidatov/korakov, lightbox; `naloziDanosti()` vpiše uganko v mrežo (spustni seznam »Primer« in zbirka). Vgrajeni primeri so v polju `PRIMERI` (nov primer = nova vrstica; danosti preverjene in zapisane v `docs/uganke.md`).
-  - `zbirka.js` – zbirka ugank: samodejno shranjevanje ob reševanju (v `localStorage`, samo uganke z enolično rešitvijo – tudi delno rešene), težavnost/opomba v kartici »Rešitev«, seznam (gumb »Zbirka« v glavi) z »Naloži«/»Izbriši«, izvoz/uvoz v Markdown v obliki `docs/uganke.md` (uvoz dopolni, ne prepiše; uganke se ločijo po nizu danosti).
+  - `zbirka.js` – UI zbirke ugank: samodejno shranjevanje ob reševanju (samo uganke z enolično rešitvijo – tudi delno rešene), težavnost/opomba v kartici »Rešitev«, seznam (gumb »Zbirka« v glavi) z »Naloži«/»Izbriši«, gumba za izvoz/uvoz (uganke se ločijo po nizu danosti). Hramba in pretvorba v/iz Markdowna sta v `shared/zbirka.js`.
 - `trening/` – vadba posameznih tehnik z naključno generiranimi vajami.
   - `index.html` – markup strani (meni tehnik + prostor za vajo), nalaga `shared/engine.js`, `generators.js` in `trening.js`. Kartice v meniju so razvrščene po težavnosti (oznake LAŽJE → SREDNJE → ZAHTEVNO → NAPREDNO) in oštevilčene samodejno s CSS števcem v `trening.css` – številka ni del imena tehnike.
   - `trening.css` – stili trenerja (kartice v meniju, mreža vaje, X-Wing/Swordfish mreža, povratne informacije).
   - `generators.js` – generatorji naključnih vaj za vsako tehniko (`genPointing`, `genBoxLineReduction`, `genNakedPair`, `genHiddenPair`, `genNakedTriple`, `genHiddenTriple`, `genXWing`, `genSwordfish`, `genTurbotFish`, `genWWing`, `genXYWing`, `genUniqueRectangle`) in `MODES` – osrednja definicija vsake tehnike (generator, barve, št. celic za izbiro, opis, posebnosti UI).
   - `trening.js` – UI/tok vadbe: izbira tehnike v meniju, izris vaje, preverjanje odgovora (`checkPhase1`/`checkPhase2`), namig/rešitev na dotik, štetje rezultata. Za Pointing pair/triple, Box-line reduction, Swordfish, Turbot Fish, W-Wing, XY-Wing in Unique Rectangle preverjanje kliče ustrezno funkcijo (`pointing()`, `boxLineReduction()`, `swordfish()`, `turbotFish()`, `wWing()`, `xyWing()`, `uniqueRectangle()`) iz `shared/engine.js` (zgradi začasno "desko" iz vaje in preveri, ali izbrane celice ustrezajo najdenemu vzorcu) namesto lastne kopije logike.
+- `igra/` – igralna površina (uganko rešujem sam).
+  - `index.html` – markup: niz »Poudari« (števke s števci »še manjka«) nad mrežo, mreža s kandidati, pod njo niza »Vpiši« in »Odstrani kandidata« ter razveljavi/ponovi/zbriši vpis; stranska kartica »Uganka«; dialoga »Zbirka« in »Nova uganka«. Nalaga `shared/engine.js`, `shared/zbirka.js`, `stanje.js`, `igra.js`.
+  - `stanje.js` – stanje igre brez DOM-a: igra = `{ danosti, poteze, kazalec }`, trenutno stanje se izračuna z odigravanjem potez od danosti (`stanjeIgre()` – vpisi, samodejni kandidati, ročno odstranjeni kandidati, `Board` za motor). `mozneAkcije()` pove, katere števke so za celico smiselne (vpis/odstrani = trenutni kandidati, vrni = ročno odstranjeni); `dodajPotezo()` sprejme samo take poteze in odreže »ponovi« rep. Shranjevanje v `localStorage` (ključ `sudoku.igra.v1`, po danostih, s celotno zgodovino in repom za »ponovi«).
+  - `igra.js` – UI: izbira celice (najprej celica, nato števka), niza gumbov, poudarjanje števke (ločeno od vpisa), tipkovnica, zbirka (»Igraj«/»Nadaljuj«; uganka brez shranjene igre mora imeti `countSolutions() === 1`), vnos nove uganke (doda se v zbirko), samodejno shranjevanje in nadaljevanje zadnje igre.
+  - `igra.css` – slogi (paleta barv enaka kot v `app/app.css`).
 - `tests/` – avtomatski testi (Node, vgrajeni `node:test`).
   - `load-engine.js` – naloži `shared/engine.js` v Node (prek `node:vm`, brez sprememb motorja; po potrebi v isti kontekst še npr. `trening/generators.js`), prebere uganke iz `docs/uganke.md` in pretvarja stanje kandidatov v berljiv zapis in nazaj.
   - `turbot-fish.test.js` – testi tehnike Turbot Fish (Skyscraper, Zmaj z dvema vrvicama, pozicija brez vzorca) in rešljivosti vseh ugank iz `docs/uganke.md` (nova uganka tam je samodejno vključena). Testne pozicije so posnetki stanja med reševanjem pravih ugank, ne sestavljene na pamet.
   - `trening-wwing.test.js` – test generatorja vaj W-Wing (`genWWing`): 200 vaj s semenom; celici para sta edini bivalue celici s svojo masko in se ne vidita, povezava je močna, motor najde načrtovani vzorec in nobenega drugega, tipa motilca se izmenjujeta in vsak spodleti pri natanko enem pogoju.
   - `trening-turbot.test.js` – test generatorja vaj Turbot Fish (`genTurbotFish`): 200 vaj s semenom (ponovljivo); motor najde načrtovani vzorec in nobenega drugega, podtipa se izmenjujeta, moteči vzorec spodleti pri natanko enem pogoju.
+  - `igra-stanje.test.js` – test stanja igre (`igra/stanje.js`) na uganki iz `docs/uganke.md`: samodejni kandidati, dovoljene poteze, ročno odstranjeni/vrnjeni kandidati, razveljavi/ponovi in odrez repa, zapis za shrambo (krožno, poškodovan zapis), vpis celotne rešitve.
   - `w-wing.test.js`, `xy-wing.test.js` – testi tehnik W-Wing in XY-Wing po istem vzorcu kot `turbot-fish.test.js` (pozicije so posnetki stanja med reševanjem ugank iz `docs/uganke.md`). XY-Wing ima lasten test, ker ga `solve()` od uvedbe W-Wing pri nobeni od teh ugank ne izvede več.
 - `tools/` – pomožna orodja (niso del aplikacije).
   - `analiziraj-zbirko.js` – analiza izvožene zbirke ugank glede na pokritost tehnik v `docs/uganke.md`: za vsako uganko požene `countSolutions()` in `solve()`, izpiše sprožene tehnike ter označi, katere od njih so zdaj nepokrite (0 ugank) ali šibko pokrite (1 uganka), in na koncu predlaga najmanjši nabor ugank, ki zapre največ vrzeli.
@@ -40,6 +48,7 @@ Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v 
 ## Zagon in testi
 - Zagon reševalca: odpri `app/index.html` neposredno v brskalniku, ali iz korena projekta poženi lokalni strežnik (npr. `python -m http.server`) in obišči `http://localhost:<vrata>/app/`.
 - Zagon treninga: enako, `trening/index.html`.
+- Zagon igre: enako, `igra/index.html`. Zbirko ugank si igra deli z reševalcem prek `localStorage` – zanesljivo samo, ko obe tečeta z istega izvora (lokalni strežnik); pri `file://` jo nekateri brskalniki ločijo po datotekah.
 - Zagon testov: iz korena projekta `node --test "tests/*.test.js"` (Node 24 ne sprejme mape kot argumenta, zato vzorec datotek v narekovajih). Testi uporabljajo samo Node-ov vgrajeni `node:test`/`node:assert` – brez `package.json` in odvisnosti. Popoln posnetek obnašanja reševalca iz `docs/naloge/02-regresijski-testi.md` še ni napisan.
 - Analiza izvožene zbirke ugank: iz korena projekta `node tools/analiziraj-zbirko.js <pot-do-zbirke.md>` (datoteka, ki jo da gumb »Zbirka« → »Izvozi« v `app/`; bere tudi `docs/uganke.md`). Z zastavico `--najdene` pri vsaki uganki našteje še tehnike, ki jih `solve()` ne uporabi, a jih njihova funkcija v kakem vmesnem stanju najde (počasneje). Orodje pove, katero uganko iz zbirke se splača dodati v `docs/uganke.md` in katere ne prispevajo nič novega – uporabi ga, preden dodaš novo testno uganko.
 - Okolje: Windows 10, VS Code. Če projekt uporablja Python: uporabljaj conda okolje `py312_env` (Python 3.12). Pred zagonom preveri `python --version`; če ni 3.12, zaganjaj prek okolja (npr. `conda run -n py312_env python ...`).
