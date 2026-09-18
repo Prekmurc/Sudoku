@@ -15,9 +15,10 @@
   --green-bg:#DCEEE5;
   --amber:#9C6B12;
   --amber-bg:#F1E5C9;
-  --purple:#7548A0;
-  --purple-bg:#E7DEF0;
-  --purple-mid:#CDB6E4;
+  /* poudarjena števka: svetlo modra podlaga (izbrana celica ima samo temno modro obrobo) */
+  --poud:#C4DDFA;
+  --poud-ink:#0E3F7A;
+  --poud-line:#6FA3DB;
   --given-bg:#EDF0F3;
   --peer-bg:#F2F5F8;
   /* velikost celice mreže; nizi gumbov pod/nad mrežo imajo iste stolpce */
@@ -178,9 +179,10 @@ kbd{
 .celica.soseda{ background: var(--peer-bg); }
 .celica.dana.soseda{ background: #E4E9EE; }
 /* poudarjena števka, vpisana ali dana: cela celica (kandidati: glej .kand.poud) */
-.celica.poud-stevka{ background: var(--purple-mid); }
+.celica.poud-stevka{ background: var(--poud); }
+/* izbrana celica: samo debela temno modra obroba, brez podlage - tako ostane
+   ločljiva od svetlo modre podlage poudarka */
 .celica.izbrana{ box-shadow: inset 0 0 0 3px var(--blue); }
-.celica.izbrana:not(.poud-stevka){ background: var(--blue-bg); }
 .celica[data-c="0"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="3"], .celica[data-c="6"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="8"]{ border-right: 2px solid var(--ink); }
@@ -211,8 +213,8 @@ kbd{
 }
 /* poudarjen kandidat: podlaga pod samo to števko */
 .kand.poud{
-  background: var(--purple-mid);
-  color:#3E1F63;
+  background: var(--poud);
+  color: var(--poud-ink);
   font-weight:800;
   border-radius:3px;
   margin:0.5px;
@@ -249,8 +251,8 @@ kbd{
 .niz-poudari button{
   height: calc(var(--gcs) * 0.95);
   background:#fff;
-  border: 1.5px solid var(--purple);
-  color: var(--purple);
+  border: 1.5px solid var(--poud-line);
+  color: var(--poud-ink);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -264,8 +266,9 @@ kbd{
   font-weight:500;
   color: var(--pencil);
 }
-.niz-poudari button.aktiven{ background: var(--purple); color:#fff; }
-.niz-poudari button.aktiven .manjka{ color:#E7DEF0; }
+/* aktivni gumb ima isto podlago kot poudarek v mreži */
+.niz-poudari button.aktiven{ background: var(--poud); border: 2px solid var(--poud-ink); }
+.niz-poudari button.aktiven .manjka{ color: var(--poud-ink); }
 .niz-poudari button.koncana{ opacity:0.45; }
 
 /* Vpiši: modri */
@@ -311,6 +314,14 @@ kbd{
   text-decoration:none;
 }
 
+/* zakaj sta niza Vpiši/Odstrani (delno) neaktivna - prazno, ko je vse jasno */
+.niz-razlog{
+  font-size:12.5px;
+  color:#3C4854;
+  line-height:1.4;
+  min-height:18px;
+  margin: 6px 2px 0;
+}
 .akcije{
   display:flex;
   flex-wrap:wrap;

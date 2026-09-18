@@ -15,6 +15,7 @@ const stevecPotezEl = document.getElementById('stevecPotez');
 const opisUgankeEl = document.getElementById('opisUganke');
 const statusEl = document.getElementById('status');
 const zbirkaBtn = document.getElementById('zbirkaBtn');
+const razlogNizovEl = document.getElementById('razlogNizov');
 
 let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
@@ -180,11 +181,27 @@ function izrisiNize() {
     o.title = (a.odstrani & bit) ? `Odstrani kandidata ${d}` : (a.vrni & bit) ? `Vrni kandidata ${d}` : '';
     o.setAttribute('aria-label', o.title || String(d));
   }
+  razlogNizovEl.textContent = razlogNizov(a);
   zbrisiBtn.disabled = !a.zbrisi;
   razveljaviBtn.disabled = !igra || !lahkoRazveljavi(igra);
   ponoviBtn.disabled = !igra || !lahkoPonovi(igra);
   znovaBtn.disabled = !igra || igra.kazalec === 0;
   stevecPotezEl.textContent = igra ? `poteza ${igra.kazalec} / ${igra.poteze.length}` : '';
+}
+
+// Pojasnilo pod nizoma, kadar za izbrano celico ni kaj vpisati ali odstraniti.
+function razlogNizov(a) {
+  if (!igra) return '';
+  if (izbrana === null) return 'Izberi celico v mreži.';
+  const ime = cellLabel(izbrana);
+  const v = stanje.grid[izbrana];
+  if (igra.danosti[izbrana] !== '0') return `${ime} je dana števka (${v}) – ne spreminja se.`;
+  if (v) return `V ${ime} je tvoj vpis (${v}) – za spremembo ga najprej zbriši.`;
+  if (!a.vpis) {
+    return a.vrni ? `V ${ime} ni več kandidatov – vrni odstranjenega (↺) ali razveljavi.`
+      : `V ${ime} ni več kandidatov – razveljavi zadnje poteze.`;
+  }
+  return '';
 }
 
 function izrisiStanje() {
