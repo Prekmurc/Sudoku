@@ -121,8 +121,8 @@ XY-Wing pa šele, ko odpove tudi W-Wing.
 ### oakever-ekstrem-17-b
 
 - **Danosti (17):** `....9.8..6...4....1.7.........1...7...4...9..5..6........7...6..2..8.....9.......`
-- **Vir:** iz zbirke reševalca (`app/`, izvoz zbirke); posredoval uporabnik (2026-09-18),
-  v zbirko dodana 2026-09-17 12:26, težavnost Ekstrem.
+- **Vir:** Oakever Games: Klasičen Sudoku, težavnost Ekstrem (Lv4); posredoval uporabnik
+  (2026-09-18) iz zbirke reševalca (`app/`, izvoz zbirke), v zbirko dodana 2026-09-17 12:26.
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** `solve()` jo reši brez sestopanja (`tryBifurcation` – "Poskus in
