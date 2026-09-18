@@ -23,7 +23,8 @@ const describe = step => plain({
   eliminate: step.eliminate.map(([c, d]) => `${E.cellLabel(c)}≠${d}`),
 });
 
-// oakever-ekstrem-lv4, stanje pred korakom 42.
+// oakever-ekstrem-lv4, stanje pred korakom 42 (indeks velja za vrstni red tehnik pred
+// 2026-09-18).
 const XYWING_POS = `
 8 5 [349] [349] 2 1 7 6 [39]
 2 [34] 7 6 [349] 8 5 [49] 1
@@ -35,8 +36,8 @@ const XYWING_POS = `
 [49] 6 8 [49] 5 7 1 3 2
 7 [13] [13] 2 8 6 9 5 4`;
 
-// example-app, stanje pred korakom 50 - mesto, kjer reševalec ugiba (tryBifurcation).
-// Tu XY-Wing ne najde ničesar.
+// example-app, stanje pred korakom 50 (indeks velja za vrstni red tehnik pred 2026-09-18) -
+// mesto, kjer reševalec ugiba (tryBifurcation). Tu XY-Wing ne najde ničesar.
 const NO_PATTERN_POS = `
 4 6 3 8 9 [17] [17] 2 5
 9 1 [28] 5 [34] [237] 6 [37] [48]

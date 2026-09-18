@@ -19,7 +19,8 @@ const describe = step => plain({
   eliminate: step.eliminate.map(([c, d]) => `${E.cellLabel(c)}≠${d}`),
 });
 
-// hard-17-a, stanje pred korakom 45 (korak, ki ga solve() dejansko naredi z W-Wing).
+// hard-17-a, stanje pred korakom 45 (korak, ki ga solve() dejansko naredi z W-Wing;
+// indeks velja za vrstni red tehnik pred 2026-09-18).
 const WWING_POS = `
 [27] 3 8 [67] 1 5 [29] 4 [69]
 [47] 9 [15] [467] 8 2 [57] [13] [36]
@@ -31,7 +32,8 @@ const WWING_POS = `
 8 [27] [69] [35] [246] 1 [579] [35] [34579]
 1 [27] [69] [35] [246] [6] [5789] [358] [34579]`;
 
-// oakever-ekstrem-lv4, stanje pred korakom 50 (prav tako korak W-Wing v solve()).
+// oakever-ekstrem-lv4, stanje pred korakom 50 (prav tako korak W-Wing v solve(); indeks
+// velja za vrstni red tehnik pred 2026-09-18).
 // Isti par celic nastopa v obeh vlogah števk: enkrat je povezovalna 3 in izbrisana 4,
 // enkrat obratno.
 const OBE_VLOGI_POS = `
@@ -45,7 +47,8 @@ const OBE_VLOGI_POS = `
 [49] 6 8 [49] 5 7 1 3 2
 7 [13] [13] 2 8 6 9 5 4`;
 
-// oakever-ekstrem-17-a, stanje pred korakom 36.
+// oakever-ekstrem-17-a, stanje pred korakom 36 (indeks velja za vrstni red tehnik pred
+// 2026-09-18).
 const POVEZAVA_JE_TARCA_POS = `
 8 1 5 7 [234] [234] [34] 6 9
 [46] [3467] [3467] 1 5 9 [34] 2 8
@@ -57,8 +60,8 @@ const POVEZAVA_JE_TARCA_POS = `
 3 [24678] [4678] 5 1 [467] [26] 9 [467]
 9 5 [467] 3 [467] [467] [26] 8 1`;
 
-// oakever-ekstrem-17-a, stanje pred korakom 51 - mesto, kjer reševalec ugiba
-// (tryBifurcation). Tu W-Wing ne najde ničesar.
+// oakever-ekstrem-17-a, stanje pred korakom 51 (indeks velja za vrstni red tehnik pred
+// 2026-09-18) - mesto, kjer reševalec ugiba (tryBifurcation). Tu W-Wing ne najde ničesar.
 const NO_PATTERN_POS = `
 8 1 5 7 [24] [24] 3 6 9
 6 [37] [37] 1 5 9 4 2 8
