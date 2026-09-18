@@ -11,32 +11,33 @@ ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`).
 
 ## Pokritost tehnik
 
-Stanje 2026-09-18 za zgornje štiri uganke. »Uporabljena« pomeni, da `solve()` korak te
+Stanje 2026-09-18 za spodnjih pet ugank. »Uporabljena« pomeni, da `solve()` korak te
 tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike vzorec v
 kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak cenejše
-tehnike. Preglednico je mogoče osvežiti z zanko čez `ALL_TECHNIQUES` nad posnetki
-`snapshotGrid`/`snapshotCand` iz dnevnika.
+tehnike. Preglednico osveži `node tools/analiziraj-zbirko.js <zbirka.md>`, ki tudi pove,
+katera uganka iz izvožene zbirke bi zaprla katero vrzel.
 
-| Tehnika | Uporabljena v ugankah | Opomba |
+| Tehnika | Št. ugank | Uporabljena v |
 |---|---|---|
-| Gol enojček, Skriti enojček, Pointing pair/triple, Hidden pair | vse 4 | |
-| Box-line reduction | hard-17-a, example-app | |
-| Naked pair | oakever-ekstrem-lv4, example-app | |
-| Naked triple | hard-17-a, oakever-ekstrem-17-a | |
-| W-Wing | hard-17-a, oakever-ekstrem-lv4 | |
-| Turbot Fish | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a | |
-| Unique Rectangle | hard-17-a, oakever-ekstrem-lv4 | |
-| Hidden triple | example-app | edina uganka, ki jo pokriva |
-| X-Wing | oakever-ekstrem-lv4 | edina uganka, ki jo pokriva |
-| **Swordfish** | **nobeni** | samo najdena (v vseh 4); `solve()` je ne izbere, ker X-Wing ali cenejša tehnika najde korak prej |
-| **XY-Wing** | **nobeni** | samo najdena (hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a); od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
+| Gol enojček, Skriti enojček, Pointing pair/triple, Hidden pair | 5 | vseh pet |
+| Turbot Fish | 4 | vse razen example-app |
+| Naked triple | 3 | hard-17-a, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
+| W-Wing | 3 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-b |
+| Box-line reduction | 2 | hard-17-a, example-app |
+| Naked pair | 2 | oakever-ekstrem-lv4, example-app |
+| Hidden pair… Unique Rectangle | 2 | hard-17-a, oakever-ekstrem-lv4 |
+| Hidden triple | 2 | example-app (blok), oakever-ekstrem-17-b (vrstica) |
+| **X-Wing** | **1** | samo oakever-ekstrem-lv4 |
+| **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing ali cenejša tehnika najde korak prej |
+| **XY-Wing** | **0** | samo najdena; od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
 
-Vsaka tehnika iz `ALL_TECHNIQUES` je torej v teh štirih ugankah vsaj *najdena*, zato je
-vsako mogoče pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish,
-W-Wing in XY-Wing), brez novih ugank. Za pokritost prek dnevnika `solve()` manjkata
-Swordfish in XY-Wing: potrebni bi bili 1–2 novi uganki (ena, če bi ena uganka zahtevala
-obe tehniki). Da nobena tehnika ne bi bila odvisna od ene same uganke, bi bili potrebni
-še po en primer za Hidden triple in X-Wing.
+Vsaka tehnika iz `ALL_TECHNIQUES` je v teh ugankah vsaj *najdena*, zato je vsako mogoče
+pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish, W-Wing in
+XY-Wing), brez novih ugank. Za pokritost prek dnevnika `solve()` manjkata Swordfish in
+XY-Wing (1–2 novi uganki, ena, če bi ena uganka zahtevala obe), za odpravo odvisnosti od
+ene same uganke pa še X-Wing. Teh treh iskanje po težavnosti ne zadene zanesljivo –
+odloča vrstni red v `ALL_TECHNIQUES`: Swordfish pride na vrsto šele, ko odpove X-Wing,
+XY-Wing pa šele, ko odpove tudi W-Wing.
 
 ## Zapisane uganke
 
@@ -116,3 +117,21 @@ obe tehniki). Da nobena tehnika ne bi bila odvisna od ene same uganke, bi bili p
   indeksu 47 posamezen vzorec ni zadoščal. Vsa tri protislovja so nastala že s
   propagacijo enojčkov (10–19 vpisov, 2–3 generacije). Preostalo ugibanje (V1S5≠2) je
   isto izločanje kot prej prvo.
+
+### oakever-ekstrem-17-b
+
+- **Danosti (17):** `....9.8..6...4....1.7.........1...7...4...9..5..6........7...6..2..8.....9.......`
+- **Vir:** iz zbirke reševalca (`app/`, izvoz zbirke); posredoval uporabnik (2026-09-18),
+  v zbirko dodana 2026-09-17 12:26, težavnost Ekstrem.
+- **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
+  (81/81 zapolnjenih celic).
+- **Značilnost:** `solve()` jo reši brez sestopanja (`tryBifurcation` – "Poskus in
+  protislovje" – se ne uporabi niti enkrat), v 79 korakih: Skriti enojček (45), Gol
+  enojček (19), Pointing pair/triple (7), Hidden pair (3), Turbot Fish (2), Hidden triple
+  (1), Naked triple (1), W-Wing (1). Hidden triple: številke 1,6,7 v vrstici 1, na indeksu
+  9. Turbot Fish: Skyscraper in Zmaj z dvema vrvicama, oba na številki 3, na indeksih 54
+  in 55. W-Wing: par {3,5} v V2S9 in V8S8, na indeksu 56.
+- **Zakaj je tu:** druga uganka, ki sproži Hidden triple (prva je `example-app`), in edina,
+  kjer je ta v vrstici in ne v bloku. Izbrana 2026-09-18 iz izvožene zbirke z orodjem
+  `tools/analiziraj-zbirko.js`; ostale uganke iz iste serije so bodisi že tu bodisi ne
+  sprožijo nobene slabo pokrite tehnike.

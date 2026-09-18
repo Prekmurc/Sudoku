@@ -26,7 +26,10 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
   - `load-engine.js` – naloži `shared/engine.js` v Node (prek `node:vm`, brez sprememb motorja; po potrebi v isti kontekst še npr. `trening/generators.js`), prebere uganke iz `docs/uganke.md` in pretvarja stanje kandidatov v berljiv zapis in nazaj.
   - `turbot-fish.test.js` – testi tehnike Turbot Fish (Skyscraper, Zmaj z dvema vrvicama, pozicija brez vzorca) in rešljivosti vseh ugank iz `docs/uganke.md` (nova uganka tam je samodejno vključena). Testne pozicije so posnetki stanja med reševanjem pravih ugank, ne sestavljene na pamet.
   - `trening-turbot.test.js` – test generatorja vaj Turbot Fish (`genTurbotFish`): 200 vaj s semenom (ponovljivo); motor najde načrtovani vzorec in nobenega drugega, podtipa se izmenjujeta, moteči vzorec spodleti pri natanko enem pogoju.
-- `docs/uganke.md` – preverjene testne uganke z opisom obnašanja reševalca; `docs/tehnike.md` – tabela tehnik iz `ALL_TECHNIQUES`.
+  - `w-wing.test.js`, `xy-wing.test.js` – testi tehnik W-Wing in XY-Wing po istem vzorcu kot `turbot-fish.test.js` (pozicije so posnetki stanja med reševanjem ugank iz `docs/uganke.md`). XY-Wing ima lasten test, ker ga `solve()` od uvedbe W-Wing pri nobeni od teh ugank ne izvede več.
+- `tools/` – pomožna orodja (niso del aplikacije).
+  - `analiziraj-zbirko.js` – analiza izvožene zbirke ugank glede na pokritost tehnik v `docs/uganke.md`: za vsako uganko požene `countSolutions()` in `solve()`, izpiše sprožene tehnike ter označi, katere od njih so zdaj nepokrite (0 ugank) ali šibko pokrite (1 uganka), in na koncu predlaga najmanjši nabor ugank, ki zapre največ vrzeli.
+- `docs/uganke.md` – preverjene testne uganke z opisom obnašanja reševalca (razdelek »Pokritost tehnik« pove, katere tehnike so slabo pokrite); `docs/tehnike.md` – tabela tehnik iz `ALL_TECHNIQUES`.
 - `docs/naloge/` – specifikacije posameznih nalog/popravkov za to sejo (naloga na datoteko, oštevilčeno).
 - `old/` – arhiv starejših verzij treninga pred refaktoriranjem (zunaj projekta, ni v gitu).
 - `CLAUDE.md` – ta datoteka.
@@ -37,6 +40,7 @@ Opomba: `trening/generators.js` sam sestavlja umetne "vaje" (nabor kandidatov v 
 - Zagon reševalca: odpri `app/index.html` neposredno v brskalniku, ali iz korena projekta poženi lokalni strežnik (npr. `python -m http.server`) in obišči `http://localhost:<vrata>/app/`.
 - Zagon treninga: enako, `trening/index.html`.
 - Zagon testov: iz korena projekta `node --test "tests/*.test.js"` (Node 24 ne sprejme mape kot argumenta, zato vzorec datotek v narekovajih). Testi uporabljajo samo Node-ov vgrajeni `node:test`/`node:assert` – brez `package.json` in odvisnosti. Popoln posnetek obnašanja reševalca iz `docs/naloge/02-regresijski-testi.md` še ni napisan.
+- Analiza izvožene zbirke ugank: iz korena projekta `node tools/analiziraj-zbirko.js <pot-do-zbirke.md>` (datoteka, ki jo da gumb »Zbirka« → »Izvozi« v `app/`; bere tudi `docs/uganke.md`). Z zastavico `--najdene` pri vsaki uganki našteje še tehnike, ki jih `solve()` ne uporabi, a jih njihova funkcija v kakem vmesnem stanju najde (počasneje). Orodje pove, katero uganko iz zbirke se splača dodati v `docs/uganke.md` in katere ne prispevajo nič novega – uporabi ga, preden dodaš novo testno uganko.
 - Okolje: Windows 10, VS Code. Če projekt uporablja Python: uporabljaj conda okolje `py312_env` (Python 3.12). Pred zagonom preveri `python --version`; če ni 3.12, zaganjaj prek okolja (npr. `conda run -n py312_env python ...`).
 
 ## Arhitektura
