@@ -667,6 +667,62 @@ document.getElementById('novaBtn').addEventListener('click', () => {
   novaNizEl.focus();
 });
 
+/* ---------- barva poudarka (za nastavljanje) ---------- */
+
+// Preizkus barve poudarka (--poud): vnos hex vrednosti ali izbirnik barv,
+// velja takoj, zapomni si jo brskalnik. Privzeta barva je v igra.css.
+const POUD_KLJUC = 'sudoku.igra.poud';
+const poudBarvaEl = document.getElementById('poudBarva');
+const poudHexEl = document.getElementById('poudHex');
+const privzetaPoud = getComputedStyle(document.documentElement).getPropertyValue('--poud').trim().toUpperCase();
+
+// '#abc', 'abc', '#aabbcc' ali 'aabbcc' -> '#AABBCC'; drugače null.
+function normalizirajHex(v) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim());
+  if (!m) return null;
+  const h = m[1].length === 3 ? m[1].replace(/./g, ch => ch + ch) : m[1];
+  return '#' + h.toUpperCase();
+}
+
+// barva = null -> privzeta iz igra.css.
+function nastaviPoud(barva, shrani) {
+  if (barva) document.documentElement.style.setProperty('--poud', barva);
+  else document.documentElement.style.removeProperty('--poud');
+  const trenutna = barva || privzetaPoud;
+  poudBarvaEl.value = trenutna.toLowerCase();
+  if (document.activeElement !== poudHexEl) poudHexEl.value = trenutna;
+  poudHexEl.classList.remove('napacno');
+  if (!shrani) return;
+  try {
+    if (barva) localStorage.setItem(POUD_KLJUC, barva);
+    else localStorage.removeItem(POUD_KLJUC);
+  } catch (e) { /* brez shrambe velja barva samo do osvežitve */ }
+}
+
+poudHexEl.addEventListener('input', () => {
+  const barva = normalizirajHex(poudHexEl.value);
+  if (barva) nastaviPoud(barva === privzetaPoud ? null : barva, true);
+  else poudHexEl.classList.add('napacno');
+});
+// Nedokončan ali napačen vnos se ob odhodu iz polja vrne na veljavno barvo.
+poudHexEl.addEventListener('blur', () => {
+  poudHexEl.value = normalizirajHex(poudBarvaEl.value);
+  poudHexEl.classList.remove('napacno');
+});
+poudBarvaEl.addEventListener('input', () => {
+  const barva = normalizirajHex(poudBarvaEl.value);
+  nastaviPoud(barva === privzetaPoud ? null : barva, true);
+  poudHexEl.value = barva;
+});
+document.getElementById('poudPrivzeto').addEventListener('click', () => {
+  nastaviPoud(null, true);
+  poudHexEl.value = privzetaPoud;
+});
+
+let shranjenaPoud = null;
+try { shranjenaPoud = normalizirajHex(localStorage.getItem(POUD_KLJUC) || ''); } catch (e) { /* brez shrambe */ }
+nastaviPoud(shranjenaPoud, false);
+
 /* ---------- zagon ---------- */
 
 osveziGumbZbirke();
