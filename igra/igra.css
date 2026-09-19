@@ -416,8 +416,9 @@ kbd{
   margin: 12px 0 3px 2px;
 }
 .niz-oznaka:first-child{ margin-top:0; }
-/* vrstica nad nizom Poudari: oznaka levo, kljukica "več hkrati" desno */
-.poudari-glava{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+/* vrstica nad nizom Poudari / Odstrani: oznaka levo, kljukica "več hkrati" /
+   "več celic" desno */
+.poudari-glava, .glava-s-kljukico{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .vec-hkrati{
   display:inline-flex;
   align-items:center;

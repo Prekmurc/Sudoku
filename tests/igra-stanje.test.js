@@ -10,7 +10,7 @@ const E = loadEngine(undefined, {
   files: ['igra/stanje.js'],
   names: ['novaIgra', 'stanjeIgre', 'mozneAkcije', 'dodajPotezo', 'razveljavi', 'ponovi',
     'lahkoRazveljavi', 'lahkoPonovi', 'seManjka', 'manjkajoceVEnotah', 'steviloVpisanih', 'jeResena',
-    'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf'],
+    'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf', 'skupniKandidati'],
 });
 
 // Uganka, ki jo solve() reši v celoti brez ugibanja - njena rešitev je znana.
@@ -322,4 +322,111 @@ test('manjkajoceVEnotah: seznami vrstic, stolpcev in blokov sledijo vpisom, bris
   for (const x of prve) E.dodajPotezo(polna, { tip: 'vpis', celica: x, stevka: resitev[x] });
   m = E.manjkajoceVEnotah(E.stanjeIgre(polna));
   assert.deepEqual([...m.vrstice, ...m.stolpci, ...m.bloki], new Array(27).fill(0));
+});
+
+/* ---------- odstranjevanje istega kandidata iz več celic (poteza 'kandidati') ---------- */
+
+// Enota s števko d, ki je kandidat v vsaj treh praznih celicah: prava = celica, kjer
+// je d rešitev, napacne = ostale celice enote s kandidatom d (v njih d ni rešitev).
+function enotaSKandidatom(stanje) {
+  for (const u of [...E.ROWS, ...E.COLS, ...E.BOXES]) {
+    for (let d = 1; d <= 9; d++) {
+      const s = u.filter(c => stanje.kandidati[c] & (1 << d));
+      const prava = s.find(c => resitev[c] === d);
+      if (s.length >= 4 && prava !== undefined) return { d, prava, napacne: s.filter(c => c !== prava) };
+    }
+  }
+  throw new Error('ni enote s števko v vsaj štirih celicah');
+}
+const skupina = (celice, stevka) => ({ tip: 'kandidati', celice: [...celice].sort((x, y) => x - y), stevka, odstrani: true });
+
+test('skupniKandidati: presek kandidatov izbranih celic; polna celica da 0', () => {
+  const igra = E.novaIgra(danosti);
+  const s = E.stanjeIgre(igra);
+  const celice = prve.slice(0, 3);
+  assert.equal(E.skupniKandidati(s, celice), celice.reduce((m, c) => m & s.kandidati[c], E.FULL));
+  assert.equal(E.skupniKandidati(s, [celice[0]]), s.kandidati[celice[0]]);
+  assert.equal(E.skupniKandidati(s, []), 0);
+  const dana = danosti.split('').findIndex(ch => ch !== '0');
+  assert.equal(E.skupniKandidati(s, [celice[0], dana]), 0, 'dana celica nima kandidatov');
+  vpis(igra, celice[1], resitev[celice[1]]);
+  assert.equal(E.skupniKandidati(E.stanjeIgre(igra), celice), 0, 'celica z vpisom nima kandidatov');
+});
+
+test('poteza kandidati: odstrani števko iz vseh celic v eni potezi; razveljavi in ponovi vse naenkrat', () => {
+  const igra = E.novaIgra(danosti);
+  let s = E.stanjeIgre(igra);
+  const { d, napacne } = enotaSKandidatom(s);
+  const celice = napacne.slice(0, 3);
+  const prej = celice.map(c => s.kandidati[c]);
+
+  assert.equal(E.dodajPotezo(igra, skupina(celice, d)), true);
+  assert.equal(igra.kazalec, 1, 'ena poteza');
+  s = E.stanjeIgre(igra);
+  celice.forEach((c, i) => assert.equal(s.kandidati[c], prej[i] & ~(1 << d), `${E.cellLabel(c)} brez ${d}`));
+  assert.equal(E.skupniKandidati(s, celice) & (1 << d), 0);
+  assert.equal(E.dodajPotezo(igra, skupina(celice, d)), false, 'dvakrat odstraniti ni mogoče');
+
+  E.razveljavi(igra);
+  s = E.stanjeIgre(igra);
+  celice.forEach((c, i) => assert.equal(s.kandidati[c], prej[i], 'razveljavi vrne vse celice'));
+  E.ponovi(igra);
+  s = E.stanjeIgre(igra);
+  celice.forEach((c, i) => assert.equal(s.kandidati[c], prej[i] & ~(1 << d), 'ponovi spet odstrani iz vseh'));
+  // Posamezno vračanje odstranjenega kandidata deluje tudi po skupinski potezi.
+  kand(igra, celice[0], d, false);
+  assert.notEqual(E.stanjeIgre(igra).kandidati[celice[0]] & (1 << d), 0);
+});
+
+test('poteza kandidati: zavrnjena, če števka ni kandidat v vseh celicah ali celice niso veljavne', () => {
+  const igra = E.novaIgra(danosti);
+  const s = E.stanjeIgre(igra);
+  const { d, napacne } = enotaSKandidatom(s);
+  const [a, b] = napacne;
+  const brez = prve.find(c => !(s.kandidati[c] & (1 << d)) && c !== a && c !== b);
+  const dana = danosti.split('').findIndex(ch => ch !== '0');
+
+  assert.equal(E.dodajPotezo(igra, skupina([a, b, brez], d)), false, 'v eni celici števka ni kandidat');
+  assert.equal(E.dodajPotezo(igra, skupina([a, dana], d)), false, 'dana celica');
+  assert.equal(E.dodajPotezo(igra, skupina([a], d)), false, 'manj kot dve celici');
+  assert.equal(E.dodajPotezo(igra, { tip: 'kandidati', celice: [a, a], stevka: d, odstrani: true }), false, 'ponovljena celica');
+  assert.equal(E.dodajPotezo(igra, { tip: 'kandidati', celice: [Math.max(a, b), Math.min(a, b)], stevka: d, odstrani: true }), false, 'neurejene celice');
+  assert.equal(E.dodajPotezo(igra, { ...skupina([a, b], d), odstrani: false }), false, 'vračanja v več celicah ni');
+  assert.equal(E.dodajPotezo(igra, skupina([a, b], 0)), false, 'števka 0');
+  vpis(igra, a, resitev[a]);
+  assert.equal(E.dodajPotezo(igra, skupina([a, b], d)), false, 'celica z vpisom');
+  assert.equal(igra.poteze.length, 1);
+});
+
+test('poteza kandidati: zapis za shrambo krožno; poškodovana skupinska poteza se odreže', () => {
+  const igra = E.novaIgra(danosti);
+  const { d, napacne } = enotaSKandidatom(E.stanjeIgre(igra));
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  assert.equal(E.dodajPotezo(igra, skupina(napacne.slice(0, 2), d)), true);
+  vpis(igra, pravilne[1], resitev[pravilne[1]]);
+
+  const zapis = JSON.parse(JSON.stringify(E.igraVZapis(igra, null, '2026-09-19 10:00')));
+  const nazaj = E.igraIzZapisa(danosti, zapis);
+  assert.equal(nazaj.poteze.length, 3);
+  assert.deepEqual(JSON.parse(JSON.stringify(nazaj.poteze)), JSON.parse(JSON.stringify(igra.poteze)));
+  assert.deepEqual([...E.stanjeIgre(nazaj).kandidati], [...E.stanjeIgre(igra).kandidati]);
+  nazaj.poteze[1].celice.push(80);
+  assert.equal(igra.poteze[1].celice.length, 2, 'zapis ima svojo kopijo celic');
+
+  zapis.poteze[1].celice.reverse();
+  const odrezan = E.igraIzZapisa(danosti, zapis);
+  assert.equal(odrezan.poteze.length, 1, 'neurejene celice - odigravanje se ustavi');
+});
+
+test('prvaNapaka: skupinska poteza, ki odstrani pravilni kandidat v eni od celic, je napaka', () => {
+  const igra = E.novaIgra(danosti);
+  const { d, prava, napacne } = enotaSKandidatom(E.stanjeIgre(igra));
+  vpis(igra, pravilne[0], resitev[pravilne[0]]);
+  assert.equal(E.dodajPotezo(igra, skupina(napacne.slice(0, 2), d)), true);
+  assert.equal(E.prvaNapaka(igra, resitev), null, 'odstranjeni napačni kandidati niso napaka');
+  assert.equal(E.dodajPotezo(igra, skupina([napacne[2], prava], d)), true); // poteza 3
+  vpis(igra, pravilne[1], resitev[pravilne[1]]);
+  assert.equal(E.prvaNapaka(igra, resitev), 3);
+  kand(igra, prava, d, false);
+  assert.equal(E.prvaNapaka(igra, resitev), null, 'ko pravilni kandidat vrneš, napake ni več');
 });

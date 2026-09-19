@@ -22,11 +22,16 @@ const korakBtn = document.getElementById('korakBtn');
 const preveriBtn = document.getElementById('preveriBtn');
 const pomocEl = document.getElementById('pomocVsebina');
 const vecHkratiEl = document.getElementById('vecHkrati');
+const vecCelicEl = document.getElementById('vecCelic');
 const igraLayoutEl = document.getElementById('igraLayout');
 
 let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
-let izbrana = null;     // indeks izbrane celice ali null
+// Izbrane celice v vrstnem redu izbire. Več celic (kljukica "več celic" ali
+// Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
+// dokler je igralec ne počisti (Escape, izklop kljukice, navaden klik).
+let izbrane = [];
+let vecCelic = false;
 let zadnjaIzbrana = null; // celica, iz katere je bila izbira izklopljena po vpisu
 // Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
 // modra, zelena, rumena, oranžna (--poud, --poud2 ... v igra.css). Brez kljukice
@@ -60,13 +65,28 @@ for (let i = 0; i < 81; i++) {
   el.dataset.r = Math.floor(i / 9);
   el.dataset.c = i % 9;
   el.setAttribute('role', 'gridcell');
-  el.addEventListener('click', () => {
+  el.addEventListener('click', (e) => {
     if (!igra) return;
-    izbrana = izbrana === i ? null : i; // ponoven klik prekliče izbiro
+    if (vecCelic || e.ctrlKey || e.metaKey) preklopiVIzbiri(i);
+    else izbrane = enaIzbrana() === i ? [] : [i]; // ponoven klik prekliče izbiro
     izrisi();
   });
   mrezaEl.appendChild(el);
   celice.push(el);
+}
+
+// Edina izbrana celica ali null (tudi pri več izbranih) - vpis, brisanje vpisa,
+// vračanje kandidata in puščice delujejo samo na eni celici.
+function enaIzbrana() {
+  return izbrane.length === 1 ? izbrane[0] : null;
+}
+
+// Izbira več celic: izbrana celica se odstrani, prazna doda. Dana celica in celica
+// z vpisom nimata kandidatov, zato se ne dodata (in izpadeta iz izbire, v katero
+// se doda nova celica).
+function preklopiVIzbiri(i) {
+  if (izbrane.includes(i)) izbrane = izbrane.filter(c => c !== i);
+  else if (!stanje.grid[i]) izbrane = [...izbrane.filter(c => !stanje.grid[c]), i];
 }
 
 function narediNiz(el, obKliku) {
@@ -82,7 +102,7 @@ function narediNiz(el, obKliku) {
 }
 
 const gumbiPoudari = narediNiz(nizPoudariEl, d => poudari(d));
-const gumbiVpisi = narediNiz(nizVpisiEl, d => izvedi({ tip: 'vpis', celica: izbrana, stevka: d }));
+const gumbiVpisi = narediNiz(nizVpisiEl, d => izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d }));
 const gumbiOdstrani = narediNiz(nizOdstraniEl, d => odstraniAliVrni(d));
 
 gumbiVpisi.forEach((b, i) => { b.textContent = i + 1; });
@@ -170,6 +190,13 @@ function poudari(d) {
   izrisi();
 }
 
+// Izklop kljukice "več celic" pomeni, da je izbiranje končano: izbira se počisti.
+vecCelicEl.addEventListener('change', () => {
+  vecCelic = vecCelicEl.checked;
+  if (!vecCelic) izbrane = [];
+  izrisi();
+});
+
 // Ob izklopu ostane poudarjena samo zadnja izbrana števka (modra).
 vecHkratiEl.addEventListener('change', () => {
   vecHkrati = vecHkratiEl.checked;
@@ -183,24 +210,30 @@ function izvedi(poteza) {
   if (!igra || !dodajPotezo(igra, poteza, stanje)) return;
   // Po vpisu števke se izbira celice izklopi (puščice nadaljujejo od nje).
   if (poteza.tip === 'vpis' && poteza.stevka) {
-    zadnjaIzbrana = izbrana;
-    izbrana = null;
+    zadnjaIzbrana = poteza.celica;
+    izbrane = [];
   }
   sporocilo = null;
   osvezi();
 }
 
-// Niz "Odstrani": trenutni kandidat se odstrani, ročno odstranjen se vrne.
+// Niz "Odstrani": trenutni kandidat se odstrani, ročno odstranjen se vrne. Pri
+// več izbranih celicah se števka v eni potezi odstrani iz vseh (izbira ostane).
 function odstraniAliVrni(d) {
   if (!igra) return;
-  const a = mozneAkcije(stanje, izbrana);
+  if (izbrane.length > 1) {
+    izvedi({ tip: 'kandidati', celice: [...izbrane].sort((x, y) => x - y), stevka: d, odstrani: true });
+    return;
+  }
+  const celica = enaIzbrana();
+  const a = mozneAkcije(stanje, celica);
   const bit = 1 << d;
-  if (a.odstrani & bit) izvedi({ tip: 'kandidat', celica: izbrana, stevka: d, odstrani: true });
-  else if (a.vrni & bit) izvedi({ tip: 'kandidat', celica: izbrana, stevka: d, odstrani: false });
+  if (a.odstrani & bit) izvedi({ tip: 'kandidat', celica, stevka: d, odstrani: true });
+  else if (a.vrni & bit) izvedi({ tip: 'kandidat', celica, stevka: d, odstrani: false });
 }
 
 function zbrisiVpis() {
-  izvedi({ tip: 'vpis', celica: izbrana, stevka: 0 });
+  izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: 0 });
 }
 
 // Po vsaki spremembi igre: novo stanje, shrani, izriši.
@@ -321,6 +354,9 @@ function izrisiMrezo() {
   const izbris = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica * 10 + a.stevka));
   const izbrisCelice = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica));
   const zaVpis = new Map(odprta.filter(a => a.tip === 'vpis').map(a => [a.celica, a.stevka]));
+  // Sosede izbrane celice se senčijo samo pri eni izbrani celici.
+  const izbraneSet = new Set(izbrane);
+  const ena = enaIzbrana();
   for (let i = 0; i < 81; i++) {
     const el = celice[i];
     el.innerHTML = '';
@@ -353,16 +389,17 @@ function izrisiMrezo() {
     if (zaVpis.has(i)) el.classList.add('k-vpis');
     else if (vzorec.has(i)) el.classList.add('k-vzorec');
     else if (izbrisCelice.has(i)) el.classList.add('k-izbris');
-    if (izbrana !== null) {
-      if (i === izbrana) el.classList.add('izbrana');
-      else if (PEERS[izbrana].has(i)) el.classList.add('soseda');
-    }
+    if (izbraneSet.has(i)) el.classList.add('izbrana');
+    else if (ena !== null && PEERS[ena].has(i)) el.classList.add('soseda');
   }
 }
 
 function izrisiNize() {
   const manjka = igra ? seManjka(stanje) : new Array(10).fill(0);
-  const a = igra ? mozneAkcije(stanje, izbrana) : mozneAkcije(null, null);
+  // Pri več izbranih celicah je mogoče samo odstraniti števko, ki je kandidat v vseh.
+  const a = !igra ? mozneAkcije(null, null)
+    : izbrane.length > 1 ? { vpis: 0, odstrani: skupniKandidati(stanje, izbrane), vrni: 0, zbrisi: false }
+    : mozneAkcije(stanje, enaIzbrana());
   for (let d = 1; d <= 9; d++) {
     const bit = 1 << d;
 
@@ -404,7 +441,15 @@ function izrisiNize() {
 // Pojasnilo pod nizoma, kadar za izbrano celico ni kaj vpisati ali odstraniti.
 function razlogNizov(a) {
   if (!igra) return '';
-  if (izbrana === null) return 'Izberi celico v mreži.';
+  if (!izbrane.length) return 'Izberi celico v mreži.';
+  if (izbrane.length > 1) {
+    // Celica v izbiri je lahko polna, če je "Razveljavi"/"Ponovi" vrnil vpis.
+    const polna = izbrane.find(c => stanje.grid[c]);
+    if (polna !== undefined) return `V ${cellLabel(polna)} je vpis – odstrani jo iz izbire.`;
+    if (!a.odstrani) return 'Izbrane celice nimajo skupnega kandidata.';
+    return `Izbrane celice: ${izbrane.length} – odstrani števko, ki je kandidat v vseh.`;
+  }
+  const izbrana = izbrane[0];
   const ime = cellLabel(izbrana);
   const v = stanje.grid[izbrana];
   if (igra.danosti[izbrana] !== '0') return `${ime} je dana števka (${v}) – ne spreminja se.`;
@@ -639,7 +684,7 @@ function izrisiPomoc() {
 function zacniIgro(danosti) {
   const shranjena = igraNalozi(danosti);
   igra = shranjena || novaIgra(danosti);
-  izbrana = null;
+  izbrane = [];
   zadnjaIzbrana = null;
   pomoc = null;
   sidro = null;
@@ -683,13 +728,15 @@ document.addEventListener('keydown', (e) => {
   const premik = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
   if (premik) {
     e.preventDefault();
+    // Pri več izbranih celicah puščice ne naredijo nič (izbire ne podrejo po nesreči).
+    if (izbrane.length > 1) return;
     // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
-    const od = izbrana !== null ? izbrana : zadnjaIzbrana;
-    if (od === null) izbrana = 0;
+    const od = izbrane.length ? izbrane[0] : zadnjaIzbrana;
+    if (od === null) izbrane = [0];
     else {
       const r = Math.min(8, Math.max(0, Math.floor(od / 9) + premik[0]));
       const c = Math.min(8, Math.max(0, od % 9 + premik[1]));
-      izbrana = r * 9 + c;
+      izbrane = [r * 9 + c];
     }
     izrisi();
     return;
@@ -701,7 +748,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     const d = +m[1];
     if (e.shiftKey) odstraniAliVrni(d);
-    else izvedi({ tip: 'vpis', celica: izbrana, stevka: d });
+    else izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d });
     return;
   }
   if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -709,8 +756,8 @@ document.addEventListener('keydown', (e) => {
     zbrisiVpis();
     return;
   }
-  if (e.key === 'Escape' && izbrana !== null) {
-    izbrana = null;
+  if (e.key === 'Escape' && izbrane.length) {
+    izbrane = [];
     izrisi();
   }
 });

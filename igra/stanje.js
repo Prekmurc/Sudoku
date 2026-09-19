@@ -8,7 +8,9 @@
    - kazalec: koliko potez je trenutno odigranih (poteze za njim so "ponovi" rep).
    Poteza je { tip: 'vpis', celica, stevka } (stevka 0 = brisanje vpisa) ali
    { tip: 'kandidat', celica, stevka, odstrani: true|false } (ročno odstrani ali vrne
-   kandidata). Trenutno stanje se vedno izračuna z odigravanjem potez od danosti. */
+   kandidata) ali { tip: 'kandidati', celice, stevka, odstrani: true } (odstrani isto
+   števko iz več celic v eni potezi; celice urejene, vsaj dve). Trenutno stanje se
+   vedno izračuna z odigravanjem potez od danosti. */
 
 const IGRA_KLJUC = 'sudoku.igra.v1';
 
@@ -20,6 +22,7 @@ function novaIgra(danosti) {
 // odstranjeni[c] = maska ročno odstranjenih kandidatov.
 function odigrajPotezo(vpisi, odstranjeni, p) {
   if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
+  else if (p.tip === 'kandidati') for (const c of p.celice) odstranjeni[c] |= 1 << p.stevka;
   else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
   else odstranjeni[p.celica] &= ~(1 << p.stevka);
 }
@@ -76,7 +79,27 @@ function mozneAkcije(stanje, celica) {
   };
 }
 
+// Števke, ki so kandidat v vseh podanih celicah (maska; 0, če je katera od njih
+// dana, ima vpis ali ni veljavna celica). Pri odstranjevanju iz več celic so to
+// edine dovoljene števke.
+function skupniKandidati(stanje, celice) {
+  if (!celice.length) return 0;
+  let m = FULL;
+  for (const c of celice) m &= mozneAkcije(stanje, c).odstrani;
+  return m;
+}
+
+// Celice za potezo 'kandidati': urejene, brez ponovitev, vsaj dve.
+function soCeliceSkupine(celice) {
+  return Array.isArray(celice) && celice.length >= 2
+    && celice.every((c, i) => Number.isInteger(c) && (i === 0 || c > celice[i - 1]));
+}
+
 function jeDovoljenaPoteza(stanje, p) {
+  if (p && p.tip === 'kandidati') {
+    return soCeliceSkupine(p.celice) && p.odstrani === true && Number.isInteger(p.stevka)
+      && p.stevka >= 1 && p.stevka <= 9 && !!(skupniKandidati(stanje, p.celice) & (1 << p.stevka));
+  }
   if (!p || !Number.isInteger(p.celica) || !Number.isInteger(p.stevka)) return false;
   const a = mozneAkcije(stanje, p.celica);
   if (p.tip === 'vpis') {
@@ -94,7 +117,9 @@ function jeDovoljenaPoteza(stanje, p) {
 // dovoljena in je bila dodana; nedovoljena ali prazna poteza se ne zapiše.
 function dodajPotezo(igra, poteza, stanje = stanjeIgre(igra)) {
   if (!jeDovoljenaPoteza(stanje, poteza)) return false;
-  const p = { tip: poteza.tip, celica: poteza.celica, stevka: poteza.stevka };
+  const p = poteza.tip === 'kandidati'
+    ? { tip: 'kandidati', celice: [...poteza.celice], stevka: poteza.stevka, odstrani: true }
+    : { tip: poteza.tip, celica: poteza.celica, stevka: poteza.stevka };
   if (poteza.tip === 'kandidat') p.odstrani = !!poteza.odstrani;
   igra.poteze.length = igra.kazalec;
   igra.poteze.push(p);
@@ -170,7 +195,7 @@ function igraZdaj() {
 
 // Zapis za shrambo: { poteze, kazalec, zacetek, nazadnje }.
 function igraVZapis(igra, zacetek, cas) {
-  return { poteze: igra.poteze.map(p => ({ ...p })), kazalec: igra.kazalec, zacetek: zacetek || cas, nazadnje: cas };
+  return { poteze: igra.poteze.map(p => (p.celice ? { ...p, celice: [...p.celice] } : { ...p })), kazalec: igra.kazalec, zacetek: zacetek || cas, nazadnje: cas };
 }
 
 // Iz shranjenega zapisa zgradi igro. Poteze odigra eno za drugo in se ustavi
