@@ -154,6 +154,8 @@ function nakedSingles(b) {
       });
     }
   }
+  // hint: podatki za postopno pomoč v igri (glej stepHint) - tu število takih celic.
+  for (const s of steps) s.hint = { count: steps.length };
   return steps;
 }
 
@@ -168,6 +170,7 @@ function hiddenSingles(b) {
         if (popcount(b.cand[cell]) > 1) {
           steps.push({
             technique: 'Skriti enojček', cells: [cell], assign: [[cell, d]], eliminate: [],
+            hint: { units: [unit], digits: [d] },
             message: `V ${unitNameLoc(unit)} je številka ${d} možna samo še v ${cellLabel(cell)} -> ${cellLabel(cell)} = ${d}.`
           });
         }
@@ -194,6 +197,7 @@ function pointing(b) {
       if (elim.length) {
         steps.push({
           technique: 'Pointing pair/triple', cells: spots, assign: [], eliminate: elim,
+          hint: { units: [box], digits: [d] },
           message: `V ${unitNameLoc(box)} je kandidat ${d} možen samo v ${cellsLabel(spots)}, ${spots.length === 2 ? 'ki obe ležita' : 'ki vse ležijo'} v ${unitNameLoc(target)} -> ${d} lahko izbrišemo iz preostanka te enote zunaj bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
@@ -216,6 +220,7 @@ function boxLineReduction(b) {
       if (elim.length) {
         steps.push({
           technique: 'Box-line reduction', cells: spots, assign: [], eliminate: elim,
+          hint: { units: [unit], digits: [d] },
           message: `V ${unitNameLoc(unit)} je kandidat ${d} možen samo znotraj enega bloka (${cellsLabel(spots)}) -> ${d} lahko izbrišemo iz preostanka tega bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
@@ -244,6 +249,7 @@ function nakedSubsets(b, size, name) {
             // celice so lahko veljaven vzorec v dveh enotah hkrati (npr. par v vrstici,
             // ki leži tudi v istem bloku), zato je enota del identitete koraka.
             technique: name, cells: combo.slice(), unit, assign: [], eliminate: elim,
+            hint: { units: [unit] },
             message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'številki' : 'številke'}) -> te številke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
           });
         }
@@ -279,6 +285,7 @@ function hiddenSubsets(b, size, name) {
         steps.push({
           // unit: glej opombo pri nakedSubsets.
           technique: name, cells: [...spots], unit, assign: [], eliminate: elim,
+          hint: { units: [unit] },
           message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta številki' : 'so številke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
         });
       }
@@ -320,6 +327,7 @@ function xWing(b) {
         if (elim.length) {
           steps.push({
             technique: 'X-Wing', cells: [...s1, ...s2], assign: [], eliminate: elim,
+            hint: { units: [u1, u2], digits: [d] },
             message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} -> tvori X-Wing. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
@@ -357,6 +365,7 @@ function swordfish(b) {
         if (elim.length) {
           steps.push({
             technique: 'Swordfish', cells: [...s1, ...s2, ...s3], assign: [], eliminate: elim,
+            hint: { units: [u1, u2, u3], digits: [d] },
             message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} -> tvori Swordfish. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
@@ -418,6 +427,7 @@ function turbotFish(b) {
           const [bc1, bc2] = [bEnd, cEnd].sort((x, y) => x - y);
           steps.push({
             technique: 'Turbot Fish', variant, cells: pattern, assign: [], eliminate: elim,
+            hint: { units: [L1.unit, L2.unit], digits: [d] },
             message: `Kandidat ${d} je v ${unitNameLoc(L1.unit)} mogoč samo v celicah ${cellsLabel(L1.cells)}, v ${unitNameLoc(L2.unit)} pa samo v celicah ${cellsLabel(L2.cells)}. Celici ${cellLabel(bc1)} in ${cellLabel(bc2)} ležita v ${unitNameLoc(linkUnit)}, zato je vsaj ena od celic ${cellsLabel([aEnd, dEnd])} enaka ${d} -> tvori ${patternName}. ${d} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
@@ -465,6 +475,7 @@ function wWing(b) {
           if (!elim.length) continue;
           steps.push({
             technique: 'W-Wing', cells: [p1, p2, x, y], assign: [], eliminate: elim,
+            hint: { digits },
             message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} -> tvori W-Wing in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
@@ -499,6 +510,7 @@ function xyWing(b) {
           if (elim.length) {
             steps.push({
               technique: 'XY-Wing', cells: [pivot, w1, w2], assign: [], eliminate: elim,
+              hint: { digits: [x, y] },
               message: `Pivot ${cellLabel(pivot)} {${x},${y}} ima dve krili: ${cellLabel(w1)} in ${cellLabel(w2)}, ki obe delita kandidata ${z} -> ${z} lahko izbrišemo iz celic, ki vidijo obe krili (${cellsLabel(elim.map(e => e[0]))}).`
             });
           }
@@ -541,6 +553,7 @@ function uniqueRectangle(b) {
       const elim = bitsOf(digitsMask).map(d => [fourth, d]);
       steps.push({
         technique: 'Unique Rectangle', cells: [...trio, fourth], assign: [], eliminate: elim,
+        hint: { digits: bitsOf(digitsMask) },
         message: `Celice ${cellsLabel(trio)} imajo natanko kandidata ${bitsOf(digitsMask).join(',')}, ${cellLabel(fourth)} pa poleg njiju še dodatne. Če bi imela tudi ${cellLabel(fourth)} samo ${bitsOf(digitsMask).join(',')}, bi uganka imela dve rešitvi -> ${bitsOf(digitsMask).join(',')} lahko izbrišemo iz ${cellLabel(fourth)}.`
       });
     }
@@ -574,6 +587,39 @@ function tagClass(tech) {
   if (tech === 'X-Wing' || tech === 'Swordfish' || tech === 'Turbot Fish' || tech === 'W-Wing' || tech === 'XY-Wing' || tech === 'Unique Rectangle' || tech.includes('Coloring')) return 't-advanced';
   if (tech.includes('forcing') || tech.includes('protislovje')) return 't-chain';
   return 't-basic';
+}
+
+// Namig za drugo stopnjo postopne pomoči v igri (prva je samo ime tehnike, tretja
+// razlaga): enota in števka, kjer je tehnika vezana nanju, iz polja step.hint.
+// null = tehnika nima namiga in se pokaže takoj v celoti (poskus in protislovje).
+function stepHint(step) {
+  const h = step.hint;
+  if (!h) return null;
+  if (h.count !== undefined) {
+    const n = h.count;
+    const celic = n === 1 ? 'je 1 celica' : n === 2 ? 'sta 2 celici' : n <= 4 ? `so ${n} celice` : `je ${n} celic`;
+    return `V mreži ${celic} z enim samim kandidatom.`;
+  }
+  const stevke = h.digits ? numsLabel(h.digits) : '';
+  const vec = h.digits && h.digits.length > 1;
+  if (step.technique === 'XY-Wing') return `Pivot ima kandidata ${stevke}.`;
+  if (step.technique === 'W-Wing') return `Celici para imata kandidata ${stevke}.`;
+  if (step.technique === 'Unique Rectangle') return `Pravokotnik tvorita števki ${stevke}.`;
+  const deli = [];
+  if (h.units) deli.push(`V ${unitsNameLoc(h.units)}`);
+  if (h.digits) deli.push(`${vec ? 'števki' : 'števka'} ${stevke}`);
+  return deli.join(', ') + '.';
+}
+
+// Več enot v mestniku: "vrsticah 2 in 7", "stolpcih 1, 4 in 8" ali, če so
+// različnih vrst, "vrstici 3 in stolpcu 6".
+function unitsNameLoc(units) {
+  if (units.length === 1) return unitNameLoc(units[0]);
+  const imena = units.map(unitNameLoc);
+  for (const [ednina, mnozina] of [['vrstici ', 'vrsticah '], ['stolpcu ', 'stolpcih ']]) {
+    if (imena.every(i => i.startsWith(ednina))) return mnozina + numsLabel(imena.map(i => +i.slice(ednina.length)));
+  }
+  return imena.join(' in ');
 }
 
 /* ===================== BIFURKACIJA (forcing chain) ===================== */

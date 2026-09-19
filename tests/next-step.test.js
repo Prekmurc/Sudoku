@@ -1,13 +1,14 @@
 'use strict';
 // Testi funkcij motorja za igro: nextStep() (en naslednji korak, ki ga uporablja
-// tudi solve()) in solutionOf() (rešitev uganke za "Preveri"), na ugankah iz
+// tudi solve()), solutionOf() (rešitev uganke za "Preveri") in stepHint() (namig
+// za drugo stopnjo postopne pomoči), na ugankah iz
 // docs/uganke.md (nova uganka tam je samodejno vključena).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
-const E = loadEngine(undefined, { names: ['nextStep', 'solutionOf', 'applyStep'] });
+const E = loadEngine(undefined, { names: ['nextStep', 'solutionOf', 'applyStep', 'stepHint'] });
 
 const uganke = loadPuzzles().map(p => {
   const danosti = p.danosti.replace(/\./g, '0');
@@ -61,6 +62,50 @@ for (const u of uganke) {
     if (u.r.board.isSolved()) assert.deepEqual([...res], [...u.r.board.grid], 'enaka kot rešitev iz solve()');
   });
 }
+
+test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskusa in protislovja', () => {
+  const videne = new Set();
+  for (const u of uganke) {
+    for (const s of u.r.log) {
+      if (s.technique === 'OBSTALO' || s.technique === 'NAPAKA') continue;
+      const namig = E.stepHint(s);
+      if (s.technique.includes('protislovje')) { assert.equal(namig, null); continue; }
+      videne.add(s.technique);
+      assert.equal(typeof namig, 'string', `${u.ime}: ${s.technique}`);
+      assert.match(namig, /\.$/);
+      // Namig ne izda celice (V?S?) - to pride šele z razlago.
+      assert.doesNotMatch(namig, /V\dS\d/, `${u.ime}: ${s.technique}: ${namig}`);
+      if (s.technique === 'Gol enojček') {
+        // Število golih enojčkov v mreži tik pred korakom.
+        const b = Object.assign(Object.create(E.Board.prototype), { grid: s.snapshotGrid, cand: s.snapshotCand });
+        const n = E.ALL_TECHNIQUES.find(([ime]) => ime === 'Gol enojček')[1](b).length;
+        assert.equal(s.hint.count, n);
+      }
+      if (s.hint.digits && !['XY-Wing', 'W-Wing', 'Unique Rectangle'].includes(s.technique)) {
+        assert.ok(s.hint.digits.every(d => namig.includes(String(d))), namig);
+      }
+    }
+  }
+  assert.ok(videne.size >= 8, `pokritih tehnik: ${[...videne].join(', ')}`);
+});
+
+test('stepHint(): besedila za enote in tehnike brez ene enote', () => {
+  const hint = (technique, h) => E.stepHint({ technique, hint: h });
+  assert.equal(hint('Skriti enojček', { units: [E.ROWS[3]], digits: [7] }), 'V vrstici 4, števka 7.');
+  assert.equal(hint('Pointing pair/triple', { units: [E.BOXES[4]], digits: [2] }), 'V bloku 5, števka 2.');
+  assert.equal(hint('Naked pair', { units: [E.COLS[1]] }), 'V stolpcu 2.');
+  assert.equal(hint('X-Wing', { units: [E.ROWS[1], E.ROWS[6]], digits: [5] }), 'V vrsticah 2 in 7, števka 5.');
+  assert.equal(hint('Swordfish', { units: [E.COLS[0], E.COLS[3], E.COLS[7]], digits: [9] }), 'V stolpcih 1, 4 in 8, števka 9.');
+  assert.equal(hint('Turbot Fish', { units: [E.ROWS[2], E.COLS[5]], digits: [4] }), 'V vrstici 3 in stolpcu 6, števka 4.');
+  assert.equal(hint('XY-Wing', { digits: [3, 8] }), 'Pivot ima kandidata 3 in 8.');
+  assert.equal(hint('W-Wing', { digits: [1, 6] }), 'Celici para imata kandidata 1 in 6.');
+  assert.equal(hint('Unique Rectangle', { digits: [2, 7] }), 'Pravokotnik tvorita števki 2 in 7.');
+  assert.equal(hint('Gol enojček', { count: 1 }), 'V mreži je 1 celica z enim samim kandidatom.');
+  assert.equal(hint('Gol enojček', { count: 2 }), 'V mreži sta 2 celici z enim samim kandidatom.');
+  assert.equal(hint('Gol enojček', { count: 4 }), 'V mreži so 4 celice z enim samim kandidatom.');
+  assert.equal(hint('Gol enojček', { count: 5 }), 'V mreži je 5 celic z enim samim kandidatom.');
+  assert.equal(E.stepHint({ technique: 'Poskus in protislovje (forcing chain)' }), null);
+});
 
 test('solutionOf(): danosti s protislovjem nimajo rešitve', () => {
   const d = uganke[0].danosti;

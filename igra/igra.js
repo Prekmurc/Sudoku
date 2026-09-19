@@ -32,10 +32,11 @@ let poudarjene = [];
 let vecHkrati = false;
 const BARV_POUDARKA = 4;
 let sporocilo = null;   // { besedilo, razred } - enkratno sporočilo v kartici Uganka
-// Vsebina kartice Pomoč: null, { korak, fokus } (prikazan korak motorja; fokus =
-// zadnja izbrana poudarjena števka ob iskanju) ali { besedilo, razred, vrniPred } (vrniPred =
-// številka poteze za gumb "Vrni na stanje pred potezo"). Izgine ob vsaki
-// spremembi igre (osvezi).
+// Vsebina kartice Pomoč: null, { korak, fokus, stopnja } (prikazan korak motorja;
+// fokus = zadnja izbrana poudarjena števka ob iskanju; stopnja 1 = ime tehnike,
+// 2 = + enota in števka (stepHint), 3 = + razlaga in poudarki na mreži) ali
+// { besedilo, razred, znak, vrniPred } (vrniPred = številka poteze za gumb "Vrni na
+// stanje pred potezo"). Izgine ob vsaki spremembi igre (osvezi).
 let pomoc = null;
 let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob prvi potrebi
 
@@ -177,7 +178,7 @@ function izrisi() {
 function izrisiMrezo() {
   mrezaEl.classList.toggle('prazna', !igra);
   // Prikazan korak: celice vzorca, kandidati za izbris, števke za vpis.
-  const korak = pomoc && pomoc.korak;
+  const korak = pomoc && pomoc.korak && pomoc.stopnja === 3 ? pomoc.korak : null;
   const vzorec = new Set(korak ? korak.cells : []);
   const izbris = new Set(korak ? korak.eliminate.map(([c, d]) => c * 10 + d) : []);
   const izbrisCelice = new Set(korak ? korak.eliminate.map(([c]) => c) : []);
@@ -253,7 +254,10 @@ function izrisiNize() {
   razveljaviBtn.disabled = !igra || !lahkoRazveljavi(igra);
   ponoviBtn.disabled = !igra || !lahkoPonovi(igra);
   znovaBtn.disabled = !igra || igra.kazalec === 0;
-  korakBtn.disabled = !igra;
+  // Gumb pove, kaj sledi; ko je korak prikazan v celoti, počaka na potezo ali Skrij.
+  const stopnja = pomoc && pomoc.korak ? pomoc.stopnja : 0;
+  korakBtn.textContent = stopnja === 1 ? 'Pokaži več' : stopnja === 2 ? 'Pokaži rešitev' : 'Naslednji korak';
+  korakBtn.disabled = !igra || stopnja === 3;
   preveriBtn.disabled = !igra;
   stevecPotezEl.textContent = igra ? `poteza ${igra.kazalec} / ${igra.poteze.length}` : '';
 }
@@ -312,8 +316,15 @@ function nastaviPomoc(p) {
   izrisi();
 }
 
+// Postopna pomoč: prvi klik poišče korak in pokaže ime tehnike, drugi doda
+// enoto in števko, tretji razlago in poudarke. Poskus in protislovje nima
+// namiga (stepHint = null) in se pokaže takoj v celoti.
 korakBtn.addEventListener('click', () => {
   if (!igra) return;
+  if (pomoc && pomoc.korak) {
+    if (pomoc.stopnja < 3) nastaviPomoc({ ...pomoc, stopnja: pomoc.stopnja + 1 });
+    return;
+  }
   if (jeResena(stanje)) return nastaviPomoc({ besedilo: 'Uganka je rešena - ni več korakov.', razred: 'ok' });
   const res = resitev();
   if (!res) return nastaviPomoc({ besedilo: 'Rešitve uganke ni bilo mogoče izračunati.', razred: 'err' });
@@ -327,7 +338,8 @@ korakBtn.addEventListener('click', () => {
   setTimeout(() => {
     if (pomoc !== iskanje) return; // vmes poteza, Skrij ali Preveri
     const korak = nextStep(stanje.deska, ALL_TECHNIQUES, fokus);
-    nastaviPomoc(korak ? { korak, fokus } : { besedilo: 'Noben znan korak ne najde ničesar.', razred: 'err' });
+    nastaviPomoc(korak ? { korak, fokus, stopnja: stepHint(korak) ? 1 : 3 }
+      : { besedilo: 'Noben znan korak ne najde ničesar.', razred: 'err' });
   }, 20);
 });
 
@@ -359,6 +371,23 @@ function vrniPredPotezo(n) {
   });
 }
 
+// Tretja stopnja koraka: razlaga in legenda barv na mreži.
+function izrisiRazlago(k) {
+  const msg = document.createElement('p');
+  msg.className = 'pomoc-msg';
+  msg.textContent = k.message;
+  pomocEl.appendChild(msg);
+  const legenda = document.createElement('div');
+  legenda.className = 'pomoc-legenda';
+  const del = (razred, besedilo) => `<span><span class="sw ${razred}"></span>${besedilo}</span>`;
+  // Celica za vpis je obarvana zeleno, tudi če je del vzorca (enojčki).
+  const vzorec = k.cells.some(c => !k.assign.some(([a]) => a === c));
+  legenda.innerHTML = (vzorec ? del('sw-vzorec', 'celice vzorca') : '')
+    + (k.eliminate.length ? del('sw-izbris', 'kandidat za izbris') : '')
+    + (k.assign.length ? del('sw-vpis', 'števka za vpis') : '');
+  pomocEl.appendChild(legenda);
+}
+
 function izrisiPomoc() {
   pomocEl.innerHTML = '';
   if (!pomoc) return;
@@ -367,25 +396,21 @@ function izrisiPomoc() {
     const tag = document.createElement('span');
     tag.className = `tag ${tagClass(k.technique)}`;
     tag.textContent = k.technique;
-    const msg = document.createElement('p');
-    msg.className = 'pomoc-msg';
-    msg.textContent = k.message;
-    pomocEl.append(tag, msg);
+    pomocEl.appendChild(tag);
     if (pomoc.fokus !== null && !k.assign.concat(k.eliminate).some(([, d]) => d === pomoc.fokus)) {
       const op = document.createElement('p');
       op.className = 'pomoc-opomba';
       op.textContent = `Za poudarjeno števko ${pomoc.fokus} ni koraka – prikazan je korak z drugo števko.`;
       pomocEl.appendChild(op);
     }
-    const legenda = document.createElement('div');
-    legenda.className = 'pomoc-legenda';
-    const del = (razred, besedilo) => `<span><span class="sw ${razred}"></span>${besedilo}</span>`;
-    // Celica za vpis je obarvana zeleno, tudi če je del vzorca (enojčki).
-    const vzorec = k.cells.some(c => !k.assign.some(([a]) => a === c));
-    legenda.innerHTML = (vzorec ? del('sw-vzorec', 'celice vzorca') : '')
-      + (k.eliminate.length ? del('sw-izbris', 'kandidat za izbris') : '')
-      + (k.assign.length ? del('sw-vpis', 'števka za vpis') : '');
-    pomocEl.appendChild(legenda);
+    const namig = stepHint(k);
+    if (pomoc.stopnja >= 2 && namig) {
+      const h = document.createElement('p');
+      h.className = 'pomoc-msg pomoc-namig';
+      h.textContent = namig;
+      pomocEl.appendChild(h);
+    }
+    if (pomoc.stopnja === 3) izrisiRazlago(k);
   } else {
     const p = document.createElement('p');
     p.className = `pomoc-msg ${pomoc.razred || ''}`;
