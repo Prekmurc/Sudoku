@@ -610,6 +610,17 @@ kbd{
 .dialog-gumbi{ display:flex; gap:10px; margin-top:12px; }
 .dialog-gumbi .primary{ flex:1; }
 
+/* razdelka v oknu Zbirka ugank: Vgrajeni primeri, Tvoja zbirka */
+.zbirka-razdelek{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color: var(--pencil);
+  margin: 4px 0 8px;
+}
+#primeriSeznam{ margin-bottom:18px; }
 .zbirka-seznam{
   list-style:none;
   margin:0;

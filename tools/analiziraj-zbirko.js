@@ -86,7 +86,7 @@ function analiziraj(danosti) {
 const docsPot = path.join(__dirname, '..', 'docs', 'uganke.md');
 const docs = loadPuzzles();
 // Prazna celica je lahko zapisana kot "." ali "0" (docs/uganke.md in izvoz zbirke
-// uporabljata piko, polje PRIMERI v app/app.js pa ničlo), zato pred primerjavo
+// uporabljata piko, polje PRIMERI v shared/zbirka.js deloma ničlo), zato pred primerjavo
 // zapis poenotimo.
 const norm = g => g.replace(/0/g, '.');
 const docsDanosti = new Set(docs.map(p => norm(p.danosti)));

@@ -4,6 +4,8 @@
    ločijo po 81-znakovnem nizu danosti (interno '0' = prazna celica, v datoteki '.').
    Brez DOM-a (razen zbirkaPrenesi() za prenos datoteke) - uporabljata jo
    app/zbirka.js (UI zbirke v reševalcu) in igra/, tudi za gumba Izvozi/Uvozi.
+   Tu je tudi seznam vgrajenih primerov (PRIMERI) - reševalec jih ponudi v
+   spustnem seznamu "Primer", igra v oknu "Zbirka ugank".
    Naloži se za shared/engine.js (uporablja ALL_UNITS, ALL_TECHNIQUES, TRENING_TEHNIKE). */
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
@@ -11,6 +13,17 @@ const TEZAVNOSTI = ['Začetnik', 'Preprosto', 'Srednje', 'Težko', 'Ekspert', 'E
 const PRIVZETA_TEZAVNOST = 'Ekstrem';
 // Polja zapisa v stalnem vrstnem redu (tudi vrstni red pri uvozu/dopolnjevanju).
 const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'dodano', 'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
+
+// Vgrajeni primeri (reševalec: spustni seznam "Primer", igra: razdelek "Vgrajeni
+// primeri" v oknu Zbirka ugank). Nov primer = nova vrstica tu. Danosti morajo biti
+// preverjene (countSolutions() === 1) in zapisane v docs/uganke.md; '0' ali '.' =
+// prazna celica.
+const PRIMERI = [
+  { ime: 'Primer 1 (z ugibanjem)', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
+  { ime: 'Primer 2 (Ekstrem, brez ugibanja)', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
+  { ime: 'Primer 3 (lahka)', danosti: '.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7' }, // lahka-seme-197
+  { ime: 'Primer 4 (srednja)', danosti: '..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761' }, // srednja-seme-97
+];
 
 /* ---------- pomožne ---------- */
 

@@ -46,6 +46,9 @@ let pomoc = null;
 // Števka prejšnjega najdenega koraka: pri naslednjem iskanju ima prednost (kot
 // v reševalcu), razen če je poudarjena druga števka. Nova uganka jo pozabi.
 let sidro = null;
+// Vgrajeni primeri (PRIMERI v ../shared/zbirka.js) s '0' namesto '.' - tako so
+// danosti v igri in v zbirki.
+const primeriIgre = PRIMERI.map(p => ({ ime: p.ime, danosti: p.danosti.split('.').join('0') }));
 let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob prvi potrebi
 
 /* ---------- gradnja mreže in nizov ---------- */
@@ -433,7 +436,8 @@ function nastaviStatus(besedilo, razred) {
 function opisUganke(danosti) {
   const danih = danosti.replace(/0/g, '').length;
   const z = zbirkaBeri().find(x => x.danosti === danosti);
-  if (!z) return `Danih števk: ${danih}. Uganke ni v zbirki.`;
+  const primer = primeriIgre.find(p => p.danosti === danosti);
+  if (!z) return primer ? `Vgrajeni primer »${primer.ime}«. Danih števk: ${danih}.` : `Danih števk: ${danih}. Uganke ni v zbirki.`;
   const deli = [z.tezavnost || 'težavnost ni določena', `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`,
     zbirkaOznakaTehnik(z)];
   return deli.join(' · ') + (z.opomba ? ` — ${z.opomba}` : '');
@@ -726,6 +730,7 @@ document.querySelectorAll('.dialog').forEach(el => {
 
 const zbirkaDialog = document.getElementById('zbirkaDialog');
 const zbirkaSeznamEl = document.getElementById('zbirkaSeznam');
+const primeriSeznamEl = document.getElementById('primeriSeznam');
 const zbirkaStatusEl = document.getElementById('zbirkaStatus');
 
 function osveziGumbZbirke() {
@@ -740,9 +745,51 @@ function zbirkaStatusIgre(danosti, zapis) {
   return { besedilo: `v teku: ${izpolnjenih}/81`, razred: 'v-teku' };
 }
 
+// Vrstica "danih: N · nova / v teku / rešeno · trenutno odprta" in gumb
+// Igraj/Nadaljuj - enako za vgrajene primere in uganke iz zbirke.
+function infoUganke(danosti, zapis, trenutna) {
+  const st = zbirkaStatusIgre(danosti, zapis);
+  const info = document.createElement('div');
+  info.className = 'zb-info';
+  const oznaka = document.createElement('span');
+  oznaka.className = st.razred;
+  oznaka.textContent = st.besedilo;
+  info.append(`danih: ${danosti.replace(/0/g, '').length} · `, oznaka, trenutna ? ' · trenutno odprta' : '');
+  return info;
+}
+
+function gumbiUganke(danosti, zapis) {
+  const gumbi = document.createElement('div');
+  gumbi.className = 'zb-gumbi';
+  const igraj = document.createElement('button');
+  igraj.type = 'button';
+  igraj.className = 'primary';
+  igraj.textContent = zapis ? 'Nadaljuj' : 'Igraj';
+  igraj.addEventListener('click', () => igrajIzZbirke(danosti));
+  gumbi.appendChild(igraj);
+  return gumbi;
+}
+
+// Vgrajeni primeri (PRIMERI v ../shared/zbirka.js): igrajo se enako kot uganke
+// iz zbirke, napredek se shrani po danostih.
+function izrisiPrimere(igre) {
+  primeriSeznamEl.innerHTML = '';
+  for (const p of primeriIgre) {
+    const li = document.createElement('li');
+    const trenutna = igra && igra.danosti === p.danosti;
+    if (trenutna) li.className = 'trenutna';
+    const vrstica = document.createElement('div');
+    vrstica.className = 'zb-vrstica';
+    vrstica.textContent = p.ime;
+    li.append(vrstica, infoUganke(p.danosti, igre[p.danosti], trenutna), gumbiUganke(p.danosti, igre[p.danosti]));
+    primeriSeznamEl.appendChild(li);
+  }
+}
+
 function izrisiZbirko() {
   const zbirka = zbirkaBeri();
   const igre = igreBeri().igre;
+  izrisiPrimere(igre);
   zbirkaSeznamEl.innerHTML = '';
   if (!zbirka.length) {
     const li = document.createElement('li');
@@ -762,14 +809,7 @@ function izrisiZbirko() {
     vrstica.textContent = `${zbirkaPrikazDatuma(z.nazadnje || z.dodano)} · ${tezavnost}`;
     li.appendChild(vrstica);
 
-    const st = zbirkaStatusIgre(z.danosti, igre[z.danosti]);
-    const info = document.createElement('div');
-    info.className = 'zb-info';
-    const oznaka = document.createElement('span');
-    oznaka.className = st.razred;
-    oznaka.textContent = st.besedilo;
-    info.append(`danih: ${z.danosti.replace(/0/g, '').length} · `, oznaka, trenutna ? ' · trenutno odprta' : '');
-    li.appendChild(info);
+    li.appendChild(infoUganke(z.danosti, igre[z.danosti], trenutna));
 
     // Katere tehnike uganka zahteva (številke iz treninga).
     const tehnike = document.createElement('div');
@@ -784,15 +824,7 @@ function izrisiZbirko() {
       li.appendChild(op);
     }
 
-    const gumbi = document.createElement('div');
-    gumbi.className = 'zb-gumbi';
-    const igraj = document.createElement('button');
-    igraj.type = 'button';
-    igraj.className = 'primary';
-    igraj.textContent = igre[z.danosti] ? 'Nadaljuj' : 'Igraj';
-    igraj.addEventListener('click', () => igrajIzZbirke(z.danosti));
-    gumbi.appendChild(igraj);
-    li.appendChild(gumbi);
+    li.appendChild(gumbiUganke(z.danosti, igre[z.danosti]));
 
     zbirkaSeznamEl.appendChild(li);
   }
