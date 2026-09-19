@@ -17,8 +17,8 @@
   --amber-bg:#F1E5C9;
   --purple:#7548A0;
   --purple-bg:#E7DEF0;
-  /* poudarjena števka: svetlo modra podlaga s temno števko (kot Oakever) */
-  --poud:#AECBFA;
+  /* poudarjena števka: čisto modra podlaga s temno števko (kot Oakever) */
+  --poud:#8AB4F8;
   --poud-ink:#1D4F9C;
   --poud-stevka:#111820;    /* kandidat in dana števka na poudarku */
   --poud-vpis:#0B3A78;      /* vpis na poudarku: temnejša modra, da ostane berljiv */
@@ -234,14 +234,14 @@ kbd{
 .celica[data-r="8"]{ border-bottom: 2px solid var(--ink); }
 /* Kandidati na stalnih mestih (1 levo zgoraj ... 9 desno spodaj). minmax(0,1fr):
    vse vrstice in stolpci so enako veliki - prazna vrstica se ne stisne, zato
-   kandidat ne zdrsne s svojega mesta. */
+   kandidat ne zdrsne s svojega mesta. Brez notranjega roba: vsako polje je
+   natanko tretjina celice, poudarek (.kand.poud) ga zapolni do roba celice. */
 .kandidati{
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
   grid-template-rows:repeat(3, minmax(0, 1fr));
   width:100%;
   height:100%;
-  padding:1px;
 }
 .kand{
   display:flex;
@@ -254,13 +254,12 @@ kbd{
   font-weight:500;
   color: var(--kand-ink);
 }
-/* poudarjen kandidat: svetlo modra podlaga pod samo to števko, števka temna */
+/* poudarjen kandidat: oster modri kvadrat čez celo polje kandidata (tretjina
+   celice), števka temna */
 .kand.poud{
   background: var(--poud);
   color: var(--poud-stevka);
   font-weight:700;
-  border-radius:3px;
-  margin:0.5px;
 }
 /* prikazan korak (Naslednji korak): celice vzorca jantarno, celice z
    izbrisom rdečkasto, kandidat za izbris rdeč prečrtan, števka za vpis zelena
