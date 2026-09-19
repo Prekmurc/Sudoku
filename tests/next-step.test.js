@@ -75,10 +75,14 @@ test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskus
       assert.match(namig, /\.$/);
       // Namig ne izda celice (V?S?) - to pride šele z razlago.
       assert.doesNotMatch(namig, /V\dS\d/, `${u.ime}: ${s.technique}: ${namig}`);
+      // Namig nikoli ne da enote skupaj s števko - to bi (skoraj) določilo odgovor.
+      assert.ok(!(s.hint.unit && s.hint.digits), `${s.technique}: enota in števka`);
       if (['Skriti enojček', 'Pointing pair/triple', 'Box-line reduction'].includes(s.technique)) {
-        // Enota in števka bi skupaj (skoraj) določili odgovor - namig pove samo enoto.
-        assert.equal(s.hint.digits, undefined);
         assert.match(namig, /^V (vrstici|stolpcu|bloku) \d\.$/);
+      }
+      if (['X-Wing', 'Swordfish', 'Turbot Fish'].includes(s.technique)) {
+        assert.match(namig, /^Števka \d(, v (dveh|treh) (vrsticah|stolpcih))?\.$/);
+        assert.equal(s.hint.unit, undefined);
       }
       if (s.technique === 'Gol enojček') {
         // Število golih enojčkov v mreži tik pred korakom.
@@ -94,15 +98,15 @@ test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskus
   assert.ok(videne.size >= 8, `pokritih tehnik: ${[...videne].join(', ')}`);
 });
 
-test('stepHint(): besedila za enote in tehnike brez ene enote', () => {
+test('stepHint(): besedila namigov', () => {
   const hint = (technique, h) => E.stepHint({ technique, hint: h });
-  assert.equal(hint('Skriti enojček', { units: [E.ROWS[3]] }), 'V vrstici 4.');
-  assert.equal(hint('Pointing pair/triple', { units: [E.BOXES[4]] }), 'V bloku 5.');
-  assert.equal(hint('Box-line reduction', { units: [E.COLS[2]] }), 'V stolpcu 3.');
-  assert.equal(hint('Naked pair', { units: [E.COLS[1]] }), 'V stolpcu 2.');
-  assert.equal(hint('X-Wing', { units: [E.ROWS[1], E.ROWS[6]], digits: [5] }), 'V vrsticah 2 in 7, števka 5.');
-  assert.equal(hint('Swordfish', { units: [E.COLS[0], E.COLS[3], E.COLS[7]], digits: [9] }), 'V stolpcih 1, 4 in 8, števka 9.');
-  assert.equal(hint('Turbot Fish', { units: [E.ROWS[2], E.COLS[5]], digits: [4] }), 'V vrstici 3 in stolpcu 6, števka 4.');
+  assert.equal(hint('Skriti enojček', { unit: E.ROWS[3] }), 'V vrstici 4.');
+  assert.equal(hint('Pointing pair/triple', { unit: E.BOXES[4] }), 'V bloku 5.');
+  assert.equal(hint('Box-line reduction', { unit: E.COLS[2] }), 'V stolpcu 3.');
+  assert.equal(hint('Naked pair', { unit: E.COLS[1] }), 'V stolpcu 2.');
+  assert.equal(hint('X-Wing', { digits: [9], lines: 'stolpcih', lineCount: 2 }), 'Števka 9, v dveh stolpcih.');
+  assert.equal(hint('Swordfish', { digits: [5], lines: 'vrsticah', lineCount: 3 }), 'Števka 5, v treh vrsticah.');
+  assert.equal(hint('Turbot Fish', { digits: [4] }), 'Števka 4.');
   assert.equal(hint('XY-Wing', { digits: [3, 8] }), 'Pivot ima kandidata 3 in 8.');
   assert.equal(hint('W-Wing', { digits: [1, 6] }), 'Celici para imata kandidata 1 in 6.');
   assert.equal(hint('Unique Rectangle', { digits: [2, 7] }), 'Pravokotnik tvorita števki 2 in 7.');
