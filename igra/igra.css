@@ -250,7 +250,7 @@ kbd{
 .celica.dana{ color:#000; font-weight:800; }
 .celica.vpis{ color: var(--blue); font-weight:700; }
 .celica.soseda{ background: var(--peer-bg); }
-.celica.izbrana{ background:#fff; } /* pred .poud-stevka: poudarek ima prednost */
+.celica.izbrana{ background: var(--peer-bg); } /* kot vrstica/stolpec/blok; pred .poud-stevka: poudarek ima prednost */
 /* poudarjena števka, vpisana ali dana: cela celica v barvi poudarka, števka
    temna (dana skoraj črna, vpis temno moder); kandidati: glej .kand.poud.
    Barva: --pb iz razreda b1..b3 (več hkrati), sicer --poud. */

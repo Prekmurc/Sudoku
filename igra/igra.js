@@ -27,6 +27,7 @@ const igraLayoutEl = document.getElementById('igraLayout');
 let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
 let izbrana = null;     // indeks izbrane celice ali null
+let zadnjaIzbrana = null; // celica, iz katere je bila izbira izklopljena po vpisu
 // Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
 // modra, zelena, rumena, oranžna (--poud, --poud2 ... v igra.css). Brez kljukice
 // "več hkrati" je poudarjena kvečjemu ena števka (modra).
@@ -172,6 +173,11 @@ vecHkratiEl.addEventListener('change', () => {
 
 function izvedi(poteza) {
   if (!igra || !dodajPotezo(igra, poteza, stanje)) return;
+  // Po vpisu števke se izbira celice izklopi (puščice nadaljujejo od nje).
+  if (poteza.tip === 'vpis' && poteza.stevka) {
+    zadnjaIzbrana = izbrana;
+    izbrana = null;
+  }
   sporocilo = null;
   osvezi();
 }
@@ -191,11 +197,15 @@ function zbrisiVpis() {
 
 // Po vsaki spremembi igre: novo stanje, shrani, izriši.
 function osvezi() {
+  const prej = stanje && stanje.danosti === igra.danosti ? seManjka(stanje) : null;
   stanje = stanjeIgre(igra);
   pomoc = null;
-  // Števka, vpisana že devetkrat, nima več kandidatov - njen poudarek se izklopi.
-  const manjka = seManjka(stanje);
-  poudarjene = poudarjene.filter(p => manjka[p.stevka] > 0);
+  // Sprememba, ki števko dokonča (deveti vpis), izklopi njen poudarek - ni več
+  // kandidatov. Poudarek, ki ga igralec vklopi pri že dokončani števki, ostane.
+  if (prej) {
+    const zdaj = seManjka(stanje);
+    poudarjene = poudarjene.filter(p => !(prej[p.stevka] > 0 && zdaj[p.stevka] === 0));
+  }
   if (!igraShrani(igra)) {
     sporocilo = { besedilo: 'Igre ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', razred: 'err' };
   }
@@ -317,11 +327,12 @@ function izrisiNize() {
     const p = gumbiPoudari[d - 1];
     const b = barvaPoudarka(d);
     p.innerHTML = `<span>${d}</span><span class="manjka">${igra ? manjka[d] : ''}</span>`;
-    // Števka, vpisana že devetkrat, se ne da več poudariti (ni kandidatov).
-    p.disabled = !igra || manjka[d] === 0;
+    // Tudi števka, vpisana že devetkrat, se da poudariti - poudarek pokaže vse
+    // celice z njo (za hiter pregled).
+    p.disabled = !igra;
     p.className = b >= 0 ? `aktiven b${b}` : '';
     p.setAttribute('aria-pressed', b >= 0 ? 'true' : 'false');
-    p.title = !igra ? '' : manjka[d] === 0 ? `${d} je vpisana devetkrat` : `Poudari ${d} (še manjka: ${manjka[d]})`;
+    p.title = !igra ? '' : manjka[d] === 0 ? `Poudari ${d} (vpisana devetkrat)` : `Poudari ${d} (še manjka: ${manjka[d]})`;
 
     const v = gumbiVpisi[d - 1];
     v.disabled = !(a.vpis & bit);
@@ -544,6 +555,7 @@ function zacniIgro(danosti) {
   const shranjena = igraNalozi(danosti);
   igra = shranjena || novaIgra(danosti);
   izbrana = null;
+  zadnjaIzbrana = null;
   poudarjene = [];
   sporocilo = shranjena && shranjena.poteze.length
     ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }
@@ -584,10 +596,12 @@ document.addEventListener('keydown', (e) => {
   const premik = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
   if (premik) {
     e.preventDefault();
-    if (izbrana === null) izbrana = 0;
+    // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
+    const od = izbrana !== null ? izbrana : zadnjaIzbrana;
+    if (od === null) izbrana = 0;
     else {
-      const r = Math.min(8, Math.max(0, Math.floor(izbrana / 9) + premik[0]));
-      const c = Math.min(8, Math.max(0, izbrana % 9 + premik[1]));
+      const r = Math.min(8, Math.max(0, Math.floor(od / 9) + premik[0]));
+      const c = Math.min(8, Math.max(0, od % 9 + premik[1]));
       izbrana = r * 9 + c;
     }
     izrisi();
