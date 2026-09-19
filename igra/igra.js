@@ -43,6 +43,9 @@ let sporocilo = null;   // { besedilo, razred } - enkratno sporočilo v kartici 
 // stanje pred potezo"). Sporočilo izgine ob vsaki spremembi igre, korak pa ostane,
 // dokler niso izvedena vsa njegova dejanja, "Skrij" ali vrnitev pred izhodišče (osvezi).
 let pomoc = null;
+// Števka prejšnjega najdenega koraka: pri naslednjem iskanju ima prednost (kot
+// v reševalcu), razen če je poudarjena druga števka. Nova uganka jo pozabi.
+let sidro = null;
 let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob prvi potrebi
 
 /* ---------- gradnja mreže in nizov ---------- */
@@ -468,14 +471,25 @@ korakBtn.addEventListener('click', () => {
   }
   const iskanje = { besedilo: 'Iščem korak ...', razred: '' };
   nastaviPomoc(iskanje);
+  // Prednost ima poudarjena števka, sicer števka prejšnjega koraka (sidro).
   const fokus = zadnjaPoudarjena();
+  const prednost = fokus !== null ? fokus : sidro;
   setTimeout(() => {
     if (pomoc !== iskanje) return; // vmes poteza, Skrij ali Preveri
-    const korak = nextStep(stanje.deska, ALL_TECHNIQUES, fokus);
+    const korak = nextStep(stanje.deska, ALL_TECHNIQUES, prednost);
+    if (korak) sidro = sidroPoKoraku(korak, prednost);
     nastaviPomoc(korak ? { korak, fokus, stopnja: stepHint(korak) ? 1 : 3, izhodisce: trenutnoIzhodisce() }
       : { besedilo: 'Noben znan korak ne najde ničesar.', razred: 'err' });
   }, 20);
 });
+
+// Kot "usidranje" v solve(): če korak vsebuje števko s prednostjo, ostane ta,
+// sicer se igra usidra na najmanjšo števko koraka.
+function sidroPoKoraku(korak, prednost) {
+  const stevke = digitsOfStep(korak);
+  if (prednost !== null && stevke.has(prednost)) return prednost;
+  return stevke.size ? Math.min(...stevke) : null;
+}
 
 preveriBtn.addEventListener('click', () => {
   if (!igra) return;
@@ -624,6 +638,7 @@ function zacniIgro(danosti) {
   izbrana = null;
   zadnjaIzbrana = null;
   pomoc = null;
+  sidro = null;
   poudarjene = [];
   sporocilo = shranjena && shranjena.poteze.length
     ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }
