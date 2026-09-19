@@ -75,8 +75,8 @@ test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskus
       assert.match(namig, /\.$/);
       // Namig ne izda celice (V?S?) - to pride šele z razlago.
       assert.doesNotMatch(namig, /V\dS\d/, `${u.ime}: ${s.technique}: ${namig}`);
-      if (s.technique === 'Skriti enojček') {
-        // Enota in števka bi skupaj določili celico - namig pove samo enoto.
+      if (['Skriti enojček', 'Pointing pair/triple', 'Box-line reduction'].includes(s.technique)) {
+        // Enota in števka bi skupaj (skoraj) določili odgovor - namig pove samo enoto.
         assert.equal(s.hint.digits, undefined);
         assert.match(namig, /^V (vrstici|stolpcu|bloku) \d\.$/);
       }
@@ -97,7 +97,8 @@ test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskus
 test('stepHint(): besedila za enote in tehnike brez ene enote', () => {
   const hint = (technique, h) => E.stepHint({ technique, hint: h });
   assert.equal(hint('Skriti enojček', { units: [E.ROWS[3]] }), 'V vrstici 4.');
-  assert.equal(hint('Pointing pair/triple', { units: [E.BOXES[4]], digits: [2] }), 'V bloku 5, števka 2.');
+  assert.equal(hint('Pointing pair/triple', { units: [E.BOXES[4]] }), 'V bloku 5.');
+  assert.equal(hint('Box-line reduction', { units: [E.COLS[2]] }), 'V stolpcu 3.');
   assert.equal(hint('Naked pair', { units: [E.COLS[1]] }), 'V stolpcu 2.');
   assert.equal(hint('X-Wing', { units: [E.ROWS[1], E.ROWS[6]], digits: [5] }), 'V vrsticah 2 in 7, števka 5.');
   assert.equal(hint('Swordfish', { units: [E.COLS[0], E.COLS[3], E.COLS[7]], digits: [9] }), 'V stolpcih 1, 4 in 8, števka 9.');

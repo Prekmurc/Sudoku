@@ -198,7 +198,8 @@ function pointing(b) {
       if (elim.length) {
         steps.push({
           technique: 'Pointing pair/triple', cells: spots, assign: [], eliminate: elim,
-          hint: { units: [box], digits: [d] },
+          // Samo blok: blok in števka skupaj takoj pokažeta vzorec.
+          hint: { units: [box] },
           message: `V ${unitNameLoc(box)} je kandidat ${d} možen samo v ${cellsLabel(spots)}, ${spots.length === 2 ? 'ki obe ležita' : 'ki vse ležijo'} v ${unitNameLoc(target)} -> ${d} lahko izbrišemo iz preostanka te enote zunaj bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
@@ -221,7 +222,8 @@ function boxLineReduction(b) {
       if (elim.length) {
         steps.push({
           technique: 'Box-line reduction', cells: spots, assign: [], eliminate: elim,
-          hint: { units: [unit], digits: [d] },
+          // Samo enota: enota in števka skupaj takoj pokažeta vzorec.
+          hint: { units: [unit] },
           message: `V ${unitNameLoc(unit)} je kandidat ${d} možen samo znotraj enega bloka (${cellsLabel(spots)}) -> ${d} lahko izbrišemo iz preostanka tega bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
@@ -591,7 +593,9 @@ function tagClass(tech) {
 }
 
 // Namig za drugo stopnjo postopne pomoči v igri (prva je samo ime tehnike, tretja
-// razlaga): enota in števka, kjer je tehnika vezana nanju, iz polja step.hint.
+// razlaga) iz polja step.hint: enota, števka pa samo pri vzorcih iz več celic
+// (X-Wing, Swordfish, Turbot Fish) - kjer bi enota in števka skupaj že skoraj
+// določili odgovor (skriti enojček, Pointing, Box-line), namig pove samo enoto.
 // null = tehnika nima namiga in se pokaže takoj v celoti (poskus in protislovje).
 function stepHint(step) {
   const h = step.hint;
