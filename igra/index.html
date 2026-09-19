@@ -24,7 +24,10 @@
 
 <main class="igra-layout">
   <section class="plosca" aria-label="Igralna plošča">
-    <div class="niz-oznaka" id="poudariOznaka">Poudari števko <span class="niz-pojasnilo">· spodaj: še manjka</span></div>
+    <div class="niz-oznaka poudari-glava">
+      <span id="poudariOznaka">Poudari števko <span class="niz-pojasnilo">· spodaj: še manjka</span></span>
+      <label class="vec-hkrati"><input type="checkbox" id="vecHkrati"> več hkrati</label>
+    </div>
     <div class="niz niz-poudari" id="nizPoudari" role="group" aria-labelledby="poudariOznaka"></div>
 
     <div id="mreza" class="mreza" role="grid" aria-label="Sudoku mreža"></div>

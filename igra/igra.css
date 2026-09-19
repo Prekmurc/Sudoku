@@ -2,7 +2,7 @@
    paleta barv je ista kot v app/app.css. */
 
 :root{
-  --paper:#E9EDF0;
+  --paper:#FFFFFF;          /* preprosta bela podlaga (kot nov zavihek v Chromu) */
   --card:#F6F8F9;
   --ink:#24303D;
   --line:#C7CFD6;
@@ -23,6 +23,14 @@
   --poud-stevka:#111820;    /* kandidat in dana števka na poudarku */
   --poud-vpis:#0B3A78;      /* vpis na poudarku: temnejša modra, da ostane berljiv */
   --poud-line:#6FA3DB;
+  /* "več hkrati": 2., 3. in 4. poudarjena števka (1. je --poud), potem se
+     barve ponovijo; -ink = obroba aktivnega gumba v nizu Poudari */
+  --poud2:#81C995;          /* zelena */
+  --poud2-ink:#1E6B3A;
+  --poud3:#F6C026;          /* rumena, potemnjena proti jantarni, da je na beli opazna */
+  --poud3-ink:#8A6400;
+  --poud4:#FA903E;          /* oranžna */
+  --poud4-ink:#A8480A;
   /* mreža je bela; sivo so obarvane samo vrstica, stolpec in blok izbrane celice */
   --peer-bg:#ECEFF3;
   --kand-ink:#4A5561;
@@ -31,11 +39,6 @@
 }
 body{
   background:var(--paper);
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 22px 22px;
-  background-attachment: fixed;
   padding: 0 0 60px 0;
 }
 
@@ -219,13 +222,17 @@ kbd{
 .celica.vpis{ color: var(--blue); font-weight:700; }
 .celica.soseda{ background: var(--peer-bg); }
 .celica.izbrana{ background:#fff; } /* pred .poud-stevka: poudarek ima prednost */
-/* poudarjena števka, vpisana ali dana: cela celica svetlo modra, števka temna
-   (dana skoraj črna, vpis temno moder); kandidati: glej .kand.poud */
-.celica.poud-stevka{ background: var(--poud); color: var(--poud-stevka); }
+/* poudarjena števka, vpisana ali dana: cela celica v barvi poudarka, števka
+   temna (dana skoraj črna, vpis temno moder); kandidati: glej .kand.poud.
+   Barva: --pb iz razreda b1..b3 (več hkrati), sicer --poud. */
+.b1{ --pb: var(--poud2); --pb-ink: var(--poud2-ink); }
+.b2{ --pb: var(--poud3); --pb-ink: var(--poud3-ink); }
+.b3{ --pb: var(--poud4); --pb-ink: var(--poud4-ink); }
+.celica.poud-stevka{ background: var(--pb, var(--poud)); color: var(--poud-stevka); }
 .celica.vpis.poud-stevka{ color: var(--poud-vpis); }
-/* izbrana celica: temno modra obroba z belim notranjim robom - vidna tudi,
-   ko je celica sama poudarjena (modra) */
-.celica.izbrana{ box-shadow: inset 0 0 0 3px var(--blue), inset 0 0 0 5px #fff; }
+/* izbrana celica: tanka srednje modra obroba z belim notranjim robom - vidna
+   tudi, ko je celica sama poudarjena (modra) */
+.celica.izbrana{ box-shadow: inset 0 0 0 2px #4A86D8, inset 0 0 0 3px #fff; }
 .celica[data-c="0"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="3"], .celica[data-c="6"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="8"]{ border-right: 2px solid var(--ink); }
@@ -254,10 +261,10 @@ kbd{
   font-weight:500;
   color: var(--kand-ink);
 }
-/* poudarjen kandidat: oster modri kvadrat čez celo polje kandidata (tretjina
-   celice), števka temna */
+/* poudarjen kandidat: oster kvadrat v barvi poudarka čez celo polje kandidata
+   (tretjina celice), števka temna */
 .kand.poud{
-  background: var(--poud);
+  background: var(--pb, var(--poud));
   color: var(--poud-stevka);
   font-weight:700;
 }
@@ -292,6 +299,20 @@ kbd{
   margin: 12px 0 3px 2px;
 }
 .niz-oznaka:first-child{ margin-top:0; }
+/* vrstica nad nizom Poudari: oznaka levo, kljukica "več hkrati" desno */
+.poudari-glava{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.vec-hkrati{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  cursor:pointer;
+  text-transform:none;
+  letter-spacing:0;
+  font-family:'Inter', sans-serif;
+  font-size:12px;
+  color:#3C4854;
+}
+.vec-hkrati input{ margin:0; accent-color: var(--blue); cursor:pointer; }
 .niz-pojasnilo{ text-transform:none; letter-spacing:0; }
 .vzorec-vrni{ font-weight:700; color: var(--ink); }
 .niz{
@@ -327,8 +348,9 @@ kbd{
   font-weight:500;
   color: var(--pencil);
 }
-/* aktivni gumb je enak poudarku v mreži: svetlo modra podlaga, temna števka */
-.niz-poudari button.aktiven{ background: var(--poud); border: 2px solid var(--poud-ink); color: var(--poud-stevka); }
+/* aktivni gumb je enak poudarku v mreži (ista barva - niz je tudi legenda),
+   temna števka */
+.niz-poudari button.aktiven{ background: var(--pb, var(--poud)); border: 2px solid var(--pb-ink, var(--poud-ink)); color: var(--poud-stevka); }
 .niz-poudari button.aktiven .manjka{ color:#26374D; }
 .niz-poudari button.koncana{ opacity:0.45; }
 

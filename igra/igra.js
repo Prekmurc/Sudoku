@@ -20,14 +20,20 @@ const razlogNizovEl = document.getElementById('razlogNizov');
 const korakBtn = document.getElementById('korakBtn');
 const preveriBtn = document.getElementById('preveriBtn');
 const pomocEl = document.getElementById('pomocVsebina');
+const vecHkratiEl = document.getElementById('vecHkrati');
 
 let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
 let izbrana = null;     // indeks izbrane celice ali null
-let poudarjena = null;  // poudarjena števka (1-9) ali null
+// Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
+// modra, zelena, rumena, oranžna (--poud, --poud2 ... v igra.css). Brez kljukice
+// "več hkrati" je poudarjena kvečjemu ena števka (modra).
+let poudarjene = [];
+let vecHkrati = false;
+const BARV_POUDARKA = 4;
 let sporocilo = null;   // { besedilo, razred } - enkratno sporočilo v kartici Uganka
 // Vsebina kartice Pomoč: null, { korak, fokus } (prikazan korak motorja; fokus =
-// poudarjena števka ob iskanju) ali { besedilo, razred, vrniPred } (vrniPred =
+// zadnja izbrana poudarjena števka ob iskanju) ali { besedilo, razred, vrniPred } (vrniPred =
 // številka poteze za gumb "Vrni na stanje pred potezo"). Izgine ob vsaki
 // spremembi igre (osvezi).
 let pomoc = null;
@@ -63,14 +69,49 @@ function narediNiz(el, obKliku) {
   return gumbi;
 }
 
-const gumbiPoudari = narediNiz(nizPoudariEl, d => {
-  poudarjena = poudarjena === d ? null : d;
-  izrisi();
-});
+const gumbiPoudari = narediNiz(nizPoudariEl, d => poudari(d));
 const gumbiVpisi = narediNiz(nizVpisiEl, d => izvedi({ tip: 'vpis', celica: izbrana, stevka: d }));
 const gumbiOdstrani = narediNiz(nizOdstraniEl, d => odstraniAliVrni(d));
 
 gumbiVpisi.forEach((b, i) => { b.textContent = i + 1; });
+
+/* ---------- poudarjanje števk ---------- */
+
+// Barva poudarka števke (0..3) ali -1, če ni poudarjena.
+function barvaPoudarka(d) {
+  const p = poudarjene.find(x => x.stevka === d);
+  return p ? p.barva : -1;
+}
+
+// Zadnja izbrana poudarjena števka ali null (ima prednost pri Naslednji korak).
+function zadnjaPoudarjena() {
+  return poudarjene.length ? poudarjene[poudarjene.length - 1].stevka : null;
+}
+
+// Brez "več hkrati" nova izbira zamenja prejšnjo, ponoven klik jo prekliče.
+// Z "več hkrati" se izbire seštevajo, ponoven klik števko odstrani; nova
+// števka dobi prvo prosto barvo po vrsti, ko so zasedene vse, se barve ponovijo.
+function poudari(d) {
+  const i = poudarjene.findIndex(x => x.stevka === d);
+  if (!vecHkrati) {
+    poudarjene = i >= 0 && poudarjene.length === 1 ? [] : [{ stevka: d, barva: 0 }];
+  } else if (i >= 0) {
+    poudarjene.splice(i, 1);
+  } else {
+    const zasedene = new Set(poudarjene.map(x => x.barva));
+    let barva = [...Array(BARV_POUDARKA).keys()].find(b => !zasedene.has(b));
+    if (barva === undefined) barva = poudarjene.length % BARV_POUDARKA;
+    poudarjene.push({ stevka: d, barva });
+  }
+  izrisi();
+}
+
+// Ob izklopu ostane poudarjena samo zadnja izbrana števka (modra).
+vecHkratiEl.addEventListener('change', () => {
+  vecHkrati = vecHkratiEl.checked;
+  if (!vecHkrati && poudarjene.length) poudarjene = [{ stevka: zadnjaPoudarjena(), barva: 0 }];
+  izrisi();
+});
 
 /* ---------- poteze ---------- */
 
@@ -150,7 +191,8 @@ function izrisiMrezo() {
     if (v) {
       el.textContent = v;
       el.classList.add(igra.danosti[i] !== '0' ? 'dana' : 'vpis');
-      if (v === poudarjena) el.classList.add('poud-stevka');
+      const b = barvaPoudarka(v);
+      if (b >= 0) el.classList.add('poud-stevka', `b${b}`);
     } else {
       const k = stanje.kandidati[i];
       const mreza = document.createElement('div');
@@ -160,7 +202,8 @@ function izrisiMrezo() {
         s.className = 'kand';
         if (k & (1 << d)) {
           s.textContent = d;
-          if (d === poudarjena) s.classList.add('poud');
+          const b = barvaPoudarka(d);
+          if (b >= 0) s.classList.add('poud', `b${b}`);
           if (izbris.has(i * 10 + d)) s.classList.add('k-izbris');
           if (zaVpis.get(i) === d) s.classList.add('k-vpis');
         }
@@ -185,11 +228,12 @@ function izrisiNize() {
     const bit = 1 << d;
 
     const p = gumbiPoudari[d - 1];
+    const b = barvaPoudarka(d);
     p.innerHTML = `<span>${d}</span><span class="manjka">${igra ? manjka[d] : ''}</span>`;
     p.disabled = !igra;
-    p.classList.toggle('aktiven', poudarjena === d);
+    p.className = b >= 0 ? `aktiven b${b}` : '';
     p.classList.toggle('koncana', !!igra && manjka[d] === 0);
-    p.setAttribute('aria-pressed', poudarjena === d ? 'true' : 'false');
+    p.setAttribute('aria-pressed', b >= 0 ? 'true' : 'false');
     p.title = igra ? `Poudari ${d} (še manjka: ${manjka[d]})` : '';
 
     const v = gumbiVpisi[d - 1];
@@ -279,7 +323,7 @@ korakBtn.addEventListener('click', () => {
   }
   const iskanje = { besedilo: 'Iščem korak ...', razred: '' };
   nastaviPomoc(iskanje);
-  const fokus = poudarjena;
+  const fokus = zadnjaPoudarjena();
   setTimeout(() => {
     if (pomoc !== iskanje) return; // vmes poteza, Skrij ali Preveri
     const korak = nextStep(stanje.deska, ALL_TECHNIQUES, fokus);
@@ -375,7 +419,7 @@ function zacniIgro(danosti) {
   const shranjena = igraNalozi(danosti);
   igra = shranjena || novaIgra(danosti);
   izbrana = null;
-  poudarjena = null;
+  poudarjene = [];
   sporocilo = shranjena && shranjena.poteze.length
     ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }
     : null;
@@ -395,7 +439,9 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (!igra) return;
-  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+  // Tipkanje v besedilno polje (npr. barva poudarka) ni poteza; kljukica
+  // "več hkrati" ali izbirnik barv pa tipkovnice igre ne smeta blokirati.
+  if (e.target instanceof HTMLTextAreaElement || (e.target instanceof HTMLInputElement && e.target.type === 'text')) return;
 
   const ctrl = e.ctrlKey || e.metaKey;
   if (ctrl && !e.altKey && e.code === 'KeyZ') {
