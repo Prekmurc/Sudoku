@@ -372,7 +372,6 @@ kbd{
    temna števka */
 .niz-poudari button.aktiven{ background: var(--pb, var(--poud)); border: 2px solid var(--pb-ink, var(--poud-ink)); color: var(--poud-stevka); }
 .niz-poudari button.aktiven .manjka{ color:#26374D; }
-.niz-poudari button.koncana{ opacity:0.45; }
 
 /* Vpiši: modri */
 .niz-vpisi button{

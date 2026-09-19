@@ -170,7 +170,8 @@ function hiddenSingles(b) {
         if (popcount(b.cand[cell]) > 1) {
           steps.push({
             technique: 'Skriti enojček', cells: [cell], assign: [[cell, d]], eliminate: [],
-            hint: { units: [unit], digits: [d] },
+            // Samo enota: enota in števka skupaj že določita celico (odgovor).
+            hint: { units: [unit] },
             message: `V ${unitNameLoc(unit)} je številka ${d} možna samo še v ${cellLabel(cell)} -> ${cellLabel(cell)} = ${d}.`
           });
         }

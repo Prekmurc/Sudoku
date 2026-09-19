@@ -139,6 +139,9 @@ function zbrisiVpis() {
 function osvezi() {
   stanje = stanjeIgre(igra);
   pomoc = null;
+  // Števka, vpisana že devetkrat, nima več kandidatov - njen poudarek se izklopi.
+  const manjka = seManjka(stanje);
+  poudarjene = poudarjene.filter(p => manjka[p.stevka] > 0);
   if (!igraShrani(igra)) {
     sporocilo = { besedilo: 'Igre ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', razred: 'err' };
   }
@@ -231,11 +234,11 @@ function izrisiNize() {
     const p = gumbiPoudari[d - 1];
     const b = barvaPoudarka(d);
     p.innerHTML = `<span>${d}</span><span class="manjka">${igra ? manjka[d] : ''}</span>`;
-    p.disabled = !igra;
+    // Števka, vpisana že devetkrat, se ne da več poudariti (ni kandidatov).
+    p.disabled = !igra || manjka[d] === 0;
     p.className = b >= 0 ? `aktiven b${b}` : '';
-    p.classList.toggle('koncana', !!igra && manjka[d] === 0);
     p.setAttribute('aria-pressed', b >= 0 ? 'true' : 'false');
-    p.title = igra ? `Poudari ${d} (še manjka: ${manjka[d]})` : '';
+    p.title = !igra ? '' : manjka[d] === 0 ? `${d} je vpisana devetkrat` : `Poudari ${d} (še manjka: ${manjka[d]})`;
 
     const v = gumbiVpisi[d - 1];
     v.disabled = !(a.vpis & bit);

@@ -75,6 +75,11 @@ test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskus
       assert.match(namig, /\.$/);
       // Namig ne izda celice (V?S?) - to pride šele z razlago.
       assert.doesNotMatch(namig, /V\dS\d/, `${u.ime}: ${s.technique}: ${namig}`);
+      if (s.technique === 'Skriti enojček') {
+        // Enota in števka bi skupaj določili celico - namig pove samo enoto.
+        assert.equal(s.hint.digits, undefined);
+        assert.match(namig, /^V (vrstici|stolpcu|bloku) \d\.$/);
+      }
       if (s.technique === 'Gol enojček') {
         // Število golih enojčkov v mreži tik pred korakom.
         const b = Object.assign(Object.create(E.Board.prototype), { grid: s.snapshotGrid, cand: s.snapshotCand });
@@ -91,7 +96,7 @@ test('stepHint(): vsak korak iz solve() ima namig za drugo stopnjo, razen poskus
 
 test('stepHint(): besedila za enote in tehnike brez ene enote', () => {
   const hint = (technique, h) => E.stepHint({ technique, hint: h });
-  assert.equal(hint('Skriti enojček', { units: [E.ROWS[3]], digits: [7] }), 'V vrstici 4, števka 7.');
+  assert.equal(hint('Skriti enojček', { units: [E.ROWS[3]] }), 'V vrstici 4.');
   assert.equal(hint('Pointing pair/triple', { units: [E.BOXES[4]], digits: [2] }), 'V bloku 5, števka 2.');
   assert.equal(hint('Naked pair', { units: [E.COLS[1]] }), 'V stolpcu 2.');
   assert.equal(hint('X-Wing', { units: [E.ROWS[1], E.ROWS[6]], digits: [5] }), 'V vrsticah 2 in 7, števka 5.');
