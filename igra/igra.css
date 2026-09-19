@@ -533,6 +533,7 @@ kbd{
 .zb-info{ font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--pencil); margin-top:3px; }
 .zb-info .v-teku{ color: var(--blue); }
 .zb-info .reseno{ color: var(--green); }
+.zb-tehnike{ color:#3C4854; }
 .zb-opomba{ font-size:13.5px; color:#3C4854; margin-top:6px; line-height:1.45; overflow-wrap:anywhere; }
 .zb-gumbi{ display:flex; gap:8px; margin-top:9px; }
 .zb-gumbi button{ font-size:12.5px; padding:7px 12px; }

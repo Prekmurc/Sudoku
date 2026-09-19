@@ -583,6 +583,28 @@ const ALL_TECHNIQUES = [
   ['Unique Rectangle', uniqueRectangle],
 ];
 
+// Tehnike v treningu po vrstnem redu kartic (po težavnosti za vadbo, ne po vrstnem
+// redu v ALL_TECHNIQUES): [oznaka kartice v trening/index.html (data-mode),
+// ime v ALL_TECHNIQUES]. Številka tehnike je položaj v tem seznamu (1 = prvi) -
+// trening po njem razvrsti in oštevilči kartice, igra pa pri uganki izpiše
+// "tehnike: 1, 3, 7" (zbirkaOznakaTehnik v shared/zbirka.js). Edino mesto teh
+// številk: nova tehnika v treningu dobi vnos tu, na mestu po težavnosti.
+// Enojčkov in poskusa s protislovjem v treningu ni (tests/trening-tehnike.test.js).
+const TRENING_TEHNIKE = [
+  ['naked-pair', 'Naked pair'],
+  ['hidden-pair', 'Hidden pair'],
+  ['pointing', 'Pointing pair/triple'],
+  ['box-line', 'Box-line reduction'],
+  ['naked-triple', 'Naked triple'],
+  ['hidden-triple', 'Hidden triple'],
+  ['x-wing', 'X-Wing'],
+  ['swordfish', 'Swordfish'],
+  ['turbot-fish', 'Turbot Fish'],
+  ['w-wing', 'W-Wing'],
+  ['xy-wing', 'XY-Wing'],
+  ['unique-rectangle', 'Unique Rectangle'],
+];
+
 // Skupina tehnike za barvo oznake v prikazu koraka (CSS razredi .tag.t-* v
 // app/app.css in igra/igra.css). Nova tehnika v ALL_TECHNIQUES naj dobi
 // skupino tudi tu.

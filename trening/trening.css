@@ -25,13 +25,13 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .container{max-width:560px;margin:0 auto;padding:0 14px}
 
 /* --- MENI --- */
-/* Kartice so oštevilčene s CSS števcem po vrstnem redu v HTML (= po težavnosti) - nova
-   kartica samodejno preštevilči vse za njo; številka ni del imena tehnike. */
-#menu{margin:18px 0;counter-reset:tehnika}
-.menu-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:10px 0;cursor:pointer;transition:box-shadow .15s,border-color .15s;counter-increment:tehnika}
+/* Številko kartice (data-stevilka na h3) in vrstni red kartic nastavi trening.js iz
+   TRENING_TEHNIKE v shared/engine.js; številka ni del imena tehnike. */
+#menu{margin:18px 0}
+.menu-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:10px 0;cursor:pointer;transition:box-shadow .15s,border-color .15s}
 .menu-card:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(14,122,122,.12)}
 .menu-card h3{font-family:'Source Serif 4',serif;font-size:17px;margin:0 0 4px}
-.menu-card h3::before{content:counter(tehnika) ". ";color:var(--pencil)}
+.menu-card h3[data-stevilka]::before{content:attr(data-stevilka) ". ";color:var(--pencil)}
 .menu-card p{font-size:13px;color:#4A5664;line-height:1.5;margin:0}
 .menu-card .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:6px}
 /* Barva značke pove težavnost (ne tehnike - te ločijo barve izbire v vaji, glej MODES). */

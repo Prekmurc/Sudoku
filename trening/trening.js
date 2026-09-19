@@ -8,6 +8,15 @@ const MAX_EX=9;
 let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
+// Vrstni red in številke kartic iz TRENING_TEHNIKE (shared/engine.js) - iste številke
+// igra izpisuje pri ugankah ("tehnike: 1, 3, 7"). Vrstni red kartic v HTML ni pomemben.
+TRENING_TEHNIKE.forEach(([m],i)=>{
+  const card=menuEl.querySelector(`.menu-card[data-mode="${m}"]`);
+  if(!card)return;
+  card.querySelector('h3').dataset.stevilka=i+1;
+  menuEl.appendChild(card);
+});
+
 document.querySelectorAll('.menu-card').forEach(card=>{
   card.addEventListener('click',()=>{
     mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;

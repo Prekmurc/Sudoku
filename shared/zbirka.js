@@ -4,7 +4,7 @@
    ločijo po 81-znakovnem nizu danosti (interno '0' = prazna celica, v datoteki '.').
    Brez DOM-a (razen zbirkaPrenesi() za prenos datoteke) - uporabljata jo
    app/zbirka.js (UI zbirke v reševalcu) in igra/, tudi za gumba Izvozi/Uvozi.
-   Naloži se za shared/engine.js (uporablja ALL_UNITS). */
+   Naloži se za shared/engine.js (uporablja ALL_UNITS, ALL_TECHNIQUES, TRENING_TEHNIKE). */
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
 const TEZAVNOSTI = ['Začetnik', 'Preprosto', 'Srednje', 'Težko', 'Ekspert', 'Ekstrem', 'Drugo'];
@@ -277,6 +277,30 @@ function zbirkaPrenesi(besedilo, ime = ZBIRKA_DATOTEKA) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- oznaka tehnik za prikaz ---------- */
+
+// Katere tehnike uganka zahteva, s številkami iz treninga (TRENING_TEHNIKE v
+// shared/engine.js): "tehnike: 1, 3, 7 + poskus". Iz polja z.tehnike ([[ime,
+// število], ...] iz reševanja). Enojčki se ne izpišejo (osnova vsake uganke),
+// poskus s protislovjem je oznaka "+ poskus" (pri več "+ poskus ×2"); ime, ki ga
+// ni med tehnikami (npr. iz starejšega izvoza), se izpiše kar z imenom.
+function zbirkaOznakaTehnik(z) {
+  if (!z || !Array.isArray(z.tehnike)) return 'tehnike: ni podatkov';
+  const stevilke = [];
+  const neznane = [];
+  let poskusi = 0;
+  for (const [ime, n] of z.tehnike) {
+    const i = TRENING_TEHNIKE.findIndex(([, t]) => t === ime);
+    if (i >= 0) stevilke.push(i + 1);
+    else if (/protislovje/.test(ime)) poskusi += n;
+    else if (!ALL_TECHNIQUES.some(([t]) => t === ime)) neznane.push(ime);
+  }
+  const deli = stevilke.sort((a, b) => a - b).map(String).concat(neznane);
+  let s = deli.length ? deli.join(', ') : 'samo enojčki';
+  if (poskusi) s += ' + poskus' + (poskusi > 1 ? ` ×${poskusi}` : '');
+  return 'tehnike: ' + s;
 }
 
 /* ---------- vrstni red za prikaz ---------- */

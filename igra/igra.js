@@ -301,7 +301,8 @@ function opisUganke(danosti) {
   const danih = danosti.replace(/0/g, '').length;
   const z = zbirkaBeri().find(x => x.danosti === danosti);
   if (!z) return `Danih števk: ${danih}. Uganke ni v zbirki.`;
-  const deli = [z.tezavnost || 'težavnost ni določena', `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`];
+  const deli = [z.tezavnost || 'težavnost ni določena', `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`,
+    zbirkaOznakaTehnik(z)];
   return deli.join(' · ') + (z.opomba ? ` — ${z.opomba}` : '');
 }
 
@@ -589,6 +590,12 @@ function izrisiZbirko() {
     oznaka.textContent = st.besedilo;
     info.append(`danih: ${z.danosti.replace(/0/g, '').length} · `, oznaka, trenutna ? ' · trenutno odprta' : '');
     li.appendChild(info);
+
+    // Katere tehnike uganka zahteva (številke iz treninga).
+    const tehnike = document.createElement('div');
+    tehnike.className = 'zb-info zb-tehnike';
+    tehnike.textContent = zbirkaOznakaTehnik(z);
+    li.appendChild(tehnike);
 
     if (z.opomba) {
       const op = document.createElement('div');
