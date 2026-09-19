@@ -9,7 +9,7 @@ const { loadEngine, loadPuzzles } = require('./load-engine.js');
 const E = loadEngine(undefined, {
   files: ['igra/stanje.js'],
   names: ['novaIgra', 'stanjeIgre', 'mozneAkcije', 'dodajPotezo', 'razveljavi', 'ponovi',
-    'lahkoRazveljavi', 'lahkoPonovi', 'seManjka', 'steviloVpisanih', 'jeResena',
+    'lahkoRazveljavi', 'lahkoPonovi', 'seManjka', 'manjkajoceVEnotah', 'steviloVpisanih', 'jeResena',
     'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf'],
 });
 
@@ -268,4 +268,58 @@ test('vpis celotne rešitve: uganka je rešena, števci so 0', () => {
   const s = E.stanjeIgre(igra);
   assert.equal(E.jeResena(s), true);
   assert.deepEqual([...E.seManjka(s)], new Array(10).fill(0));
+});
+
+test('manjkajoceVEnotah: seznami vrstic, stolpcev in blokov sledijo vpisom, brisanju in razveljavi', () => {
+  // Neodvisen izračun iz niza: števke 1..9, ki jih v enoti ni (bloki od leve proti desni, od zgoraj navzdol).
+  const pricakovano = (niz) => {
+    const vEnoti = (celice) => [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => !celice.some(c => niz[c] === String(d)));
+    const obseg = [...Array(9).keys()];
+    return {
+      vrstice: obseg.map(r => vEnoti(obseg.map(c => r * 9 + c))),
+      stolpci: obseg.map(c => vEnoti(obseg.map(r => r * 9 + c))),
+      bloki: obseg.map(b => vEnoti(obseg.map(i => (Math.floor(b / 3) * 3 + Math.floor(i / 3)) * 9 + (b % 3) * 3 + i % 3))),
+    };
+  };
+  const vStevke = (m) => ({ vrstice: [...m.vrstice].map(bits), stolpci: [...m.stolpci].map(bits), bloki: [...m.bloki].map(bits) });
+  const niz = (s) => s.grid.join('');
+
+  const igra = E.novaIgra(danosti);
+  let s = E.stanjeIgre(igra);
+  assert.deepEqual(vStevke(E.manjkajoceVEnotah(s)), pricakovano(danosti), 'na začetku');
+
+  // Vpis: števka izgine iz vrstice, stolpca in bloka celice.
+  const c = prve[0], d = resitev[c];
+  const r = Math.floor(c / 9), st = c % 9, b = Math.floor(r / 3) * 3 + Math.floor(st / 3);
+  const bit = 1 << d;
+  let m = E.manjkajoceVEnotah(s);
+  assert.ok(m.vrstice[r] & bit && m.stolpci[st] & bit && m.bloki[b] & bit);
+  assert.equal(E.dodajPotezo(igra, { tip: 'vpis', celica: c, stevka: d }), true);
+  s = E.stanjeIgre(igra);
+  m = E.manjkajoceVEnotah(s);
+  assert.equal(m.vrstice[r] & bit, 0);
+  assert.equal(m.stolpci[st] & bit, 0);
+  assert.equal(m.bloki[b] & bit, 0);
+  assert.deepEqual(vStevke(m), pricakovano(niz(s)), 'po vpisu');
+
+  // Ročno odstranjen kandidat na seznam ne vpliva.
+  const druga = prve.find(x => E.popcount(s.kandidati[x]) > 1);
+  const odstrani = bits(s.kandidati[druga])[0];
+  assert.equal(E.dodajPotezo(igra, { tip: 'kandidat', celica: druga, stevka: odstrani, odstrani: true }), true);
+  assert.deepEqual(vStevke(E.manjkajoceVEnotah(E.stanjeIgre(igra))), pricakovano(niz(s)), 'ročni izbris ne vpliva');
+
+  // Brisanje vpisa in razveljavi števko vrneta.
+  assert.equal(E.dodajPotezo(igra, { tip: 'vpis', celica: c, stevka: 0 }), true);
+  assert.deepEqual(vStevke(E.manjkajoceVEnotah(E.stanjeIgre(igra))), pricakovano(danosti), 'po brisanju vpisa');
+  E.razveljavi(igra);
+  assert.deepEqual(vStevke(E.manjkajoceVEnotah(E.stanjeIgre(igra))), pricakovano(niz(s)), 'razveljavi brisanje');
+  E.razveljavi(igra);
+  E.razveljavi(igra);
+  assert.deepEqual(vStevke(E.manjkajoceVEnotah(E.stanjeIgre(igra))), pricakovano(danosti), 'razveljavi vpis');
+
+  // Polna mreža: vse enote so polne, vse maske 0.
+  const polna = E.novaIgra(danosti);
+  for (const x of prve) E.dodajPotezo(polna, { tip: 'vpis', celica: x, stevka: resitev[x] });
+  m = E.manjkajoceVEnotah(E.stanjeIgre(polna));
+  assert.deepEqual([...m.vrstice, ...m.stolpci, ...m.bloki], new Array(27).fill(0));
 });

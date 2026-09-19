@@ -1,6 +1,6 @@
 /* ==================== STANJE IGRE ====================
    Brez DOM-a (testabilno v Node, glej tests/igra-stanje.test.js). Naloži se za
-   shared/engine.js (uporablja Board, PEERS, FULL).
+   shared/engine.js (uporablja Board, PEERS, FULL, ROWS, COLS, BOXES).
 
    Igra = { danosti, poteze, kazalec }:
    - danosti: 81 znakov, '0' = prazna celica,
@@ -113,6 +113,14 @@ function seManjka(stanje) {
   n[0] = 0;
   for (let c = 0; c < 81; c++) if (stanje.grid[c]) n[stanje.grid[c]]--;
   return n;
+}
+
+// Seznami manjkajočih števk: za vsako vrstico, stolpec in blok (po 9, v istem
+// vrstnem redu kot ROWS/COLS/BOXES) maska števk, ki v enoti še niso vpisane
+// (danosti in vpisi). Kandidati in ročni izbrisi ne vplivajo; polna enota ima 0.
+function manjkajoceVEnotah(stanje) {
+  const maske = enote => enote.map(u => u.reduce((m, c) => m & ~(1 << stanje.grid[c]), FULL));
+  return { vrstice: maske(ROWS), stolpci: maske(COLS), bloki: maske(BOXES) };
 }
 
 function steviloVpisanih(stanje) {

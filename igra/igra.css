@@ -36,7 +36,12 @@
   --kand-ink:#4A5561;
   /* velikost celice mreže; nizi gumbov pod/nad mrežo imajo iste stolpce */
   --gcs: min(calc((100vw - 36px) / 9), 56px);
+  /* razmik med mrežo in seznami manjkajočih števk; velikost polja male mreže blokov */
+  --sgap: 5px;
+  --bcs: 62px;
 }
+/* seznam vrstic je 10. stolpec ob mreži - celice se pomanjšajo, da gre vse v širino */
+.igra-layout.z-vrsticami{ --gcs: min(calc((100vw - 36px - var(--sgap)) / 10), 56px); }
 body{
   background:var(--paper);
   padding: 0 0 60px 0;
@@ -117,9 +122,14 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
     justify-content:center;
     gap: 28px;
   }
+  /* poleg stranskega stolpca (300px + razmik 28px + robovi 32px + ~20px za drsnik)
+     je pri širini okna tik nad 900px za 10 stolpcev premalo prostora */
+  .igra-layout.z-vrsticami{ --gcs: min(calc((min(100vw, 960px) - 380px - var(--sgap)) / 10), 56px); }
 }
-/* plošča je široka natanko kot mreža - vrstica z gumbi se po potrebi prelomi */
+/* plošča je široka natanko kot mreža (s seznamom vrstic vred) - vrstica z gumbi
+   se po potrebi prelomi */
 .plosca{ width: calc(var(--gcs) * 9); }
+.z-vrsticami .plosca{ width: calc(var(--gcs) * 10 + var(--sgap)); }
 .stranski{ width:100%; max-width: 480px; }
 
 .card{
@@ -221,7 +231,6 @@ kbd{
   grid-template-rows: repeat(9, var(--gcs));
   background:#fff;
   width:max-content;
-  margin: 0 auto;
   user-select:none;
   -webkit-user-select:none;
 }
@@ -309,6 +318,65 @@ kbd{
 }
 .mreza.prazna .celica{ cursor:default; }
 
+/* ---------- seznami manjkajočih števk ---------- */
+/* okvir: mreža, desno od nje seznam vrstic, pod njo seznam stolpcev; razmik je
+   rob seznama (ne gap), da skrit seznam ne pusti praznega prostora */
+.mreza-okvir{
+  display:grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  width:max-content;
+}
+.mreza-okvir .mreza{ grid-column:1; grid-row:1; }
+.seznam[hidden]{ display:none; }
+.seznam{ display:grid; user-select:none; -webkit-user-select:none; }
+.seznam-vrstic{
+  grid-column:2; grid-row:1;
+  grid-template-rows: repeat(9, var(--gcs));
+  grid-template-columns: var(--gcs);
+  margin-left: var(--sgap);
+}
+.seznam-stolpcev{
+  grid-column:1; grid-row:2;
+  grid-template-columns: repeat(9, var(--gcs));
+  grid-template-rows: var(--gcs);
+  margin-top: var(--sgap);
+}
+/* kvadratek: siva podlaga in zaobljeni robovi, da ga ni mogoče zamenjati s
+   celico; števke na istih mestih kot kandidati (.kandidati/.kand), polna enota
+   ima prazen kvadratek */
+.seznam-polje{
+  margin:1px;
+  background: var(--card);
+  border:1px solid var(--line);
+  border-radius:4px;
+  overflow:hidden;
+  min-width:0;
+  min-height:0;
+}
+.seznam-polje .kand{ color:#3C4854; }
+.seznam-polje .kand.poud{ color: var(--poud-stevka); }
+/* mala mreža blokov: polje = blok, razporeditev kot v veliki mreži */
+.seznam-blokov{
+  grid-template-columns: repeat(3, var(--bcs));
+  grid-template-rows: repeat(3, var(--bcs));
+  width:max-content;
+  margin-top:12px;
+}
+.seznam-blokov .kand{ font-size: calc(var(--bcs) * 0.24); }
+.seznami-stikala{ display:flex; flex-direction:column; gap:6px; }
+.seznami-stikala label{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13.5px;
+  color: var(--ink);
+  cursor:pointer;
+  width:max-content;
+}
+.seznami-stikala input{ margin:0; accent-color: var(--blue); cursor:pointer; }
+.seznami-stikala .niz-pojasnilo{ font-size:12px; color: var(--pencil); }
+
 /* ---------- nizi gumbov (poravnani s stolpci mreže) ---------- */
 .niz-oznaka{
   font-family:'JetBrains Mono', monospace;
@@ -335,11 +403,11 @@ kbd{
 .vec-hkrati input{ margin:0; accent-color: var(--blue); cursor:pointer; }
 .niz-pojasnilo{ text-transform:none; letter-spacing:0; }
 .vzorec-vrni{ font-weight:700; color: var(--ink); }
+/* levo poravnani, da ostanejo pod stolpci mreže tudi, ko je desno od nje seznam vrstic */
 .niz{
   display:grid;
   grid-template-columns: repeat(9, var(--gcs));
   width:max-content;
-  margin: 0 auto;
 }
 .niz button{
   margin: 2px;

@@ -1,8 +1,9 @@
 /* ==================== IGRA: UI ====================
    Izris mreže in nizov gumbov, izbira celice, vpis/odstranjevanje kandidatov,
-   razveljavi/ponovi, poudarjanje števke, pomoč (Naslednji korak, Preveri),
-   zbirka in vnos nove uganke. Stanje in poteze so v stanje.js, hramba zbirke
-   v ../shared/zbirka.js, korak in rešitev da motor (../shared/engine.js). */
+   razveljavi/ponovi, poudarjanje števke, seznami manjkajočih števk (vrstice,
+   stolpci, bloki), pomoč (Naslednji korak, Preveri), zbirka in vnos nove
+   uganke. Stanje in poteze so v stanje.js, hramba zbirke v ../shared/zbirka.js,
+   korak in rešitev da motor (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
 const nizPoudariEl = document.getElementById('nizPoudari');
@@ -21,6 +22,7 @@ const korakBtn = document.getElementById('korakBtn');
 const preveriBtn = document.getElementById('preveriBtn');
 const pomocEl = document.getElementById('pomocVsebina');
 const vecHkratiEl = document.getElementById('vecHkrati');
+const igraLayoutEl = document.getElementById('igraLayout');
 
 let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
@@ -75,6 +77,58 @@ const gumbiVpisi = narediNiz(nizVpisiEl, d => izvedi({ tip: 'vpis', celica: izbr
 const gumbiOdstrani = narediNiz(nizOdstraniEl, d => odstraniAliVrni(d));
 
 gumbiVpisi.forEach((b, i) => { b.textContent = i + 1; });
+
+/* ---------- seznami manjkajočih števk ---------- */
+
+// Kvadratek s števkami na stalnih mestih (kot kandidati v celici). Vrne
+// { el, stevke }, stevke[d - 1] = span za števko d.
+function narediPolje(el) {
+  const polje = document.createElement('div');
+  polje.className = 'seznam-polje';
+  const mreza = document.createElement('div');
+  mreza.className = 'kandidati';
+  const stevke = [];
+  for (let d = 1; d <= 9; d++) {
+    const s = document.createElement('span');
+    s.className = 'kand';
+    mreza.appendChild(s);
+    stevke.push(s);
+  }
+  polje.appendChild(mreza);
+  el.appendChild(polje);
+  return { el: polje, stevke };
+}
+
+// Trije ločeni prikazi; vsak ima 9 kvadratkov v vrstnem redu ROWS/COLS/BOXES
+// (bloki od leve proti desni, od zgoraj navzdol - kot v veliki mreži).
+const SEZNAMI = [
+  { kljuc: 'vrstice', el: document.getElementById('seznamVrstic'), stikalo: document.getElementById('stikaloVrstice'), ime: 'Vrstica', polna: 'polna' },
+  { kljuc: 'stolpci', el: document.getElementById('seznamStolpcev'), stikalo: document.getElementById('stikaloStolpci'), ime: 'Stolpec', polna: 'poln' },
+  { kljuc: 'bloki', el: document.getElementById('seznamBlokov'), stikalo: document.getElementById('stikaloBloki'), ime: 'Blok', polna: 'poln' },
+];
+for (const s of SEZNAMI) s.polja = Array.from({ length: 9 }, () => narediPolje(s.el));
+
+// Stanje stikal si zapomni brskalnik; privzeto so vsi seznami izklopljeni.
+const SEZNAMI_KLJUC = 'sudoku.igra.seznami';
+function seznamiBeri() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SEZNAMI_KLJUC) || '{}');
+    return v && typeof v === 'object' ? v : {};
+  } catch (e) { return {}; }
+}
+function seznamiPisi() {
+  const v = {};
+  for (const s of SEZNAMI) v[s.kljuc] = s.stikalo.checked;
+  try { localStorage.setItem(SEZNAMI_KLJUC, JSON.stringify(v)); } catch (e) { /* velja do osvežitve */ }
+}
+const shranjeniSeznami = seznamiBeri();
+for (const s of SEZNAMI) {
+  s.stikalo.checked = shranjeniSeznami[s.kljuc] === true;
+  s.stikalo.addEventListener('change', () => {
+    seznamiPisi();
+    izrisiSezname();
+  });
+}
 
 /* ---------- poudarjanje števk ---------- */
 
@@ -174,8 +228,37 @@ znovaBtn.addEventListener('click', () => {
 function izrisi() {
   izrisiMrezo();
   izrisiNize();
+  izrisiSezname();
   izrisiStanje();
   izrisiPomoc();
+}
+
+// Seznami manjkajočih števk: vidni so samo vklopljeni, polna enota ima prazen
+// kvadratek, poudarjena števka je obarvana enako kot v mreži.
+function izrisiSezname() {
+  // Seznam vrstic doda mreži 10. stolpec - celice se pomanjšajo (igra.css).
+  igraLayoutEl.classList.toggle('z-vrsticami', SEZNAMI[0].stikalo.checked);
+  const m = igra ? manjkajoceVEnotah(stanje) : null;
+  for (const s of SEZNAMI) {
+    s.el.hidden = !s.stikalo.checked;
+    if (s.el.hidden) continue;
+    s.polja.forEach((p, i) => {
+      const maska = m ? m[s.kljuc][i] : 0;
+      const manjkajo = [];
+      for (let d = 1; d <= 9; d++) {
+        const el = p.stevke[d - 1];
+        el.className = 'kand';
+        el.textContent = '';
+        if (!(maska & (1 << d))) continue;
+        el.textContent = d;
+        manjkajo.push(d);
+        const b = barvaPoudarka(d);
+        if (b >= 0) el.classList.add('poud', `b${b}`);
+      }
+      p.el.title = !igra ? '' : manjkajo.length ? `${s.ime} ${i + 1}: manjkajo ${manjkajo.join(', ')}` : `${s.ime} ${i + 1} je ${s.polna}`;
+      p.el.setAttribute('aria-label', p.el.title || `${s.ime} ${i + 1}`);
+    });
+  }
 }
 
 function izrisiMrezo() {
