@@ -35,11 +35,13 @@ let poudarjene = [];
 let vecHkrati = false;
 const BARV_POUDARKA = 4;
 let sporocilo = null;   // { besedilo, razred } - enkratno sporočilo v kartici Uganka
-// Vsebina kartice Pomoč: null, { korak, fokus, stopnja } (prikazan korak motorja;
-// fokus = zadnja izbrana poudarjena števka ob iskanju; stopnja 1 = ime tehnike,
-// 2 = + enota in števka (stepHint), 3 = + razlaga in poudarki na mreži) ali
+// Vsebina kartice Pomoč: null, { korak, fokus, stopnja, izhodisce } (prikazan korak
+// motorja; fokus = zadnja izbrana poudarjena števka ob iskanju; stopnja 1 = ime
+// tehnike, 2 = + enota in števka (stepHint), 3 = + razlaga, poudarki na mreži in
+// seznam dejanj; izhodisce = stanje igre, v katerem je bil korak najden) ali
 // { besedilo, razred, znak, vrniPred } (vrniPred = številka poteze za gumb "Vrni na
-// stanje pred potezo"). Izgine ob vsaki spremembi igre (osvezi).
+// stanje pred potezo"). Sporočilo izgine ob vsaki spremembi igre, korak pa ostane,
+// dokler niso izvedena vsa njegova dejanja, "Skrij" ali vrnitev pred izhodišče (osvezi).
 let pomoc = null;
 let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob prvi potrebi
 
@@ -199,7 +201,7 @@ function zbrisiVpis() {
 function osvezi() {
   const prej = stanje && stanje.danosti === igra.danosti ? seManjka(stanje) : null;
   stanje = stanjeIgre(igra);
-  pomoc = null;
+  pomoc = pomocPoSpremembi();
   // Sprememba, ki števko dokonča (deveti vpis), izklopi njen poudarek - ni več
   // kandidatov. Poudarek, ki ga igralec vklopi pri že dokončani števki, ostane.
   if (prej) {
@@ -210,6 +212,37 @@ function osvezi() {
     sporocilo = { besedilo: 'Igre ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', razred: 'err' };
   }
   izrisi();
+}
+
+// Korak ostane prikazan ob vsaki potezi (tudi nepovezani); ko so izvedena vsa
+// njegova dejanja, ga zamenja potrditev. Ob vrnitvi pred stanje, v katerem je bil
+// najden, izgine - tam morda ne velja.
+function pomocPoSpremembi() {
+  if (!pomoc || !pomoc.korak || !veljaIzhodisce(pomoc.izhodisce)) return null;
+  if (dejanjaKoraka(pomoc.korak).every(a => a.opravljeno)) {
+    return { besedilo: 'Korak je izveden.', razred: 'ok', znak: 'ok' };
+  }
+  return pomoc;
+}
+
+// Izhodišče koraka: igra, število odigranih potez in zadnja od njih. Nova poteza
+// odreže samo "ponovi" rep, zato je trenutno stanje nadaljevanje izhodišča,
+// dokler kazalec ni pred njim in je na njegovem mestu ista poteza.
+function trenutnoIzhodisce() {
+  return { igra, kazalec: igra.kazalec, poteza: igra.kazalec ? igra.poteze[igra.kazalec - 1] : null };
+}
+function veljaIzhodisce(izh) {
+  return !!izh && izh.igra === igra && igra.kazalec >= izh.kazalec
+    && (izh.kazalec === 0 || igra.poteze[izh.kazalec - 1] === izh.poteza);
+}
+
+// Dejanja koraka s stanjem v trenutni mreži: izbris je izveden, ko števka ni več
+// kandidat celice (tudi zaradi vpisa), vpis, ko je v celici ta števka.
+function dejanjaKoraka(k) {
+  return [
+    ...k.assign.map(([celica, stevka]) => ({ tip: 'vpis', celica, stevka, opravljeno: stanje.grid[celica] === stevka })),
+    ...k.eliminate.map(([celica, stevka]) => ({ tip: 'izbris', celica, stevka, opravljeno: !(stanje.kandidati[celica] & (1 << stevka)) })),
+  ];
 }
 
 razveljaviBtn.addEventListener('click', () => {
@@ -276,9 +309,12 @@ function izrisiMrezo() {
   // Prikazan korak: celice vzorca, kandidati za izbris, števke za vpis.
   const korak = pomoc && pomoc.korak && pomoc.stopnja === 3 ? pomoc.korak : null;
   const vzorec = new Set(korak ? korak.cells : []);
-  const izbris = new Set(korak ? korak.eliminate.map(([c, d]) => c * 10 + d) : []);
-  const izbrisCelice = new Set(korak ? korak.eliminate.map(([c]) => c) : []);
-  const zaVpis = new Map(korak ? korak.assign : []);
+  // Samo še neizvedena dejanja: izveden izbris v celici ni več viden, celica brez
+  // odprtih izbrisov izgubi rdečkasto podlago.
+  const odprta = korak ? dejanjaKoraka(korak).filter(a => !a.opravljeno) : [];
+  const izbris = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica * 10 + a.stevka));
+  const izbrisCelice = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica));
+  const zaVpis = new Map(odprta.filter(a => a.tip === 'vpis').map(a => [a.celica, a.stevka]));
   for (let i = 0; i < 81; i++) {
     const el = celice[i];
     el.innerHTML = '';
@@ -436,7 +472,7 @@ korakBtn.addEventListener('click', () => {
   setTimeout(() => {
     if (pomoc !== iskanje) return; // vmes poteza, Skrij ali Preveri
     const korak = nextStep(stanje.deska, ALL_TECHNIQUES, fokus);
-    nastaviPomoc(korak ? { korak, fokus, stopnja: stepHint(korak) ? 1 : 3 }
+    nastaviPomoc(korak ? { korak, fokus, stopnja: stepHint(korak) ? 1 : 3, izhodisce: trenutnoIzhodisce() }
       : { besedilo: 'Noben znan korak ne najde ničesar.', razred: 'err' });
   }, 20);
 });
@@ -486,6 +522,34 @@ function izrisiRazlago(k) {
   pomocEl.appendChild(legenda);
 }
 
+// Tretja stopnja: seznam dejanj koraka z oznako izvedenih (pri koraku z več
+// dejanji), da je po prvem izbrisu jasno, kaj še ostane.
+function izrisiDejanja(k) {
+  const dejanja = dejanjaKoraka(k);
+  if (dejanja.length < 2) return;
+  const opravljenih = dejanja.filter(a => a.opravljeno).length;
+  const glava = document.createElement('p');
+  glava.className = 'pomoc-opomba';
+  glava.textContent = `Opravljeno: ${opravljenih} od ${dejanja.length}`;
+  pomocEl.appendChild(glava);
+  const seznam = document.createElement('ul');
+  seznam.className = 'pomoc-dejanja';
+  for (const a of dejanja) {
+    const li = document.createElement('li');
+    if (a.opravljeno) li.className = 'opravljeno';
+    const znak = document.createElement('span');
+    znak.className = 'dejanje-znak';
+    znak.textContent = a.opravljeno ? '✓' : '';
+    znak.setAttribute('aria-hidden', 'true');
+    const besedilo = document.createElement('span');
+    besedilo.textContent = a.tip === 'vpis' ? `vpiši ${a.stevka} v ${cellLabel(a.celica)}` : `izbriši ${a.stevka} iz ${cellLabel(a.celica)}`;
+    li.append(znak, besedilo);
+    li.setAttribute('aria-label', besedilo.textContent + (a.opravljeno ? ' – opravljeno' : ''));
+    seznam.appendChild(li);
+  }
+  pomocEl.appendChild(seznam);
+}
+
 function izrisiPomoc() {
   pomocEl.innerHTML = '';
   if (!pomoc) return;
@@ -508,7 +572,10 @@ function izrisiPomoc() {
       h.textContent = namig;
       pomocEl.appendChild(h);
     }
-    if (pomoc.stopnja === 3) izrisiRazlago(k);
+    if (pomoc.stopnja === 3) {
+      izrisiRazlago(k);
+      izrisiDejanja(k);
+    }
   } else {
     const p = document.createElement('p');
     p.className = `pomoc-msg ${pomoc.razred || ''}`;
@@ -556,6 +623,7 @@ function zacniIgro(danosti) {
   igra = shranjena || novaIgra(danosti);
   izbrana = null;
   zadnjaIzbrana = null;
+  pomoc = null;
   poudarjene = [];
   sporocilo = shranjena && shranjena.poteze.length
     ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }

@@ -212,6 +212,35 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
 .pomoc-legenda .sw-vzorec{ background: var(--amber-bg); border-color: var(--amber); }
 .pomoc-legenda .sw-izbris{ background: var(--red-bg); border-color: var(--red); }
 .pomoc-legenda .sw-vpis{ background: var(--green); border-color: var(--green); }
+/* tretja stopnja koraka: seznam dejanj, izvedena zeleno prečrtana s kljukico */
+.pomoc-dejanja{
+  list-style:none;
+  margin:4px 0 0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12.5px;
+  color: var(--ink);
+}
+.pomoc-dejanja li{ display:flex; align-items:center; gap:7px; }
+.dejanje-znak{
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:15px;
+  height:15px;
+  border:1.5px solid var(--line);
+  border-radius:3px;
+  background:#fff;
+  font-size:11px;
+  font-weight:700;
+  line-height:1;
+}
+.pomoc-dejanja li.opravljeno{ color: var(--green); text-decoration: line-through; }
+.pomoc-dejanja li.opravljeno .dejanje-znak{ background: var(--green); border-color: var(--green); color:#fff; }
 .pomoc-tipke p{ font-size:12.5px; color:#3C4854; line-height:1.55; margin:0 0 8px; }
 .pomoc-tipke p:last-child{ margin:0; }
 kbd{
