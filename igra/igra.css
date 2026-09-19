@@ -154,6 +154,24 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
 .pomoc-msg{ font-size:14px; line-height:1.55; color:#3C4854; margin:6px 0 0; }
 .pomoc-msg.err{ color: var(--red); }
 .pomoc-msg.ok{ color: var(--green); font-weight:600; }
+/* rezultat Preveri: zelena kljukica / rdeč križec */
+.pomoc-rezultat{ display:flex; align-items:flex-start; gap:10px; margin-top:6px; }
+.pomoc-rezultat .pomoc-msg{ margin:0; }
+.pomoc-znak{
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  color:#fff;
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
+}
+.pomoc-znak.ok{ background: var(--green); }
+.pomoc-znak.napaka{ background: var(--red); }
 .pomoc-opomba{ font-size:12.5px; color: var(--pencil); line-height:1.45; margin:6px 0 0; }
 .tag{
   display:inline-block;

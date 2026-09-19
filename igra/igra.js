@@ -338,12 +338,13 @@ preveriBtn.addEventListener('click', () => {
   const n = prvaNapaka(igra, res);
   if (n === null) {
     return nastaviPomoc(jeResena(stanje)
-      ? { besedilo: 'Uganka je rešena brez napak.', razred: 'ok' }
-      : { besedilo: 'Med vpisanimi števkami in odstranjenimi kandidati ni napake.', razred: 'ok' });
+      ? { besedilo: 'Uganka je rešena brez napak.', razred: 'ok', znak: 'ok' }
+      : { besedilo: 'Med vpisanimi števkami in odstranjenimi kandidati ni napake.', razred: 'ok', znak: 'ok' });
   }
   nastaviPomoc({
     besedilo: `Na mreži je napaka. Nastala je pri potezi ${n} (od ${igra.kazalec}) – od takrat je na mreži ves čas vsaj ena napaka.`,
     razred: 'err',
+    znak: 'napaka',
     vrniPred: n,
   });
 });
@@ -389,7 +390,19 @@ function izrisiPomoc() {
     const p = document.createElement('p');
     p.className = `pomoc-msg ${pomoc.razred || ''}`;
     p.textContent = pomoc.besedilo;
-    pomocEl.appendChild(p);
+    if (pomoc.znak) {
+      // Rezultat "Preveri": zelena kljukica ali rdeč križec pred besedilom.
+      const vrstica = document.createElement('div');
+      vrstica.className = 'pomoc-rezultat';
+      const znak = document.createElement('span');
+      znak.className = `pomoc-znak ${pomoc.znak}`;
+      znak.textContent = pomoc.znak === 'ok' ? '✓' : '✗';
+      znak.setAttribute('aria-hidden', 'true');
+      vrstica.append(znak, p);
+      pomocEl.appendChild(vrstica);
+    } else {
+      pomocEl.appendChild(p);
+    }
   }
   const gumbi = document.createElement('div');
   gumbi.className = 'pomoc-gumbi';
