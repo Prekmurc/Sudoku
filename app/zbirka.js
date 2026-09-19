@@ -163,17 +163,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.getElementById('libExport').addEventListener('click', () => {
-  const zbirka = zbirkaBeri();
-  if (!zbirka.length) { zbirkaStatus('Zbirka je prazna - ni česa izvoziti.', true); return; }
-  const blob = new Blob([zbirkaVMarkdown(zbirka)], { type: 'text/markdown;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'zbirka-ugank.md';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  zbirkaStatus(`Izvoženih ugank: ${zbirka.length} (datoteka zbirka-ugank.md).`);
+  const izvoz = zbirkaIzvozi();
+  if (izvoz.besedilo) zbirkaPrenesi(izvoz.besedilo);
+  zbirkaStatus(izvoz.sporocilo, izvoz.napaka);
 });
 
 document.getElementById('libImport').addEventListener('click', () => libFileEl.click());
@@ -182,16 +174,9 @@ libFileEl.addEventListener('change', () => {
   libFileEl.value = ''; // da gre ista datoteka lahko znova skozi "change"
   if (!datoteka) return;
   datoteka.text().then(besedilo => {
-    const { zapisi, neveljavni } = zbirkaIzMarkdowna(besedilo);
-    if (!zapisi.length && !neveljavni) {
-      zbirkaStatus('V datoteki ni nobene uganke (pričakujem vrstice oblike "- **Danosti:** `...`").', true);
-      return;
-    }
-    const zbirka = zbirkaBeri();
-    const p = zbirkaZdruzi(zbirka, zapisi, zbirkaZdaj());
-    if (!zbirkaPisi(zbirka)) { zbirkaStatus('Uvoza ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', true); return; }
-    zbirkaStatus(`Uvoz končan - novih: ${p.novi} · dopolnjenih: ${p.dopolnjeni} · že obstoječih brez sprememb: ${p.nespremenjeni}` +
-      (neveljavni ? ` · neveljavnih (preskočenih): ${neveljavni}` : '') + '.', neveljavni > 0);
+    const uvoz = zbirkaUvozi(besedilo);
+    zbirkaStatus(uvoz.sporocilo, uvoz.napaka);
+    if (!uvoz.spremenjeno) return;
     zbirkaIzrisiSeznam();
     zbirkaOsveziGumb();
     zbirkaOsveziVrstico();

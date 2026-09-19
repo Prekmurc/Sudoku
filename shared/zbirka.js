@@ -2,7 +2,8 @@
    Hramba zbirke ugank v localStorage tega brskalnika, podatki ob reševanju ter
    izvoz/uvoz v datoteko Markdown v enaki obliki kot docs/uganke.md. Uganke se
    ločijo po 81-znakovnem nizu danosti (interno '0' = prazna celica, v datoteki '.').
-   Brez DOM-a - uporabljata jo app/zbirka.js (UI zbirke v reševalcu) in igra/.
+   Brez DOM-a (razen zbirkaPrenesi() za prenos datoteke) - uporabljata jo
+   app/zbirka.js (UI zbirke v reševalcu) in igra/, tudi za gumba Izvozi/Uvozi.
    Naloži se za shared/engine.js (uporablja ALL_UNITS). */
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
@@ -112,7 +113,7 @@ function zbirkaVMarkdown(zbirka) {
   const vrstice = [
     '# Zbirka ugank',
     '',
-    'Izvoz iz Sudoku reševalca (`app/`, gumb "Zbirka" -> "Izvozi"). Datoteko je mogoče',
+    'Izvoz zbirke ugank (reševalec `app/` ali igra `igra/`, gumb "Zbirka" -> "Izvozi"). Datoteko je mogoče',
     'uvoziti nazaj (gumb "Uvozi"), ki razbere vrstice oblike `- **Ključ:** vrednost`.',
     'Uganke, pri katerih je navedeno "Preverjeno", imajo enolično rešitev; "Rešeno" pove,',
     'kako daleč je prišel `solve()` iz `shared/engine.js`.',
@@ -225,6 +226,57 @@ function zbirkaZdruzi(zbirka, uvozeni, cas) {
     if (spremenjen) porocilo.dopolnjeni++; else porocilo.nespremenjeni++;
   }
   return porocilo;
+}
+
+/* ---------- izvoz/uvoz za gumba v UI (reševalec in igra) ---------- */
+
+const ZBIRKA_DATOTEKA = 'zbirka-ugank.md';
+
+// Izvoz zbirke iz tega brskalnika. Vrne { besedilo, sporocilo } ali, če je
+// zbirka prazna, { besedilo: null, sporocilo, napaka: true }. Datoteko prenese
+// zbirkaPrenesi().
+function zbirkaIzvozi() {
+  const zbirka = zbirkaBeri();
+  if (!zbirka.length) return { besedilo: null, sporocilo: 'Zbirka je prazna - ni česa izvoziti.', napaka: true };
+  return {
+    besedilo: zbirkaVMarkdown(zbirka),
+    sporocilo: `Izvoženih ugank: ${zbirka.length} (datoteka ${ZBIRKA_DATOTEKA}).`,
+    napaka: false,
+  };
+}
+
+// Uvoz besedila datoteke (Markdown) v zbirko tega brskalnika: nove uganke
+// doda, obstoječe le dopolni (zbirkaZdruzi). Vrne { sporocilo, napaka,
+// spremenjeno } - spremenjeno = zbirka je bila zapisana (osveži prikaz).
+function zbirkaUvozi(besedilo) {
+  const { zapisi, neveljavni } = zbirkaIzMarkdowna(besedilo);
+  if (!zapisi.length && !neveljavni) {
+    return { sporocilo: 'V datoteki ni nobene uganke (pričakujem vrstice oblike "- **Danosti:** `...`").', napaka: true, spremenjeno: false };
+  }
+  const zbirka = zbirkaBeri();
+  const p = zbirkaZdruzi(zbirka, zapisi, zbirkaZdaj());
+  if (!zbirkaPisi(zbirka)) {
+    return { sporocilo: 'Uvoza ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', napaka: true, spremenjeno: false };
+  }
+  return {
+    sporocilo: `Uvoz končan - novih: ${p.novi} · dopolnjenih: ${p.dopolnjeni} · že obstoječih brez sprememb: ${p.nespremenjeni}` +
+      (neveljavni ? ` · neveljavnih (preskočenih): ${neveljavni}` : '') + '.',
+    napaka: neveljavni > 0,
+    spremenjeno: true,
+  };
+}
+
+// Prenos besedila kot datoteke v brskalniku. Edina funkcija v tej datoteki,
+// ki potrebuje brskalnik (document, Blob) - kličeta jo samo UI-ja.
+function zbirkaPrenesi(besedilo, ime = ZBIRKA_DATOTEKA) {
+  const blob = new Blob([besedilo], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = ime;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 /* ---------- vrstni red za prikaz ---------- */

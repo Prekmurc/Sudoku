@@ -575,10 +575,9 @@ function igrajIzZbirke(danosti) {
   if (!igraNalozi(danosti)) {
     const n = countSolutions(danosti);
     if (n !== 1) {
-      zbirkaStatusEl.textContent = n === 0 ? 'Te uganke ni mogoče igrati: nima rešitve.'
+      zbirkaStatus(n === 0 ? 'Te uganke ni mogoče igrati: nima rešitve.'
         : n === 'unknown' ? 'Te uganke ni mogoče igrati: enoličnosti ni bilo mogoče preveriti v razumnem času.'
-        : 'Te uganke ni mogoče igrati: ima več kot eno rešitev.';
-      zbirkaStatusEl.className = 'dialog-status err';
+        : 'Te uganke ni mogoče igrati: ima več kot eno rešitev.', true);
       return;
     }
   }
@@ -586,11 +585,38 @@ function igrajIzZbirke(danosti) {
   zacniIgro(danosti);
 }
 
+function zbirkaStatus(besedilo, napaka) {
+  zbirkaStatusEl.textContent = besedilo;
+  zbirkaStatusEl.className = 'dialog-status' + (napaka ? ' err' : '');
+}
+
 zbirkaBtn.addEventListener('click', () => {
-  zbirkaStatusEl.textContent = '';
-  zbirkaStatusEl.className = 'dialog-status';
+  zbirkaStatus('');
   izrisiZbirko();
   odpriDialog(zbirkaDialog);
+});
+
+// Izvoz/uvoz: enako kot v reševalcu (logika v ../shared/zbirka.js).
+document.getElementById('zbirkaIzvoziBtn').addEventListener('click', () => {
+  const izvoz = zbirkaIzvozi();
+  if (izvoz.besedilo) zbirkaPrenesi(izvoz.besedilo);
+  zbirkaStatus(izvoz.sporocilo, izvoz.napaka);
+});
+
+const zbirkaDatotekaEl = document.getElementById('zbirkaDatoteka');
+document.getElementById('zbirkaUvoziBtn').addEventListener('click', () => zbirkaDatotekaEl.click());
+zbirkaDatotekaEl.addEventListener('change', () => {
+  const datoteka = zbirkaDatotekaEl.files[0];
+  zbirkaDatotekaEl.value = ''; // da gre ista datoteka lahko znova skozi "change"
+  if (!datoteka) return;
+  datoteka.text().then(besedilo => {
+    const uvoz = zbirkaUvozi(besedilo);
+    zbirkaStatus(uvoz.sporocilo, uvoz.napaka);
+    if (!uvoz.spremenjeno) return;
+    izrisiZbirko();
+    osveziGumbZbirke();
+    if (igra) izrisiStanje(); // uvoz lahko dopolni težavnost/opombo odprte uganke
+  }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
 });
 
 /* ---------- nova uganka ---------- */

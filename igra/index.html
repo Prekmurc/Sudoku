@@ -86,7 +86,12 @@
       <h2 id="zbirkaNaslov">Zbirka ugank</h2>
       <button type="button" class="dialog-zapri" data-zapri aria-label="Zapri">✕</button>
     </div>
-    <p class="namig">Zbirko si deli z reševalcem (<code>app/</code>) - tam jo lahko tudi izvoziš, uvoziš ali uganke brišeš.</p>
+    <p class="namig">Zbirko si deli z reševalcem (<code>app/</code>). Izvoz zapiše vse uganke v datoteko Markdown, uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Tako zbirko preneseš na drugo napravo. Uganke brišeš v reševalcu.</p>
+    <div class="dialog-gumbi zbirka-gumbi">
+      <button type="button" id="zbirkaIzvoziBtn">Izvozi</button>
+      <button type="button" id="zbirkaUvoziBtn">Uvozi</button>
+      <input type="file" id="zbirkaDatoteka" accept=".md,.txt,text/markdown,text/plain" hidden>
+    </div>
     <div id="zbirkaStatus" class="dialog-status"></div>
     <ul id="zbirkaSeznam" class="zbirka-seznam"></ul>
   </div>
