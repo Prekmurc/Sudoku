@@ -7,11 +7,13 @@ preverijo, da so enolične, da jih `solve()` reši brez napačnih vpisov/izbriso
 najden vzorec teh treh tehnik ne izbriše pravilne številke. Vsaka uganka je zapisana kot 81-znakovni
 niz vrstica-za-vrstico, `.` = prazna celica. Preden se uganka doda sem, mora biti
 preverjena z `countSolutions()` iz `shared/engine.js` (natanko ena rešitev) –
-ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`).
+ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`). Lažje uganke ustvari
+`node tools/ustvari-uganko.js <lahka|srednja>` (iz naključne polne mreže, ponovljivo s
+semenom).
 
 ## Pokritost tehnik
 
-Stanje 2026-09-18 za spodnjih pet ugank, z vrstnim redom tehnik po težavnosti opažanja
+Stanje 2026-09-19 za spodnjih sedem ugank, z vrstnim redom tehnik po težavnosti opažanja
 za človeka (glej `CLAUDE.md`, razdelek Arhitektura). »Uporabljena« pomeni, da `solve()`
 korak te tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike
 vzorec v kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak
@@ -21,14 +23,16 @@ zbirke bi zaprla katero vrzel.
 
 | Tehnika | Št. ugank | Uporabljena v |
 |---|---|---|
-| Gol enojček, Skriti enojček, Pointing pair/triple, Hidden pair | 5 | vseh pet |
-| Naked pair | 4 | vse razen oakever-ekstrem-17-b (tam samo najdena) |
-| Turbot Fish | 4 | vse razen example-app |
-| Naked triple | 3 | hard-17-a, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
+| Gol enojček, Skriti enojček | 7 | vseh sedem |
+| Pointing pair/triple | 6 | vse razen srednja-seme-97 |
+| Hidden pair | 5 | prvih pet (ne lahka-seme-197 in srednja-seme-97) |
+| Naked pair | 5 | vse razen oakever-ekstrem-17-b (tam samo najdena) in lahka-seme-197 |
+| Turbot Fish | 4 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
+| Naked triple | 4 | hard-17-a, oakever-ekstrem-17-a, oakever-ekstrem-17-b, srednja-seme-97 |
 | W-Wing | 3 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-b |
+| Hidden triple | 3 | example-app (blok), oakever-ekstrem-17-b (vrstica), srednja-seme-97 (blok, stolpec) |
 | Unique Rectangle | 2 | hard-17-a, oakever-ekstrem-lv4 |
-| Hidden triple | 2 | example-app (blok), oakever-ekstrem-17-b (vrstica) |
-| **Box-line reduction** | **1** | samo hard-17-a; v ostalih štirih samo najdena (v example-app je bila uporabljena do spremembe vrstnega reda 2026-09-18, zdaj isti izbris naredi Naked pair) |
+| **Box-line reduction** | **1** | samo hard-17-a; v ostalih štirih težjih samo najdena (v example-app je bila uporabljena do spremembe vrstnega reda 2026-09-18, zdaj isti izbris naredi Naked pair); lahke uganke z Box-line reduction v dnevniku `solve()` `tools/ustvari-uganko.js` v 3000 semenih ni našel |
 | **X-Wing** | **1** | samo oakever-ekstrem-lv4 |
 | **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing, Turbot Fish ali tehnika pred njima najde korak prej |
 | **XY-Wing** | **0** | samo najdena; od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
@@ -159,3 +163,34 @@ reduction pa šele, ko odpovesta Naked pair in Pointing pair/triple.
   kjer je ta v vrstici in ne v bloku. Izbrana 2026-09-18 iz izvožene zbirke z orodjem
   `tools/analiziraj-zbirko.js`; ostale uganke iz iste serije so bodisi že tu bodisi ne
   sprožijo nobene slabo pokrite tehnike.
+
+### lahka-seme-197
+
+- **Danosti (32):** `.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7`
+- **Vir:** ustvarjena 2026-09-19 z `node tools/ustvari-uganko.js lahka --seme 197` (iz
+  naključne polne mreže odstranjuje celice, dokler ostaja ena rešitev; ponovljivo).
+- **Vgrajen primer:** `app/app.js` (polje `PRIMERI`, "Primer 3 (lahka)").
+- **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
+  `solutionOf()` da isto rešitev.
+- **Značilnost:** samo z enojčki se reševanje zatakne, z enojčki in Pointing/Box-line se
+  reši (Box-line reduction ni potrebna). `solve()` jo reši v 50 korakih: Skriti enojček
+  (29), Gol enojček (20), Pointing pair/triple (1 – številka 5 v bloku 6, vrstica 6,
+  izbris V6S5≠5, na indeksu 24). V zbirki: »tehnike: 3«.
+- **Zakaj je tu:** najlažja uganka v zbirki – preizkus reševalca in igre na uganki, ki ne
+  potrebuje nobene tehnike razen enojčkov in enega Pointing koraka.
+
+### srednja-seme-97
+
+- **Danosti (26):** `..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761`
+- **Vir:** ustvarjena 2026-09-19 z `node tools/ustvari-uganko.js srednja --seme 97`.
+- **Vgrajen primer:** `app/app.js` (polje `PRIMERI`, "Primer 4 (srednja)").
+- **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
+  `solutionOf()` da isto rešitev.
+- **Značilnost:** z enojčki in Pointing/Box-line se reševanje zatakne, s pari in trojicami
+  se reši, naprednih tehnik ne potrebuje. Trojice so nujne (brez njih se zatakne), pari ne
+  – brez parov jo rešijo trojice. `solve()` jo reši v 62 korakih: Skriti enojček (28),
+  Gol enojček (27), Naked pair (4 – na indeksih 1, 2, 6, 10), Hidden triple (2 – številke
+  4,6,7 v bloku 7 na indeksu 3, številke 2,4,9 v stolpcu 7 na indeksu 31), Naked triple
+  (1 – 1,6,9 v bloku 2, na indeksu 13). V zbirki: »tehnike: 1, 5, 6«.
+- **Zakaj je tu:** srednja težavnost med `lahka-seme-197` in težkimi ugankami zgoraj;
+  tretja uganka s Hidden triple, prva, kjer je ta v stolpcu.
