@@ -583,6 +583,29 @@ const ALL_TECHNIQUES = [
   ['Unique Rectangle', uniqueRectangle],
 ];
 
+// Skupine tehnik po težavnosti - samo za sidranje na številko (glej nextStep).
+// So zaporedni odseki ALL_TECHNIQUES, zato vrstni red tehnik ostane nespremenjen:
+// korak iz lažje skupine ima vedno prednost pred sidranim korakom iz težje, sidro
+// pa odloča znotraj skupine. Tako reševalec dela tako kot človek - najprej naredi
+// najlažje, šele nato nadaljuje z isto številko.
+// "Naked pair" je v ALL_TECHNIQUES pred preseki (očitno paro človek opazi hitro),
+// zato ima svojo skupino: če bi ga uvrstili k param in trojicam, bi se spremenil
+// vrstni red tehnik, ne le sidranje.
+const TECHNIQUE_GROUPS = [
+  ['Gol enojček', 'Skriti enojček'],
+  ['Naked pair'],
+  ['Pointing pair/triple', 'Box-line reduction'],
+  ['Hidden pair', 'Naked triple', 'Hidden triple'],
+  ['X-Wing', 'Turbot Fish', 'Swordfish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'],
+];
+const TECHNIQUE_GROUP_OF = new Map();
+TECHNIQUE_GROUPS.forEach((imena, i) => imena.forEach(ime => TECHNIQUE_GROUP_OF.set(ime, i)));
+// Neznana tehnika (npr. dodana pozneje) šteje za najtežjo - sidro je pri njej brez moči.
+function techniqueGroup(name) {
+  const g = TECHNIQUE_GROUP_OF.get(name);
+  return g === undefined ? TECHNIQUE_GROUPS.length : g;
+}
+
 // Tehnike v treningu po vrstnem redu kartic (po težavnosti za vadbo, ne po vrstnem
 // redu v ALL_TECHNIQUES): [oznaka kartice v trening/index.html (data-mode),
 // ime v ALL_TECHNIQUES]. Številka tehnike je položaj v tem seznamu (1 = prvi) -
@@ -876,23 +899,38 @@ function digitsOfStep(step) {
 
 // En naslednji korak na deski `b` (deske ne spremeni) ali null. Tehnike se
 // preizkušajo po vrstnem redu v `techniques`, na koncu tryBifurcation().
-// Če je podana `focusDigit`, ima prednost korak s to številko: najprej gremo
-// skozi VSE tehnike (od najpreprostejših do najzahtevnejših), a upoštevamo
-// samo korake, ki se tičejo focusDigit - tako solve() dokonča vse možne poteze
-// za eno številko, preden preskoči na naslednjo. Šele ko takega koraka ni,
-// vzamemo karkoli je na vrsti po običajni prioriteti.
-function nextStep(b, techniques = ALL_TECHNIQUES, focusDigit = null) {
-  if (focusDigit !== null) {
+// `focusDigit` da prednost korakom s to številko, na dva načina:
+//   acrossGroups = false (privzeto, "sidro"): prednost velja samo znotraj
+//     NAJLAŽJE skupine tehnik, ki sploh kaj najde (TECHNIQUE_GROUPS) - korak iz
+//     lažje skupine je vedno pred sidranim korakom iz težje. Tako dela človek:
+//     najprej najlažje, šele nato nadaljuje z isto številko. Tako se "usidra"
+//     solve() in igra, kadar igralec ni poudaril nobene števke.
+//   acrossGroups = true ("poudarek"): prednost prebije skupine - gremo skozi vse
+//     tehnike in vzamemo prvi korak s to številko. To je izrecna izbira igralca
+//     v igri (niz "Poudari"): ko poudari števko, hoče korak z njo.
+// Znotraj skupine prednost prevlada nad vrstnim redom tehnik; brez številke (ali
+// če koraka z njo ni) velja običajna prioriteta.
+function nextStep(b, techniques = ALL_TECHNIQUES, focusDigit = null, acrossGroups = false) {
+  if (focusDigit !== null && acrossGroups) {
     for (const [, fn] of techniques) {
       const steps = fn(b).filter(s => digitsOfStep(s).has(focusDigit));
       if (steps.length) return steps[0];
     }
   }
-  for (const [, fn] of techniques) {
+  let found = null;       // prvi korak po običajni prioriteti
+  let foundGroup = null;  // njegova skupina - dlje od nje ne gremo
+  for (const [name, fn] of techniques) {
+    const group = techniqueGroup(name);
+    if (found !== null && group !== foundGroup) break;
     const steps = fn(b);
-    if (steps.length) return steps[0];
+    if (!steps.length) continue;
+    if (focusDigit !== null) {
+      const sidran = steps.find(s => digitsOfStep(s).has(focusDigit));
+      if (sidran) return sidran;
+    }
+    if (found === null) { found = steps[0]; foundGroup = group; }
   }
-  return tryBifurcation(b);
+  return found !== null ? found : tryBifurcation(b);
 }
 
 function solve(givens, maxSteps = 500) {

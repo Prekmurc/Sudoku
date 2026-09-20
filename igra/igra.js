@@ -521,11 +521,13 @@ korakBtn.addEventListener('click', () => {
   const iskanje = { besedilo: 'Iščem korak ...', razred: '' };
   nastaviPomoc(iskanje);
   // Prednost ima poudarjena števka, sicer števka prejšnjega koraka (sidro).
+  // Poudarek je izrecna izbira igralca, zato prebije skupine tehnik (dobi korak
+  // s to števko, tudi če je zahtevnejši); sidro popusti lažji skupini.
   const fokus = zadnjaPoudarjena();
   const prednost = fokus !== null ? fokus : sidro;
   setTimeout(() => {
     if (pomoc !== iskanje) return; // vmes poteza, Skrij ali Preveri
-    const korak = nextStep(stanje.deska, ALL_TECHNIQUES, prednost);
+    const korak = nextStep(stanje.deska, ALL_TECHNIQUES, prednost, fokus !== null);
     if (korak) sidro = sidroPoKoraku(korak, prednost);
     nastaviPomoc(korak ? { korak, fokus, stopnja: stepHint(korak) ? 1 : 3, izhodisce: trenutnoIzhodisce() }
       : { besedilo: 'Noben znan korak ne najde ničesar.', razred: 'err' });

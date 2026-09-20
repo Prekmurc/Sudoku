@@ -8,7 +8,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
-const E = loadEngine(undefined, { names: ['nextStep', 'solutionOf', 'applyStep', 'stepHint'] });
+const E = loadEngine(undefined, { names: ['nextStep', 'solutionOf', 'applyStep', 'stepHint', 'techniqueGroup'] });
 
 const uganke = loadPuzzles().map(p => {
   const danosti = p.danosti.replace(/\./g, '0');
@@ -40,13 +40,31 @@ for (const u of uganke) {
     }
   });
 
-  test(`${u.ime}: nextStep() s poudarjeno številko ima prednost, če korak s to številko obstaja`, () => {
+  // Sidranje na številko velja samo znotraj najlažje skupine tehnik, ki kaj najde
+  // (TECHNIQUE_GROUPS): korak iz lažje skupine je pred sidranim korakom iz težje.
+  test(`${u.ime}: poudarjena številka ima prednost znotraj najlažje skupine, ne čez njo`, () => {
     const b = new E.Board(u.danosti);
     const brez = E.nextStep(b, u.tehnike);
     assert.deepEqual(jedro(brez), jedro(u.r.log[0]), 'brez številke: prvi korak solve()');
+    const skupina = E.techniqueGroup(brez.technique);
+    for (let d = 1; d <= 9; d++) {
+      const vSkupini = u.tehnike.some(([ime, fn]) =>
+        E.techniqueGroup(ime) === skupina && fn(b).some(s => stevke(s).has(d)));
+      const k = E.nextStep(b, u.tehnike, d);
+      assert.equal(E.techniqueGroup(k.technique), skupina, `številka ${d}: korak ostane v najlažji skupini`);
+      if (vSkupini) assert.ok(stevke(k).has(d), `korak za številko ${d}`);
+      else assert.deepEqual(jedro(k), jedro(brez), `številke ${d} v tej skupini ni - korak je enak kot brez nje`);
+    }
+  });
+
+  // Poudarek (izrecna izbira igralca) pa skupine prebije: korak s to številko
+  // dobimo, če sploh obstaja, tudi iz zahtevnejše skupine.
+  test(`${u.ime}: poudarjena številka (acrossGroups) prebije skupine`, () => {
+    const b = new E.Board(u.danosti);
+    const brez = E.nextStep(b, u.tehnike);
     for (let d = 1; d <= 9; d++) {
       const obstaja = u.tehnike.some(([, fn]) => fn(b).some(s => stevke(s).has(d)));
-      const k = E.nextStep(b, u.tehnike, d);
+      const k = E.nextStep(b, u.tehnike, d, true);
       if (obstaja) assert.ok(stevke(k).has(d), `korak za številko ${d}`);
       else assert.deepEqual(jedro(k), jedro(brez), `za številko ${d} ni koraka - enak kot brez nje`);
     }

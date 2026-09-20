@@ -86,13 +86,27 @@ test('isto seme da vedno isto uganko', () => {
   }
 });
 
-// Premik logike iz tools/ustvari-uganko.js v shared/ ne sme spremeniti ugank, ki sta
-// iz njega zapisani v docs/uganke.md (orodje zahteva par IN trojico: strogoSrednja).
-test('semeni iz docs/uganke.md dasta isti uganki kot prej', () => {
+// Uganka lahka-seme-197 iz docs/uganke.md se iz svojega semena še vedno reproducira.
+// Uganka srednja-a (prej srednja-seme-97) se ne več: ocena stopnje bere dnevnik
+// solve(), ta pa se je spremenil, ko je sidranje na številko začelo popuščati lažji
+// skupini tehnik - iz semena 97 zdaj zmaga drug kandidat na poti odstranjevanja.
+// Uganka sama merilu še ustreza (spodnji test), zato v docs/uganke.md ostaja.
+test('seme 197 da uganko lahka-seme-197 iz docs/uganke.md', () => {
   assert.equal(E.ustvariUganko('lahka', 197).danosti,
     '073004002049060800105800000000000026000090370387002000492070600000009050500206907');
-  assert.equal(E.ustvariUganko('srednja', 97, { strogoSrednja: true }).danosti,
-    '004007025100003000070800000800090034040005009960000572001006000000000000000004761');
+});
+
+test('seme 97 (strogoSrednja) da uganko, ki ustreza srednji stopnji', () => {
+  const u = E.ustvariUganko('srednja', 97, { strogoSrednja: true });
+  assert.equal(u.danosti,
+    '004007025100003000070800000800090034040005009960000002001006000000000000000004761');
+  assert.equal(E.countSolutions(u.danosti), 1);
+});
+
+test('srednja-a iz docs/uganke.md še ustreza merilu srednje stopnje', () => {
+  const danosti = '004007025100003000070800000800090034040005009960000572001006000000000000000004761';
+  const o = E.oceniStopnjo('srednja', danosti, { strogoSrednja: true });
+  assert.ok(o.ustreza, 'uganka mora ustrezati merilu srednje stopnje');
 });
 
 test('strogoSrednja zahteva par in trojico na poti', () => {
