@@ -206,17 +206,22 @@ function oceniStopnjo(kljuc, danosti, moznosti = {}) {
 }
 
 // Razvrstitev že znane uganke (gumb "Oceni zbirko" v igri): brez ciljne stopnje.
-// Vrne { stopnja, tezavnost, mere, board, log }, kjer je `stopnja` vnos iz
-// STOPNJE_UGANK ali null. Uganka, ki je reševalec ne reši brez ugibanja (ali je
-// genRazvrsti ne razvrsti), nima stopnje in dobi težavnost "Ekstrem". Težavnost je
-// ime stopnje, torej vrednost iz TEZAVNOSTI v shared/zbirka.js. Rezultat solve()
-// vrnemo, da ga klicatelj lahko uporabi (zbirkaPodatkiResevanja) brez drugega
-// reševanja.
+// Vrne { stopnja, tezavnost, resitve, mere, board, log }, kjer je `stopnja` vnos iz
+// STOPNJE_UGANK ali null, `resitve` pa countSolutions() (1, 0, 2 ali 'unknown').
+// Težavnost je ime stopnje, torej vrednost iz TEZAVNOSTI v shared/zbirka.js:
+//   - uganka brez natanko ene rešitve (lahko pride z uvozom) je ni mogoče igrati,
+//     zato ne dobi stopnje, ampak "Drugo" - stopnja bi bila zavajajoča;
+//   - uganka, ki je reševalec ne reši brez ugibanja (ali je genRazvrsti ne
+//     razvrsti), dobi "Ekstrem".
+// Rezultat solve() vrnemo, da ga klicatelj lahko uporabi (zbirkaPodatkiResevanja)
+// brez drugega reševanja.
 function oceniUganko(danosti) {
+  const resitve = countSolutions(danosti);
   const { board, log } = solve(danosti);
-  const mere = genBrezUgibanja(board, log) ? genRazvrsti(danosti) : null;
+  const mere = resitve === 1 && genBrezUgibanja(board, log) ? genRazvrsti(danosti) : null;
   const stopnja = mere ? (STOPNJE_UGANK.find(s => s.ustreza(mere)) || null) : null;
-  return { stopnja, tezavnost: stopnja ? stopnja.ime : 'Ekstrem', mere, board, log };
+  const tezavnost = stopnja ? stopnja.ime : resitve === 1 ? 'Ekstrem' : 'Drugo';
+  return { stopnja, tezavnost, resitve, mere, board, log };
 }
 
 /* ---------- ustvarjanje ---------- */

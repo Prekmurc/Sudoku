@@ -120,6 +120,7 @@ test('oceniUganko(): težavnost je ime stopnje, ki uganki ustreza', () => {
     assert.equal(o.stopnja.kljuc, kljuc, `${kljuc}: stopnja`);
     assert.equal(o.tezavnost, E.stopnjaUganke(kljuc).ime, `${kljuc}: težavnost = ime stopnje`);
     assert.ok([...E.TEZAVNOSTI].includes(o.tezavnost), `${kljuc}: težavnost je iz TEZAVNOSTI`);
+    assert.equal(o.resitve, 1, `${kljuc}: natanko ena rešitev`);
     assert.ok(o.board.isSolved() && o.log.length, `${kljuc}: vrne rezultat solve()`);
   }
 });
@@ -140,6 +141,31 @@ test('oceniUganko() na ugankah iz docs/uganke.md: stopnja ali Ekstrem', () => {
     assert.equal(o.tezavnost, o.stopnja.ime, `${ime}: težavnost = ime stopnje`);
   }
   assert.ok(ekstremov >= 1, 'vsaj ena uganka iz docs/uganke.md zahteva ugibanje');
+});
+
+// Uganka brez natanko ene rešitve (v zbirko lahko pride z uvozom) ni igrljiva, zato
+// ne dobi stopnje. Obe spodaj sta izpeljani iz preverjene lahka-seme-1 in njuno
+// število rešitev preveri countSolutions() v testu (CLAUDE.md: nič na pamet).
+test('oceniUganko(): uganka brez natanko ene rešitve dobi Drugo, ne stopnje', () => {
+  const ena = '876000004000000700000200580034010800210069000000305070000000600040076900008000040';
+  assert.equal(E.countSolutions(ena), 1, 'izhodiščna uganka je enolična');
+
+  // Brez prve danosti (8 v V1S1) ima uganka več rešitev.
+  const vec = '0' + ena.slice(1);
+  assert.equal(E.countSolutions(vec), 2, 'brez ene danosti ima več rešitev');
+  const o = E.oceniUganko(vec);
+  assert.equal(o.resitve, 2);
+  assert.equal(o.stopnja, null, 'brez stopnje');
+  assert.equal(o.tezavnost, 'Drugo');
+
+  // Protislovje v prvi vrstici (drugi 8) - uganka nima rešitve.
+  const brez = '8' + '8' + ena.slice(2);
+  assert.equal(E.countSolutions(brez), 0, 'uganka s protislovjem nima rešitve');
+  const p = E.oceniUganko(brez);
+  assert.equal(p.resitve, 0);
+  assert.equal(p.stopnja, null);
+  assert.equal(p.tezavnost, 'Drugo');
+  assert.ok([...E.TEZAVNOSTI].includes('Drugo'));
 });
 
 test('oceniUganko(): uganka, ki jo solve() reši le z ugibanjem, dobi Ekstrem', () => {

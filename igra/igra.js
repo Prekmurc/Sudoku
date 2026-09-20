@@ -985,17 +985,36 @@ function stUgank(n) {
   return `${n} ${beseda}`;
 }
 
+// Zakaj uganka ni dobila stopnje: countSolutions() v oceniUganko(). Uganke brez
+// natanko ene rešitve (pridejo lahko z uvozom) ni mogoče igrati, zato dobi "Drugo".
+function opisResitev(resitve) {
+  if (resitve === 1 || resitve === undefined) return '';
+  if (resitve === 0) return 'nima rešitve';
+  if (resitve === 'unknown') return 'enoličnosti ni bilo mogoče preveriti';
+  return 'več kot ena rešitev';
+}
+
+// Kaj bi se iz ocene zapisalo v uganko. Uganka brez natanko ene rešitve dobi samo
+// težavnost "Drugo": podatki reševanja bi bili iz ene od več poti (reševalec jih
+// pri taki uganki tudi ne shrani - glej zbirkaPoResevanju v app/zbirka.js).
+function ocenaZapis(o) {
+  return o.resitve === 1 ? { ...o.podatki, tezavnost: o.tezavnost } : { tezavnost: o.tezavnost };
+}
+
 // Kaj bi se pri uganki spremenilo, če oceno zapišemo. Vrne besedilo za izpis ali
 // '' (zapis je že enak oceni).
 function ocenaSprememba(z, o) {
+  const zapis = ocenaZapis(o);
   const deli = [];
-  if ((z.tezavnost || '') !== o.tezavnost) {
-    deli.push(`${z.tezavnost || 'brez težavnosti'} → ${o.tezavnost}`);
+  if ((z.tezavnost || '') !== zapis.tezavnost) {
+    deli.push(`${z.tezavnost || 'brez težavnosti'} → ${zapis.tezavnost}`);
   }
-  const nova = zbirkaOznakaTehnik({ tehnike: o.podatki.tehnike });
-  if (zbirkaOznakaTehnik(z) !== nova) deli.push(nova);
-  else if (z.reseno !== o.podatki.reseno || z.koraki !== o.podatki.koraki || z.ugibanje !== o.podatki.ugibanje) {
-    deli.push('podatki reševanja');
+  if (zapis.tehnike) {
+    const nova = zbirkaOznakaTehnik({ tehnike: zapis.tehnike });
+    if (zbirkaOznakaTehnik(z) !== nova) deli.push(nova);
+    else if (z.reseno !== zapis.reseno || z.koraki !== zapis.koraki || z.ugibanje !== zapis.ugibanje) {
+      deli.push('podatki reševanja');
+    }
   }
   return deli.join(' · ');
 }
@@ -1020,9 +1039,11 @@ function izrisiOceno(danosti, zapis) {
   const z = zapis || zbirkaBeri().find(x => x.danosti === danosti);
   if (!z) return;
   const sprememba = ocenaSprememba(z, o);
+  const razlog = opisResitev(o.resitve);
   const el = document.createElement('div');
   el.className = 'zb-info zb-ocena' + (sprememba ? ' zb-ocena-nova' : '');
-  el.textContent = sprememba ? `ocena: ${sprememba}` : 'ocena: brez sprememb';
+  el.textContent = (sprememba ? `ocena: ${sprememba}` : 'ocena: brez sprememb')
+    + (razlog ? ` · ${razlog}` : '');
   li.insertBefore(el, li.querySelector('.zb-gumbi'));
 }
 
@@ -1052,7 +1073,7 @@ function izpisiOcenoNapredek() {
 function obdelajOceno(m) {
   if (!ocenjevanje) return;
   if (m.tip === 'ocena') {
-    ocene.set(m.danosti, { tezavnost: m.tezavnost, podatki: m.podatki });
+    ocene.set(m.danosti, { tezavnost: m.tezavnost, resitve: m.resitve, podatki: m.podatki });
     ocenjevanje.i = m.i + 1;
     izrisiOceno(m.danosti, ocenjevanje.zapisi.get(m.danosti));
     izpisiOcenoNapredek();
@@ -1065,9 +1086,11 @@ function obdelajOceno(m) {
     return;
   }
   const sprememb = ocenaSprememb();
-  zbirkaStatus(sprememb
+  const brezEnolicne = [...ocene.values()].filter(o => opisResitev(o.resitve)).length;
+  zbirkaStatus((sprememb
     ? `Ocenjeno: ${stUgank(ocenjenih)}, predlaganih sprememb: ${sprememb}. Preglej jih v seznamu in potrdi.`
-    : `Ocenjeno: ${stUgank(ocenjenih)}. Vse ocene so že zapisane.`);
+    : `Ocenjeno: ${stUgank(ocenjenih)}. Vse ocene so že zapisane.`)
+    + (brezEnolicne ? ` Brez natanko ene rešitve: ${brezEnolicne} (teh ni mogoče igrati, zato dobijo »Drugo«).` : ''));
 }
 
 // Ustavi ocenjevanje (gumb Prekini, zaprtje okna, konec). Že prejete ocene ostanejo
@@ -1091,7 +1114,8 @@ function ocenjevanjeVGlavniNiti() {
     const danosti = ocenjevanje.danosti[i];
     try {
       const o = oceniUganko(danosti);
-      obdelajOceno({ tip: 'ocena', i, danosti, tezavnost: o.tezavnost, podatki: zbirkaPodatkiResevanja(o.board, o.log) });
+      obdelajOceno({ tip: 'ocena', i, danosti, tezavnost: o.tezavnost, resitve: o.resitve,
+        podatki: zbirkaPodatkiResevanja(o.board, o.log) });
     } catch (e) {
       return obdelajOceno({ tip: 'napaka', sporocilo: e.message });
     }
@@ -1146,7 +1170,7 @@ oceniZapisiBtn.addEventListener('click', () => {
   for (const z of zbirka) {
     const o = ocene.get(z.danosti);
     if (!o || !ocenaSprememba(z, o)) continue;
-    Object.assign(z, o.podatki, { tezavnost: o.tezavnost });
+    Object.assign(z, ocenaZapis(o));
     n++;
   }
   if (!zbirkaPisi(zbirka)) {

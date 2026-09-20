@@ -7,7 +7,7 @@
 
    Sporočilo vanj:  { danosti: ['81 znakov', ...] }
    Sporočila iz njega:
-     { tip: 'ocena', i, danosti, tezavnost, podatki }  po vsaki uganki
+     { tip: 'ocena', i, danosti, tezavnost, resitve, podatki }  po vsaki uganki
      { tip: 'konec', ocenjenih }
      { tip: 'napaka', sporocilo } */
 
@@ -25,9 +25,11 @@ onmessage = (e) => {
   }
 };
 
-// Ena uganka: težavnost po štirih stopnjah (ali "Ekstrem") in podatki reševanja
-// iz istega klica solve() - enaki kot jih zapiše reševalec.
+// Ena uganka: težavnost po štirih stopnjah ("Ekstrem" za ugibanje, "Drugo" za
+// uganko brez natanko ene rešitve) in podatki reševanja iz istega klica solve() -
+// enaki kot jih zapiše reševalec. `resitve` je countSolutions(), da igra lahko
+// pove, zakaj uganka ni dobila stopnje.
 function oceniEno(danosti) {
   const o = oceniUganko(danosti);
-  return { danosti, tezavnost: o.tezavnost, podatki: zbirkaPodatkiResevanja(o.board, o.log) };
+  return { danosti, tezavnost: o.tezavnost, resitve: o.resitve, podatki: zbirkaPodatkiResevanja(o.board, o.log) };
 }
