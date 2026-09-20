@@ -4,27 +4,28 @@
 // argumentov in izpis.
 //
 // Zagon iz korena projekta:
-//   node tools/ustvari-uganko.js <lahka|srednja|tezka> [--seme N] [--poskusov M]
+//   node tools/ustvari-uganko.js <lahka|srednja|tezka|zelotezka> [--seme N] [--poskusov M]
 //
-// Kategorije (merilo = najzahtevnejša skupina tehnik, ki jo uganka potrebuje; glej
-// komentar v shared/generator.js):
-//   lahka   - pot z enojčki + Pointing/Box-line uganko reši, pot samo z enojčki ne.
-//   srednja - pot z enojčki, Pointing/Box-line, pari in trojicami jo reši in uporabi
-//             vsaj en par in vsaj eno trojico; pot brez parov in trojic je ne reši.
-//             (Strožji pogoj "brez parov ne IN brez trojic ne" v 2000 semenih ni dal
-//             nobene uganke - pari in trojice se med seboj pogosto nadomestijo.)
-//             To orodje zahteva par IN trojico (moznosti.strogoSrednja); igra je
-//             ohlapnejša (par ALI trojica), ker je tako iskanje sekundno namesto
-//             pribl. polminutno.
-//   tezka   - pot s pari in trojicami je ne reši, solve() pa jo reši brez ugibanja
-//             (potrebuje vsaj eno napredno tehniko).
+// Kategorije (stopnje). Merilo sta dve meri (genRazvrsti v shared/generator.js):
+// najlažja skupina tehnik, ki uganko še reši, in število različnih tehnik nad
+// enojčki, ki jih ta pot uporabi. Podlaga je meritev 600 naključnih ugank
+// (docs/uganke.md, razdelek "Porazdelitev naključnih ugank"):
+//   lahka      - reši se samo z enojčki (brez zapisanih kandidatov).
+//   srednja    - potrebuje očitno/skrito paro, trojico ali presek (Pointing,
+//                Box-line), naprednih tehnik pa ne. To orodje tu zahteva še par IN
+//                trojico na poti (moznosti.strogoSrednja), da so testne uganke v
+//                docs/uganke.md bogatejše; igra tega ne zahteva, ker je iskanje s
+//                tem pribl. 30x daljše.
+//   tezka      - potrebuje natanko eno napredno tehniko, skupaj največ štiri
+//                tehnike nad enojčki.
+//   zelotezka  - potrebuje dve različni napredni tehniki ali pet različnih tehnik
+//                nad enojčki.
 // Pri vseh mora solve() (vse tehnike) uganko rešiti brez ugibanja. Njegov dnevnik
-// lahko vsebuje tudi tehnike zunaj kategorije, ker se solve() "usidra" na številko
-// prejšnjega koraka in zanjo vzame tudi zahtevnejšo tehniko pred enojčkom z drugo
-// številko; iz istega razloga lahko kako tehniko s poti izpusti. Prednost ima zato
-// uganka, katere dnevnik solve() ostane v kategoriji in vsebuje njene tehnike (pri
-// lahki Pointing in Box-line, pri srednji par in trojico, pri težki napredno
-// tehniko) - ta dnevnik vidijo reševalec, igra in pokritost tehnik v docs/uganke.md.
+// se lahko od poti razlikuje, ker se solve() "usidra" na številko prejšnjega koraka
+// in zanjo vzame tudi zahtevnejšo tehniko pred enojčkom z drugo številko; iz istega
+// razloga lahko kako tehniko s poti izpusti. Prednost 1 ima zato uganka, katere
+// dnevnik solve() ustreza istemu merilu kot pot - ta dnevnik vidijo reševalec, igra
+// in pokritost tehnik v docs/uganke.md.
 //
 // Seme N da vedno isto uganko (ponovljivo). Brez --seme se preizkusi semena 1, 2, ...
 // do --poskusov (privzeto 500) in izpiše najboljša najdena (iskanje se ustavi pri
@@ -34,7 +35,7 @@ const { loadEngine } = require('../tests/load-engine.js');
 const E = loadEngine(undefined, {
   files: ['shared/generator.js'],
   names: ['applyStep', 'STOPNJE_UGANK', 'stopnjaUganke', 'ustvariUganko', 'oceniStopnjo',
-    'genSamoIz', 'GEN_NAPREDNE'],
+    'genRazvrsti', 'GEN_NAPREDNE'],
 });
 
 const args = process.argv.slice(2);
@@ -48,7 +49,7 @@ if (!stopnja) {
   console.error(`Uporaba: node tools/ustvari-uganko.js <${E.STOPNJE_UGANK.map(s => s.kljuc).join('|')}> [--seme N] [--poskusov M]`);
   process.exit(2);
 }
-const MOZNOSTI = { strogoSrednja: true };
+const MOZNOSTI = { strogoSrednja: true }; // velja samo za kategorijo srednja
 const semena = args.includes('--seme') ? [vrednost('--seme')] : [...Array(vrednost('--poskusov', 500)).keys()].map(i => i + 1);
 let izbrana = null;
 for (const seme of semena) {
@@ -61,16 +62,13 @@ if (!izbrana) {
   console.error(`Ni ustrezne uganke (semena ${semena[0]}–${semena[semena.length - 1]}).`);
   process.exit(1);
 }
-const { seme, danosti, tehnike, uporabljene } = izbrana;
-console.log(`kategorija: ${kategorija}`);
+const { seme, danosti, tehnike, uporabljene, mere, prednost } = izbrana;
+console.log(`kategorija: ${kategorija} (${stopnja.ime} - ${stopnja.opis})`);
 console.log(`seme:       ${seme}`);
 console.log(`danosti:    ${danosti.replace(/0/g, '.')} (${danosti.replace(/0/g, '').length})`);
 console.log(`countSolutions(): ${E.countSolutions(danosti)}`);
-if (uporabljene) console.log(`pot:        ${[...uporabljene].join(', ')} (samo s tehnikami kategorije)`);
-else console.log(`pot:        pot s pari in trojicami je ne reši (potrebuje napredno tehniko)`);
-if (stopnja.dovoljene) {
-  console.log(`dnevnik solve() samo iz tehnik kategorije: ${E.genSamoIz(tehnike, stopnja.dovoljene) ? 'da' : 'ne'}`);
-} else {
-  console.log(`napredne tehnike v dnevniku solve(): ${E.GEN_NAPREDNE.filter(ime => tehnike[ime]).join(', ') || 'nobena'}`);
-}
+console.log(`pot:        ${[...uporabljene].join(', ')}`);
+console.log(`mere:       skupina ${mere.skupina}, tehnik nad enojčki ${mere.tehNad}, naprednih ${mere.napredne}`);
+console.log(`dnevnik solve() ustreza istemu merilu: ${prednost ? 'da' : 'ne'}`);
+console.log(`napredne tehnike v dnevniku solve(): ${E.GEN_NAPREDNE.filter(ime => tehnike[ime]).join(', ') || 'nobena'}`);
 console.log(`solve():    ${Object.entries(tehnike).map(([ime, n]) => `${ime} (${n})`).join(', ')}; korakov ${Object.values(tehnike).reduce((a, b) => a + b, 0)}`);

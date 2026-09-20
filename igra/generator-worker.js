@@ -4,7 +4,7 @@
    izbrane stopnje ali ne poteče meja. Ker zanka nit zaseda, prekinitev naredi
    igra.js s terminate() - sporočila za ustavitev tu ni.
 
-   Sporočilo vanj:  { stopnja: 'lahka'|'srednja'|'tezka', meja: ms }
+   Sporočilo vanj:  { stopnja: 'lahka'|'srednja'|'tezka'|'zelotezka', meja: ms }
    Sporočila iz njega:
      { tip: 'napredek', poskusi, ms }  po vsakem semenu
      { tip: 'najdena', danosti, stopnja, seme, poskusi, ms }

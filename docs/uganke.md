@@ -13,7 +13,7 @@ s semenom).
 
 ## Pokritost tehnik
 
-Stanje 2026-09-20 za spodnjih sedem ugank, z vrstnim redom tehnik po težavnosti opažanja
+Stanje 2026-09-20 za spodnjih osem ugank, z vrstnim redom tehnik po težavnosti opažanja
 za človeka (glej `CLAUDE.md`, razdelek Arhitektura). »Uporabljena« pomeni, da `solve()`
 korak te tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike
 vzorec v kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak
@@ -23,7 +23,7 @@ zbirke bi zaprla katero vrzel.
 
 | Tehnika | Št. ugank | Uporabljena v |
 |---|---|---|
-| Gol enojček, Skriti enojček | 7 | vseh sedem |
+| Gol enojček, Skriti enojček | 8 | vseh osem |
 | Pointing pair/triple | 5 | vse razen oakever-ekstrem-lv4 in srednja-a (tam samo najdena) |
 | Naked pair | 5 | vse razen oakever-ekstrem-17-b in lahka-seme-197 (tam samo najdena) |
 | Turbot Fish | 4 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
@@ -36,6 +36,9 @@ zbirke bi zaprla katero vrzel.
 | **Unique Rectangle** | **1** | samo oakever-ekstrem-lv4; od 2026-09-20 ne več v hard-17-a |
 | **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing, Turbot Fish ali tehnika pred njima najde korak prej |
 | **XY-Wing** | **0** | samo najdena; od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
+
+Uganka `lahka-seme-1` (dodana 2026-09-20 kot najlažja stopnja) pokritosti ne spremeni –
+namenoma ne potrebuje nobene tehnike nad enojčki.
 
 Vsaka tehnika iz `ALL_TECHNIQUES` je v teh ugankah vsaj *najdena*, zato je vsako mogoče
 pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish, W-Wing in
@@ -53,6 +56,85 @@ Rectangle 2 → 1, Turbot Fish 8 → 7), presekov in golih enojčkov pa več (Po
 Gol enojček 152 → 156). Skupno je korakov 504 → 493, ugibanj pa enako (3). Ker so zdaj
 zahtevnejše tehnike pokrite slabše, so zanje toliko pomembnejši neposredni testi nad
 posnetki stanja (`turbot-fish.test.js`, `w-wing.test.js`, `xy-wing.test.js`).
+
+## Porazdelitev naključnih ugank (meritev 2026-09-20)
+
+Meritev za določitev štirih stopenj generatorja. Vzorec: naključne **minimalne** uganke
+brez kakršne koli omejitve stopnje – iz naključne polne mreže se odstranjujejo celice v
+naključnem vrstnem redu, dokler ostaja natanko ena rešitev (`countSolutions() === 1`).
+Semena 1–761 (`shared/generator.js`: `genPrng`, `genPolnaMreza`, `genPremesaj`) dajo
+**600 ugank, ki jih `solve()` reši brez ugibanja**; prvih 200 je primarni vzorec, 600 je
+kontrola za redke razrede (številke se ujemajo). Meritev je bila opravljena s skripto
+zunaj projekta (koda projekta ni bila spremenjena).
+
+Merili sta dve:
+
+- **Najzahtevnejša potrebna tehnika** = najkrajša predpona `ALL_TECHNIQUES`, s katero
+  `genPot()` uganko reši. Monotonost (če predpona *k* reši, rešijo tudi vse daljše) je
+  preverjena: 41 ugank linearno, 0 odstopanj; v 600 ugankah 0 odstopanj.
+- **Število različnih tehnik nad enojčki**, ki jih pot s to najkrajšo predpono dejansko
+  uporabi. Merilo »brez katere tehnike se pot zatakne« (izpust vsake posebej) je
+  neuporabno: 85 % ugank potrebuje po njem samo `Gol enojček`, ker se tehnike med seboj
+  nadomeščajo (`Skriti enojček` je »nujen« le pri 5,5 % ugank).
+
+**Osnovno:** 161 od 761 kopanj (21,2 %) zahteva poskus s protislovjem. Danosti so pri
+vseh razredih enake (21–27, mediana 24) – število danosti **ni** merilo težavnosti
+(r = 0,11 s skupino tehnike, r = 0,05 s številom tehnik).
+
+| Skupina najtežje potrebne tehnike | n (600) | delež | št. tehnik nad enojčki | korakov nad enojčki | korakov skupaj |
+|---|---|---|---|---|---|
+| enojčki | 321 | 53,5 % | 0 | 0 | 56,8 [54–59] |
+| Naked pair | 64 | 10,7 % | 1 | 1,6 [1–4] | 58,4 [55–62] |
+| preseki | 53 | 8,8 % | 1,8 [1–3] | 3,3 [1–8] | 59,8 [56–65] |
+| pare/trojice | 20 | 3,3 % | 2,8 [1–4] | 5,7 [1–12] | 62,4 [55–70] |
+| napredne | 142 | 23,7 % | 3,5 [1–7] | 5,6 [1–18] | 62,1 [56–75] |
+
+Križno (600), skupina × število različnih tehnik nad enojčki:
+
+| skupina | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | vsota |
+|---|---|---|---|---|---|---|---|---|---|
+| enojčki | 321 | . | . | . | . | . | . | . | 321 |
+| Naked pair | . | 64 | . | . | . | . | . | . | 64 |
+| preseki | . | 16 | 32 | 5 | . | . | . | . | 53 |
+| pare/trojice | . | 1 | 4 | 13 | 2 | . | . | . | 20 |
+| napredne | . | 16 | 20 | 37 | 35 | 23 | 8 | 3 | 142 |
+
+Skupina in število tehnik sta povezana, a nista isto: med ugankami s tremi tehnikami jih
+je 5 iz presekov, 13 iz par/trojic in 37 naprednih; obratno 36 od 142 naprednih ugank
+(25 %) uporabi le eno ali dve tehniki nad enojčki. Merilo stopnje zato potrebuje **obe
+osi**.
+
+**Napredne tehnike:** ≥2 različni napredni na poti 8,3 %, ≥2 v dnevniku `solve()` 9,2 %,
+≥3 koraki z napredno tehniko 3,5 %, ≥2 napredni nujni 1,8 %. Pojavljajo se: Turbot Fish
+14,5 %, W-Wing 8,7 %, XY-Wing 5,3 %, X-Wing 3,3 %, Unique Rectangle 1,2 %, **Swordfish
+0 od 600**. X-Wing in Swordfish nista nikoli najtežja potrebna tehnika – X-Wing le
+spremlja, Swordfish se ne pojavi; merilo stopnje se nanju ne more opirati.
+
+### Potrjena merila štirih stopenj
+
+Dve osi: skupina najtežje potrebne tehnike + število različnih tehnik nad enojčki.
+Razredi se izključujejo in pokrijejo 100 % ugank, rešljivih brez ugibanja (0
+nerazvrščenih v 600). Čas iskanja je izmerjen na 150 semenih s pregledom cele poti
+kopanja in poceni razvrstitvijo (pet mejnih predpon s predčasnim izhodom), 97 ms na seme.
+
+| Stopnja | Merilo | Delež (600) | Semen z zadetkom | Čas do uganke |
+|---|---|---|---|---|
+| Lahka | reši se **samo z enojčki** (brez zapisanih kandidatov) | 53,5 % | 100 % | ~0,1 s |
+| Srednja | potrebuje očitno/skrito paro, trojico ali presek; naprednih ne | 22,8 % | 24,0 % | ~0,4 s |
+| Težka | potrebuje **natanko eno** napredno tehniko, skupaj ≤ 4 tehnike nad enojčki | 14,0 % | 12,7 % | ~0,8 s |
+| Zelo težka | potrebuje napredne in (≥ 2 različni napredni **ali** ≥ 5 tehnik nad enojčki) | 9,7 % | 12,0 % | ~0,8 s |
+
+Značilnosti razredov (600): lahka 0 tehnik nad enojčki, 57,0 korakov; srednja 1,6 [1–4]
+tehnik, 2,8 [1–12] korakov nad enojčki, 59,5 skupaj; težka 2,7 [1–4] tehnik, 4,3 [1–14]
+korakov nad enojčki, 60,6 skupaj; zelo težka 4,6 [2–7] tehnik, 7,4 [1–18] korakov nad
+enojčki, 64,1 skupaj. Danosti so v vseh razredih 21–27 z mediano 24.
+
+Očitna para je namenoma v **srednji**, ne v lahki: zahteva zapisane kandidate in iskanje
+vzorca, lahka pa pomeni uganko, ki se reši s samim pregledovanjem mreže.
+
+Za primerjavo: prejšnja merila (`lahka` je zahtevala presek, `srednja` paro/trojico,
+`tezka` napredno tehniko) so dala 0,93 s / 1,80 s / 0,51 s na uganko (40 semen), pol
+vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 
 ## Zapisane uganke
 
@@ -92,7 +174,7 @@ posnetki stanja (`turbot-fish.test.js`, `w-wing.test.js`, `xy-wing.test.js`).
 - **Danosti:** `8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4`
 - **Vir:** Oakever, Ekstrem (Lv4); aplikacija Oakever je zanjo uporabila W-Wing,
   XY-Wing, Skyscraper, Jellyfish, X-Wing.
-- **Vgrajen primer:** `app/app.js` (polje `PRIMERI`, "Primer 2 (Ekstrem, brez ugibanja)").
+- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 2 (Ekstrem, brez ugibanja)").
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** naš `solve()` (`shared/engine.js`) jo reši brez sestopanja
@@ -121,7 +203,7 @@ posnetki stanja (`turbot-fish.test.js`, `w-wing.test.js`, `xy-wing.test.js`).
 ### example-app
 
 - **Danosti:** `...8...2.9.....6...........6.4...9.....72...35............56....8...9....7.....1.`
-- **Vir:** vgrajen primer v `app/app.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)");
+- **Vir:** vgrajen primer v `shared/zbirka.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)");
   tam je isti niz zapisan z ničlami namesto pik.
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši.
 - **Značilnost:** `solve()` jo reši v 79 korakih: Skriti enojček (40), Gol enojček (24),
@@ -196,21 +278,42 @@ posnetki stanja (`turbot-fish.test.js`, `w-wing.test.js`, `xy-wing.test.js`).
   orodjem `tools/analiziraj-zbirko.js`; ostale uganke iz iste serije so bodisi že tu bodisi
   ne sprožijo nobene slabo pokrite tehnike.
 
+### lahka-seme-1
+
+- **Danosti (26):** `876.....4......7.....2..58..34.1.8..21..69......3.5.7.......6...4..769....8....4.`
+- **Vir:** ustvarjena 2026-09-20 z `node tools/ustvari-uganko.js lahka --seme 1` (iz
+  naključne polne mreže odstranjuje celice, dokler ostaja ena rešitev; ponovljivo –
+  preverja `tests/generator.test.js`).
+- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 5 (lahka)").
+- **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
+  `solutionOf()` da isto rešitev.
+- **Značilnost:** stopnja **lahka** po merilu štirih stopenj – reši se samo z enojčki,
+  torej brez zapisanih kandidatov (pot uporabi celo samo Gol enojček). `solve()` jo reši
+  v 55 korakih: Gol enojček (29), Skriti enojček (26). V zbirki: »tehnike: samo enojčki«.
+- **Zakaj je tu:** najlažja uganka v zbirki in edina, ki ne potrebuje nobene tehnike nad
+  enojčki – preizkus reševalca, igre in seznamov manjkajočih števk na uganki, ki se rešuje
+  s samim pregledovanjem mreže.
+
 ### lahka-seme-197
 
 - **Danosti (32):** `.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7`
-- **Vir:** ustvarjena 2026-09-19 z `node tools/ustvari-uganko.js lahka --seme 197` (iz
-  naključne polne mreže odstranjuje celice, dokler ostaja ena rešitev; ponovljivo).
-- **Vgrajen primer:** `app/app.js` (polje `PRIMERI`, "Primer 3 (lahka)").
+- **Vir:** ustvarjena 2026-09-19 z `node tools/ustvari-uganko.js lahka --seme 197`. **Iz
+  semena 197 ni več reproducibilna in ni več lahka:** merilo štirih stopenj (2026-09-20)
+  pravi, da je lahka uganka tista, ki se reši samo z enojčki – ta pa potrebuje Pointing
+  pair/triple, zato je po novem **srednja**. Iz istega semena zdaj zmaga drug kandidat na
+  poti odstranjevanja. Uganka ostaja tu, ker se testne uganke ne spreminjajo; da je
+  srednja, preverja `tests/generator.test.js`.
+- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 3 (srednja – presek)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
-- **Značilnost:** samo z enojčki se reševanje zatakne, z enojčki in Pointing/Box-line se
+- **Značilnost:** stopnja **srednja** (najlažja zadostna skupina so preseki, ena tehnika
+  nad enojčki). Samo z enojčki se reševanje zatakne, z enojčki in Pointing/Box-line se
   reši (Box-line reduction ni potrebna). `solve()` jo reši v 50 korakih: Skriti enojček
   (29), Gol enojček (20), Pointing pair/triple (1 – številka 5 v bloku 6, vrstica 6,
   izbris V6S5≠5, na indeksu 24). V zbirki: »tehnike: 3«. Sprememba sidranja (2026-09-20)
   dnevnika ni spremenila (korak za korakom enak).
-- **Zakaj je tu:** najlažja uganka v zbirki – preizkus reševalca in igre na uganki, ki ne
-  potrebuje nobene tehnike razen enojčkov in enega Pointing koraka.
+- **Zakaj je tu:** najlažja uganka s tehniko nad enojčki – preizkus reševalca in igre na
+  uganki, ki potrebuje samo en Pointing korak.
 
 ### srednja-a
 
@@ -221,7 +324,7 @@ posnetki stanja (`turbot-fish.test.js`, `w-wing.test.js`, `xy-wing.test.js`).
   zato na poti odstranjevanja zmaga drug kandidat (uganka s 24 danostmi). Uganka sama
   merilu srednje stopnje še vedno ustreza (preverja `tests/generator.test.js`), zato
   ostaja tu – testne uganke naj se ne spreminjajo, da so primerjave z zgodovino smiselne.
-- **Vgrajen primer:** `app/app.js` (polje `PRIMERI`, "Primer 4 (srednja)").
+- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 4 (srednja – trojica)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
 - **Značilnost:** z enojčki in Pointing/Box-line se reševanje zatakne, s pari in trojicami
