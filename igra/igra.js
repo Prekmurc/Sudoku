@@ -769,8 +769,10 @@ document.addEventListener('keydown', (e) => {
 function odpriDialog(el) { el.classList.add('odprt'); }
 function zapriDialog(el) {
   el.classList.remove('odprt');
-  // Zaprtje okna "Nova uganka" ustavi iskanje uganke (gumb "Ustvari uganko").
+  // Zaprtje okna "Nova uganka" ustavi iskanje uganke (gumb "Ustvari uganko"),
+  // zaprtje okna "Zbirka ugank" pa ocenjevanje in nepotrjeni predlog ocen.
   if (el === novaDialog) ustaviIskanje();
+  if (el === zbirkaDialog) { ustaviOcenjevanje(); ocenaPocisti(); }
 }
 
 document.querySelectorAll('.dialog').forEach(el => {
@@ -806,6 +808,8 @@ const zbirkaDialog = document.getElementById('zbirkaDialog');
 const zbirkaSeznamEl = document.getElementById('zbirkaSeznam');
 const primeriSeznamEl = document.getElementById('primeriSeznam');
 const zbirkaStatusEl = document.getElementById('zbirkaStatus');
+// Vrstica seznama po danostih - da med ocenjevanjem osvežimo samo njo.
+const zbirkaVrstice = new Map();
 
 function osveziGumbZbirke() {
   zbirkaBtn.textContent = `Zbirka (${zbirkaBeri().length})`;
@@ -865,6 +869,7 @@ function izrisiZbirko() {
   const igre = igreBeri().igre;
   izrisiPrimere(igre);
   zbirkaSeznamEl.innerHTML = '';
+  zbirkaVrstice.clear();
   if (!zbirka.length) {
     const li = document.createElement('li');
     li.className = 'prazno';
@@ -900,6 +905,8 @@ function izrisiZbirko() {
 
     li.appendChild(gumbiUganke(z.danosti, igre[z.danosti]));
 
+    zbirkaVrstice.set(z.danosti, li);
+    izrisiOceno(z.danosti, z);
     zbirkaSeznamEl.appendChild(li);
   }
 }
@@ -926,19 +933,22 @@ function zbirkaStatus(besedilo, napaka) {
 
 zbirkaBtn.addEventListener('click', () => {
   zbirkaStatus('');
+  ocenaPocisti();
   izrisiZbirko();
   odpriDialog(zbirkaDialog);
 });
 
 // Izvoz/uvoz: enako kot v reševalcu (logika v ../shared/zbirka.js).
-document.getElementById('zbirkaIzvoziBtn').addEventListener('click', () => {
+const zbirkaIzvoziBtn = document.getElementById('zbirkaIzvoziBtn');
+const zbirkaUvoziBtn = document.getElementById('zbirkaUvoziBtn');
+zbirkaIzvoziBtn.addEventListener('click', () => {
   const izvoz = zbirkaIzvozi();
   if (izvoz.besedilo) zbirkaPrenesi(izvoz.besedilo);
   zbirkaStatus(izvoz.sporocilo, izvoz.napaka);
 });
 
 const zbirkaDatotekaEl = document.getElementById('zbirkaDatoteka');
-document.getElementById('zbirkaUvoziBtn').addEventListener('click', () => zbirkaDatotekaEl.click());
+zbirkaUvoziBtn.addEventListener('click', () => zbirkaDatotekaEl.click());
 zbirkaDatotekaEl.addEventListener('change', () => {
   const datoteka = zbirkaDatotekaEl.files[0];
   zbirkaDatotekaEl.value = ''; // da gre ista datoteka lahko znova skozi "change"
@@ -951,6 +961,208 @@ zbirkaDatotekaEl.addEventListener('change', () => {
     osveziGumbZbirke();
     if (igra) izrisiStanje(); // uvoz lahko dopolni težavnost/opombo odprte uganke
   }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
+});
+
+/* ---------- ocena zbirke ---------- */
+
+// Gumb "Oceni zbirko": za vsako uganko v zbirki požene razvrstitev (oceniUganko v
+// ../shared/generator.js) in podatke reševanja. Ocenjevanje teče v ločeni niti
+// (oceni-worker.js; pri file:// v glavni niti po eno uganko na setTimeout) in v
+// zbirko samo po sebi NE piše: predlagane spremembe se sproti izpisujejo pri
+// ugankah v seznamu, zapiše jih šele gumb "Zapiši ocene".
+const oceniBtn = document.getElementById('oceniBtn');
+const oceniPrekiniBtn = document.getElementById('oceniPrekiniBtn');
+const ocenaGumbiEl = document.getElementById('ocenaGumbi');
+const oceniZapisiBtn = document.getElementById('oceniZapisiBtn');
+const oceniPreklicBtn = document.getElementById('oceniPreklicBtn');
+
+let ocenjevanje = null; // { danosti: [...], zapisi, i, worker } ali { ..., vGlavniNiti: true }
+const ocene = new Map(); // danosti -> { tezavnost, podatki } (nepotrjeni predlog)
+
+function stUgank(n) {
+  const r = n % 100;
+  const beseda = r === 1 ? 'uganka' : r === 2 ? 'uganki' : (r === 3 || r === 4) ? 'uganke' : 'ugank';
+  return `${n} ${beseda}`;
+}
+
+// Kaj bi se pri uganki spremenilo, če oceno zapišemo. Vrne besedilo za izpis ali
+// '' (zapis je že enak oceni).
+function ocenaSprememba(z, o) {
+  const deli = [];
+  if ((z.tezavnost || '') !== o.tezavnost) {
+    deli.push(`${z.tezavnost || 'brez težavnosti'} → ${o.tezavnost}`);
+  }
+  const nova = zbirkaOznakaTehnik({ tehnike: o.podatki.tehnike });
+  if (zbirkaOznakaTehnik(z) !== nova) deli.push(nova);
+  else if (z.reseno !== o.podatki.reseno || z.koraki !== o.podatki.koraki || z.ugibanje !== o.podatki.ugibanje) {
+    deli.push('podatki reševanja');
+  }
+  return deli.join(' · ');
+}
+
+function ocenaSprememb() {
+  let n = 0;
+  for (const z of zbirkaBeri()) {
+    const o = ocene.get(z.danosti);
+    if (o && ocenaSprememba(z, o)) n++;
+  }
+  return n;
+}
+
+// Vrstica z oceno pri uganki v seznamu (nad gumbom Igraj/Nadaljuj).
+function izrisiOceno(danosti, zapis) {
+  const li = zbirkaVrstice.get(danosti);
+  if (!li) return;
+  const staro = li.querySelector('.zb-ocena');
+  if (staro) staro.remove();
+  const o = ocene.get(danosti);
+  if (!o) return;
+  const z = zapis || zbirkaBeri().find(x => x.danosti === danosti);
+  if (!z) return;
+  const sprememba = ocenaSprememba(z, o);
+  const el = document.createElement('div');
+  el.className = 'zb-info zb-ocena' + (sprememba ? ' zb-ocena-nova' : '');
+  el.textContent = sprememba ? `ocena: ${sprememba}` : 'ocena: brez sprememb';
+  li.insertBefore(el, li.querySelector('.zb-gumbi'));
+}
+
+function osveziOcenoGumbe() {
+  const tece = !!ocenjevanje;
+  oceniBtn.disabled = tece;
+  oceniPrekiniBtn.hidden = !tece;
+  zbirkaIzvoziBtn.disabled = tece;
+  zbirkaUvoziBtn.disabled = tece;
+  const sprememb = tece ? 0 : ocenaSprememb();
+  ocenaGumbiEl.hidden = tece || !sprememb;
+  oceniZapisiBtn.textContent = `Zapiši ocene (${sprememb})`;
+}
+
+// Pozabi nepotrjeni predlog (zaprtje okna, preklic, zapis).
+function ocenaPocisti() {
+  ocene.clear();
+  osveziOcenoGumbe();
+}
+
+function izpisiOcenoNapredek() {
+  if (!ocenjevanje) return;
+  zbirkaStatus(`Ocenjujem … ${ocenjevanje.i} od ${ocenjevanje.danosti.length}.`);
+}
+
+// Sporočila delavca in ocenjevanja v glavni niti so enaka (glej oceni-worker.js).
+function obdelajOceno(m) {
+  if (!ocenjevanje) return;
+  if (m.tip === 'ocena') {
+    ocene.set(m.danosti, { tezavnost: m.tezavnost, podatki: m.podatki });
+    ocenjevanje.i = m.i + 1;
+    izrisiOceno(m.danosti, ocenjevanje.zapisi.get(m.danosti));
+    izpisiOcenoNapredek();
+    return;
+  }
+  const ocenjenih = ocene.size;
+  ustaviOcenjevanje();
+  if (m.tip === 'napaka') {
+    zbirkaStatus('Ocenjevanje ni uspelo: ' + (m.sporocilo || 'neznana napaka'), true);
+    return;
+  }
+  const sprememb = ocenaSprememb();
+  zbirkaStatus(sprememb
+    ? `Ocenjeno: ${stUgank(ocenjenih)}, predlaganih sprememb: ${sprememb}. Preglej jih v seznamu in potrdi.`
+    : `Ocenjeno: ${stUgank(ocenjenih)}. Vse ocene so že zapisane.`);
+}
+
+// Ustavi ocenjevanje (gumb Prekini, zaprtje okna, konec). Že prejete ocene ostanejo
+// v predlogu; z besedilom izpiše še sporočilo.
+function ustaviOcenjevanje(besedilo) {
+  if (!ocenjevanje) return;
+  if (ocenjevanje.worker) ocenjevanje.worker.terminate();
+  if (ocenjevanje.casovnik) clearTimeout(ocenjevanje.casovnik);
+  ocenjevanje = null;
+  osveziOcenoGumbe();
+  if (besedilo) zbirkaStatus(besedilo);
+}
+
+// Nadomestna pot za file://: ena uganka na setTimeout, da se stran vmes osveži.
+function ocenjevanjeVGlavniNiti() {
+  ocenjevanje.vGlavniNiti = true;
+  const korak = () => {
+    if (!ocenjevanje || !ocenjevanje.vGlavniNiti) return;
+    const i = ocenjevanje.i;
+    if (i >= ocenjevanje.danosti.length) return obdelajOceno({ tip: 'konec', ocenjenih: i });
+    const danosti = ocenjevanje.danosti[i];
+    try {
+      const o = oceniUganko(danosti);
+      obdelajOceno({ tip: 'ocena', i, danosti, tezavnost: o.tezavnost, podatki: zbirkaPodatkiResevanja(o.board, o.log) });
+    } catch (e) {
+      return obdelajOceno({ tip: 'napaka', sporocilo: e.message });
+    }
+    if (ocenjevanje) ocenjevanje.casovnik = setTimeout(korak, 0);
+  };
+  ocenjevanje.casovnik = setTimeout(korak, 0);
+}
+
+oceniBtn.addEventListener('click', () => {
+  if (ocenjevanje) return;
+  const zbirka = zbirkaBeri();
+  if (!zbirka.length) { zbirkaStatus('Zbirka je prazna - ni česa oceniti.'); return; }
+  ocene.clear();
+  ocenjevanje = {
+    danosti: zbirka.map(z => z.danosti),
+    zapisi: new Map(zbirka.map(z => [z.danosti, z])),
+    i: 0,
+  };
+  izrisiZbirko(); // pobriše ocene prejšnjega ocenjevanja iz seznama
+  osveziOcenoGumbe();
+  izpisiOcenoNapredek();
+  try {
+    const w = new Worker('oceni-worker.js');
+    w.onmessage = (e) => obdelajOceno(e.data);
+    w.onerror = () => {
+      // Delavec se ni naložil (npr. file://) - ocenjujemo v glavni niti.
+      if (!ocenjevanje) return;
+      w.terminate();
+      ocenjevanje.worker = null;
+      ocenjevanjeVGlavniNiti();
+    };
+    w.postMessage({ danosti: ocenjevanje.danosti });
+    ocenjevanje.worker = w;
+  } catch (e) {
+    ocenjevanjeVGlavniNiti();
+  }
+});
+
+oceniPrekiniBtn.addEventListener('click', () => {
+  const ocenjenih = ocene.size;
+  ustaviOcenjevanje();
+  const sprememb = ocenaSprememb();
+  zbirkaStatus(`Ocenjevanje prekinjeno po ${stUgank(ocenjenih)}.`
+    + (sprememb ? ` Predlaganih sprememb: ${sprememb}.` : ''));
+});
+
+// Zapis predloga v zbirko: samo uganke, pri katerih bi se kaj spremenilo; datum
+// dodajanja, datum zadnjega reševanja in opomba ostanejo nedotaknjeni.
+oceniZapisiBtn.addEventListener('click', () => {
+  const zbirka = zbirkaBeri();
+  let n = 0;
+  for (const z of zbirka) {
+    const o = ocene.get(z.danosti);
+    if (!o || !ocenaSprememba(z, o)) continue;
+    Object.assign(z, o.podatki, { tezavnost: o.tezavnost });
+    n++;
+  }
+  if (!zbirkaPisi(zbirka)) {
+    zbirkaStatus('Ocen ni bilo mogoče zapisati (brskalnik ne dovoli shranjevanja).', true);
+    return;
+  }
+  ocenaPocisti();
+  izrisiZbirko();
+  if (igra) izrisiStanje(); // kartica "Uganka" kaže težavnost in tehnike
+  zbirkaStatus(`Zapisano: ${stUgank(n)}.`);
+});
+
+oceniPreklicBtn.addEventListener('click', () => {
+  ocenaPocisti();
+  izrisiZbirko();
+  zbirkaStatus('Ocene zavržene, zbirka ostaja nespremenjena.');
 });
 
 /* ---------- nova uganka: ustvarjanje po stopnjah ---------- */
@@ -1025,7 +1237,7 @@ function obdelajIskanje(m) {
     const stopnja = stopnjaUganke(m.stopnja);
     ustaviIskanje();
     ustvariStatus('');
-    dodajVZbirko(m.danosti, stopnja.tezavnost);
+    dodajVZbirko(m.danosti, stopnja.ime);
     zapriDialog(novaDialog);
     zacniIgro(m.danosti);
     sporocilo = {

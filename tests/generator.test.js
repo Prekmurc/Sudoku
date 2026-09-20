@@ -8,10 +8,10 @@ const assert = require('node:assert/strict');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['shared/generator.js'],
+  files: ['shared/zbirka.js', 'shared/generator.js'],
   names: ['applyStep', 'STOPNJE_UGANK', 'stopnjaUganke', 'ustvariUganko', 'oceniStopnjo',
-    'genPot', 'genRazvrsti', 'genTehnikeSolve', 'GEN_ENOJCKI', 'GEN_PRESEKI', 'GEN_PARI',
-    'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE'],
+    'oceniUganko', 'genPot', 'genRazvrsti', 'genTehnikeSolve', 'GEN_ENOJCKI', 'GEN_PRESEKI',
+    'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'TEZAVNOSTI'],
 });
 
 // Semena, pri katerih generator da uganko te stopnje (preverjeno ob pisanju testa;
@@ -31,10 +31,14 @@ function stopnjeZa(danosti) {
   return m ? [...E.STOPNJE_UGANK].filter(s => s.ustreza(m)).map(s => s.kljuc) : null;
 }
 
-test('stopnje: ključi, težavnosti in opisi', () => {
+test('stopnje: ključi, imena in opisi', () => {
   assert.deepEqual([...E.STOPNJE_UGANK].map(s => s.kljuc), ['lahka', 'srednja', 'tezka', 'zelotezka']);
-  // Težavnost je vrednost iz TEZAVNOSTI v shared/zbirka.js (zapis v zbirki).
-  assert.deepEqual([...E.STOPNJE_UGANK].map(s => s.tezavnost), ['Začetnik', 'Srednje', 'Težko', 'Ekspert']);
+  // Ime stopnje je hkrati težavnost v zbirki: prve štiri vrednosti v TEZAVNOSTI
+  // (shared/zbirka.js), da se imeni ne moreta razdvojiti.
+  const imena = [...E.STOPNJE_UGANK].map(s => s.ime);
+  assert.deepEqual(imena, ['Lahka', 'Srednja', 'Težka', 'Zelo težka']);
+  assert.deepEqual([...E.TEZAVNOSTI].slice(0, 4), imena);
+  assert.ok([...E.TEZAVNOSTI].includes('Ekstrem'), 'Ekstrem ostane za uganke z ugibanjem');
   for (const s of E.STOPNJE_UGANK) {
     assert.ok(s.ime && s.opis, `stopnja ${s.kljuc} mora imeti ime in opis`);
     assert.equal(typeof s.ustreza, 'function', `stopnja ${s.kljuc} mora imeti merilo`);
@@ -107,6 +111,43 @@ test('stopnje pokrijejo vsako razvrščeno uganko iz docs/uganke.md', () => {
     assert.equal(s.length, 1, `${ime}: natanko ena stopnja, dobil [${s.join(', ')}]`);
   }
   assert.ok(razvrscenih >= 4, 'vsaj štiri uganke iz docs/uganke.md morajo biti razvrščene');
+});
+
+// oceniUganko(): razvrstitev že znane uganke brez ciljne stopnje (gumb "Oceni zbirko").
+test('oceniUganko(): težavnost je ime stopnje, ki uganki ustreza', () => {
+  for (const [kljuc, u] of Object.entries(uganke)) {
+    const o = E.oceniUganko(u.danosti);
+    assert.equal(o.stopnja.kljuc, kljuc, `${kljuc}: stopnja`);
+    assert.equal(o.tezavnost, E.stopnjaUganke(kljuc).ime, `${kljuc}: težavnost = ime stopnje`);
+    assert.ok([...E.TEZAVNOSTI].includes(o.tezavnost), `${kljuc}: težavnost je iz TEZAVNOSTI`);
+    assert.ok(o.board.isSolved() && o.log.length, `${kljuc}: vrne rezultat solve()`);
+  }
+});
+
+test('oceniUganko() na ugankah iz docs/uganke.md: stopnja ali Ekstrem', () => {
+  let ekstremov = 0;
+  for (const { ime, danosti } of loadPuzzles()) {
+    const o = E.oceniUganko(danosti);
+    const s = stopnjeZa(danosti);
+    if (s === null) {
+      // Brez ugibanja ni rešljiva (ali je genRazvrsti ne razvrsti) -> Ekstrem.
+      assert.equal(o.stopnja, null, `${ime}: brez stopnje`);
+      assert.equal(o.tezavnost, 'Ekstrem', `${ime}: težavnost`);
+      ekstremov++;
+      continue;
+    }
+    assert.equal(o.stopnja.kljuc, s[0], `${ime}: ista stopnja kot po merah`);
+    assert.equal(o.tezavnost, o.stopnja.ime, `${ime}: težavnost = ime stopnje`);
+  }
+  assert.ok(ekstremov >= 1, 'vsaj ena uganka iz docs/uganke.md zahteva ugibanje');
+});
+
+test('oceniUganko(): uganka, ki jo solve() reši le z ugibanjem, dobi Ekstrem', () => {
+  // Vgrajeni "Primer 1 (z ugibanjem)" iz shared/zbirka.js.
+  const danosti = '000800020900000600000000000604000900000720003500000000000056000080009000070000010';
+  const o = E.oceniUganko(danosti);
+  assert.equal(o.stopnja, null);
+  assert.equal(o.tezavnost, 'Ekstrem');
 });
 
 test('isto seme da vedno isto uganko', () => {

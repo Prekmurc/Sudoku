@@ -623,7 +623,7 @@ kbd{
 .namig{ font-size:12.5px; color: var(--pencil); line-height:1.5; margin:0 0 10px; }
 .dialog-status{ font-size:13px; color: var(--pencil); min-height:18px; margin:8px 0 0; line-height:1.5; }
 .dialog-status.err{ color: var(--red); }
-.dialog-gumbi{ display:flex; gap:10px; margin-top:12px; }
+.dialog-gumbi{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
 .dialog-gumbi .primary{ flex:1; }
 
 /* okno Pomoč (navodila): širši panel, razdelki, seznam tehnik */
@@ -680,6 +680,9 @@ kbd{
 .zb-info .v-teku{ color: var(--blue); }
 .zb-info .reseno{ color: var(--green); }
 .zb-tehnike{ color:#3C4854; }
+/* predlagana ocena (gumb "Oceni zbirko"), dokler ni zapisana */
+.zb-ocena{ margin-top:3px; }
+.zb-ocena-nova{ color: var(--blue); font-weight:600; }
 .zb-opomba{ font-size:13.5px; color:#3C4854; margin-top:6px; line-height:1.45; overflow-wrap:anywhere; }
 .zb-gumbi{ display:flex; gap:8px; margin-top:9px; }
 .zb-gumbi button{ font-size:12.5px; padding:7px 12px; }

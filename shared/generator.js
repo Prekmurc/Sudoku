@@ -33,27 +33,28 @@ const GEN_SREDNJE = [...GEN_ENOJCKI, ...GEN_PRESEKI, ...GEN_PARI, ...GEN_TROJICE
 const GEN_NAPREDNE = ALL_TECHNIQUES.map(([ime]) => ime).filter(ime => !GEN_SREDNJE.includes(ime));
 
 // Stopnje od najlažje k najtežji. `ustreza(mere)` je merilo nad merami iz
-// genRazvrsti(); `tezavnost` je vrednost iz TEZAVNOSTI v shared/zbirka.js (zapis v
-// zbirki). `najvecjaPrednost` pove, kdaj se iskanje najboljše uganke lahko ustavi
-// (glej prednost v oceniStopnjo).
+// genRazvrsti(). `ime` je hkrati težavnost v zbirki (prve štiri vrednosti v
+// TEZAVNOSTI v shared/zbirka.js), da se imeni stopnje in težavnosti ne moreta
+// razdvojiti. `najvecjaPrednost` pove, kdaj se iskanje najboljše uganke lahko
+// ustavi (glej prednost v oceniStopnjo).
 const STOPNJE_UGANK = [
   {
-    kljuc: 'lahka', ime: 'Lahka', tezavnost: 'Začetnik', najvecjaPrednost: 1,
+    kljuc: 'lahka', ime: 'Lahka', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina === 0,
     opis: 'reši se samo z enojčki, brez zapisanih kandidatov',
   },
   {
-    kljuc: 'srednja', ime: 'Srednja', tezavnost: 'Srednje', najvecjaPrednost: 1,
+    kljuc: 'srednja', ime: 'Srednja', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina >= 1 && m.skupina <= 3,
     opis: 'potrebuje očitno ali skrito paro, trojico ali presek (Pointing pair/triple, Box-line reduction)',
   },
   {
-    kljuc: 'tezka', ime: 'Težka', tezavnost: 'Težko', najvecjaPrednost: 1,
+    kljuc: 'tezka', ime: 'Težka', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina === 4 && m.napredne === 1 && m.tehNad <= 4,
     opis: 'potrebuje natanko eno napredno tehniko (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle)',
   },
   {
-    kljuc: 'zelotezka', ime: 'Zelo težka', tezavnost: 'Ekspert', najvecjaPrednost: 1,
+    kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina === 4 && (m.napredne >= 2 || m.tehNad >= 5),
     opis: 'potrebuje dve različni napredni tehniki ali pet različnih tehnik nad enojčki',
   },
@@ -132,11 +133,16 @@ function genPot(danosti, imena) {
   return b.isSolved() ? uporabljene : null;
 }
 
+// Je reševalec uganko rešil brez ugibanja? (Rezultat solve().)
+function genBrezUgibanja(board, log) {
+  return board.isSolved() && !log.some(k => k.technique.includes('protislovje'));
+}
+
 // Tehnike v dnevniku solve() z vsemi tehnikami: { ime: število } ali null, če uganke
 // ne reši ali pri tem ugiba.
 function genTehnikeSolve(danosti) {
   const { board, log } = solve(danosti);
-  if (!board.isSolved() || log.some(k => k.technique.includes('protislovje'))) return null;
+  if (!genBrezUgibanja(board, log)) return null;
   const t = {};
   for (const k of log) t[k.technique] = (t[k.technique] || 0) + 1;
   return t;
@@ -197,6 +203,20 @@ function oceniStopnjo(kljuc, danosti, moznosti = {}) {
   if (!tehnike) return { ustreza: false };
   const prednost = s.ustreza(genMereDnevnika(Object.keys(tehnike))) ? 1 : 0;
   return { ustreza: true, mere, tehnike, uporabljene: mere.uporabljene, prednost };
+}
+
+// Razvrstitev že znane uganke (gumb "Oceni zbirko" v igri): brez ciljne stopnje.
+// Vrne { stopnja, tezavnost, mere, board, log }, kjer je `stopnja` vnos iz
+// STOPNJE_UGANK ali null. Uganka, ki je reševalec ne reši brez ugibanja (ali je
+// genRazvrsti ne razvrsti), nima stopnje in dobi težavnost "Ekstrem". Težavnost je
+// ime stopnje, torej vrednost iz TEZAVNOSTI v shared/zbirka.js. Rezultat solve()
+// vrnemo, da ga klicatelj lahko uporabi (zbirkaPodatkiResevanja) brez drugega
+// reševanja.
+function oceniUganko(danosti) {
+  const { board, log } = solve(danosti);
+  const mere = genBrezUgibanja(board, log) ? genRazvrsti(danosti) : null;
+  const stopnja = mere ? (STOPNJE_UGANK.find(s => s.ustreza(mere)) || null) : null;
+  return { stopnja, tezavnost: stopnja ? stopnja.ime : 'Ekstrem', mere, board, log };
 }
 
 /* ---------- ustvarjanje ---------- */

@@ -9,8 +9,29 @@
    Naloži se za shared/engine.js (uporablja ALL_UNITS, ALL_TECHNIQUES, TRENING_TEHNIKE). */
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
-const TEZAVNOSTI = ['Začetnik', 'Preprosto', 'Srednje', 'Težko', 'Ekspert', 'Ekstrem', 'Drugo'];
+// Težavnosti: prve štiri so natanko stopnje generatorja (STOPNJE_UGANK v
+// shared/generator.js, polje `ime`), "Ekstrem" je uganka, ki zahteva ugibanje,
+// "Drugo" pa vrednost iz uvoza, ki je ne prepoznamo.
+const TEZAVNOSTI = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem', 'Drugo'];
 const PRIVZETA_TEZAVNOST = 'Ekstrem';
+// Imena težavnosti iz starejših zapisov (shramba tega brskalnika in stari izvozi).
+// Preslikajo se ob branju zbirke in ob uvozu; v shrambo se novo ime zapiše ob
+// prvem naslednjem shranjevanju.
+const STARE_TEZAVNOSTI = {
+  'Začetnik': 'Lahka',
+  'Preprosto': 'Lahka',
+  'Srednje': 'Srednja',
+  'Težko': 'Težka',
+  'Ekspert': 'Zelo težka',
+};
+
+// Težavnost v veljavnem zapisu: novo ime, staro ime preslikano, prazno ostane
+// prazno, karkoli drugega je 'Drugo'.
+function zbirkaTezavnost(v) {
+  if (zbirkaPrazno(v)) return '';
+  if (TEZAVNOSTI.includes(v)) return v;
+  return STARE_TEZAVNOSTI[v] || 'Drugo';
+}
 // Polja zapisa v stalnem vrstnem redu (tudi vrstni red pri uvozu/dopolnjevanju).
 const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'dodano', 'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
 
@@ -68,7 +89,10 @@ function zbirkaBrezKonfliktov(danosti) {
 function zbirkaBeri() {
   try {
     const a = JSON.parse(localStorage.getItem(ZBIRKA_KLJUC) || '[]');
-    return Array.isArray(a) ? a : [];
+    if (!Array.isArray(a)) return [];
+    // Stara imena težavnosti preslikamo ob branju (zapišejo se ob prvem shranjevanju).
+    for (const z of a) if (z && z.tezavnost) z.tezavnost = zbirkaTezavnost(z.tezavnost);
+    return a;
   } catch (e) {
     return [];
   }
@@ -192,8 +216,7 @@ function zbirkaPretvoriUvozeni(s) {
   const stevilo = v => (/^\d+$/.test(v || '') ? parseInt(v, 10) : null);
   const datum = v => (/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/.test(v || '') ? v : '');
 
-  let tezavnost = '';
-  if (s['težavnost']) tezavnost = TEZAVNOSTI.includes(s['težavnost']) ? s['težavnost'] : 'Drugo';
+  const tezavnost = zbirkaTezavnost(s['težavnost']);
 
   let reseno = null;
   const r = s['rešeno'] || '';
