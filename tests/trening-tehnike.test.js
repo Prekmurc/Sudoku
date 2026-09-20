@@ -12,11 +12,14 @@ const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['trening/generators.js', 'shared/zbirka.js'],
-  names: ['TRENING_TEHNIKE', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja'],
+  names: ['TRENING_TEHNIKE', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
+    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike'],
 });
 
-const kartice = [...fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8')
-  .matchAll(/class="menu-card" data-mode="([^"]+)"/g)].map(m => m[1]);
+const treningHtml = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+const kartice = [...treningHtml.matchAll(/class="menu-card" data-mode="([^"]+)"/g)].map(m => m[1]);
+// Naslov kartice v meniju: data-mode -> besedilo <h3>.
+const naslovi = new Map([...treningHtml.matchAll(/data-mode="([^"]+)"[\s\S]*?<h3>([^<]+)<\/h3>/g)].map(m => [m[1], m[2]]));
 const nacini = E.TRENING_TEHNIKE.map(([m]) => m);
 const imena = E.TRENING_TEHNIKE.map(([, t]) => t);
 const ENOJCKA = ['Gol enojček', 'Skriti enojček'];
@@ -59,5 +62,36 @@ test('zbirkaOznakaTehnik() na ugankah iz docs/uganke.md: vsaka uporabljena tehni
     assert.match(o, /^tehnike: (samo enojčki|\d+(, \d+)*)( \+ poskus( ×\d+)?)?$/, `${p.ime}: ${o}`);
     const poskus = z.tehnike.some(([t]) => t.includes('protislovje'));
     assert.equal(o.includes('+ poskus'), poskus, `${p.ime}: ${o}`);
+  }
+});
+
+/* ---------- opisi tehnik (TEHNIKE_OPISI v shared/engine.js) ---------- */
+
+test('TEHNIKE_OPISI: vsaka tehnika iz treninga ima ime in razlago, besedili za vajo in za pomoč nista prazni', () => {
+  assert.deepEqual(Object.keys(E.TEHNIKE_OPISI).sort(), [...nacini].sort());
+  for (const kljuc of nacini) {
+    const o = E.TEHNIKE_OPISI[kljuc];
+    assert.ok(o.ime && o.razlaga, `${kljuc}: ime in razlaga`);
+    assert.equal(o.razlaga.trim(), o.razlaga, `${kljuc}: razlaga brez odvečnih presledkov`);
+    assert.ok(E.opisVaje(kljuc).startsWith(o.razlaga), `${kljuc}: besedilo vaje se začne z razlago`);
+    assert.ok(E.opisTehnike(kljuc).startsWith(o.razlaga), `${kljuc}: besedilo pomoči se začne z razlago`);
+    // V oknu Pomoč mora razlaga povedati tudi, kaj iz vzorca sledi (izbris ali vpis).
+    assert.match(E.opisTehnike(kljuc), /izbriš|izbrišemo/, `${kljuc}: pomoč pove, kaj se izbriše`);
+  }
+});
+
+test('TEHNIKE_OPISI: ime je enako naslovu kartice v trening/index.html, MODES.desc je opisVaje()', () => {
+  for (const kljuc of nacini) {
+    assert.equal(E.TEHNIKE_OPISI[kljuc].ime, naslovi.get(kljuc), `${kljuc}: naslov kartice`);
+    assert.equal(E.MODES[kljuc].desc, E.opisVaje(kljuc), `${kljuc}: MODES.desc`);
+  }
+});
+
+test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
+  for (const kljuc of nacini) {
+    const o = E.TEHNIKE_OPISI[kljuc];
+    for (const [polje, t] of Object.entries(o)) {
+      assert.doesNotMatch(t, /številk/i, `${kljuc}.${polje}`);
+    }
   }
 });

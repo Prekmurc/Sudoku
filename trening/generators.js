@@ -929,29 +929,23 @@ function addLabels(slots,ut,ui){
 }
 function unitLbl(ut,ui){return ut==='row'?`Vrstica ${ui}`:ut==='col'?`Stolpec ${ui}`:`Blok ${ui}`;}
 
+/* MODES: definicija tehnike za trening (generator, barve, št. celic za izbiro,
+   posebnosti UI). Besedilo vaje (desc) in polno ime (ime) bere iz TEHNIKE_OPISI v
+   shared/engine.js - tam so opisi tehnik na enem mestu, skupaj z okni Pomoč v igri. */
 const MODES={
-  'pointing':{gen:genPointing,name:'Pointing pair/triple',selClass:'selected-blue',hlClass:'hl-blue',btnClass:'pri-blue',isPointing:true,pickN:3,showCandidateCount:true,
-    desc:'Pogledaš blok. Če je kandidat v njem mogoč samo v celicah ene vrstice (ali stolpca), ga izbrišeš iz preostanka te vrstice zunaj bloka. Smer: iz bloka v vrstico.'},
-  'box-line':{gen:genBoxLineReduction,name:'Box-line reduction',selClass:'selected-indigo',hlClass:'hl-indigo',btnClass:'pri-indigo',isBoxLine:true,pickN:3,showCandidateCount:true,
-    desc:'Pogledaš vrstico (ali stolpec). Če je kandidat v njej mogoč samo v celicah enega bloka, ga izbrišeš iz preostanka tega bloka zunaj vrstice. Smer: iz vrstice v blok.'},
-  'naked-pair':{gen:genNakedPair,name:'Očitna para',selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,showCandidateCount:true,
-    desc:'Najdi 2 celici z natanko istima dvema kandidatoma.'},
-  'hidden-pair':{gen:genHiddenPair,name:'Skrita para',selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,showCandidateCount:true,
-    desc:'Najdi 2 celici, ki skrivata par – nato izberi kateri 2 številki tvorita par.'},
-  'naked-triple':{gen:genNakedTriple,name:'Očitna trojica',selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,showCandidateCount:true,
-    desc:'Najdi 3 celice, ki skupaj pokrijejo natanko 3 kandidate.'},
-  'hidden-triple':{gen:genHiddenTriple,name:'Skrita trojica',selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,showCandidateCount:true,
-    desc:'Najdi 3 celice, ki skrivajo trojico – nato izberi katere 3 številke jo tvorijo.'},
-  'x-wing':{gen:genXWing,name:'X-Wing',selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,showCandidateCount:false,
-    desc:'Najdi pravokotnik 4 celic za označeno številko.'},
-  'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false,
-    desc:'Najdi 3 vrstice (ali stolpce), kjer se številka pojavi samo na istih 3 stolpcih (ali vrsticah).'},
-  'turbot-fish':{gen:genTurbotFish,name:'Turbot Fish',selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false,
-    desc:'Za označeno številko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta številka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Skyscraper, vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama. Izberi vse štiri celice vzorca.'},
-  'w-wing':{gen:genWWing,name:'W-Wing',selClass:'selected-olive',hlClass:'hl-olive',btnClass:'pri-olive',isWWing:true,pickN:4,showCandidateCount:true,
-    desc:'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).'},
-  'xy-wing':{gen:genXYWing,name:'XY-Wing',selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true,
-    desc:'Med prikazanimi celicami poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno številko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok). Izberi pivota in obe krili (3 celice).'},
-  'unique-rectangle':{gen:genUniqueRectangle,name:'Unique Rectangle',selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true,
-    desc:'Poišči pravokotnik štirih celic (2 vrstici × 2 stolpca, v natanko dveh blokih): trije vogali imajo natanko isti par kandidatov {x, y}, četrti pa poleg x in y še vsaj en dodaten kandidat. Ker ima uganka natanko eno rešitev, četrti vogal ne sme ostati samo na {x, y} (to bi dopuščalo dve rešitvi) – iz njega zato izbrišemo x in y. Izberi vse štiri celice pravokotnika.'},
+  'pointing':{gen:genPointing,name:'Pointing pair/triple',selClass:'selected-blue',hlClass:'hl-blue',btnClass:'pri-blue',isPointing:true,pickN:3,showCandidateCount:true},
+  'box-line':{gen:genBoxLineReduction,name:'Box-line reduction',selClass:'selected-indigo',hlClass:'hl-indigo',btnClass:'pri-indigo',isBoxLine:true,pickN:3,showCandidateCount:true},
+  'naked-pair':{gen:genNakedPair,name:'Očitna para',selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,showCandidateCount:true},
+  'hidden-pair':{gen:genHiddenPair,name:'Skrita para',selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,showCandidateCount:true},
+  'naked-triple':{gen:genNakedTriple,name:'Očitna trojica',selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,showCandidateCount:true},
+  'hidden-triple':{gen:genHiddenTriple,name:'Skrita trojica',selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,showCandidateCount:true},
+  'x-wing':{gen:genXWing,name:'X-Wing',selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,showCandidateCount:false},
+  'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false},
+  'turbot-fish':{gen:genTurbotFish,name:'Turbot Fish',selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false},
+  'w-wing':{gen:genWWing,name:'W-Wing',selClass:'selected-olive',hlClass:'hl-olive',btnClass:'pri-olive',isWWing:true,pickN:4,showCandidateCount:true},
+  'xy-wing':{gen:genXYWing,name:'XY-Wing',selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true},
+  'unique-rectangle':{gen:genUniqueRectangle,name:'Unique Rectangle',selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true},
 };
+// Besedilo vaje (razlaga tehnike + navodilo za vajo) je v TEHNIKE_OPISI v
+// shared/engine.js; X-Wing in Swordfish ga zamenjata s svojim (z označeno števko).
+for(const k of Object.keys(MODES)) MODES[k].desc=opisVaje(k);

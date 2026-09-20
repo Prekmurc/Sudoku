@@ -773,6 +773,27 @@ document.querySelectorAll('.dialog').forEach(el => {
   });
 });
 
+/* ---------- navodila (okno Pomoč) ---------- */
+
+const navodilaDialog = document.getElementById('navodilaDialog');
+// Razdelek "Tehnike": številke, imena in razlage so v shared/engine.js
+// (TRENING_TEHNIKE + TEHNIKE_OPISI), zato so iste kot v treningu. Vrstni red
+// seznama <ol> da številke 1..12.
+const tehnikeSeznamEl = document.getElementById('tehnikeSeznam');
+for (const [kljuc] of TRENING_TEHNIKE) {
+  const li = document.createElement('li');
+  const ime = document.createElement('b');
+  ime.textContent = TEHNIKE_OPISI[kljuc].ime;
+  const razlaga = document.createElement('p');
+  razlaga.textContent = opisTehnike(kljuc);
+  li.append(ime, razlaga);
+  tehnikeSeznamEl.appendChild(li);
+}
+
+for (const el of [document.getElementById('navodilaBtn'), document.getElementById('navodilaKarticaBtn')]) {
+  el.addEventListener('click', () => odpriDialog(navodilaDialog));
+}
+
 /* ---------- zbirka ---------- */
 
 const zbirkaDialog = document.getElementById('zbirkaDialog');

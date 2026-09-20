@@ -611,6 +611,28 @@ kbd{
 .dialog-gumbi{ display:flex; gap:10px; margin-top:12px; }
 .dialog-gumbi .primary{ flex:1; }
 
+/* okno Pomoč (navodila): širši panel, razdelki, seznam tehnik */
+.dialog-navodila{ max-width:660px; }
+.navodila-razdelek{
+  font-family:'Source Serif 4', serif;
+  font-size:16px;
+  margin:18px 0 8px;
+  padding-top:12px;
+  border-top:1px solid var(--line);
+}
+.dialog-navodila p, .dialog-navodila li{ font-size:13px; color:#3C4854; line-height:1.6; }
+.dialog-navodila p{ margin:0 0 9px; }
+.navodila-stopnje, .tehnike{ margin:0 0 9px; padding-left:22px; }
+.navodila-stopnje li{ margin-bottom:4px; }
+.tehnike li{ margin-bottom:12px; }
+.tehnike li::marker{ font-family:'JetBrains Mono', monospace; font-weight:700; color: var(--blue); }
+.tehnike b{ font-family:'Source Serif 4', serif; font-size:14px; color: var(--ink); }
+.tehnike p{ margin:2px 0 0; }
+/* barve korakov v razlagi (kot na mreži) */
+.vzorec-vzorec{ background: var(--amber-bg); color: var(--amber); padding:0 3px; border-radius:3px; }
+.vzorec-izbris{ background: var(--red-bg); color: var(--red); padding:0 3px; border-radius:3px; text-decoration: line-through; }
+.vzorec-vpis{ background: var(--green-bg); color: var(--green); padding:0 3px; border-radius:3px; }
+
 /* razdelka v oknu Zbirka ugank: Vgrajeni primeri, Tvoja zbirka */
 .zbirka-razdelek{
   font-family:'JetBrains Mono', monospace;

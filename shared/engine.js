@@ -605,6 +605,99 @@ const TRENING_TEHNIKE = [
   ['unique-rectangle', 'Unique Rectangle'],
 ];
 
+// Opisi tehnik - edini vir teh besedil (trening in okno "Pomoč" v igri):
+// - ime: polno ime, enako naslovu kartice v trening/index.html,
+// - razlaga: kaj tehnika pove (uporabljata jo oba),
+// - navodilo: kaj naredi v vaji (samo trening),
+// - posledica: kaj iz vzorca sledi (samo igra, kjer je razlaga sama prekratka).
+// MODES.desc v trening/generators.js je opisVaje(), okno Pomoč izpiše opisTehnike().
+// Izraz je povsod "števka" (glej razpredelnico izrazov v CLAUDE.md).
+const TEHNIKE_OPISI = {
+  'naked-pair': {
+    ime: 'Očitna para (Naked Pair)',
+    razlaga: 'Najdi 2 celici z natanko istima dvema kandidatoma.',
+    navodilo: '',
+    posledica: 'Ti dve števki morata zasesti prav ti dve celici, zato ju izbrišeš iz vseh drugih celic skupne enote (vrstice, stolpca ali bloka).',
+  },
+  'hidden-pair': {
+    ime: 'Skrita para (Hidden Pair)',
+    razlaga: 'Najdi 2 celici, ki skrivata par.',
+    navodilo: 'Nato izberi, kateri 2 števki tvorita par.',
+    posledica: 'Par sta dve števki, ki sta v enoti mogoči samo v teh dveh celicah; ker morata biti v njiju, iz obeh celic izbrišeš vse druge kandidate.',
+  },
+  'pointing': {
+    ime: 'Pointing pair/triple',
+    razlaga: 'Pogledaš blok. Če je kandidat v njem mogoč samo v celicah ene vrstice (ali stolpca), ga izbrišeš iz preostanka te vrstice zunaj bloka. Smer: iz bloka v vrstico.',
+    navodilo: '',
+    posledica: '',
+  },
+  'box-line': {
+    ime: 'Box-line reduction',
+    razlaga: 'Pogledaš vrstico (ali stolpec). Če je kandidat v njej mogoč samo v celicah enega bloka, ga izbrišeš iz preostanka tega bloka zunaj vrstice. Smer: iz vrstice v blok.',
+    navodilo: '',
+    posledica: '',
+  },
+  'naked-triple': {
+    ime: 'Očitna trojica (Naked Triple)',
+    razlaga: 'Najdi 3 celice, ki skupaj pokrijejo natanko 3 kandidate.',
+    navodilo: '',
+    posledica: 'Te tri števke zasedejo prav te tri celice, zato jih izbrišeš iz vseh drugih celic skupne enote. Posamezna celica ima lahko tudi samo dva od teh treh kandidatov.',
+  },
+  'hidden-triple': {
+    ime: 'Skrita trojica (Hidden Triple)',
+    razlaga: 'Najdi 3 celice, ki skrivajo trojico.',
+    navodilo: 'Nato izberi, katere 3 števke jo tvorijo.',
+    posledica: 'Trojica so tri števke, ki so v enoti mogoče samo v teh treh celicah; iz njih izbrišeš vse druge kandidate, vsaka od celic pa ima lahko tudi samo dve od teh treh števk.',
+  },
+  'x-wing': {
+    ime: 'X-Wing',
+    razlaga: 'Najdi pravokotnik – 4 celice, kjer se števka v dveh vrsticah pojavi na istih dveh mestih (ali v dveh stolpcih v istih dveh vrsticah).',
+    navodilo: '',
+    posledica: 'V vsaki od obeh vrstic je števka v enem od teh dveh stolpcev, zato jo iz teh dveh stolpcev izbrišeš v vseh drugih celicah.',
+  },
+  'swordfish': {
+    ime: 'Tehnika mečarice (Swordfish)',
+    razlaga: 'Najdi 3 vrstice (ali stolpce), kjer se števka pojavi samo na istih 3 stolpcih (ali vrsticah).',
+    navodilo: '',
+    posledica: 'Števka zasede po eno celico v vsaki od teh vrstic, vse v teh treh stolpcih, zato jo iz stolpcev izbrišeš v vseh drugih celicah. Vrstica ima lahko tudi samo dve od treh mest.',
+  },
+  'turbot-fish': {
+    ime: 'Turbot Fish (Skyscraper, Zmaj z dvema vrvicama)',
+    razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Skyscraper, vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama.',
+    navodilo: 'V vaji je števka označena; izberi vse štiri celice vzorca.',
+    posledica: '',
+  },
+  'w-wing': {
+    ime: 'W-Wing (Krilo W)',
+    razlaga: 'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.',
+    navodilo: 'Izberi obe celici para in obe celici povezave (4 celice).',
+    posledica: '',
+  },
+  'xy-wing': {
+    ime: 'XY-Wing',
+    razlaga: 'Poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno števko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok).',
+    navodilo: 'Med prikazanimi celicami izberi pivota in obe krili (3 celice).',
+    posledica: 'Če je v pivotu x, je z v krilu 2, če je y, je z v krilu 1 – z zato izbrišeš iz vseh celic, ki vidijo obe krili.',
+  },
+  'unique-rectangle': {
+    ime: 'Unique Rectangle',
+    razlaga: 'Poišči pravokotnik štirih celic (2 vrstici × 2 stolpca, v natanko dveh blokih): trije vogali imajo natanko isti par kandidatov {x, y}, četrti pa poleg x in y še vsaj en dodaten kandidat. Ker ima uganka natanko eno rešitev, četrti vogal ne sme ostati samo na {x, y} (to bi dopuščalo dve rešitvi) – iz njega zato izbrišemo x in y.',
+    navodilo: 'Izberi vse štiri celice pravokotnika.',
+    posledica: '',
+  },
+};
+
+// Besedilo za vajo v treningu (razlaga + navodilo) in za okno Pomoč v igri
+// (razlaga + posledica).
+function opisVaje(kljuc) {
+  const o = TEHNIKE_OPISI[kljuc];
+  return [o.razlaga, o.navodilo].filter(Boolean).join(' ');
+}
+function opisTehnike(kljuc) {
+  const o = TEHNIKE_OPISI[kljuc];
+  return [o.razlaga, o.posledica].filter(Boolean).join(' ');
+}
+
 // Skupina tehnike za barvo oznake v prikazu koraka (CSS razredi .tag.t-* v
 // app/app.css in igra/igra.css). Nova tehnika v ALL_TECHNIQUES naj dobi
 // skupino tudi tu.
