@@ -483,8 +483,9 @@ function opisUganke(danosti) {
   const z = zbirkaBeri().find(x => x.danosti === danosti);
   const primer = primeriIgre.find(p => p.danosti === danosti);
   if (!z) return primer ? `Vgrajeni primer »${primer.ime}«. Danih števk: ${danih}.` : `Danih števk: ${danih}. Uganke ni v zbirki.`;
-  const deli = [z.tezavnost || 'težavnost ni določena', `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`,
-    zbirkaOznakaTehnik(z)];
+  const deli = [z.tezavnost || 'težavnost ni določena', zbirkaOpisIzvora(z),
+    `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`,
+    zbirkaOznakaTehnik(z)].filter(Boolean);
   return deli.join(' · ') + (z.opomba ? ` — ${z.opomba}` : '');
 }
 
@@ -885,7 +886,8 @@ function izrisiZbirko() {
 
     const vrstica = document.createElement('div');
     vrstica.className = 'zb-vrstica';
-    vrstica.textContent = `${zbirkaPrikazDatuma(z.nazadnje || z.dodano)} · ${tezavnost}`;
+    vrstica.textContent = [zbirkaPrikazDatuma(z.nazadnje || z.dodano), tezavnost, zbirkaOpisIzvora(z)]
+      .filter(Boolean).join(' · ');
     li.appendChild(vrstica);
 
     li.appendChild(infoUganke(z.danosti, igre[z.danosti], trenutna));
@@ -1261,7 +1263,7 @@ function obdelajIskanje(m) {
     const stopnja = stopnjaUganke(m.stopnja);
     ustaviIskanje();
     ustvariStatus('');
-    dodajVZbirko(m.danosti, stopnja.ime);
+    dodajVZbirko(m.danosti, stopnja.ime, 'generator');
     zapriDialog(novaDialog);
     zacniIgro(m.danosti);
     sporocilo = {
@@ -1341,16 +1343,12 @@ prekiniBtn.addEventListener('click', () => {
 });
 
 // Uganko doda v zbirko (enako kot "Reši" v reševalcu); obstoječega zapisa ne
-// spreminjamo. Ustvarjena uganka dobi težavnost svoje stopnje namesto privzete.
-function dodajVZbirko(danosti, tezavnost) {
+// spreminjamo. Ustvarjena uganka dobi težavnost svoje stopnje namesto privzete,
+// izvor pa pove, ali jo je ustvaril generator ali si jo vnesel sam.
+function dodajVZbirko(danosti, tezavnost, izvor) {
   if (zbirkaBeri().some(z => z.danosti === danosti)) return;
   const { board, log } = solve(danosti);
-  zbirkaShraniResitev(danosti, board, log);
-  if (tezavnost) {
-    const zbirka = zbirkaBeri();
-    const zapis = zbirka.find(z => z.danosti === danosti);
-    if (zapis) { zapis.tezavnost = tezavnost; zbirkaPisi(zbirka); }
-  }
+  zbirkaShraniResitev(danosti, board, log, { tezavnost, izvor });
   osveziGumbZbirke();
 }
 
@@ -1451,7 +1449,7 @@ novaZacniBtn.addEventListener('click', () => {
           : 'Uganka ima več kot eno rešitev - za igro potrebujem uganko z natanko eno rešitvijo.', true);
         return;
       }
-      dodajVZbirko(danosti);
+      dodajVZbirko(danosti, '', 'rocno');
       zapriDialog(novaDialog);
       zacniIgro(danosti);
     } catch (e) {

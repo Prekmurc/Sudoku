@@ -33,7 +33,27 @@ function zbirkaTezavnost(v) {
   return STARE_TEZAVNOSTI[v] || 'Drugo';
 }
 // Polja zapisa v stalnem vrstnem redu (tudi vrstni red pri uvozu/dopolnjevanju).
-const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'dodano', 'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
+const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'izvor', 'dodano', 'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
+
+// Od kod je uganka v zbirki: 'generator' (ustvaril jo je generator v igri),
+// 'rocno' (vnesel jo je uporabnik - vnos v igri ali reševanje v reševalcu),
+// '' (starejši zapisi, ki podatka nimajo). Izvor se zapiše samo ob NASTANKU
+// zapisa in se pozneje ne spreminja. V izvozu je ključ "Izvor" z besedilom
+// spodaj - "Vir" je v docs/uganke.md že zaseden za prosto besedilo o poreklu.
+const ZBIRKA_IZVORI = { generator: 'ustvaril generator', rocno: 'ročni vnos' };
+
+// Shranjena vrednost izvora iz zapisa ali iz uvoženega besedila; neznano -> ''.
+function zbirkaIzvor(v) {
+  if (zbirkaPrazno(v)) return '';
+  if (ZBIRKA_IZVORI[v]) return v;
+  const kljuc = Object.keys(ZBIRKA_IZVORI).find(k => ZBIRKA_IZVORI[k] === String(v).trim());
+  return kljuc || '';
+}
+
+// Besedilo izvora za prikaz in izvoz ('' pri zapisu brez podatka).
+function zbirkaOpisIzvora(z) {
+  return (z && ZBIRKA_IZVORI[z.izvor]) || '';
+}
 
 // Vgrajeni primeri (reševalec: spustni seznam "Primer", igra: razdelek "Vgrajeni
 // primeri" v oknu Zbirka ugank). Nov primer = nova vrstica tu. Danosti morajo biti
@@ -123,10 +143,12 @@ function zbirkaPodatkiResevanja(board, log) {
   };
 }
 
-// Nova uganka dobi privzeto težavnost; pri že shranjeni se posodobijo samo
-// datum zadnjega reševanja in izračunani podatki (težavnost/opomba ostaneta).
-// Vrne shranjeni zapis ali null, če brskalnik ne dovoli shranjevanja.
-function zbirkaShraniResitev(givens, board, log) {
+// Nova uganka dobi privzeto težavnost in izvor iz `dodatno` ({ tezavnost, izvor });
+// pri že shranjeni se posodobijo samo datum zadnjega reševanja in izračunani podatki
+// (težavnost, izvor in opomba ostanejo - izvor pove, kako je uganka nastala, ne kdaj
+// je bila nazadnje rešena). Vrne shranjeni zapis ali null, če brskalnik ne dovoli
+// shranjevanja.
+function zbirkaShraniResitev(givens, board, log, dodatno = {}) {
   const zbirka = zbirkaBeri();
   const cas = zbirkaZdaj();
   const podatki = zbirkaPodatkiResevanja(board, log);
@@ -135,7 +157,12 @@ function zbirkaShraniResitev(givens, board, log) {
     Object.assign(zapis, podatki, { nazadnje: cas });
     if (!zapis.tezavnost) zapis.tezavnost = PRIVZETA_TEZAVNOST;
   } else {
-    zapis = { danosti: givens, tezavnost: PRIVZETA_TEZAVNOST, dodano: cas, nazadnje: cas, ...podatki, opomba: '' };
+    zapis = {
+      danosti: givens,
+      tezavnost: dodatno.tezavnost || PRIVZETA_TEZAVNOST,
+      izvor: zbirkaIzvor(dodatno.izvor),
+      dodano: cas, nazadnje: cas, ...podatki, opomba: '',
+    };
     zbirka.push(zapis);
   }
   return zbirkaPisi(zbirka) ? zapis : null;
@@ -160,6 +187,7 @@ function zbirkaVMarkdown(zbirka) {
     vrstice.push('', `### ${[z.dodano, z.tezavnost].filter(Boolean).join(' · ') || 'uganka'}`, '');
     vrstice.push(`- **Danosti:** \`${z.danosti.replace(/0/g, '.')}\``);
     if (z.tezavnost) vrstice.push(`- **Težavnost:** ${z.tezavnost}`);
+    if (zbirkaOpisIzvora(z)) vrstice.push(`- **Izvor:** ${zbirkaOpisIzvora(z)}`);
     if (z.dodano) vrstice.push(`- **Dodano:** ${z.dodano}`);
     if (z.nazadnje) vrstice.push(`- **Nazadnje rešeno:** ${z.nazadnje}`);
     if (!zbirkaPrazno(z.reseno)) {
@@ -217,6 +245,7 @@ function zbirkaPretvoriUvozeni(s) {
   const datum = v => (/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/.test(v || '') ? v : '');
 
   const tezavnost = zbirkaTezavnost(s['težavnost']);
+  const izvor = zbirkaIzvor(s.izvor);
 
   let reseno = null;
   const r = s['rešeno'] || '';
@@ -234,6 +263,7 @@ function zbirkaPretvoriUvozeni(s) {
   return {
     danosti,
     tezavnost,
+    izvor,
     dodano: datum(s.dodano),
     nazadnje: datum(s['nazadnje rešeno']),
     reseno,

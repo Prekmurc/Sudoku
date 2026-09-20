@@ -44,7 +44,9 @@ function zbirkaOsveziVrstico() {
 // rešitvijo - tudi če je solve() ne reši do konca.
 function zbirkaPoResevanju(givens, board, log, solutionCount) {
   if (solutionCount !== 1) { zbirkaSkrijVrstico(); return; }
-  const zapis = zbirkaShraniResitev(givens, board, log);
+  // Uganka, ki jo rešuješ v reševalcu, je vnesena ročno (naložena iz zbirke ima
+  // zapis že od prej in izvora ne spremeni).
+  const zapis = zbirkaShraniResitev(givens, board, log, { izvor: 'rocno' });
   saveRowEl.style.display = 'block';
   if (!zapis) {
     zbirkaTrenutne = null;
@@ -99,7 +101,7 @@ function zbirkaIzrisiSeznam() {
 
     const glava = document.createElement('div');
     glava.className = 'lib-line';
-    glava.textContent = `${datum} · ${tezavnost}`;
+    glava.textContent = [datum, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
     glava.title = `Dodano: ${z.dodano || '—'} · Nazadnje rešeno: ${z.nazadnje || '—'}`;
     li.appendChild(glava);
 

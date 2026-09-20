@@ -13,12 +13,14 @@ const NAMES = [
 
 // extra.files: dodatne skripte (pot od korena projekta, npr. 'trening/generators.js'),
 // naložene za motorjem v isti kontekst - kot zaporedni <script> v brskalniku (delijo si
-// globalne const/let). extra.names: dodatna imena, ki jih vrne.
+// globalne const/let). extra.names: dodatna imena, ki jih vrne. extra.globals: globalne
+// vrednosti, ki jih kontekst dobi pred nalaganjem (npr. nadomestni localStorage za
+// shared/zbirka.js).
 function loadEngine(code, extra = {}) {
   if (code === undefined) {
     code = fs.readFileSync(path.join(__dirname, '..', 'shared', 'engine.js'), 'utf8');
   }
-  const ctx = vm.createContext({});
+  const ctx = vm.createContext({ ...(extra.globals || {}) });
   vm.runInContext(code, ctx);
   for (const f of extra.files || []) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), ctx, { filename: f });
