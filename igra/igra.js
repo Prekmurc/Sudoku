@@ -34,8 +34,8 @@ let izbrane = [];
 let vecCelic = false;
 let zadnjaIzbrana = null; // celica, iz katere je bila izbira izklopljena po vpisu
 // Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
-// modra, zelena, rumena, oranžna (--poud, --poud2 ... v igra.css). Brez kljukice
-// "več hkrati" je poudarjena kvečjemu ena števka (modra).
+// rumena, zelena, oranžna, modra (--poud, --poud2 ... v igra.css). Brez kljukice
+// "več hkrati" je poudarjena kvečjemu ena števka (rumena).
 let poudarjene = [];
 let vecHkrati = false;
 const BARV_POUDARKA = 4;
@@ -1232,14 +1232,23 @@ document.getElementById('novaBtn').addEventListener('click', () => {
   novaNizEl.focus();
 });
 
-/* ---------- barva poudarka (za nastavljanje) ---------- */
+/* ---------- barve poudarka (za nastavljanje) ---------- */
 
-// Preizkus barve poudarka (--poud): vnos hex vrednosti ali izbirnik barv,
-// velja takoj, zapomni si jo brskalnik. Privzeta barva je v igra.css.
+// Preizkus vseh štirih barv poudarka (--poud, --poud2, --poud3, --poud4): najprej
+// gumb 1-4 (katero barvo nastavljam), nato izbirnik barv ali hex vnos. Velja takoj
+// in si ga zapomni brskalnik (sudoku.igra.poud: { "1": "#RRGGBB", ... }, samo
+// spremenjene). "Privzeto" vrne vse štiri na vrednosti iz igra.css.
 const POUD_KLJUC = 'sudoku.igra.poud';
+const POUD_SPREMENLJIVKE = ['--poud', '--poud2', '--poud3', '--poud4'];
+const poudGumbiEl = document.getElementById('poudGumbi');
 const poudBarvaEl = document.getElementById('poudBarva');
 const poudHexEl = document.getElementById('poudHex');
-const privzetaPoud = getComputedStyle(document.documentElement).getPropertyValue('--poud').trim().toUpperCase();
+const privzetePoud = POUD_SPREMENLJIVKE.map(
+  v => getComputedStyle(document.documentElement).getPropertyValue(v).trim().toUpperCase());
+// Nastavljene barve po mestih (null = privzeta iz igra.css) in mesto, ki ga
+// trenutno nastavljam.
+const poudBarve = POUD_SPREMENLJIVKE.map(() => null);
+let poudMesto = 0;
 
 // '#abc', 'abc', '#aabbcc' ali 'aabbcc' -> '#AABBCC'; drugače null.
 function normalizirajHex(v) {
@@ -1249,44 +1258,99 @@ function normalizirajHex(v) {
   return '#' + h.toUpperCase();
 }
 
-// barva = null -> privzeta iz igra.css.
-function nastaviPoud(barva, shrani) {
-  if (barva) document.documentElement.style.setProperty('--poud', barva);
-  else document.documentElement.style.removeProperty('--poud');
-  const trenutna = barva || privzetaPoud;
+const poudGumbi = POUD_SPREMENLJIVKE.map((_, i) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'poud-gumb';
+  b.textContent = i + 1;
+  b.title = `Nastavi ${i + 1}. barvo poudarka`;
+  b.addEventListener('click', () => {
+    poudMesto = i;
+    osveziPoudVnose();
+  });
+  poudGumbiEl.appendChild(b);
+  return b;
+});
+
+function barvaMesta(i) {
+  return poudBarve[i] || privzetePoud[i];
+}
+
+// Gumbi 1-4 kažejo trenutne barve, vnosa pa barvo izbranega mesta.
+function osveziPoudVnose() {
+  poudGumbi.forEach((b, i) => {
+    b.style.background = barvaMesta(i);
+    b.classList.toggle('izbran', i === poudMesto);
+    b.setAttribute('aria-pressed', String(i === poudMesto));
+  });
+  const trenutna = barvaMesta(poudMesto);
   poudBarvaEl.value = trenutna.toLowerCase();
   if (document.activeElement !== poudHexEl) poudHexEl.value = trenutna;
   poudHexEl.classList.remove('napacno');
-  if (!shrani) return;
+}
+
+function poudShrani() {
+  const v = {};
+  poudBarve.forEach((barva, i) => { if (barva) v[i + 1] = barva; });
   try {
-    if (barva) localStorage.setItem(POUD_KLJUC, barva);
+    if (Object.keys(v).length) localStorage.setItem(POUD_KLJUC, JSON.stringify(v));
     else localStorage.removeItem(POUD_KLJUC);
-  } catch (e) { /* brez shrambe velja barva samo do osvežitve */ }
+  } catch (e) { /* brez shrambe veljajo barve samo do osvežitve */ }
+}
+
+// barva = null -> privzeta iz igra.css.
+function nastaviPoud(i, barva, shrani) {
+  poudBarve[i] = barva;
+  if (barva) document.documentElement.style.setProperty(POUD_SPREMENLJIVKE[i], barva);
+  else document.documentElement.style.removeProperty(POUD_SPREMENLJIVKE[i]);
+  osveziPoudVnose();
+  if (shrani) poudShrani();
+}
+
+// Vnesena barva, enaka privzeti, se shrani kot "privzeta" (null).
+function nastaviIzbrano(barva) {
+  nastaviPoud(poudMesto, barva === privzetePoud[poudMesto] ? null : barva, true);
 }
 
 poudHexEl.addEventListener('input', () => {
   const barva = normalizirajHex(poudHexEl.value);
-  if (barva) nastaviPoud(barva === privzetaPoud ? null : barva, true);
+  if (barva) nastaviIzbrano(barva);
   else poudHexEl.classList.add('napacno');
 });
 // Nedokončan ali napačen vnos se ob odhodu iz polja vrne na veljavno barvo.
 poudHexEl.addEventListener('blur', () => {
-  poudHexEl.value = normalizirajHex(poudBarvaEl.value);
+  poudHexEl.value = barvaMesta(poudMesto);
   poudHexEl.classList.remove('napacno');
 });
 poudBarvaEl.addEventListener('input', () => {
   const barva = normalizirajHex(poudBarvaEl.value);
-  nastaviPoud(barva === privzetaPoud ? null : barva, true);
-  poudHexEl.value = barva;
+  if (barva) nastaviIzbrano(barva);
 });
 document.getElementById('poudPrivzeto').addEventListener('click', () => {
-  nastaviPoud(null, true);
-  poudHexEl.value = privzetaPoud;
+  POUD_SPREMENLJIVKE.forEach((_, i) => nastaviPoud(i, null, false));
+  poudShrani();
 });
 
-let shranjenaPoud = null;
-try { shranjenaPoud = normalizirajHex(localStorage.getItem(POUD_KLJUC) || ''); } catch (e) { /* brez shrambe */ }
-nastaviPoud(shranjenaPoud, false);
+// Shranjeno: { "1": "#RRGGBB", ... }. Star zapis (sam hex niz) je bil barva
+// prvega poudarka - preberemo ga kot mesto 1.
+function poudPreberiShranjeno() {
+  let zapis = null;
+  try { zapis = localStorage.getItem(POUD_KLJUC); } catch (e) { return; }
+  if (!zapis) return;
+  const star = normalizirajHex(zapis);
+  if (star) { poudBarve[0] = star; return; }
+  let v = null;
+  try { v = JSON.parse(zapis); } catch (e) { return; }
+  if (!v || typeof v !== 'object') return;
+  POUD_SPREMENLJIVKE.forEach((_, i) => {
+    const barva = typeof v[i + 1] === 'string' ? normalizirajHex(v[i + 1]) : null;
+    if (barva) poudBarve[i] = barva;
+  });
+}
+
+poudPreberiShranjeno();
+POUD_SPREMENLJIVKE.forEach((_, i) => { if (poudBarve[i]) nastaviPoud(i, poudBarve[i], false); });
+osveziPoudVnose();
 
 /* ---------- zagon ---------- */
 

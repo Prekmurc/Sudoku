@@ -17,20 +17,22 @@
   --amber-bg:#F1E5C9;
   --purple:#7548A0;
   --purple-bg:#E7DEF0;
-  /* poudarjena števka: čisto modra podlaga s temno števko (kot Oakever) */
-  --poud:#8AB4F8;
-  --poud-ink:#1D4F9C;
+  /* poudarjena števka: podlaga v barvi poudarka s temno števko (kot Oakever) */
+  --poud:#F6C026;           /* 1. rumena, potemnjena proti jantarni, da je na beli opazna */
+  --poud-ink:#8A6400;
   --poud-stevka:#111820;    /* kandidat in dana števka na poudarku */
   --poud-vpis:#0B3A78;      /* vpis na poudarku: temnejša modra, da ostane berljiv */
+  /* neizbrani gumbi v nizu Poudari - niso vezani na barve poudarka */
   --poud-line:#6FA3DB;
+  --poud-gumb-ink:#1D4F9C;
   /* "več hkrati": 2., 3. in 4. poudarjena števka (1. je --poud), potem se
      barve ponovijo; -ink = obroba aktivnega gumba v nizu Poudari */
   --poud2:#81C995;          /* zelena */
   --poud2-ink:#1E6B3A;
-  --poud3:#F6C026;          /* rumena, potemnjena proti jantarni, da je na beli opazna */
-  --poud3-ink:#8A6400;
-  --poud4:#FA903E;          /* oranžna */
-  --poud4-ink:#A8480A;
+  --poud3:#FA903E;          /* oranžna */
+  --poud3-ink:#A8480A;
+  --poud4:#8AB4F8;          /* modra */
+  --poud4-ink:#1D4F9C;
   /* mreža je bela; sivo so obarvane samo vrstica, stolpec in blok izbrane celice */
   --peer-bg:#ECEFF3;
   --kand-ink:#4A5561;
@@ -289,7 +291,7 @@ kbd{
 .celica.poud-stevka{ background: var(--pb, var(--poud)); color: var(--poud-stevka); }
 .celica.vpis.poud-stevka{ color: var(--poud-vpis); }
 /* izbrana celica: tanka srednje modra obroba z belim notranjim robom - vidna
-   tudi, ko je celica sama poudarjena (modra) */
+   tudi, ko je celica sama poudarjena (modra obroba na rumeni podlagi 1. poudarka) */
 .celica.izbrana{ box-shadow: inset 0 0 0 2px #4A86D8, inset 0 0 0 3px #fff; }
 .celica[data-c="0"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="3"], .celica[data-c="6"]{ border-left: 2px solid var(--ink); }
@@ -452,7 +454,7 @@ kbd{
   height: calc(var(--gcs) * 0.95);
   background:#fff;
   border: 1.5px solid var(--poud-line);
-  color: var(--poud-ink);
+  color: var(--poud-gumb-ink);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -557,6 +559,19 @@ kbd{
   gap:8px;
   margin-top:8px;
 }
+/* gumbi 1-4: katero barvo poudarka nastavljam (podlaga = ta barva) */
+.poud-gumbi{ display:flex; gap:4px; }
+.poud-gumb{
+  width:26px;
+  height:30px;
+  padding:0;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  color: var(--poud-stevka);
+  border:1px solid var(--line);
+  border-radius:6px;
+}
+.poud-gumb.izbran{ border:2px solid var(--ink); }
 .nastavi-poud input[type="color"]{
   width:34px;
   height:30px;

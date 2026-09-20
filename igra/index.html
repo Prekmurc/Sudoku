@@ -57,10 +57,11 @@
     </div>
 
     <details class="nastavi-poud">
-      <summary>Barva poudarka</summary>
+      <summary>Barve poudarka</summary>
       <div class="nastavi-poud-vrstica">
-        <input type="color" id="poudBarva" aria-label="Izberi barvo poudarka">
-        <input type="text" id="poudHex" maxlength="7" autocomplete="off" spellcheck="false" aria-label="Barva poudarka (hex)" placeholder="#8AB4F8">
+        <div id="poudGumbi" class="poud-gumbi" role="group" aria-label="Katero barvo poudarka nastavljam"></div>
+        <input type="color" id="poudBarva" aria-label="Izberi odtenek">
+        <input type="text" id="poudHex" maxlength="7" autocomplete="off" spellcheck="false" aria-label="Odtenek (hex)" placeholder="#F6C026">
         <button type="button" id="poudPrivzeto" class="majhen">Privzeto</button>
       </div>
     </details>
