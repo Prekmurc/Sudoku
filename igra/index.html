@@ -155,6 +155,7 @@
     <h3 class="navodila-razdelek">Zbirka ugank</h3>
     <p>Uganke in napredek se hranijo v tem brskalniku (<code>localStorage</code>), nič se ne pošilja nikamor. Zbirko si igra deli z reševalcem (<code>app/</code>), zanesljivo takrat, ko obe strani tečeta z istega naslova (lokalni strežnik); pri odpiranju datotek z <code>file://</code> jih nekateri brskalniki ločijo.</p>
     <p>V oknu <b>Zbirka ugank</b> so zgoraj <b>vgrajeni primeri</b>, pod njimi <b>tvoja zbirka</b>. Uganka, ki je še nisi začel, se odpre z <b>Igraj</b>, začeta z <b>Nadaljuj</b> – napredek se shrani za vsako uganko posebej, po njenih danostih. Vgrajeni primeri se v zbirko ne dodajo, napredek pri njih pa se shrani prav tako. Nova uganka (gumb <b>Nova uganka</b>) se začne samo, če ima natanko eno rešitev, in se doda v zbirko. Uganke v zbirko doda tudi reševalec, ko jih reši; brišeš jih lahko samo tam.</p>
+    <p>V oknu <b>Nova uganka</b> ti uganko lahko <b>ustvari</b> program: izbereš stopnjo (<b>lahka</b>, <b>srednja</b>, <b>težka</b>) in počakaš – navadno gre za sekundo ali dve. Stopnjo določa najzahtevnejša tehnika, ki jo uganka potrebuje: lahka poleg enojčkov Pointing pair/triple ali Box-line reduction, srednja očitno ali skrito paro oziroma trojico, težka eno od naprednih tehnik (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle). Iskanje lahko kadar koli <b>prekineš</b>; če v 30 sekundah ne najde uganke, to pove in lahko poskusiš znova. Ustvarjena uganka se doda v zbirko s težavnostjo Preprosto, Srednje ali Težko. Iskanje teče v ločeni niti, zato stran med njim deluje normalno – pri odpiranju z <code>file://</code> to nekateri brskalniki preprečijo in stran med iskanjem malo zastaja (z lokalnim strežnikom ne).</p>
     <p><b>Izvozi</b> zapiše vse uganke v datoteko Markdown, <b>Uvozi</b> jih doda obstoječim – pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Tako zbirko preneseš na drugo napravo.</p>
     <p>Pri vsaki uganki piše oznaka, npr. <b>tehnike: 1, 3, 7 + poskus</b>. Številke so tehnike iz razdelka <b>Tehnike</b> spodaj (iste kot v treningu) – tiste, ki jih reševalec pri tej uganki potrebuje. Enojčki se ne izpišejo, ker jih potrebuje vsaka uganka. <b>+ poskus</b> pomeni, da se reševalec ni prebil samo s tehnikami in je moral poskusiti s protislovjem. Pri uganki brez teh podatkov piše »tehnike: ni podatkov«.</p>
 
@@ -170,6 +171,16 @@
       <h2 id="novaNaslov">Nova uganka</h2>
       <button type="button" class="dialog-zapri" data-zapri aria-label="Zapri">✕</button>
     </div>
+    <h3 class="zbirka-razdelek">Ustvari uganko</h3>
+    <p class="namig">Stopnjo določa najzahtevnejša tehnika, ki jo uganka potrebuje: <b>lahka</b> poleg enojčkov potrebuje Pointing pair/triple ali Box-line reduction, <b>srednja</b> očitno ali skrito paro oziroma trojico, <b>težka</b> eno od naprednih tehnik (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle). Uganka ima vedno natanko eno rešitev in jo reševalec reši brez ugibanja.</p>
+    <div id="stopnjeGumbi" class="stopnje"></div>
+    <div class="dialog-gumbi">
+      <button type="button" class="primary" id="ustvariBtn">Ustvari uganko</button>
+      <button type="button" id="prekiniBtn" hidden>Prekini</button>
+    </div>
+    <div id="ustvariStatus" class="dialog-status"></div>
+
+    <h3 class="zbirka-razdelek">Ali vnesi svojo</h3>
     <p class="namig">Vtipkaj danosti v mrežo ali prilepi niz 81 znakov (<code>0</code> ali <code>.</code> = prazna celica). Igra se začne samo, če ima uganka natanko eno rešitev; dodana bo tudi v zbirko.</p>
     <label class="prilepi">Niz <input type="text" id="novaNiz" autocomplete="off" spellcheck="false" placeholder="npr. 8....1......6..5....."></label>
     <div id="novaMreza" class="vnosna-mreza"></div>
@@ -185,6 +196,7 @@
 
 <script src="../shared/engine.js"></script>
 <script src="../shared/zbirka.js"></script>
+<script src="../shared/generator.js"></script>
 <script src="stanje.js"></script>
 <script src="igra.js"></script>
 </body>

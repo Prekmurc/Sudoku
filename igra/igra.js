@@ -765,7 +765,11 @@ document.addEventListener('keydown', (e) => {
 /* ---------- dialogi ---------- */
 
 function odpriDialog(el) { el.classList.add('odprt'); }
-function zapriDialog(el) { el.classList.remove('odprt'); }
+function zapriDialog(el) {
+  el.classList.remove('odprt');
+  // Zaprtje okna "Nova uganka" ustavi iskanje uganke (gumb "Ustvari uganko").
+  if (el === novaDialog) ustaviIskanje();
+}
 
 document.querySelectorAll('.dialog').forEach(el => {
   el.addEventListener('click', (e) => {
@@ -947,7 +951,172 @@ zbirkaDatotekaEl.addEventListener('change', () => {
   }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
 });
 
-/* ---------- nova uganka ---------- */
+/* ---------- nova uganka: ustvarjanje po stopnjah ---------- */
+
+// Iskanje teče v ločeni niti (generator-worker.js), da stran ostane odzivna in
+// je prekinitev takojšnja (terminate). Pri odpiranju datoteke prek file:// Chrome
+// workerja ne dovoli - takrat se išče v glavni niti po eno seme na setTimeout.
+const MEJA_ISKANJA = 30000;
+const STOPNJA_KLJUC = 'sudoku.igra.stopnja';
+const stopnjeGumbiEl = document.getElementById('stopnjeGumbi');
+const ustvariBtn = document.getElementById('ustvariBtn');
+const prekiniBtn = document.getElementById('prekiniBtn');
+const ustvariStatusEl = document.getElementById('ustvariStatus');
+let izbranaStopnja = STOPNJE_UGANK[0].kljuc;
+let iskanje = null; // { stopnja, zacetek, poskusi, worker } ali { ..., vGlavniNiti: true }
+
+try {
+  const shranjena = localStorage.getItem(STOPNJA_KLJUC);
+  if (stopnjaUganke(shranjena)) izbranaStopnja = shranjena;
+} catch (e) { /* privzeta stopnja */ }
+
+const stopnjeGumbi = STOPNJE_UGANK.map(s => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'stopnja';
+  b.textContent = s.ime;
+  b.title = s.opis;
+  b.addEventListener('click', () => {
+    if (iskanje) return;
+    izbranaStopnja = s.kljuc;
+    try { localStorage.setItem(STOPNJA_KLJUC, s.kljuc); } catch (e) { /* velja do osvežitve */ }
+    ustvariBtn.textContent = 'Ustvari uganko';
+    ustvariStatus('');
+    osveziStopnje();
+  });
+  stopnjeGumbiEl.appendChild(b);
+  return { kljuc: s.kljuc, el: b };
+});
+osveziStopnje();
+
+function osveziStopnje() {
+  for (const g of stopnjeGumbi) {
+    g.el.classList.toggle('izbrana', g.kljuc === izbranaStopnja);
+    g.el.setAttribute('aria-pressed', String(g.kljuc === izbranaStopnja));
+    g.el.disabled = !!iskanje;
+  }
+  ustvariBtn.disabled = !!iskanje;
+  prekiniBtn.hidden = !iskanje;
+}
+
+function ustvariStatus(besedilo, napaka) {
+  ustvariStatusEl.textContent = besedilo;
+  ustvariStatusEl.className = 'dialog-status' + (napaka ? ' err' : '');
+}
+
+function izpisiNapredek() {
+  if (!iskanje) return;
+  const s = stopnjaUganke(iskanje.stopnja);
+  const sekunde = Math.round((Date.now() - iskanje.zacetek) / 1000);
+  ustvariStatus(`Iščem uganko stopnje »${s.ime}« … ${sekunde} s, poskusov ${iskanje.poskusi}.`);
+}
+
+// Sporočila workerja in iskanja v glavni niti so enaka (glej generator-worker.js).
+function obdelajIskanje(m) {
+  if (!iskanje) return;
+  if (m.tip === 'napredek') {
+    iskanje.poskusi = m.poskusi;
+    izpisiNapredek();
+    return;
+  }
+  if (m.tip === 'najdena') {
+    const stopnja = stopnjaUganke(m.stopnja);
+    ustaviIskanje();
+    ustvariStatus('');
+    dodajVZbirko(m.danosti, stopnja.tezavnost);
+    zapriDialog(novaDialog);
+    zacniIgro(m.danosti);
+    sporocilo = {
+      besedilo: `Ustvarjena uganka stopnje »${stopnja.ime}« (danih ${m.danosti.replace(/0/g, '').length}). Dodana je v zbirko.`,
+      razred: 'ok',
+    };
+    osvezi();
+    return;
+  }
+  const s = stopnjaUganke(iskanje.stopnja);
+  const poskusi = m.poskusi;
+  ustaviIskanje();
+  if (m.tip === 'obup') {
+    ustvariBtn.textContent = 'Poskusi znova';
+    ustvariStatus(`V ${Math.round(MEJA_ISKANJA / 1000)} s nisem našel uganke stopnje »${s.ime}« (poskusov ${poskusi}). Poskusi znova - vsak poskus začne z drugo mrežo.`, true);
+  } else {
+    ustvariStatus('Iskanje ni uspelo: ' + (m.sporocilo || 'neznana napaka'), true);
+  }
+}
+
+// Ustavi iskanje (gumb Prekini, zaprtje okna, najdena uganka). Z besedilom izpiše
+// še sporočilo; brez njega status pusti pri miru.
+function ustaviIskanje(besedilo) {
+  if (!iskanje) return;
+  if (iskanje.worker) iskanje.worker.terminate();
+  if (iskanje.casovnik) clearTimeout(iskanje.casovnik);
+  if (iskanje.tiktak) clearInterval(iskanje.tiktak);
+  iskanje = null;
+  osveziStopnje();
+  if (besedilo) ustvariStatus(besedilo);
+}
+
+// Nadomestna pot za file://: eno seme na setTimeout, da se stran vmes osveži in
+// gumb Prekini deluje (med enim semenom je zamrznjena pribl. 0,2 s).
+function iskanjeVGlavniNiti() {
+  iskanje.vGlavniNiti = true;
+  const korak = () => {
+    if (!iskanje || !iskanje.vGlavniNiti) return;
+    const u = ustvariUgankoNaklucno(iskanje.stopnja);
+    const poskusi = iskanje.poskusi + 1;
+    const ms = Date.now() - iskanje.zacetek;
+    if (u) return obdelajIskanje({ tip: 'najdena', danosti: u.danosti, stopnja: iskanje.stopnja, seme: u.seme, poskusi, ms });
+    if (ms >= MEJA_ISKANJA) return obdelajIskanje({ tip: 'obup', poskusi, ms });
+    obdelajIskanje({ tip: 'napredek', poskusi, ms });
+    if (iskanje) iskanje.casovnik = setTimeout(korak, 0);
+  };
+  iskanje.casovnik = setTimeout(korak, 0);
+}
+
+ustvariBtn.addEventListener('click', () => {
+  if (iskanje) return;
+  ustvariBtn.textContent = 'Ustvari uganko'; // po neuspehu piše "Poskusi znova"
+  iskanje = { stopnja: izbranaStopnja, zacetek: Date.now(), poskusi: 0 };
+  iskanje.tiktak = setInterval(izpisiNapredek, 500); // ura teče tudi med dolgim semenom
+  osveziStopnje();
+  izpisiNapredek();
+  try {
+    const w = new Worker('generator-worker.js');
+    w.onmessage = (e) => obdelajIskanje(e.data);
+    w.onerror = () => {
+      // Worker se ni naložil (npr. file://) - iskanje nadaljujemo v glavni niti.
+      if (!iskanje) return;
+      w.terminate();
+      iskanje.worker = null;
+      iskanjeVGlavniNiti();
+    };
+    w.postMessage({ stopnja: iskanje.stopnja, meja: MEJA_ISKANJA });
+    iskanje.worker = w;
+  } catch (e) {
+    iskanjeVGlavniNiti();
+  }
+});
+
+prekiniBtn.addEventListener('click', () => {
+  ustvariBtn.textContent = 'Ustvari uganko';
+  ustaviIskanje('Iskanje prekinjeno.');
+});
+
+// Uganko doda v zbirko (enako kot "Reši" v reševalcu); obstoječega zapisa ne
+// spreminjamo. Ustvarjena uganka dobi težavnost svoje stopnje namesto privzete.
+function dodajVZbirko(danosti, tezavnost) {
+  if (zbirkaBeri().some(z => z.danosti === danosti)) return;
+  const { board, log } = solve(danosti);
+  zbirkaShraniResitev(danosti, board, log);
+  if (tezavnost) {
+    const zbirka = zbirkaBeri();
+    const zapis = zbirka.find(z => z.danosti === danosti);
+    if (zapis) { zapis.tezavnost = tezavnost; zbirkaPisi(zbirka); }
+  }
+  osveziGumbZbirke();
+}
+
+/* ---------- nova uganka: vnos danosti ---------- */
 
 const novaDialog = document.getElementById('novaDialog');
 const novaMrezaEl = document.getElementById('novaMreza');
@@ -1044,13 +1213,7 @@ novaZacniBtn.addEventListener('click', () => {
           : 'Uganka ima več kot eno rešitev - za igro potrebujem uganko z natanko eno rešitvijo.', true);
         return;
       }
-      // Nova uganka gre v zbirko (enako kot ob "Reši" v reševalcu); obstoječega
-      // zapisa ne spreminjamo.
-      if (!zbirkaBeri().some(z => z.danosti === danosti)) {
-        const { board, log } = solve(danosti);
-        zbirkaShraniResitev(danosti, board, log);
-        osveziGumbZbirke();
-      }
+      dodajVZbirko(danosti);
       zapriDialog(novaDialog);
       zacniIgro(danosti);
     } catch (e) {
@@ -1063,6 +1226,8 @@ novaZacniBtn.addEventListener('click', () => {
 
 document.getElementById('novaBtn').addEventListener('click', () => {
   novaStatus('');
+  ustvariStatus('');
+  ustvariBtn.textContent = 'Ustvari uganko';
   odpriDialog(novaDialog);
   novaNizEl.focus();
 });
