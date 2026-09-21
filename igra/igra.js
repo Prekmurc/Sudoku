@@ -270,7 +270,10 @@ function napacenVpis(stanje, res) {
 
 // Podatki o MOJEM reševanju gredo v zbirko (uganka, ki je v zbirki ni - npr.
 // vgrajeni primer -, ostane brez njih; njen napredek je v shranjenih igrah).
+// Uganka brez ene same poteze ni bila reševana, zato ne dobi časa - tudi če se
+// prikaz po odprtju še enkrat osveži (npr. sporočilo o ustvarjeni uganki).
 function shraniIgranje() {
+  if (!igra.poteze.length) return;
   zbirkaShraniIgranje(igra.danosti, igraZdaj(), steviloVpisanih(stanje), napacenVpis(stanje, resitev()));
 }
 
@@ -385,6 +388,14 @@ function izrisiSezname() {
   }
 }
 
+// Vidna oznaka zaklepa: mreža rešene uganke dobi razred, vrstica z razlogom pa
+// izstopajoč slog - da je jasno, zakaj nizi ne delujejo (igra.css).
+function izrisiZaklep(ogled) {
+  mrezaEl.classList.toggle('zaklenjena', ogled);
+  razlogNizovEl.classList.toggle('zaklenjeno', ogled);
+  znovaBtn.classList.toggle('primary', ogled);
+}
+
 function izrisiMrezo() {
   mrezaEl.classList.toggle('prazna', !igra);
   // Prikazan korak: celice vzorca, kandidati za izbris, števke za vpis.
@@ -469,6 +480,7 @@ function izrisiNize() {
     o.setAttribute('aria-label', o.title || String(d));
   }
   razlogNizovEl.textContent = razlogNizov(a);
+  izrisiZaklep(ogled);
   zbrisiBtn.disabled = !a.zbrisi;
   razveljaviBtn.disabled = !igra || ogled || !lahkoRazveljavi(igra);
   ponoviBtn.disabled = !igra || ogled || !lahkoPonovi(igra);
@@ -484,7 +496,7 @@ function izrisiNize() {
 // Pojasnilo pod nizoma, kadar za izbrano celico ni kaj vpisati ali odstraniti.
 function razlogNizov(a) {
   if (!igra) return '';
-  if (samoZaOgled()) return 'Uganka je rešena – mreža je samo za ogled. Z »Začni znova« jo lahko rešuješ še enkrat.';
+  if (samoZaOgled()) return '✓ Uganka je rešena – mreža je zaklenjena, samo za ogled. Z »Začni znova« jo lahko rešuješ še enkrat.';
   if (!izbrane.length) return 'Izberi celico v mreži.';
   if (izbrane.length > 1) {
     // Celica v izbiri je lahko polna, če je "Razveljavi"/"Ponovi" vrnil vpis.
@@ -513,7 +525,7 @@ function izrisiStanje() {
   }
   opisUgankeEl.textContent = opisUganke(igra.danosti);
   if (sporocilo) nastaviStatus(sporocilo.besedilo, sporocilo.razred);
-  else if (jeResena(stanje)) nastaviStatus('Uganka je rešena. Čestitam!', 'ok');
+  else if (jeResena(stanje)) nastaviStatus('Uganka je rešena. Čestitam! Mreža je zaklenjena – za novo reševanje klikni »Začni znova«.', 'ok');
   else nastaviStatus(`Izpolnjenih ${steviloVpisanih(stanje)} od 81 celic.`, '');
 }
 
@@ -873,7 +885,13 @@ function zbirkaStatusIgre(danosti, zapis) {
   if (!zacetaIgra(zapis)) return { besedilo: 'nova', razred: '' };
   const { vpisi } = odigrajPoteze(danosti, zapis.poteze || [], zapis.kazalec || 0);
   const izpolnjenih = danosti.split('').filter((ch, c) => ch !== '0' || vpisi[c]).length;
-  if (izpolnjenih === 81) return { besedilo: 'rešeno ✓', razred: 'reseno' };
+  if (izpolnjenih === 81) {
+    // Polna mreža še ni rešena - preverimo jo z rešitvijo (samo tu, ker je to redko).
+    const res = solutionOf(danosti);
+    return res && vpisi.some((v, c) => v && v !== res[c])
+      ? { besedilo: 'izpolnjeno z napako', razred: 'napaka' }
+      : { besedilo: 'rešeno ✓', razred: 'reseno' };
+  }
   return { besedilo: `v teku: ${izpolnjenih}/81`, razred: 'v-teku' };
 }
 
@@ -901,7 +919,8 @@ function gumbiUganke(danosti, zapis) {
   const igraj = document.createElement('button');
   igraj.type = 'button';
   igraj.className = 'primary';
-  igraj.textContent = zacetaIgra(zapis) ? 'Nadaljuj' : 'Igraj';
+  const st = zbirkaStatusIgre(danosti, zapis);
+  igraj.textContent = st.razred === '' ? 'Igraj' : st.razred === 'reseno' ? 'Poglej' : 'Nadaljuj';
   igraj.addEventListener('click', () => igrajIzZbirke(danosti));
   gumbi.appendChild(igraj);
   return gumbi;
@@ -1350,7 +1369,7 @@ function obdelajIskanje(m) {
       besedilo: `Ustvarjena uganka stopnje »${stopnja.ime}« (danih ${m.danosti.replace(/0/g, '').length}). Dodana je v zbirko.`,
       razred: 'ok',
     };
-    osvezi();
+    osvezi(false); // samo izpis sporočila, uganka še ni bila reševana
     return;
   }
   const s = stopnjaUganke(iskanje.stopnja);

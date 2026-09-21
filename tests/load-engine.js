@@ -29,6 +29,20 @@ function loadEngine(code, extra = {}) {
   return vm.runInContext('({' + names.map(n => `${n}: typeof ${n} === 'undefined' ? undefined : ${n}`).join(', ') + '})', ctx);
 }
 
+// Kontekst za teste, ki morajo brati spremenljivke MED tekom (npr. `igra` in
+// `stanje` v igra/igra.js, ki se s potezami spreminjata) ali klicati funkcije UI.
+// `files` so poti od korena projekta v vrstnem redu nalaganja (kot <script> v
+// strani, vključno s shared/engine.js), `globals` pa globalne vrednosti konteksta
+// (npr. nadomestni DOM iz dom-stub.js). Vrne { run, ctx }: run('izraz') ovrednoti
+// izraz v istem kontekstu.
+function loadContext(files, globals = {}) {
+  const ctx = vm.createContext({ ...globals });
+  for (const f of files) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), ctx, { filename: f });
+  }
+  return { ctx, run: (izraz) => vm.runInContext(izraz, ctx) };
+}
+
 // Uganke iz docs/uganke.md: [{ ime, danosti }] (naslov ### + vrstica **Danosti...:** `...`).
 function loadPuzzles() {
   const md = fs.readFileSync(path.join(__dirname, '..', 'docs', 'uganke.md'), 'utf8');
@@ -71,4 +85,4 @@ function boardFromText(engine, text) {
   return b;
 }
 
-module.exports = { loadEngine, loadPuzzles, boardToText, boardFromText };
+module.exports = { loadEngine, loadContext, loadPuzzles, boardToText, boardFromText };

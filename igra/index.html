@@ -53,6 +53,7 @@
       <button type="button" id="razveljaviBtn" title="Razveljavi (Ctrl+Z)">↶ Razveljavi</button>
       <button type="button" id="ponoviBtn" title="Ponovi (Ctrl+Y)">↷ Ponovi</button>
       <button type="button" id="zbrisiBtn" title="Zbriši vpis (Backspace)">⌫ Zbriši vpis</button>
+      <button type="button" id="znovaBtn" title="Razveljavi vse poteze">↺ Začni znova</button>
       <span id="stevecPotez" class="stevec-potez"></span>
     </div>
 
@@ -89,7 +90,6 @@
       <h2>Uganka</h2>
       <div id="opisUganke" class="opis-uganke"></div>
       <div id="status"></div>
-      <button type="button" id="znovaBtn" class="majhen">Začni znova</button>
     </div>
     <div class="card pomoc-tipke">
       <h2>Kako</h2>
@@ -139,8 +139,8 @@
     <p>Kandidati se računajo sami iz danosti in tvojih vpisov. Kandidat, ki ga odstraniš sam, ostane odstranjen, tudi če vmes zbrišeš vpis. Vrneš ga s <span class="vzorec-vrni">↺</span> v nizu <b>Odstrani kandidata</b> ali z <b>Razveljavi</b>.</p>
     <p>Isto števko odstraniš iz več celic hkrati s kljukico <b>več celic</b> (ali <kbd>Ctrl</kbd>+klik): klik celico doda v izbiro ali jo odstrani iz nje, v nizu <b>Odstrani kandidata</b> so omogočene samo števke, ki so kandidat v vseh izbranih celicah. Izbira ostane, dokler je ne počistiš z <kbd>Esc</kbd>, izklopom kljukice ali navadnim klikom; <b>Razveljavi</b> vrne vse celice naenkrat.</p>
     <p>Niz <b>Poudari</b> nad mrežo ne spremeni mreže: obarva vse celice, kjer je števka kandidat ali je vpisana. Pod vsako števko je število mest, kjer še manjka. S kljukico <b>več hkrati</b> se poudarki seštevajo in vsaka števka dobi svojo barvo.</p>
-    <p><b>Razveljavi</b> in <b>Ponovi</b> hodita po tvojih potezah, <b>Zbriši vpis</b> zbriše vpis v izbrani celici, <b>Začni znova</b> razveljavi vse poteze (s <b>Ponovi</b> jih dobiš nazaj, dokler ne narediš nove poteze). Igra se shrani po vsaki potezi, skupaj z zgodovino, zato jo lahko kadar koli nadaljuješ.</p>
-    <p>Ko je uganka <b>rešena</b>, je mreža samo za ogled: vpisovanje, brisanje, <b>Razveljavi</b> in <b>Ponovi</b> se izklopijo. Z <b>Začni znova</b> (vpraša za potrditev) jo lahko rešuješ še enkrat – v zbirki ostane zapisana kot rešena, s časom prve rešitve.</p>
+    <p><b>Razveljavi</b> in <b>Ponovi</b> hodita po tvojih potezah, <b>Zbriši vpis</b> zbriše vpis v izbrani celici, <b>Začni znova</b> (v isti vrstici pod mrežo) razveljavi vse poteze (s <b>Ponovi</b> jih dobiš nazaj, dokler ne narediš nove poteze). Igra se shrani po vsaki potezi, skupaj z zgodovino, zato jo lahko kadar koli nadaljuješ.</p>
+    <p>Ko je uganka <b>rešena</b>, je mreža zaklenjena in samo za ogled: dobi zeleno obrobo, pod njo piše, da je zaklenjena, vpisovanje, brisanje, <b>Razveljavi</b> in <b>Ponovi</b> pa se izklopijo. Z <b>Začni znova</b> (vpraša za potrditev) jo lahko rešuješ še enkrat – v zbirki ostane zapisana kot rešena, s časom prve rešitve.</p>
     <p>Tipkovnica: puščice premikajo izbiro, <kbd>1</kbd>–<kbd>9</kbd> vpiše, <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>9</kbd> odstrani ali vrne kandidata (pri več celicah odstrani iz vseh), <kbd>Backspace</kbd> zbriše vpis, <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> razveljavi / ponovi, <kbd>Esc</kbd> počisti izbiro.</p>
 
     <h3 class="navodila-razdelek">Pomoč pri reševanju</h3>
@@ -162,7 +162,7 @@
 
     <h3 class="navodila-razdelek">Zbirka ugank</h3>
     <p>Uganke in napredek se hranijo v tem brskalniku (<code>localStorage</code>), nič se ne pošilja nikamor. Zbirko si igra deli z reševalcem (<code>app/</code>), zanesljivo takrat, ko obe strani tečeta z istega naslova (lokalni strežnik); pri odpiranju datotek z <code>file://</code> jih nekateri brskalniki ločijo.</p>
-    <p>V oknu <b>Zbirka ugank</b> so zgoraj <b>vgrajeni primeri</b>, pod njimi <b>tvoja zbirka</b>. Uganka, ki je še nisi začel, se odpre z <b>Igraj</b>, začeta z <b>Nadaljuj</b> – napredek se shrani za vsako uganko posebej, po njenih danostih. Vgrajeni primeri se v zbirko ne dodajo, napredek pri njih pa se shrani prav tako. Nova uganka (gumb <b>Nova uganka</b>) se začne samo, če ima natanko eno rešitev, in se doda v zbirko. Uganke v zbirko doda tudi reševalec, ko jih reši; brišeš jih lahko samo tam.</p>
+    <p>V oknu <b>Zbirka ugank</b> so zgoraj <b>vgrajeni primeri</b>, pod njimi <b>tvoja zbirka</b>. Uganka, ki je še nisi začel, se odpre z <b>Igraj</b>, začeta z <b>Nadaljuj</b>, rešena pa s <b>Poglej</b> (pri njej ni kaj nadaljevati) – napredek se shrani za vsako uganko posebej, po njenih danostih. Vgrajeni primeri se v zbirko ne dodajo, napredek pri njih pa se shrani prav tako. Nova uganka (gumb <b>Nova uganka</b>) se začne samo, če ima natanko eno rešitev, in se doda v zbirko. Uganke v zbirko doda tudi reševalec, ko jih reši; brišeš jih lahko samo tam.</p>
     <p>V oknu <b>Nova uganka</b> ti uganko lahko <b>ustvari</b> program: izbereš stopnjo (<b>lahka</b>, <b>srednja</b>, <b>težka</b>, <b>zelo težka</b>) in počakaš – navadno gre za sekundo ali dve. Stopnjo določata najzahtevnejša tehnika, ki jo uganka potrebuje, in število različnih tehnik: lahka se reši samo z enojčki, torej brez zapisanih kandidatov, srednja potrebuje očitno ali skrito paro, trojico ali presek (Pointing pair/triple, Box-line reduction), težka natanko eno napredno tehniko (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle), zelo težka pa dve različni napredni tehniki ali pet različnih tehnik nad enojčki. Iskanje lahko kadar koli <b>prekineš</b>; če v 30 sekundah ne najde uganke, to pove in lahko poskusiš znova. Ustvarjena uganka se doda v zbirko s težavnostjo svoje stopnje (<b>Lahka</b>, <b>Srednja</b>, <b>Težka</b> ali <b>Zelo težka</b>) – težavnosti v zbirki so iste kot stopnje. Iskanje teče v ločeni niti, zato stran med njim deluje normalno – pri odpiranju z <code>file://</code> to nekateri brskalniki preprečijo in stran med iskanjem malo zastaja (z lokalnim strežnikom ne).</p>
     <p>Pri vsaki uganki piše tudi, od kod je: <b>ustvaril generator</b> ali <b>ročni vnos</b>. Uganke, ki so bile v zbirki že prej, tega podatka nimajo, ker ga ni mogoče naknadno ugotoviti.</p>
     <p>V prvi vrstici piše, kdaj je bila uganka <b>dodana</b>, v drugi pa tvoje <b>zadnje reševanje</b> in <b>stanje</b>: <b>nova</b> (še je nisi igral – takrat te vrstice ni), <b>v teku (45 od 81)</b> ali <b>izpolnjena z napako</b> (vseh 81 celic je izpolnjenih, a se vsaj ena števka ne ujema z rešitvijo – poišči jo z gumbom <b>Preveri</b>). Uganka, ki si jo samo odprl in v njej še nisi naredil poteze, ostane <b>nova</b> (gumb <b>Igraj</b>). Pri rešeni uganki je v drugi vrstici <b>rešena 21. 9. 2026 ob 17:48</b> – zapis se takrat zamrzne, zato ostane čas prve rešitve, tudi če jo rešuješ še enkrat. Kdaj je uganko ocenil program in kako daleč je prišel (<b>Ocenjeno</b>, <b>Program rešil</b>), pokaže namig miške nad vrstico; oboje je tudi v izvozu.</p>
