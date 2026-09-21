@@ -33,7 +33,13 @@ function zbirkaTezavnost(v) {
   return STARE_TEZAVNOSTI[v] || 'Drugo';
 }
 // Polja zapisa v stalnem vrstnem redu (tudi vrstni red pri uvozu/dopolnjevanju).
-const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'izvor', 'dodano', 'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
+// Ločena sta dva para podatkov: PROGRAM (`nazadnje` = kdaj je solve() uganko
+// nazadnje ocenil - izvoz "Ocenjeno"; `reseno` = kako daleč je prišel - izvoz
+// "Program rešil") in MOJE REŠEVANJE v igri (`igrano` = čas moje zadnje poteze,
+// `izpolnjeno` = koliko celic je izpolnjenih, `napaka` = med vpisi je vsaj ena
+// števka, ki se ne ujema z rešitvijo).
+const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'izvor', 'dodano', 'igrano', 'izpolnjeno', 'napaka',
+  'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
 
 // Od kod je uganka v zbirki: 'generator' (ustvaril jo je generator v igri),
 // 'rocno' (vnesel jo je uporabnik - vnos v igri ali reševanje v reševalcu),
@@ -85,16 +91,47 @@ function zbirkaPrikazDatuma(s) {
   return m[4] ? `${dan} ob ${m[4]}` : dan;
 }
 
-// Časi zapisa za seznam zbirke (igra in reševalec): vedno čas dodajanja, za njim pa
-// čas zadnjega reševanja, če se od njega razlikuje (uganka je bila po dodajanju še
-// reševana). Vrne dele za vrstico seznama, ki jih klicatelj združi z ostalimi:
-//   ['dodana 21. 9. 2026 ob 14:32', 'reševana 22. 9. 2026 ob 10:05']
-// Zapis brez obeh časov da '—', zapis brez dodano (starejši) samo čas reševanja.
+// Stanje MOJEGA reševanja uganke v igri (ne programovega): nova (še nisem igral),
+// v teku, rešena (vseh 81 celic izpolnjenih in pravilnih) ali izpolnjena z napako
+// (vseh 81 izpolnjenih, a se vsaj ena števka ne ujema z rešitvijo). Ključ je hkrati
+// razred za barvo v seznamu (igra.css).
+function zbirkaStanjeIgre(z) {
+  if (!z || !z.igrano) return { kljuc: 'nova', besedilo: 'nova' };
+  const n = z.izpolnjeno || 0;
+  if (n >= 81) {
+    return z.napaka ? { kljuc: 'napaka', besedilo: 'izpolnjena z napako' }
+      : { kljuc: 'resena', besedilo: 'rešena' };
+  }
+  return { kljuc: 'v-teku', besedilo: `v teku (${n} od 81)` };
+}
+
+// Časi in stanje zapisa za prikaz (seznam zbirke v igri in reševalcu, kartica
+// "Uganka"): dve vrstici drugo pod drugo. Vrne
+//   { dodana: 'dodana 21. 9. 2026 ob 16:33',
+//     igranje: 'zadnje reševanje 22. 9. 2026 ob 10:05' | '',
+//     stanje: { kljuc, besedilo } }
+// Druge vrstice (igranje + stanje) ni, kadar uganke še nisem igral - takrat je
+// `igranje` prazen. Čas, ko je program uganko ocenil (`nazadnje`), v seznamu ni:
+// je samo v namigu miške in v izvozu.
 function zbirkaPrikazCasov(z) {
-  const deli = [];
-  if (z && z.dodano) deli.push(`dodana ${zbirkaPrikazDatuma(z.dodano)}`);
-  if (z && z.nazadnje && z.nazadnje !== z.dodano) deli.push(`reševana ${zbirkaPrikazDatuma(z.nazadnje)}`);
-  return deli.length ? deli : ['—'];
+  return {
+    dodana: z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '—',
+    igranje: z && z.igrano ? `zadnje reševanje ${zbirkaPrikazDatuma(z.igrano)}` : '',
+    stanje: zbirkaStanjeIgre(z),
+  };
+}
+
+// Namig miške pri uganki v seznamu (igra in reševalec): poleg obeh mojih podatkov
+// še oba programova - kdaj je uganko nazadnje ocenil in kako daleč je prišel.
+function zbirkaNamigCasov(z) {
+  const reseno = zbirkaPrazno(z.reseno) ? '—' : (z.reseno === 81 ? 'v celoti' : `delno (${z.reseno} od 81 celic)`);
+  return [
+    `Dodano: ${z.dodano || '—'}`,
+    `Zadnje reševanje: ${z.igrano || '—'}`,
+    `Stanje: ${zbirkaStanjeIgre(z).besedilo}`,
+    `Ocenjeno: ${z.nazadnje || '—'}`,
+    `Program rešil: ${reseno}`,
+  ].join(' · ');
 }
 
 function zbirkaStKorakov(n) {
@@ -184,6 +221,20 @@ function zbirkaShraniResitev(givens, board, log, dodatno = {}) {
   return zbirkaPisi(zbirka) ? zapis : null;
 }
 
+/* ---------- moje reševanje (igra) ---------- */
+
+// Zapiše podatke o MOJEM reševanju uganke v igri: čas zadnje poteze, koliko celic
+// je izpolnjenih in ali je med vpisi napaka. Uganko, ki je v zbirki ni (npr.
+// vgrajeni primer), pusti pri miru. Vrne true, če je zapis spremenjen in shranjen.
+function zbirkaShraniIgranje(danosti, cas, izpolnjeno, napaka) {
+  const zbirka = zbirkaBeri();
+  const zapis = zbirka.find(z => z.danosti === danosti);
+  if (!zapis) return false;
+  if (zapis.igrano === cas && zapis.izpolnjeno === izpolnjeno && !!zapis.napaka === !!napaka) return false;
+  Object.assign(zapis, { igrano: cas, izpolnjeno, napaka: !!napaka });
+  return zbirkaPisi(zbirka);
+}
+
 /* ---------- izvoz v Markdown ---------- */
 
 // Urejeno po datumu dodajanja (stalen), da se nove uganke dodajajo na konec
@@ -196,8 +247,9 @@ function zbirkaVMarkdown(zbirka) {
     '',
     'Izvoz zbirke ugank (reševalec `app/` ali igra `igra/`, gumb "Zbirka" -> "Izvozi"). Datoteko je mogoče',
     'uvoziti nazaj (gumb "Uvozi"), ki razbere vrstice oblike `- **Ključ:** vrednost`.',
-    'Uganke, pri katerih je navedeno "Preverjeno", imajo enolično rešitev; "Rešeno" pove,',
-    'kako daleč je prišel `solve()` iz `shared/engine.js`.',
+    'Uganke, pri katerih je navedeno "Preverjeno", imajo enolično rešitev.',
+    '"Zadnje reševanje" in "Stanje" se nanašata na moje reševanje v igri,',
+    '"Ocenjeno" in "Program rešil" pa na `solve()` iz `shared/engine.js`.',
   ];
   for (const z of urejena) {
     vrstice.push('', `### ${[z.dodano, z.tezavnost].filter(Boolean).join(' · ') || 'uganka'}`, '');
@@ -205,9 +257,15 @@ function zbirkaVMarkdown(zbirka) {
     if (z.tezavnost) vrstice.push(`- **Težavnost:** ${z.tezavnost}`);
     if (zbirkaOpisIzvora(z)) vrstice.push(`- **Izvor:** ${zbirkaOpisIzvora(z)}`);
     if (z.dodano) vrstice.push(`- **Dodano:** ${z.dodano}`);
-    if (z.nazadnje) vrstice.push(`- **Nazadnje rešeno:** ${z.nazadnje}`);
+    // Moje reševanje v igri.
+    if (z.igrano) {
+      vrstice.push(`- **Zadnje reševanje:** ${z.igrano}`);
+      vrstice.push(`- **Stanje:** ${zbirkaStanjeIgre(z).besedilo}`);
+    }
+    // Reševanje s programom.
+    if (z.nazadnje) vrstice.push(`- **Ocenjeno:** ${z.nazadnje}`);
     if (!zbirkaPrazno(z.reseno)) {
-      vrstice.push(`- **Rešeno:** ${z.reseno === 81 ? 'v celoti' : `delno (${z.reseno} od 81 celic)`}`);
+      vrstice.push(`- **Program rešil:** ${z.reseno === 81 ? 'v celoti' : `delno (${z.reseno} od 81 celic)`}`);
     }
     if (!zbirkaPrazno(z.koraki)) vrstice.push(`- **Koraki:** ${z.koraki}`);
     if (!zbirkaPrazno(z.ugibanje)) vrstice.push(`- **Ugibanje:** ${z.ugibanje}`);
@@ -263,10 +321,23 @@ function zbirkaPretvoriUvozeni(s) {
   const tezavnost = zbirkaTezavnost(s['težavnost']);
   const izvor = zbirkaIzvor(s.izvor);
 
+  // "Program rešil" se je prej imenoval "Rešeno" - staro ime beremo še naprej.
   let reseno = null;
-  const r = s['rešeno'] || '';
+  const r = s['program rešil'] || s['rešeno'] || '';
   if (r === 'v celoti') reseno = 81;
   else if (/(\d+)\s+od\s+81/.test(r)) reseno = parseInt(/(\d+)\s+od\s+81/.exec(r)[1], 10);
+
+  // Moje reševanje: iz vrstice "Stanje" razberem število izpolnjenih celic in napako.
+  const igrano = datum(s['zadnje reševanje']);
+  const st = (s.stanje || '').trim();
+  let izpolnjeno = null;
+  let napaka = null;
+  if (igrano) {
+    if (st === 'rešena') { izpolnjeno = 81; napaka = false; }
+    else if (st === 'izpolnjena z napako') { izpolnjeno = 81; napaka = true; }
+    else if (/(\d+)\s+od\s+81/.test(st)) { izpolnjeno = parseInt(/(\d+)\s+od\s+81/.exec(st)[1], 10); napaka = false; }
+    else { izpolnjeno = 0; napaka = false; }
+  }
 
   let tehnike = null;
   if (s.tehnike === '(brez)') {
@@ -281,7 +352,11 @@ function zbirkaPretvoriUvozeni(s) {
     tezavnost,
     izvor,
     dodano: datum(s.dodano),
-    nazadnje: datum(s['nazadnje rešeno']),
+    igrano,
+    izpolnjeno,
+    napaka,
+    // "Ocenjeno" se je prej imenovalo "Nazadnje rešeno".
+    nazadnje: datum(s.ocenjeno || s['nazadnje rešeno']),
     reseno,
     koraki: stevilo(s.koraki),
     ugibanje: stevilo(s.ugibanje),
@@ -388,11 +463,14 @@ function zbirkaOznakaTehnik(z) {
 
 /* ---------- vrstni red za prikaz ---------- */
 
-// Vrstni red v seznamu zbirke: od nazadnje rešene naprej (neobdelane uvožene
-// na konec). Vrne novo polje zapisov.
+// Vrstni red v seznamu zbirke: najprej uganke, ki sem jih že reševal (najnovejše
+// reševanje na vrhu), za njimi še nereševane po času dodajanja (najnovejša na
+// vrhu). Čas, ko je uganko ocenil program (`nazadnje`), na vrstni red ne vpliva -
+// vrstni red je moj, ne programov. Vrne novo polje zapisov.
 function zbirkaZaSeznam(zbirka) {
   return zbirka.map((z, i) => ({ z, i })).sort((a, b) =>
-    (b.z.nazadnje || '').localeCompare(a.z.nazadnje || '') ||
+    (b.z.igrano ? 1 : 0) - (a.z.igrano ? 1 : 0) ||
+    (b.z.igrano || '').localeCompare(a.z.igrano || '') ||
     (b.z.dodano || '').localeCompare(a.z.dodano || '') ||
     b.i - a.i).map(x => x.z);
 }

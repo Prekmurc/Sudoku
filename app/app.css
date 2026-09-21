@@ -632,6 +632,8 @@
     border-style:dashed;
   }
   .lib-line{ font-size:14px; font-weight:600; }
+  /* druga vrstica zapisa: čas mojega zadnjega reševanja v igri in stanje */
+  .lib-casi{ font-size:13px; color:#3C4854; margin-top:2px; }
   .lib-info{
     font-family:'JetBrains Mono', monospace;
     font-size:12px;

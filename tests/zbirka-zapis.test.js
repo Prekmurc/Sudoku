@@ -4,7 +4,11 @@
 //     ostane za uganke z ugibanjem, stara imena (Začetnik, Preprosto, Srednje, Težko,
 //     Ekspert) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna;
 //   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator ali je vnesena ročno;
-//     zapiše se ob nastanku zapisa in se pozneje ne spreminja.
+//     zapiše se ob nastanku zapisa in se pozneje ne spreminja;
+//   - moje reševanje v igri (igrano/izpolnjeno/napaka, zbirkaStanjeIgre,
+//     zbirkaShraniIgranje) proti programovemu (nazadnje = "Ocenjeno", reseno =
+//     "Program rešil"), prikaz v dveh vrsticah in izvoz/uvoz obojega (uvoz bere
+//     tudi stari imeni "Nazadnje rešeno" in "Rešeno").
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -23,7 +27,9 @@ const E = loadEngine(undefined, {
   },
   names: ['TEZAVNOSTI', 'PRIVZETA_TEZAVNOST', 'STARE_TEZAVNOSTI', 'zbirkaTezavnost',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown', 'STOPNJE_UGANK', 'ZBIRKA_IZVORI', 'ZBIRKA_POLJA',
-    'zbirkaIzvor', 'zbirkaOpisIzvora', 'zbirkaShraniResitev', 'zbirkaBeri'],
+    'zbirkaIzvor', 'zbirkaOpisIzvora', 'zbirkaShraniResitev', 'zbirkaBeri', 'zbirkaPisi',
+    'zbirkaStanjeIgre', 'zbirkaPrikazCasov', 'zbirkaNamigCasov', 'zbirkaShraniIgranje',
+    'zbirkaZaSeznam'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -134,4 +140,137 @@ test('uvoz: vrstica Vir iz docs/uganke.md ne postane izvor', () => {
     '- **Vir:** Oakever, Ekstrem (Lv4); posredoval uporabnik',
   ].join('\n');
   assert.equal(E.zbirkaIzMarkdowna(md).zapisi[0].izvor, '');
+});
+
+/* ---------- moje reševanje v igri (igrano / izpolnjeno / napaka) ---------- */
+
+test('ZBIRKA_POLJA: polja mojega reševanja so med polji zapisa', () => {
+  for (const k of ['igrano', 'izpolnjeno', 'napaka']) {
+    assert.ok([...E.ZBIRKA_POLJA].includes(k), k);
+  }
+});
+
+test('zbirkaStanjeIgre(): nova, v teku, rešena, izpolnjena z napako', () => {
+  const cas = '2026-09-22 10:05';
+  assert.deepEqual({ ...E.zbirkaStanjeIgre({}) }, { kljuc: 'nova', besedilo: 'nova' });
+  assert.deepEqual({ ...E.zbirkaStanjeIgre({ izpolnjeno: 45 }) }, { kljuc: 'nova', besedilo: 'nova' },
+    'brez časa reševanja je uganka nova, tudi če ima število celic iz uvoza');
+  assert.deepEqual({ ...E.zbirkaStanjeIgre({ igrano: cas, izpolnjeno: 45 }) },
+    { kljuc: 'v-teku', besedilo: 'v teku (45 od 81)' });
+  assert.deepEqual({ ...E.zbirkaStanjeIgre({ igrano: cas, izpolnjeno: 81 }) },
+    { kljuc: 'resena', besedilo: 'rešena' });
+  // Vseh 81 celic izpolnjenih, a vsaj ena ni pravilna: to ni rešena uganka.
+  assert.deepEqual({ ...E.zbirkaStanjeIgre({ igrano: cas, izpolnjeno: 81, napaka: true }) },
+    { kljuc: 'napaka', besedilo: 'izpolnjena z napako' });
+});
+
+test('zbirkaPrikazCasov(): dve vrstici, brez reševanja samo prva', () => {
+  const z = { dodano: '2026-09-21 16:33', igrano: '2026-09-22 10:05', izpolnjeno: 45, nazadnje: '2026-09-21 16:33' };
+  const casi = E.zbirkaPrikazCasov(z);
+  assert.equal(casi.dodana, 'dodana 21. 9. 2026 ob 16:33');
+  assert.equal(casi.igranje, 'zadnje reševanje 22. 9. 2026 ob 10:05');
+  assert.equal(casi.stanje.besedilo, 'v teku (45 od 81)');
+  // Čas, ko je uganko ocenil program, v seznamu ni - je samo v namigu miške.
+  assert.ok(!(casi.dodana + ' ' + casi.igranje).includes('ocenjeno'));
+  assert.ok(E.zbirkaNamigCasov(z).includes('Ocenjeno: 2026-09-21 16:33'));
+
+  const brez = E.zbirkaPrikazCasov({ dodano: '2026-09-21 16:33' });
+  assert.equal(brez.igranje, '', 'uganke še nisem igral - druge vrstice ni');
+  assert.equal(brez.stanje.besedilo, 'nova');
+  assert.equal(E.zbirkaPrikazCasov({}).dodana, '—');
+});
+
+test('zbirkaShraniIgranje(): zapiše moje reševanje, uganke izven zbirke ne doda', () => {
+  shramba.clear();
+  const { board, log } = E.solve(danosti);
+  E.zbirkaShraniResitev(danosti, board, log, { tezavnost: 'Lahka', izvor: 'generator' });
+
+  assert.equal(E.zbirkaShraniIgranje(danosti, '2026-09-22 10:05', 45, false), true);
+  let z = E.zbirkaBeri()[0];
+  assert.equal(z.igrano, '2026-09-22 10:05');
+  assert.equal(z.izpolnjeno, 45);
+  assert.equal(z.napaka, false);
+  assert.equal(E.zbirkaStanjeIgre(z).besedilo, 'v teku (45 od 81)');
+  // Program in igralec sta ločena: podatki solve() ostanejo nedotaknjeni.
+  assert.equal(z.reseno, 81);
+  assert.equal(z.nazadnje, z.dodano);
+
+  // Enak zapis se ne shranjuje znova.
+  assert.equal(E.zbirkaShraniIgranje(danosti, '2026-09-22 10:05', 45, false), false);
+  assert.equal(E.zbirkaShraniIgranje(danosti, '2026-09-22 10:31', 81, true), true);
+  z = E.zbirkaBeri()[0];
+  assert.equal(E.zbirkaStanjeIgre(z).besedilo, 'izpolnjena z napako');
+
+  // Uganka, ki je v zbirki ni (npr. vgrajeni primer), se ne doda.
+  assert.equal(E.zbirkaShraniIgranje(danosti.replace('8', '0'), '2026-09-22 11:00', 30, false), false);
+  assert.equal(E.zbirkaBeri().length, 1);
+});
+
+test('izvoz in uvoz: Zadnje reševanje, Stanje, Ocenjeno in Program rešil', () => {
+  const zbirka = [
+    { danosti, tezavnost: 'Lahka', izvor: 'generator', dodano: '2026-09-21 16:33',
+      igrano: '2026-09-22 10:05', izpolnjeno: 45, napaka: false,
+      nazadnje: '2026-09-21 16:40', reseno: 81, koraki: 34, ugibanje: 0, tehnike: [], opomba: '' },
+    { danosti: danosti.replace('8', '0'), tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-21 17:00',
+      igrano: '2026-09-22 11:00', izpolnjeno: 81, napaka: true, nazadnje: '', opomba: '' },
+    { danosti: danosti.replace('7', '0'), tezavnost: 'Težka', izvor: '', dodano: '2026-09-21 18:00',
+      igrano: '2026-09-22 12:00', izpolnjeno: 81, napaka: false, nazadnje: '', opomba: '' },
+  ];
+  const md = E.zbirkaVMarkdown(zbirka);
+  assert.ok(md.includes('- **Zadnje reševanje:** 2026-09-22 10:05'));
+  assert.ok(md.includes('- **Stanje:** v teku (45 od 81)'));
+  assert.ok(md.includes('- **Stanje:** izpolnjena z napako'));
+  assert.ok(md.includes('- **Stanje:** rešena'));
+  assert.ok(md.includes('- **Ocenjeno:** 2026-09-21 16:40'));
+  assert.ok(md.includes('- **Program rešil:** v celoti'));
+  assert.ok(!md.includes('- **Nazadnje rešeno:**'), 'staro ime se ne izvaža več');
+  assert.ok(!md.includes('- **Rešeno:**'), 'staro ime se ne izvaža več');
+
+  const { zapisi, neveljavni } = E.zbirkaIzMarkdowna(md);
+  assert.equal(neveljavni, 0);
+  assert.equal(zapisi.length, 3);
+  const [a, b, c] = [...zapisi];
+  assert.equal(a.igrano, '2026-09-22 10:05');
+  assert.equal(a.izpolnjeno, 45);
+  assert.equal(a.napaka, false);
+  assert.equal(a.nazadnje, '2026-09-21 16:40');
+  assert.equal(a.reseno, 81);
+  assert.equal(E.zbirkaStanjeIgre(b).besedilo, 'izpolnjena z napako');
+  assert.equal(E.zbirkaStanjeIgre(c).besedilo, 'rešena');
+});
+
+test('uvoz: stari imeni "Nazadnje rešeno" in "Rešeno" se še bereta', () => {
+  const md = [
+    '- **Danosti:** `' + danosti.replace(/0/g, '.') + '`',
+    '- **Dodano:** 2026-09-15 10:00',
+    '- **Nazadnje rešeno:** 2026-09-16 11:00',
+    '- **Rešeno:** delno (62 od 81 celic)',
+  ].join('\n');
+  const z = [...E.zbirkaIzMarkdowna(md).zapisi][0];
+  assert.equal(z.nazadnje, '2026-09-16 11:00');
+  assert.equal(z.reseno, 62);
+  assert.equal(z.igrano, '', 'uganke iz starega izvoza še nisem igral');
+  assert.equal(E.zbirkaStanjeIgre(z).besedilo, 'nova');
+});
+
+test('uvoz: čas reševanja brez vrstice Stanje', () => {
+  const md = [
+    '- **Danosti:** `' + danosti.replace(/0/g, '.') + '`',
+    '- **Zadnje reševanje:** 2026-09-22 10:05',
+  ].join('\n');
+  const z = [...E.zbirkaIzMarkdowna(md).zapisi][0];
+  assert.equal(z.igrano, '2026-09-22 10:05');
+  assert.equal(E.zbirkaStanjeIgre(z).besedilo, 'v teku (0 od 81)');
+});
+
+test('zbirkaZaSeznam(): najprej reševane (po času reševanja), nato nereševane (po dodajanju)', () => {
+  const zbirka = [
+    { danosti: 'a', dodano: '2026-09-10 10:00', igrano: '2026-09-20 08:00', nazadnje: '2026-09-22 23:00' },
+    { danosti: 'b', dodano: '2026-09-21 16:33' },
+    { danosti: 'c', dodano: '2026-09-11 10:00', igrano: '2026-09-22 10:05' },
+    { danosti: 'd', dodano: '2026-09-19 09:00' },
+  ];
+  assert.deepEqual([...E.zbirkaZaSeznam(zbirka)].map(z => z.danosti), ['c', 'a', 'b', 'd']);
+  // Čas, ko je uganko ocenil program (nazadnje), na vrstni red ne vpliva.
+  assert.deepEqual([...E.zbirkaZaSeznam([...zbirka].reverse())].map(z => z.danosti), ['c', 'a', 'b', 'd']);
 });

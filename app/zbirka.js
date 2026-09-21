@@ -101,15 +101,26 @@ function zbirkaIzrisiSeznam() {
 
     const glava = document.createElement('div');
     glava.className = 'lib-line';
-    glava.textContent = [...casi, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
-    glava.title = `Dodano: ${z.dodano || '—'} · Nazadnje rešeno: ${z.nazadnje || '—'}`;
+    glava.textContent = [casi.dodana, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
+    glava.title = zbirkaNamigCasov(z);
     li.appendChild(glava);
+
+    // Moje reševanje v igri (čas zadnje poteze in stanje) - svoja vrstica pod časom
+    // dodajanja. Uganke, ki je še nisem igral, ta vrstica nima.
+    if (casi.igranje) {
+      const igranje = document.createElement('div');
+      igranje.className = 'lib-casi';
+      igranje.textContent = `${casi.igranje} · ${casi.stanje.besedilo}`;
+      igranje.title = zbirkaNamigCasov(z);
+      li.appendChild(igranje);
+    }
 
     const deli = [];
     if (zbirkaPrazno(z.koraki)) deli.push('ni podatkov o reševanju');
     else deli.push(zbirkaStKorakov(z.koraki));
     if (!zbirkaPrazno(z.ugibanje)) deli.push(z.ugibanje === 0 ? 'brez ugibanja' : `ugibal ${z.ugibanje}×`);
-    if (!zbirkaPrazno(z.reseno) && z.reseno < 81) deli.push(`rešeno delno (${z.reseno}/81)`);
+    // Podatek o programu, ne o mojem reševanju - zato je poimenovan enako kot v izvozu.
+    if (!zbirkaPrazno(z.reseno) && z.reseno < 81) deli.push(`program rešil delno (${z.reseno}/81)`);
     const info = document.createElement('div');
     info.className = 'lib-info';
     info.textContent = deli.join(' · ');

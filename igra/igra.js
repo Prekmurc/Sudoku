@@ -236,8 +236,10 @@ function zbrisiVpis() {
   izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: 0 });
 }
 
-// Po vsaki spremembi igre: novo stanje, shrani, izriši.
-function osvezi() {
+// Po vsaki spremembi igre: novo stanje, shrani, izriši. `jePoteza` je false samo
+// ob odprtju uganke (zacniIgro) - takrat se čas mojega zadnjega reševanja v zbirki
+// ne premakne, ker še nisem naredil poteze.
+function osvezi(jePoteza = true) {
   const prej = stanje && stanje.danosti === igra.danosti ? seManjka(stanje) : null;
   stanje = stanjeIgre(igra);
   pomoc = pomocPoSpremembi();
@@ -250,7 +252,37 @@ function osvezi() {
   if (!igraShrani(igra)) {
     sporocilo = { besedilo: 'Igre ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', razred: 'err' };
   }
+  if (jePoteza) shraniIgranje();
   izrisi();
+}
+
+// Med vpisi je števka, ki se ne ujema z rešitvijo. Ročno odstranjeni kandidati tu
+// ne štejejo (za razliko od gumba "Preveri") - stanje uganke pove, kaj je na mreži.
+function napacenVpis(stanje, res) {
+  return !!res && stanje.vpisi.some((v, c) => v && v !== res[c]);
+}
+
+// Podatki o MOJEM reševanju gredo v zbirko (uganka, ki je v zbirki ni - npr.
+// vgrajeni primer -, ostane brez njih; njen napredek je v shranjenih igrah).
+function shraniIgranje() {
+  zbirkaShraniIgranje(igra.danosti, igraZdaj(), steviloVpisanih(stanje), napacenVpis(stanje, resitev()));
+}
+
+// Uganke, ki sem jih igral, preden so se ti podatki shranjevali (ali v drugem
+// zavihku), dopolnimo iz shranjenih iger. Uganka, ki je bila samo odprta (brez
+// potez), za igrano ne velja.
+function uskladiIgranje() {
+  const igre = igreBeri().igre;
+  for (const z of zbirkaBeri()) {
+    const zapis = igre[z.danosti];
+    if (!zapis || !zapis.nazadnje || !(zapis.poteze || []).length) continue;
+    if (z.igrano && z.igrano >= zapis.nazadnje) continue;
+    const { vpisi } = odigrajPoteze(z.danosti, zapis.poteze, zapis.kazalec || 0);
+    const izpolnjeno = z.danosti.split('').filter((ch, c) => ch !== '0' || vpisi[c]).length;
+    const res = solutionOf(z.danosti);
+    const napaka = !!res && vpisi.some((v, c) => v && v !== res[c]);
+    zbirkaShraniIgranje(z.danosti, zapis.nazadnje, izpolnjeno, napaka);
+  }
 }
 
 // Korak ostane prikazan ob vsaki potezi (tudi nepovezani); ko so izvedena vsa
@@ -483,10 +515,13 @@ function opisUganke(danosti) {
   const z = zbirkaBeri().find(x => x.danosti === danosti);
   const primer = primeriIgre.find(p => p.danosti === danosti);
   if (!z) return primer ? `Vgrajeni primer »${primer.ime}«. Danih števk: ${danih}.` : `Danih števk: ${danih}. Uganke ni v zbirki.`;
+  const casi = zbirkaPrikazCasov(z);
   const deli = [z.tezavnost || 'težavnost ni določena', zbirkaOpisIzvora(z),
-    `dodana ${zbirkaPrikazDatuma(z.dodano)}`, `danih števk: ${danih}`,
+    casi.dodana, `danih števk: ${danih}`,
     zbirkaOznakaTehnik(z)].filter(Boolean);
-  return deli.join(' · ') + (z.opomba ? ` — ${z.opomba}` : '');
+  // Moje reševanje je v svoji vrstici pod prvo (.opis-uganke ima white-space: pre-line).
+  const igranje = casi.igranje ? `\n${casi.igranje} · ${casi.stanje.besedilo}` : '';
+  return deli.join(' · ') + igranje + (z.opomba ? ` — ${z.opomba}` : '');
 }
 
 /* ---------- pomoč: Naslednji korak, Preveri ---------- */
@@ -695,7 +730,7 @@ function zacniIgro(danosti) {
   sporocilo = shranjena && shranjena.poteze.length
     ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }
     : null;
-  osvezi();
+  osvezi(false); // samo odprtje uganke ni poteza
 }
 
 /* ---------- tipkovnica ---------- */
@@ -825,15 +860,20 @@ function zbirkaStatusIgre(danosti, zapis) {
 }
 
 // Vrstica "danih: N · nova / v teku / rešeno · trenutno odprta" in gumb
-// Igraj/Nadaljuj - enako za vgrajene primere in uganke iz zbirke.
-function infoUganke(danosti, zapis, trenutna) {
-  const st = zbirkaStatusIgre(danosti, zapis);
+// Igraj/Nadaljuj. Pri ugankah iz zbirke je stanje že v vrstici s časi
+// (sStanjem = false), pri vgrajenih primerih, ki zapisa v zbirki nimajo, pa tu.
+function infoUganke(danosti, zapis, trenutna, sStanjem = true) {
   const info = document.createElement('div');
   info.className = 'zb-info';
-  const oznaka = document.createElement('span');
-  oznaka.className = st.razred;
-  oznaka.textContent = st.besedilo;
-  info.append(`danih: ${danosti.replace(/0/g, '').length} · `, oznaka, trenutna ? ' · trenutno odprta' : '');
+  info.append(`danih: ${danosti.replace(/0/g, '').length}`);
+  if (sStanjem) {
+    const st = zbirkaStatusIgre(danosti, zapis);
+    const oznaka = document.createElement('span');
+    oznaka.className = st.razred;
+    oznaka.textContent = st.besedilo;
+    info.append(' · ', oznaka);
+  }
+  info.append(trenutna ? ' · trenutno odprta' : '');
   return info;
 }
 
@@ -865,7 +905,22 @@ function izrisiPrimere(igre) {
   }
 }
 
+// Druga vrstica zapisa v seznamu: "zadnje reševanje 22. 9. 2026 ob 10:05 · v teku
+// (45 od 81)". Vrne null, kadar uganke še nisem igral.
+function vrsticaIgranja(z) {
+  const casi = zbirkaPrikazCasov(z);
+  if (!casi.igranje) return null;
+  const el = document.createElement('div');
+  el.className = 'zb-casi';
+  const oznaka = document.createElement('span');
+  oznaka.className = casi.stanje.kljuc;
+  oznaka.textContent = casi.stanje.besedilo;
+  el.append(`${casi.igranje} · `, oznaka);
+  return el;
+}
+
 function izrisiZbirko() {
+  uskladiIgranje();
   const zbirka = zbirkaBeri();
   const igre = igreBeri().igre;
   izrisiPrimere(igre);
@@ -886,11 +941,16 @@ function izrisiZbirko() {
 
     const vrstica = document.createElement('div');
     vrstica.className = 'zb-vrstica';
-    vrstica.textContent = [...zbirkaPrikazCasov(z), tezavnost, zbirkaOpisIzvora(z)]
+    vrstica.textContent = [zbirkaPrikazCasov(z).dodana, tezavnost, zbirkaOpisIzvora(z)]
       .filter(Boolean).join(' · ');
+    vrstica.title = zbirkaNamigCasov(z);
     li.appendChild(vrstica);
 
-    li.appendChild(infoUganke(z.danosti, igre[z.danosti], trenutna));
+    // Čas mojega zadnjega reševanja in stanje - v svoji vrstici pod časom dodajanja.
+    const igranje = vrsticaIgranja(z);
+    if (igranje) li.appendChild(igranje);
+
+    li.appendChild(infoUganke(z.danosti, igre[z.danosti], trenutna, false));
 
     // Katere tehnike uganka zahteva (številke iz treninga).
     const tehnike = document.createElement('div');
@@ -1164,15 +1224,17 @@ oceniPrekiniBtn.addEventListener('click', () => {
     + (sprememb ? ` Predlaganih sprememb: ${sprememb}.` : ''));
 });
 
-// Zapis predloga v zbirko: samo uganke, pri katerih bi se kaj spremenilo; datum
-// dodajanja, datum zadnjega reševanja in opomba ostanejo nedotaknjeni.
+// Zapis predloga v zbirko: samo uganke, pri katerih bi se kaj spremenilo. Datum
+// dodajanja, podatki o mojem reševanju in opomba ostanejo nedotaknjeni, datum
+// "Ocenjeno" (nazadnje) pa se osveži - ocenil jih je program zdaj.
 oceniZapisiBtn.addEventListener('click', () => {
   const zbirka = zbirkaBeri();
+  const cas = igraZdaj();
   let n = 0;
   for (const z of zbirka) {
     const o = ocene.get(z.danosti);
     if (!o || !ocenaSprememba(z, o)) continue;
-    Object.assign(z, ocenaZapis(o));
+    Object.assign(z, ocenaZapis(o), { nazadnje: cas });
     n++;
   }
   if (!zbirkaPisi(zbirka)) {
@@ -1590,6 +1652,7 @@ osveziPoudVnose();
 
 /* ---------- zagon ---------- */
 
+uskladiIgranje(); // uganke, igrane pred uvedbo teh podatkov (ali v drugem zavihku)
 osveziGumbZbirke();
 const zadnja = igraZadnja();
 if (zadnja) {

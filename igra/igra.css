@@ -148,7 +148,7 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
   font-size:17px;
   margin: 0 0 8px;
 }
-.opis-uganke{ font-size:13.5px; color:#3C4854; line-height:1.5; }
+.opis-uganke{ font-size:13.5px; color:#3C4854; line-height:1.5; white-space: pre-line; }
 #status{
   font-size:13px;
   color: var(--pencil);
@@ -679,6 +679,11 @@ kbd{
 .zb-info{ font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--pencil); margin-top:3px; }
 .zb-info .v-teku{ color: var(--blue); }
 .zb-info .reseno{ color: var(--green); }
+/* druga vrstica zapisa: čas mojega zadnjega reševanja in stanje */
+.zb-casi{ font-size:13px; color:#3C4854; margin-top:2px; }
+.zb-casi .v-teku{ color: var(--blue); }
+.zb-casi .resena{ color: var(--green); font-weight:600; }
+.zb-casi .napaka{ color: var(--red); }
 .zb-tehnike{ color:#3C4854; }
 /* predlagana ocena (gumb "Oceni zbirko"), dokler ni zapisana */
 .zb-ocena{ margin-top:3px; }
