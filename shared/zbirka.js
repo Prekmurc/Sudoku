@@ -75,10 +75,14 @@ function zbirkaZdaj() {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-// '2026-09-15 14:32' -> '15. 9. 2026'
+// '2026-09-15 14:32' -> '15. 9. 2026 ob 14:32'. Ura je neobvezna: uvoz iz Markdowna
+// sprejme tudi zapis brez nje (glej `datum` v zbirkaIzMarkdowna) in tak zapis ostane
+// samo datum.
 function zbirkaPrikazDatuma(s) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
-  return m ? `${+m[3]}. ${+m[2]}. ${m[1]}` : '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}:\d{2}))?/.exec(s || '');
+  if (!m) return '—';
+  const dan = `${+m[3]}. ${+m[2]}. ${m[1]}`;
+  return m[4] ? `${dan} ob ${m[4]}` : dan;
 }
 
 function zbirkaStKorakov(n) {
