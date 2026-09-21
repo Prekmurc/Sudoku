@@ -132,6 +132,11 @@ enojčki, 64,1 skupaj. Danosti so v vseh razredih 21–27 z mediano 24.
 Očitna para je namenoma v **srednji**, ne v lahki: zahteva zapisane kandidate in iskanje
 vzorca, lahka pa pomeni uganko, ki se reši s samim pregledovanjem mreže.
 
+Ta merila imajo samo zgornjo mejo, zato generator pogosto najde uganko, ki nad enojčki
+zahteva eno samo tehniko. Spodnjo mejo (najmanjše število različnih tehnik na stopnjo) in
+meritev, na kateri sloni, ima [tehnike.md](tehnike.md), razdelek »Stopnje ugank: najmanjše
+število različnih tehnik«.
+
 Za primerjavo: prejšnja merila (`lahka` je zahtevala presek, `srednja` paro/trojico,
 `tezka` napredno tehniko) so dala 0,93 s / 1,80 s / 0,51 s na uganko (40 semen), pol
 vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
