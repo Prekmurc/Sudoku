@@ -29,7 +29,7 @@ const E = loadEngine(undefined, {
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown', 'STOPNJE_UGANK', 'ZBIRKA_IZVORI', 'ZBIRKA_POLJA',
     'zbirkaIzvor', 'zbirkaOpisIzvora', 'zbirkaShraniResitev', 'zbirkaBeri', 'zbirkaPisi',
     'zbirkaStanjeIgre', 'zbirkaPrikazCasov', 'zbirkaNamigCasov', 'zbirkaShraniIgranje',
-    'zbirkaZaSeznam'],
+    'zbirkaZaSeznam', 'zbirkaVrsticaIgranja'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -168,16 +168,31 @@ test('zbirkaPrikazCasov(): dve vrstici, brez reševanja samo prva', () => {
   const z = { dodano: '2026-09-21 16:33', igrano: '2026-09-22 10:05', izpolnjeno: 45, nazadnje: '2026-09-21 16:33' };
   const casi = E.zbirkaPrikazCasov(z);
   assert.equal(casi.dodana, 'dodana 21. 9. 2026 ob 16:33');
-  assert.equal(casi.igranje, 'zadnje reševanje 22. 9. 2026 ob 10:05');
-  assert.equal(casi.stanje.besedilo, 'v teku (45 od 81)');
+  assert.equal(casi.igranje.predpona, 'zadnje reševanje 22. 9. 2026 ob 10:05');
+  assert.equal(casi.igranje.besedilo, 'v teku (45 od 81)');
+  assert.equal(casi.igranje.kljuc, 'v-teku');
+  assert.equal(E.zbirkaVrsticaIgranja(z), 'zadnje reševanje 22. 9. 2026 ob 10:05 · v teku (45 od 81)');
   // Čas, ko je uganko ocenil program, v seznamu ni - je samo v namigu miške.
-  assert.ok(!(casi.dodana + ' ' + casi.igranje).includes('ocenjeno'));
+  assert.ok(!(casi.dodana + ' ' + E.zbirkaVrsticaIgranja(z)).includes('ocenjeno'));
   assert.ok(E.zbirkaNamigCasov(z).includes('Ocenjeno: 2026-09-21 16:33'));
 
   const brez = E.zbirkaPrikazCasov({ dodano: '2026-09-21 16:33' });
-  assert.equal(brez.igranje, '', 'uganke še nisem igral - druge vrstice ni');
-  assert.equal(brez.stanje.besedilo, 'nova');
+  assert.equal(brez.igranje, null, 'uganke še nisem igral - druge vrstice ni');
+  assert.equal(E.zbirkaVrsticaIgranja({ dodano: '2026-09-21 16:33' }), '');
   assert.equal(E.zbirkaPrikazCasov({}).dodana, '—');
+});
+
+test('zbirkaPrikazCasov(): rešena uganka ima samo "rešena <čas>"', () => {
+  const z = { dodano: '2026-09-21 16:33', igrano: '2026-09-21 17:48', izpolnjeno: 81 };
+  const i = E.zbirkaPrikazCasov(z).igranje;
+  assert.equal(i.predpona, '', 'pri rešeni uganki ni "zadnje reševanje"');
+  assert.equal(i.besedilo, 'rešena 21. 9. 2026 ob 17:48');
+  assert.equal(i.kljuc, 'resena');
+  assert.equal(E.zbirkaVrsticaIgranja(z), 'rešena 21. 9. 2026 ob 17:48');
+  // Izpolnjena z napako pa ostane pri paru "zadnje reševanje ... · stanje".
+  const napaka = E.zbirkaPrikazCasov({ ...z, napaka: true }).igranje;
+  assert.equal(napaka.predpona, 'zadnje reševanje 21. 9. 2026 ob 17:48');
+  assert.equal(napaka.besedilo, 'izpolnjena z napako');
 });
 
 test('zbirkaShraniIgranje(): zapiše moje reševanje, uganke izven zbirke ne doda', () => {
@@ -204,6 +219,22 @@ test('zbirkaShraniIgranje(): zapiše moje reševanje, uganke izven zbirke ne dod
   // Uganka, ki je v zbirki ni (npr. vgrajeni primer), se ne doda.
   assert.equal(E.zbirkaShraniIgranje(danosti.replace('8', '0'), '2026-09-22 11:00', 30, false), false);
   assert.equal(E.zbirkaBeri().length, 1);
+});
+
+test('zbirkaShraniIgranje(): zapis rešene uganke je zamrznjen', () => {
+  shramba.clear();
+  const { board, log } = E.solve(danosti);
+  E.zbirkaShraniResitev(danosti, board, log, { tezavnost: 'Lahka', izvor: 'generator' });
+
+  assert.equal(E.zbirkaShraniIgranje(danosti, '2026-09-21 17:48', 81, false), true);
+  assert.equal(E.zbirkaStanjeIgre(E.zbirkaBeri()[0]).besedilo, 'rešena');
+
+  // Nadaljnje reševanje (npr. po "Začni znova") časa in stanja ne spremeni.
+  assert.equal(E.zbirkaShraniIgranje(danosti, '2026-09-23 09:00', 30, false), false);
+  const z = E.zbirkaBeri()[0];
+  assert.equal(z.igrano, '2026-09-21 17:48', 'ohrani se čas prve rešitve');
+  assert.equal(z.izpolnjeno, 81);
+  assert.equal(E.zbirkaStanjeIgre(z).besedilo, 'rešena');
 });
 
 test('izvoz in uvoz: Zadnje reševanje, Stanje, Ocenjeno in Program rešil', () => {

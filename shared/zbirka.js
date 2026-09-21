@@ -108,17 +108,28 @@ function zbirkaStanjeIgre(z) {
 // Časi in stanje zapisa za prikaz (seznam zbirke v igri in reševalcu, kartica
 // "Uganka"): dve vrstici drugo pod drugo. Vrne
 //   { dodana: 'dodana 21. 9. 2026 ob 16:33',
-//     igranje: 'zadnje reševanje 22. 9. 2026 ob 10:05' | '',
-//     stanje: { kljuc, besedilo } }
-// Druge vrstice (igranje + stanje) ni, kadar uganke še nisem igral - takrat je
-// `igranje` prazen. Čas, ko je program uganko ocenil (`nazadnje`), v seznamu ni:
-// je samo v namigu miške in v izvozu.
+//     igranje: null | { predpona, besedilo, kljuc } }
+// Druge vrstice ni, kadar uganke še nisem igral (`igranje` je null); sicer je
+// vrstica "predpona · besedilo", kjer je besedilo stanje (v seznamu obarvano po
+// `kljuc`). Rešena uganka ima namesto para "zadnje reševanje … · rešena" samo
+// "rešena 21. 9. 2026 ob 17:48" - njen zapis je zamrznjen, zato je to čas prve
+// rešitve. Čas, ko je program uganko ocenil (`nazadnje`), v seznamu ni: je samo v
+// namigu miške in v izvozu.
 function zbirkaPrikazCasov(z) {
-  return {
-    dodana: z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '—',
-    igranje: z && z.igrano ? `zadnje reševanje ${zbirkaPrikazDatuma(z.igrano)}` : '',
-    stanje: zbirkaStanjeIgre(z),
-  };
+  const dodana = z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '—';
+  if (!z || !z.igrano) return { dodana, igranje: null };
+  const st = zbirkaStanjeIgre(z);
+  const igranje = st.kljuc === 'resena'
+    ? { predpona: '', besedilo: `rešena ${zbirkaPrikazDatuma(z.igrano)}`, kljuc: st.kljuc }
+    : { predpona: `zadnje reševanje ${zbirkaPrikazDatuma(z.igrano)}`, besedilo: st.besedilo, kljuc: st.kljuc };
+  return { dodana, igranje };
+}
+
+// Druga vrstica kot navadno besedilo (kartica "Uganka" v igri, seznam v reševalcu);
+// seznam v igri stanje obarva, zato sestavi vrstico sam.
+function zbirkaVrsticaIgranja(z) {
+  const i = zbirkaPrikazCasov(z).igranje;
+  return i ? [i.predpona, i.besedilo].filter(Boolean).join(' · ') : '';
 }
 
 // Namig miške pri uganki v seznamu (igra in reševalec): poleg obeh mojih podatkov
@@ -226,10 +237,13 @@ function zbirkaShraniResitev(givens, board, log, dodatno = {}) {
 // Zapiše podatke o MOJEM reševanju uganke v igri: čas zadnje poteze, koliko celic
 // je izpolnjenih in ali je med vpisi napaka. Uganko, ki je v zbirki ni (npr.
 // vgrajeni primer), pusti pri miru. Vrne true, če je zapis spremenjen in shranjen.
+// Zapis rešene uganke je ZAMRZNJEN: čas in stanje se ne spreminjata več, zato
+// ostane zapisan čas prve rešitve (tudi če uganko pozneje rešujem še enkrat).
 function zbirkaShraniIgranje(danosti, cas, izpolnjeno, napaka) {
   const zbirka = zbirkaBeri();
   const zapis = zbirka.find(z => z.danosti === danosti);
   if (!zapis) return false;
+  if (zbirkaStanjeIgre(zapis).kljuc === 'resena') return false;
   if (zapis.igrano === cas && zapis.izpolnjeno === izpolnjeno && !!zapis.napaka === !!napaka) return false;
   Object.assign(zapis, { igrano: cas, izpolnjeno, napaka: !!napaka });
   return zbirkaPisi(zbirka);

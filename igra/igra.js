@@ -206,8 +206,14 @@ vecHkratiEl.addEventListener('change', () => {
 
 /* ---------- poteze ---------- */
 
+// Rešena uganka (vseh 81 celic izpolnjenih in brez napake) se ne spreminja več -
+// mreža je samo za ogled. Edina pot naprej je "Začni znova".
+function samoZaOgled() {
+  return !!igra && !!stanje && jeResena(stanje);
+}
+
 function izvedi(poteza) {
-  if (!igra || !dodajPotezo(igra, poteza, stanje)) return;
+  if (!igra || samoZaOgled() || !dodajPotezo(igra, poteza, stanje)) return;
   // Po vpisu števke se izbira celice izklopi (puščice nadaljujejo od nje).
   if (poteza.tip === 'vpis' && poteza.stevka) {
     zadnjaIzbrana = poteza.celica;
@@ -275,8 +281,9 @@ function uskladiIgranje() {
   const igre = igreBeri().igre;
   for (const z of zbirkaBeri()) {
     const zapis = igre[z.danosti];
-    if (!zapis || !zapis.nazadnje || !(zapis.poteze || []).length) continue;
+    if (!zapis || !zapis.nazadnje || !zacetaIgra(zapis)) continue;
     if (z.igrano && z.igrano >= zapis.nazadnje) continue;
+    if (zbirkaStanjeIgre(z).kljuc === 'resena') continue; // zapis rešene uganke je zamrznjen
     const { vpisi } = odigrajPoteze(z.danosti, zapis.poteze, zapis.kazalec || 0);
     const izpolnjeno = z.danosti.split('').filter((ch, c) => ch !== '0' || vpisi[c]).length;
     const res = solutionOf(z.danosti);
@@ -317,13 +324,13 @@ function dejanjaKoraka(k) {
 }
 
 razveljaviBtn.addEventListener('click', () => {
-  if (!igra || !lahkoRazveljavi(igra)) return;
+  if (!igra || samoZaOgled() || !lahkoRazveljavi(igra)) return;
   razveljavi(igra);
   sporocilo = null;
   osvezi();
 });
 ponoviBtn.addEventListener('click', () => {
-  if (!igra || !lahkoPonovi(igra)) return;
+  if (!igra || samoZaOgled() || !lahkoPonovi(igra)) return;
   ponovi(igra);
   sporocilo = null;
   osvezi();
@@ -331,7 +338,10 @@ ponoviBtn.addEventListener('click', () => {
 zbrisiBtn.addEventListener('click', zbrisiVpis);
 znovaBtn.addEventListener('click', () => {
   if (!igra || igra.kazalec === 0) return;
-  if (!confirm('Začnem znova? Vse poteze bodo razveljavljene. Z »Ponovi« jih lahko vrneš, dokler ne narediš nove poteze.')) return;
+  const vprasanje = samoZaOgled()
+    ? 'Uganka je rešena. Če začneš znova, se mreža izprazni in jo lahko rešuješ še enkrat; v zbirki ostane zapisana kot rešena, s časom prve rešitve. Nadaljujem?'
+    : 'Začnem znova? Vse poteze bodo razveljavljene. Z »Ponovi« jih lahko vrneš, dokler ne narediš nove poteze.';
+  if (!confirm(vprasanje)) return;
   igra.kazalec = 0;
   sporocilo = { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' };
   osvezi();
@@ -429,7 +439,8 @@ function izrisiMrezo() {
 function izrisiNize() {
   const manjka = igra ? seManjka(stanje) : new Array(10).fill(0);
   // Pri več izbranih celicah je mogoče samo odstraniti števko, ki je kandidat v vseh.
-  const a = !igra ? mozneAkcije(null, null)
+  const ogled = samoZaOgled();
+  const a = !igra || ogled ? mozneAkcije(null, null)
     : izbrane.length > 1 ? { vpis: 0, odstrani: skupniKandidati(stanje, izbrane), vrni: 0, zbrisi: false }
     : mozneAkcije(stanje, enaIzbrana());
   for (let d = 1; d <= 9; d++) {
@@ -459,8 +470,8 @@ function izrisiNize() {
   }
   razlogNizovEl.textContent = razlogNizov(a);
   zbrisiBtn.disabled = !a.zbrisi;
-  razveljaviBtn.disabled = !igra || !lahkoRazveljavi(igra);
-  ponoviBtn.disabled = !igra || !lahkoPonovi(igra);
+  razveljaviBtn.disabled = !igra || ogled || !lahkoRazveljavi(igra);
+  ponoviBtn.disabled = !igra || ogled || !lahkoPonovi(igra);
   znovaBtn.disabled = !igra || igra.kazalec === 0;
   // Gumb pove, kaj sledi; ko je korak prikazan v celoti, počaka na potezo ali Skrij.
   const stopnja = pomoc && pomoc.korak ? pomoc.stopnja : 0;
@@ -473,6 +484,7 @@ function izrisiNize() {
 // Pojasnilo pod nizoma, kadar za izbrano celico ni kaj vpisati ali odstraniti.
 function razlogNizov(a) {
   if (!igra) return '';
+  if (samoZaOgled()) return 'Uganka je rešena – mreža je samo za ogled. Z »Začni znova« jo lahko rešuješ še enkrat.';
   if (!izbrane.length) return 'Izberi celico v mreži.';
   if (izbrane.length > 1) {
     // Celica v izbiri je lahko polna, če je "Razveljavi"/"Ponovi" vrnil vpis.
@@ -520,8 +532,8 @@ function opisUganke(danosti) {
     casi.dodana, `danih števk: ${danih}`,
     zbirkaOznakaTehnik(z)].filter(Boolean);
   // Moje reševanje je v svoji vrstici pod prvo (.opis-uganke ima white-space: pre-line).
-  const igranje = casi.igranje ? `\n${casi.igranje} · ${casi.stanje.besedilo}` : '';
-  return deli.join(' · ') + igranje + (z.opomba ? ` — ${z.opomba}` : '');
+  const igranje = zbirkaVrsticaIgranja(z);
+  return deli.join(' · ') + (igranje ? `\n${igranje}` : '') + (z.opomba ? ` — ${z.opomba}` : '');
 }
 
 /* ---------- pomoč: Naslednji korak, Preveri ---------- */
@@ -851,8 +863,14 @@ function osveziGumbZbirke() {
   zbirkaBtn.textContent = `Zbirka (${zbirkaBeri().length})`;
 }
 
+// Ali sem uganko že igral: sam zapis igre ne zadostuje, ker nastane že ob odprtju
+// (igraShrani v osvezi). Šteje šele prva poteza - takrat dobi zapis "poteze".
+function zacetaIgra(zapis) {
+  return !!zapis && (zapis.poteze || []).length > 0;
+}
+
 function zbirkaStatusIgre(danosti, zapis) {
-  if (!zapis) return { besedilo: 'nova', razred: '' };
+  if (!zacetaIgra(zapis)) return { besedilo: 'nova', razred: '' };
   const { vpisi } = odigrajPoteze(danosti, zapis.poteze || [], zapis.kazalec || 0);
   const izpolnjenih = danosti.split('').filter((ch, c) => ch !== '0' || vpisi[c]).length;
   if (izpolnjenih === 81) return { besedilo: 'rešeno ✓', razred: 'reseno' };
@@ -883,7 +901,7 @@ function gumbiUganke(danosti, zapis) {
   const igraj = document.createElement('button');
   igraj.type = 'button';
   igraj.className = 'primary';
-  igraj.textContent = zapis ? 'Nadaljuj' : 'Igraj';
+  igraj.textContent = zacetaIgra(zapis) ? 'Nadaljuj' : 'Igraj';
   igraj.addEventListener('click', () => igrajIzZbirke(danosti));
   gumbi.appendChild(igraj);
   return gumbi;
@@ -908,14 +926,14 @@ function izrisiPrimere(igre) {
 // Druga vrstica zapisa v seznamu: "zadnje reševanje 22. 9. 2026 ob 10:05 · v teku
 // (45 od 81)". Vrne null, kadar uganke še nisem igral.
 function vrsticaIgranja(z) {
-  const casi = zbirkaPrikazCasov(z);
-  if (!casi.igranje) return null;
+  const i = zbirkaPrikazCasov(z).igranje;
+  if (!i) return null;
   const el = document.createElement('div');
   el.className = 'zb-casi';
   const oznaka = document.createElement('span');
-  oznaka.className = casi.stanje.kljuc;
-  oznaka.textContent = casi.stanje.besedilo;
-  el.append(`${casi.igranje} · `, oznaka);
+  oznaka.className = i.kljuc;
+  oznaka.textContent = i.besedilo;
+  el.append(i.predpona ? `${i.predpona} · ` : '', oznaka);
   return el;
 }
 

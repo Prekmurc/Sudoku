@@ -110,7 +110,7 @@ function zbirkaIzrisiSeznam() {
     if (casi.igranje) {
       const igranje = document.createElement('div');
       igranje.className = 'lib-casi';
-      igranje.textContent = `${casi.igranje} · ${casi.stanje.besedilo}`;
+      igranje.textContent = zbirkaVrsticaIgranja(z);
       igranje.title = zbirkaNamigCasov(z);
       li.appendChild(igranje);
     }
