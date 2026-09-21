@@ -114,15 +114,17 @@ spremlja, Swordfish se ne pojavi; merilo stopnje se nanju ne more opirati.
 
 Dve osi: skupina najtežje potrebne tehnike + število različnih tehnik nad enojčki.
 Razredi se izključujejo in pokrijejo 100 % ugank, rešljivih brez ugibanja (0
-nerazvrščenih v 600). Čas iskanja je izmerjen na 150 semenih s pregledom cele poti
-kopanja in poceni razvrstitvijo (pet mejnih predpon s predčasnim izhodom), 97 ms na seme.
+nerazvrščenih v 600); to je merilo `ustreza` v `STOPNJE_UGANK`, po katerem `oceniUganko()`
+razvrsti že znano uganko. Časi so popravljeni 2026-09-21: prej so bili izmerjeni s poceni
+nadomestno razvrstitvijo (97 ms na seme), spodnji pa s pravim `ustvariUganko()` (300 semen
+na stopnjo, Node 24) in so zato daljši.
 
 | Stopnja | Merilo | Delež (600) | Semen z zadetkom | Čas do uganke |
 |---|---|---|---|---|
-| Lahka | reši se **samo z enojčki** (brez zapisanih kandidatov) | 53,5 % | 100 % | ~0,1 s |
-| Srednja | potrebuje očitno/skrito paro, trojico ali presek; naprednih ne | 22,8 % | 24,0 % | ~0,4 s |
-| Težka | potrebuje **natanko eno** napredno tehniko, skupaj ≤ 4 tehnike nad enojčki | 14,0 % | 12,7 % | ~0,8 s |
-| Zelo težka | potrebuje napredne in (≥ 2 različni napredni **ali** ≥ 5 tehnik nad enojčki) | 9,7 % | 12,0 % | ~0,8 s |
+| Lahka | reši se **samo z enojčki** (brez zapisanih kandidatov) | 53,5 % | 100 % | 0,3 s |
+| Srednja | potrebuje očitno/skrito paro, trojico ali presek; naprednih ne | 22,8 % | 27,0 % | 0,6 s |
+| Težka | potrebuje **natanko eno** napredno tehniko, skupaj ≤ 4 tehnike nad enojčki | 14,0 % | 13,7 % | 1,2 s |
+| Zelo težka | potrebuje napredne in (≥ 2 različni napredni **ali** ≥ 5 tehnik nad enojčki) | 9,7 % | 11,7 % | 1,6 s |
 
 Značilnosti razredov (600): lahka 0 tehnik nad enojčki, 57,0 korakov; srednja 1,6 [1–4]
 tehnik, 2,8 [1–12] korakov nad enojčki, 59,5 skupaj; težka 2,7 [1–4] tehnik, 4,3 [1–14]
@@ -136,6 +138,11 @@ Ta merila imajo samo zgornjo mejo, zato generator pogosto najde uganko, ki nad e
 zahteva eno samo tehniko. Spodnjo mejo (najmanjše število različnih tehnik na stopnjo) in
 meritev, na kateri sloni, ima [tehnike.md](tehnike.md), razdelek »Stopnje ugank: najmanjše
 število različnih tehnik«.
+
+Generator od 2026-09-21 išče po ožjem merilu `ustrezaIskanju` (ta merila **in** spodnja
+meja dveh različnih osnovnih tehnik), zato so njegovi časi drugačni od zgornjih: 0,3 s
+(lahka), 1,3 s (srednja), 2,1 s (težka), 2,1 s (zelo težka). Razvrščanje že znane uganke
+(`oceniUganko()`, gumb »Oceni zbirko«) ostaja pri zgornjem, pokrivajočem merilu.
 
 Za primerjavo: prejšnja merila (`lahka` je zahtevala presek, `srednja` paro/trojico,
 `tezka` napredno tehniko) so dala 0,93 s / 1,80 s / 0,51 s na uganko (40 semen), pol

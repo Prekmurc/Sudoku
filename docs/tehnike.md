@@ -37,19 +37,31 @@ več kot eno osnovno. Spodnja meja to odpravi.
 |---|---|---|---|---|
 | Lahka | enojčki | 0 – reši se samo z enojčki, brez zapisanih kandidatov | 54,2 % | 0,3 s |
 | Srednja | 1–6 | **≥ 2** iz 1–6, nobene napredne | 9,1 % | 1,3 s |
-| Težka | 1–6 + ena iz 7–12 | **≥ 2** iz 1–6 + **natanko 1** iz 7–12 | 9,5 % | 1,5 s |
-| Zelo težka | 1–12 | **≥ 2** iz 1–6 + **≥ 2** iz 7–12 | 5,9 % | 2,7 s |
+| Težka | 1–6 + ena iz 7–12 | **≥ 2** iz 1–6 + **natanko 1** iz 7–12, skupaj ≤ 4 | 8,0 % | 2,1 s |
+| Zelo težka | 1–12 | **≥ 2** iz 1–6 + **≥ 2** iz 7–12 | 5,9 % | 2,1 s |
 | Ekstrem | vse + poskus | pogoj je ugibanje (`solve()` uganke ne reši brez poskusa s protislovjem) | 21,4 % vseh izkopanih | – |
 
 Minimum velja **samo za iskanje v generatorju** (kaj gumb »Ustvari uganko« ustvari), ne za
 razvrščanje že znanih ugank: `oceniUganko()` (gumb »Oceni zbirko« v igri) mora ostati pokrivajoč,
 sicer bi uganka z eno samo tehniko nad enojčki dobila oznako Ekstrem, čeprav se reši brez
-ugibanja – takih je 21 % ugank, ki jih `solve()` reši brez poskusa.
+ugibanja – takih je 21 % ugank, ki jih `solve()` reši brez poskusa. V
+[shared/generator.js](../shared/generator.js) sta to dve merili vsake stopnje v
+`STOPNJE_UGANK`: `ustreza` (pokrivajoče, zanj gre `oceniUganko`) in `ustrezaIskanju`
+(s spodnjo mejo, zanj gre `oceniStopnjo` oziroma `ustvariUganko`).
+
+Merilo iskanja mora biti **podmnožica** pokrivajočega, sicer bi ustvarjena uganka pri
+»Oceni zbirko« dobila drugo težavnost, kot jo ima v zbirki. Zato ima Težka poleg spodnje
+meje še zgornjo iz pokrivajočega merila (največ štiri tehnike nad enojčki; uganka z eno
+napredno in štirimi osnovnimi se razvrsti kot Zelo težka), Zelo težka pa se pri iskanju
+omeji na vejo z dvema naprednima in ne lovi tudi uganke s petimi tehnikami nad enojčki.
+To preverja `tests/generator.test.js`.
 
 **Meritev.** Vzorec kot pri meritvi stopenj v [uganke.md](uganke.md) (razdelek »Porazdelitev
 naključnih ugank«): semena 1–840 dajo 660 minimalnih ugank, ki jih `solve()` reši brez ugibanja
-(78,6 %). Časi so izmerjeni s pravim `ustvariUganko()` (300 semen na merilo, 600 pri redkem),
-Node 24; v brskalniku so podobni. Porazdelitev (660 ugank, osnovne × napredne):
+(78,6 %). Časi so izmerjeni s pravim `ustvariUganko()` z vgrajenim merilom (Lahka 150 semen,
+Srednja 600, Težka 900, Zelo težka 600), Node 24; v brskalniku so podobni. Na istih ugankah je
+preverjeno, da vsaka ustvarjena uganka ustreza svojemu minimumu in da ji `oceniUganko()` da
+natanko težavnost svoje stopnje (279 ugank, 0 odstopanj). Porazdelitev (660 ugank, osnovne × napredne):
 
 | osnovne \ napredne | 0 | 1 | 2 | 3 | 4 | vsota |
 |---|---|---|---|---|---|---|

@@ -16,8 +16,24 @@
      težka      - potrebuje natanko eno napredno tehniko, skupaj <= 4     14,0 %
      zelo težka - >= 2 različni napredni ali >= 5 tehnik nad enojčki       9,7 %
    Stopnje se izključujejo in pokrijejo vse uganke, ki jih solve() reši brez
-   poskusa s protislovjem (teh je pribl. 79 % naključnih ugank). Iskanje v igri traja
-   v povprečju 0,2 s (lahka) do 1 s (zelo težka), izjemoma nekaj sekund.
+   poskusa s protislovjem (teh je pribl. 79 % naključnih ugank).
+
+   Merili sta dve, ker imata dve nalogi (docs/tehnike.md, razdelek "Stopnje ugank:
+   najmanjše število različnih tehnik"):
+     ustreza        - POKRIVAJOČE merilo za razvrščanje že znane uganke (oceniUganko,
+                      gumb "Oceni zbirko"). Vsaka uganka, rešljiva brez ugibanja, pade
+                      v natanko eno stopnjo, tudi če zahteva eno samo tehniko.
+     ustrezaIskanju - OŽJE merilo za generator (ustvariUganko): poleg zgornje meje
+                      zahteva še SPODNJO - vsaj dve različni osnovni tehniki (1-6 v
+                      TRENING_TEHNIKE), da uganka ne stoji na eni sami tehniki nad
+                      enojčki. Brez nje jih 61 % ne-lahkih ugank brez napredne tehnike
+                      uporabi le eno osnovno, pri eni napredni pa 35 % nič ali eno.
+   Vsak ustrezaIskanju je podmnožica svojega ustreza (zato vsebuje tudi zgornjo mejo);
+   sicer bi ustvarjena uganka pri "Oceni zbirko" dobila drugo težavnost, kot jo ima v
+   zbirki. To preverja tests/generator.test.js.
+
+   Iskanje s spodnjo mejo traja v povprečju 0,3 s (lahka), 1,3 s (srednja), 1,8 s (težka)
+   in 2,7 s (zelo težka), izjemoma nekaj sekund (meritev 2026-09-21, docs/tehnike.md).
 
    Z moznosti.strogoSrednja zahteva srednja stopnja par IN trojico na poti - to je
    merilo za testne uganke v docs/uganke.md (uporablja ga tools/ustvari-uganko.js).
@@ -31,6 +47,11 @@ const GEN_TROJICE = ['Naked triple', 'Hidden triple'];
 const GEN_SREDNJE = [...GEN_ENOJCKI, ...GEN_PRESEKI, ...GEN_PARI, ...GEN_TROJICE];
 // Napredne = vse preostale tehnike reševalca (X-Wing ... Unique Rectangle).
 const GEN_NAPREDNE = ALL_TECHNIQUES.map(([ime]) => ime).filter(ime => !GEN_SREDNJE.includes(ime));
+// Osnovne tehnike na poti = tehnike nad enojčki, ki niso napredne (1-6 v TRENING_TEHNIKE).
+const genOsnovne = (mere) => mere.tehNad - mere.napredne;
+// Spodnja meja: koliko različnih osnovnih tehnik mora uganka zahtevati, da jo generator
+// ponudi (velja za vse stopnje razen lahke, ki je po definiciji brez njih).
+const GEN_NAJMANJ_OSNOVNIH = 2;
 
 // Stopnje od najlažje k najtežji. `ustreza(mere)` je merilo nad merami iz
 // genRazvrsti(). `ime` je hkrati težavnost v zbirki (prve štiri vrednosti v
@@ -41,22 +62,29 @@ const STOPNJE_UGANK = [
   {
     kljuc: 'lahka', ime: 'Lahka', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina === 0,
+    ustrezaIskanju: (m) => m.skupina === 0,
     opis: 'reši se samo z enojčki, brez zapisanih kandidatov',
   },
   {
     kljuc: 'srednja', ime: 'Srednja', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina >= 1 && m.skupina <= 3,
-    opis: 'potrebuje očitno ali skrito paro, trojico ali presek (Pointing pair/triple, Box-line reduction)',
+    // Brez napredne tehnike je skupina po nujnosti med 1 in 3, zato je to podmnožica.
+    ustrezaIskanju: (m) => m.napredne === 0 && genOsnovne(m) >= GEN_NAJMANJ_OSNOVNIH,
+    opis: 'potrebuje vsaj dve različni tehniki: očitno ali skrito paro, trojico ali presek (Pointing pair/triple, Box-line reduction)',
   },
   {
     kljuc: 'tezka', ime: 'Težka', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina === 4 && m.napredne === 1 && m.tehNad <= 4,
-    opis: 'potrebuje natanko eno napredno tehniko (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle)',
+    // Napredna tehnika na poti pomeni skupino 4; tehNad <= 4 je zgornja meja iz ustreza.
+    ustrezaIskanju: (m) => m.napredne === 1 && m.tehNad <= 4 && genOsnovne(m) >= GEN_NAJMANJ_OSNOVNIH,
+    opis: 'potrebuje natanko eno napredno tehniko (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle) in vsaj dve osnovni',
   },
   {
     kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,
     ustreza: (m) => m.skupina === 4 && (m.napredne >= 2 || m.tehNad >= 5),
-    opis: 'potrebuje dve različni napredni tehniki ali pet različnih tehnik nad enojčki',
+    // Iskanje vzame samo vejo z dvema naprednima, ne tudi pet tehnik z eno napredno.
+    ustrezaIskanju: (m) => m.napredne >= 2 && genOsnovne(m) >= GEN_NAJMANJ_OSNOVNIH,
+    opis: 'potrebuje vsaj dve različni napredni tehniki in vsaj dve osnovni',
   },
 ];
 
@@ -185,27 +213,34 @@ function genMereDnevnika(imena) {
   };
 }
 
-// Vrne { ustreza, mere, tehnike, uporabljene, prednost } za stopnjo. Prednost (večja
-// je boljša) pove, ali stopnji ustreza tudi dnevnik solve(): ta se zaradi sidranja na
+// Ocena uganke za GENERATOR, zato velja ožje merilo ustrezaIskanju (s spodnjo mejo
+// tehnik); razvrščanje že znane uganke je v oceniUganko in ostaja pokrivajoče.
+// Vrne { ustreza, mere, tehnike, uporabljene, prednost }. Prednost (večja je boljša)
+// pove, ali istemu merilu ustreza tudi dnevnik solve(): ta se zaradi sidranja na
 // števko prejšnjega koraka lahko razlikuje od poti - vzame zahtevnejšo tehniko za isto
 // številko ali kako s poti izpusti. Dnevnik vidijo reševalec, igra in pokritost tehnik
-// v docs/uganke.md, zato ima uganka, pri kateri se ujema, prednost pri izbiri.
+// v docs/uganke.md (od tod tudi oznaka "tehnike: 1, 3, 7" pri uganki v zbirki), zato ima
+// uganka, pri kateri se ujema, prednost pri izbiri - spodnjo mejo tehnik tako igralec
+// vidi tudi v dnevniku, ne le na poti.
 function oceniStopnjo(kljuc, danosti, moznosti = {}) {
   const s = stopnjaUganke(kljuc);
   if (!s) throw new Error('Neznana stopnja: ' + kljuc);
   const mere = genRazvrsti(danosti);
-  if (!mere || !s.ustreza(mere)) return { ustreza: false };
+  if (!mere || !s.ustrezaIskanju(mere)) return { ustreza: false };
   if (kljuc === 'srednja' && moznosti.strogoSrednja
       && !(genImaKatero(mere.uporabljene, GEN_PARI) && genImaKatero(mere.uporabljene, GEN_TROJICE))) {
     return { ustreza: false };
   }
   const tehnike = genTehnikeSolve(danosti);
   if (!tehnike) return { ustreza: false };
-  const prednost = s.ustreza(genMereDnevnika(Object.keys(tehnike))) ? 1 : 0;
+  const prednost = s.ustrezaIskanju(genMereDnevnika(Object.keys(tehnike))) ? 1 : 0;
   return { ustreza: true, mere, tehnike, uporabljene: mere.uporabljene, prednost };
 }
 
 // Razvrstitev že znane uganke (gumb "Oceni zbirko" v igri): brez ciljne stopnje.
+// Velja POKRIVAJOČE merilo ustreza (brez spodnje meje tehnik, ki velja za generator):
+// uganka, ki nad enojčki zahteva eno samo tehniko, je še vedno srednja, ne Ekstrem -
+// takih je pribl. petina ugank, ki jih solve() reši brez ugibanja.
 // Vrne { stopnja, tezavnost, resitve, mere, board, log }, kjer je `stopnja` vnos iz
 // STOPNJE_UGANK ali null, `resitve` pa countSolutions() (1, 0, 2 ali 'unknown').
 // Težavnost je ime stopnje, torej vrednost iz TEZAVNOSTI v shared/zbirka.js:

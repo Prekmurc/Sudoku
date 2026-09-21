@@ -42,6 +42,7 @@ test('stopnje: ključi, imena in opisi', () => {
   for (const s of E.STOPNJE_UGANK) {
     assert.ok(s.ime && s.opis, `stopnja ${s.kljuc} mora imeti ime in opis`);
     assert.equal(typeof s.ustreza, 'function', `stopnja ${s.kljuc} mora imeti merilo`);
+    assert.equal(typeof s.ustrezaIskanju, 'function', `stopnja ${s.kljuc} mora imeti merilo iskanja`);
     assert.equal(E.stopnjaUganke(s.kljuc), s);
   }
   assert.equal(E.stopnjaUganke('ni-take'), null);
@@ -87,6 +88,51 @@ test('lahka samo enojčki, srednja para/trojica/presek, težka ena napredna, zel
   // zelo težka: dve različni napredni ali pet tehnik nad enojčki.
   const z = uganke.zelotezka.mere;
   assert.ok(z.napredne >= 2 || z.tehNad >= 5, 'zelo težka: dve napredni ali pet tehnik');
+});
+
+// Spodnja meja tehnik (docs/tehnike.md, razdelek "Stopnje ugank: najmanjše število
+// različnih tehnik"): generator sme ponuditi samo uganko, ki nad enojčki zahteva vsaj
+// dve različni osnovni tehniki - lahka je izjema, ker tehnik nad enojčki nima.
+test('vsaka ustvarjena uganka ustreza svojemu minimumu tehnik', () => {
+  for (const [kljuc, u] of Object.entries(uganke)) {
+    const m = E.genRazvrsti(u.danosti);
+    const osnovne = m.tehNad - m.napredne;
+    assert.ok(E.stopnjaUganke(kljuc).ustrezaIskanju(m), `${kljuc}: ustreza merilu iskanja`);
+    if (kljuc === 'lahka') {
+      assert.equal(m.tehNad, 0, 'lahka nima tehnik nad enojčki');
+      continue;
+    }
+    assert.ok(osnovne >= 2, `${kljuc}: vsaj dve osnovni tehniki (dobljenih ${osnovne})`);
+    const najmanjNaprednih = { srednja: 0, tezka: 1, zelotezka: 2 }[kljuc];
+    if (kljuc === 'zelotezka') assert.ok(m.napredne >= 2, 'zelo težka: vsaj dve napredni');
+    else assert.equal(m.napredne, najmanjNaprednih, `${kljuc}: ${najmanjNaprednih} naprednih`);
+  }
+});
+
+// Merilo iskanja mora biti podmnožica pokrivajočega merila, sicer bi ustvarjena uganka
+// pri "Oceni zbirko" (oceniUganko, ki uporablja ustreza) dobila drugo težavnost, kot jo
+// ima v zbirki. Preverjeno na vseh merah, ki jih genRazvrsti() sploh lahko vrne:
+// napredna tehnika na poti pomeni skupino 4, tehnika nad enojčki pa skupino >= 1.
+test('merilo iskanja je ožje od merila razvrstitve', () => {
+  let preverjenih = 0;
+  for (let skupina = 0; skupina <= 4; skupina++) {
+    for (let tehNad = 0; tehNad <= 8; tehNad++) {
+      for (let napredne = 0; napredne <= tehNad; napredne++) {
+        const skladno = (napredne === 0 ? skupina <= 3 : skupina === 4)
+          && (tehNad === 0 ? skupina === 0 : skupina >= 1);
+        if (!skladno) continue;
+        preverjenih++;
+        const m = { skupina, tehNad, napredne };
+        for (const s of E.STOPNJE_UGANK) {
+          if (s.ustrezaIskanju(m)) {
+            assert.ok(s.ustreza(m),
+              `${s.kljuc}: mere ${JSON.stringify(m)} ustrezajo iskanju, razvrstitvi pa ne`);
+          }
+        }
+      }
+    }
+  }
+  assert.ok(preverjenih > 20, 'preverjenih mora biti več kombinacij mer');
 });
 
 test('stopnje se izključujejo: uganka ustreza samo svoji', () => {
