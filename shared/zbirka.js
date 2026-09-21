@@ -477,14 +477,16 @@ function zbirkaOznakaTehnik(z) {
 
 /* ---------- vrstni red za prikaz ---------- */
 
-// Vrstni red v seznamu zbirke: najprej uganke, ki sem jih že reševal (najnovejše
-// reševanje na vrhu), za njimi še nereševane po času dodajanja (najnovejša na
-// vrhu). Čas, ko je uganko ocenil program (`nazadnje`), na vrstni red ne vpliva -
-// vrstni red je moj, ne programov. Vrne novo polje zapisov.
+// Vrstni red v seznamu zbirke: po mojem zadnjem dogodku z uganko, najnovejši na
+// vrhu - pri reševani uganki je to čas reševanja, pri nereševani čas dodajanja.
+// Ključa nista ločeni skupini, ker bi nova uganka (ki je še nisem igral) padla
+// pod vse že reševane in je v daljši zbirki ne bi našel. Čas, ko je uganko ocenil
+// program (`nazadnje`), na vrstni red ne vpliva - vrstni red je moj, ne programov.
+// Vrne novo polje zapisov.
 function zbirkaZaSeznam(zbirka) {
+  const kljuc = z => z.igrano || z.dodano || '';
   return zbirka.map((z, i) => ({ z, i })).sort((a, b) =>
-    (b.z.igrano ? 1 : 0) - (a.z.igrano ? 1 : 0) ||
-    (b.z.igrano || '').localeCompare(a.z.igrano || '') ||
+    kljuc(b.z).localeCompare(kljuc(a.z)) ||
     (b.z.dodano || '').localeCompare(a.z.dodano || '') ||
     b.i - a.i).map(x => x.z);
 }

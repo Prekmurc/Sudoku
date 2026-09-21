@@ -294,14 +294,19 @@ test('uvoz: čas reševanja brez vrstice Stanje', () => {
   assert.equal(E.zbirkaStanjeIgre(z).besedilo, 'v teku (0 od 81)');
 });
 
-test('zbirkaZaSeznam(): najprej reševane (po času reševanja), nato nereševane (po dodajanju)', () => {
+test('zbirkaZaSeznam(): po mojem zadnjem dogodku - reševanju, sicer dodajanju', () => {
   const zbirka = [
     { danosti: 'a', dodano: '2026-09-10 10:00', igrano: '2026-09-20 08:00', nazadnje: '2026-09-22 23:00' },
     { danosti: 'b', dodano: '2026-09-21 16:33' },
     { danosti: 'c', dodano: '2026-09-11 10:00', igrano: '2026-09-22 10:05' },
     { danosti: 'd', dodano: '2026-09-19 09:00' },
   ];
-  assert.deepEqual([...E.zbirkaZaSeznam(zbirka)].map(z => z.danosti), ['c', 'a', 'b', 'd']);
+  assert.deepEqual([...E.zbirkaZaSeznam(zbirka)].map(z => z.danosti), ['c', 'b', 'a', 'd']);
   // Čas, ko je uganko ocenil program (nazadnje), na vrstni red ne vpliva.
-  assert.deepEqual([...E.zbirkaZaSeznam([...zbirka].reverse())].map(z => z.danosti), ['c', 'a', 'b', 'd']);
+  assert.deepEqual([...E.zbirkaZaSeznam([...zbirka].reverse())].map(z => z.danosti), ['c', 'b', 'a', 'd']);
+
+  // Pravkar dodana uganka, ki je še nisem igral, mora biti na vrhu - sicer je v
+  // daljši zbirki pod vsemi reševanimi in je videti, kot da je sploh ni.
+  const nova = { danosti: 'nova', dodano: '2026-09-22 19:30' };
+  assert.equal([...E.zbirkaZaSeznam([...zbirka, nova])][0].danosti, 'nova');
 });

@@ -4,6 +4,8 @@
 //   - uganka, ki je samo odprta (brez poteze), ne dobi časa "zadnje reševanje" in
 //     v prikazu nima druge vrstice (tudi kadar se po odprtju prikaz še enkrat
 //     osveži, kot pri uganki iz generatorja);
+//   - uganka iz generatorja in ročno vnesena uganka se takoj dodata v zbirko (z
+//     "dodana", brez časa reševanja) in sta v seznamu na vrhu;
 //   - rešena uganka takoj po zadnji potezi zaklene mrežo (nizi in razveljavi/ponovi
 //     onemogočeni, razlog pove, zakaj; "Začni znova" ostane), zapis v zbirki pa se
 //     zamrzne.
@@ -28,8 +30,8 @@ function zacni() {
 }
 
 const zapis = run => run(`zbirkaBeri().find(z => z.danosti === ${D})`);
-const vrstica = run => run('zbirkaVrsticaIgranja(zbirkaBeri()[0])');
-const stanjeZapisa = run => run('zbirkaStanjeIgre(zbirkaBeri()[0]).besedilo');
+const vrstica = run => run(`zbirkaVrsticaIgranja(zbirkaBeri().find(z => z.danosti === ${D}))`);
+const stanjeZapisa = run => run(`zbirkaStanjeIgre(zbirkaBeri().find(z => z.danosti === ${D})).besedilo`);
 // Vpiše celo rešitev po celicah, vsako z izvedi() - kot igralec z nizom "Vpiši".
 const resiVse = run => run("for (let c = 0; c < 81; c++) if (igra.danosti[c] === '0') izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] });");
 // Napis gumba pri uganki v seznamu zbirke (Igraj / Nadaljuj / Poglej).
@@ -114,4 +116,112 @@ test('"Začni znova" pri rešeni uganki: vpraša, mreža je spet prazna, čas pr
 
   assert.equal(zapis(run).igrano, cas, 'ohrani se čas prve rešitve');
   assert.equal(stanjeZapisa(run), 'rešena', 'zapis ostane zamrznjen');
+});
+
+/* ---------- nova uganka pride v zbirko takoj, brez časa reševanja ---------- */
+
+// Še tri uganke iz docs/uganke.md - zbirka naj ima tudi take, ki sem jih že reševal.
+const druge = loadPuzzles().slice(1, 4).map(p => p.danosti.replace(/\./g, '0'));
+
+function zbirkaZRezevanimi(run) {
+  druge.forEach((d, i) => {
+    run(`dodajVZbirko(${JSON.stringify(d)}, 'Težka', 'rocno')`);
+    run(`zbirkaShraniIgranje(${JSON.stringify(d)}, '2026-09-21 18:4${i}', 40, false)`);
+  });
+}
+
+test('ustvarjena uganka: takoj v zbirki, z "dodana" in brez časa reševanja', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  zbirkaZRezevanimi(run);
+  const prej = run('zbirkaBeri().length');
+
+  // Prava pot: sporočilo "najdena" iz delavca (generator-worker.js).
+  run("iskanje = { stopnja: 'lahka', zacetek: Date.now(), poskusi: 3 }");
+  run(`obdelajIskanje({ tip: 'najdena', danosti: ${D}, stopnja: 'lahka' })`);
+
+  const z = zapis(run);
+  assert.ok(z, 'ustvarjena uganka je v zbirki');
+  assert.equal(run('zbirkaBeri().length'), prej + 1);
+  assert.ok(z.dodano, 'ima čas dodajanja');
+  assert.equal(z.izvor, 'generator');
+  assert.ok(!z.igrano, 'brez poteze nima časa reševanja');
+  assert.equal(vrstica(run), '', 'druge vrstice ni');
+  assert.equal(dom.el('zbirkaBtn').textContent, `Zbirka (${prej + 1})`);
+
+  // V seznamu mora biti vidna in na vrhu (ne pod vsemi že reševanimi).
+  run('izrisiZbirko()');
+  assert.equal(dom.el('zbirkaSeznam').children.length, prej + 1, 'seznam ima vse uganke');
+  assert.equal(run('zbirkaZaSeznam(zbirkaBeri())[0].danosti'), JSON.parse(D), 'nova uganka je na vrhu');
+  assert.ok(dom.el('zbirkaSeznam').children[0].textContent.includes('ustvaril generator'));
+  assert.equal(gumb(run), 'Igraj');
+});
+
+test('ročno vnesena uganka: takoj v zbirki, z "dodana" in brez časa reševanja', async () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  zbirkaZRezevanimi(run);
+  const prej = run('zbirkaBeri().length');
+
+  // Prava pot: danosti v mreži okna "Nova uganka" in klik na "Začni igro".
+  run(`vnosi.forEach((inp, i) => { inp.value = ${D}[i] === '0' ? '' : ${D}[i]; })`);
+  dom.klikni('novaZacni');
+  await new Promise(r => setTimeout(r, 300)); // enoličnost se preveri v setTimeout
+
+  const z = zapis(run);
+  assert.ok(z, 'ročno vnesena uganka je v zbirki');
+  assert.equal(run('zbirkaBeri().length'), prej + 1);
+  assert.ok(z.dodano, 'ima čas dodajanja');
+  assert.equal(z.izvor, 'rocno');
+  assert.ok(!z.igrano, 'brez poteze nima časa reševanja');
+  assert.equal(run('igra.danosti'), JSON.parse(D), 'uganka se začne igrati');
+  assert.equal(run('zbirkaZaSeznam(zbirkaBeri())[0].danosti'), JSON.parse(D), 'nova uganka je na vrhu');
+});
+
+test('prva poteza pri ustvarjeni uganki doda čas reševanja, zapis se ne podvoji', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  run("iskanje = { stopnja: 'lahka', zacetek: Date.now(), poskusi: 1 }");
+  run(`obdelajIskanje({ tip: 'najdena', danosti: ${D}, stopnja: 'lahka' })`);
+  run("izvedi({ tip: 'vpis', celica: igra.danosti.indexOf('0'), stevka: resitev()[igra.danosti.indexOf('0')] })");
+
+  assert.equal(run('zbirkaBeri().length'), 1, 'ista uganka ostane en zapis');
+  assert.ok(zapis(run).igrano, 'šele poteza zapiše čas reševanja');
+  assert.ok(vrstica(run).startsWith('zadnje reševanje '));
+  assert.equal(dom.el('zbirkaBtn').textContent, 'Zbirka (1)');
+});
+
+/* ---------- pogoj "brez poteze ni zapisa" drugje ne škodi ---------- */
+
+test('uvoz, vgrajeni primer in "Začni znova" ob pogoju brez poteze', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+
+  // Uvoz iz Markdowna gre mimo igre: uganke se dodajo, čeprav jih nisem igral.
+  const md = [`- **Danosti:** \`${druge[0].replace(/0/g, '.')}\``, '- **Težavnost:** Lahka', '- **Dodano:** 2026-09-20 10:00'].join('\n');
+  const p = run(`zbirkaUvozi(${JSON.stringify(md)})`);
+  assert.equal(p.napaka, false, p.sporocilo);
+  const uvozena = run(`zbirkaBeri().find(z => z.danosti === ${JSON.stringify(druge[0])})`);
+  assert.ok(uvozena, 'uvožena uganka je v zbirki');
+  assert.ok(!uvozena.igrano, 'uvožena uganka nima časa reševanja');
+  assert.equal(run(`zbirkaStanjeIgre(zbirkaBeri().find(z => z.danosti === ${JSON.stringify(druge[0])})).besedilo`), 'nova');
+
+  // Vgrajeni primer se igra, a v zbirko ne pride (napredek je v shranjenih igrah).
+  const primer = run('primeriIgre[4].danosti');
+  run(`zacniIgro(${JSON.stringify(primer)})`);
+  run("izvedi({ tip: 'vpis', celica: igra.danosti.indexOf('0'), stevka: resitev()[igra.danosti.indexOf('0')] })");
+  assert.equal(run(`zbirkaBeri().some(z => z.danosti === ${JSON.stringify(primer)})`), false, 'vgrajeni primer ni v zbirki');
+  assert.equal(run(`igreBeri().igre[${JSON.stringify(primer)}].poteze.length`), 1, 'napredek primera se shrani');
+
+  // "Začni znova" pri nerešeni uganki: poteze ostanejo (za "Ponovi"), zato je to
+  // še vedno moje reševanje in čas se osveži.
+  run(`dodajVZbirko(${D}, 'Težka', 'generator')`);
+  run(`zacniIgro(${D})`);
+  run("izvedi({ tip: 'vpis', celica: igra.danosti.indexOf('0'), stevka: resitev()[igra.danosti.indexOf('0')] })");
+  assert.ok(zapis(run).igrano);
+  dom.potrdi(true);
+  dom.klikni('znovaBtn');
+  assert.equal(run('igra.kazalec'), 0);
+  assert.ok(zapis(run).igrano, 'čas reševanja ostane zapisan');
+  assert.match(stanjeZapisa(run), /^v teku \(\d+ od 81\)$/, 'stanje se posodobi na prazno mrežo');
 });
