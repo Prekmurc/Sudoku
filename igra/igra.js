@@ -886,7 +886,7 @@ function izrisiZbirko() {
 
     const vrstica = document.createElement('div');
     vrstica.className = 'zb-vrstica';
-    vrstica.textContent = [zbirkaPrikazDatuma(z.nazadnje || z.dodano), tezavnost, zbirkaOpisIzvora(z)]
+    vrstica.textContent = [...zbirkaPrikazCasov(z), tezavnost, zbirkaOpisIzvora(z)]
       .filter(Boolean).join(' · ');
     li.appendChild(vrstica);
 

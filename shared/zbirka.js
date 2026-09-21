@@ -85,6 +85,18 @@ function zbirkaPrikazDatuma(s) {
   return m[4] ? `${dan} ob ${m[4]}` : dan;
 }
 
+// Časi zapisa za seznam zbirke (igra in reševalec): vedno čas dodajanja, za njim pa
+// čas zadnjega reševanja, če se od njega razlikuje (uganka je bila po dodajanju še
+// reševana). Vrne dele za vrstico seznama, ki jih klicatelj združi z ostalimi:
+//   ['dodana 21. 9. 2026 ob 14:32', 'reševana 22. 9. 2026 ob 10:05']
+// Zapis brez obeh časov da '—', zapis brez dodano (starejši) samo čas reševanja.
+function zbirkaPrikazCasov(z) {
+  const deli = [];
+  if (z && z.dodano) deli.push(`dodana ${zbirkaPrikazDatuma(z.dodano)}`);
+  if (z && z.nazadnje && z.nazadnje !== z.dodano) deli.push(`reševana ${zbirkaPrikazDatuma(z.nazadnje)}`);
+  return deli.length ? deli : ['—'];
+}
+
 function zbirkaStKorakov(n) {
   const r = n % 100;
   const beseda = r === 1 ? 'korak' : r === 2 ? 'koraka' : (r === 3 || r === 4) ? 'koraki' : 'korakov';

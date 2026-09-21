@@ -96,12 +96,12 @@ function zbirkaIzrisiSeznam() {
 
   for (const z of zbirkaZaSeznam(zbirka)) {
     const li = document.createElement('li');
-    const datum = zbirkaPrikazDatuma(z.nazadnje || z.dodano);
+    const casi = zbirkaPrikazCasov(z);
     const tezavnost = z.tezavnost || 'težavnost ni določena';
 
     const glava = document.createElement('div');
     glava.className = 'lib-line';
-    glava.textContent = [datum, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
+    glava.textContent = [...casi, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
     glava.title = `Dodano: ${z.dodano || '—'} · Nazadnje rešeno: ${z.nazadnje || '—'}`;
     li.appendChild(glava);
 
