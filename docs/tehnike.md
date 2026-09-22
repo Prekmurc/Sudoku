@@ -19,6 +19,33 @@ Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js)
 | `xyWing` | XY-Wing | Poišče pivota z dvema kandidatoma in dve krili, ki si delita skupnega kandidata, ter ga izbriše iz celic, ki vidijo obe krili. | da |
 | `uniqueRectangle` | Unique Rectangle | Prepreči smrtonosni vzorec (situacijo z dvema možnima rešitvama) tako, da iz četrte celice pravokotnika izbriše kandidata, ki bi dvoumnost povzročil. | da |
 
+## Imena in sopomenke (odločitev 2026-09-23)
+
+Dogovorjena imena za prikaz: slovensko ime, angleško v oklepaju (`docs/uskladitev.md`,
+točka 1.3). Koda in zgornja tabela še uporabljata stara imena – popravita se ob izvedbi 1.3.
+Ravni so iz točke 1.1: *lahke*, *srednje* (1–6), *napredne* (7–12), *ekspertne* (XY-Chain
+in poznejše verige, zaenkrat prazno).
+
+| Št. | Raven | Ime za prikaz | Ključ v `ALL_TECHNIQUES` | Sopomenke in stara imena |
+|---|---|---|---|---|
+| – | lahke | Očitni enojček (Naked Single) | Gol enojček | gol enojček, Sole Candidate |
+| – | lahke | Skriti enojček (Hidden Single) | Skriti enojček | Unique Candidate |
+| 1 | srednje | Očitni par (Naked Pair) | Naked pair | očitna para |
+| 2 | srednje | Skriti par (Hidden Pair) | Hidden pair | skrita para |
+| 3 | srednje | Izločitev izven bloka (Pointing Pair/Triple) | Pointing pair/triple | Locked Candidates Type 1 (Pointing), presek |
+| 4 | srednje | Izločitev v bloku (Box-Line Reduction) | Box-line reduction | Locked Candidates Type 2 (Claiming), presek |
+| 5 | srednje | Očitna trojica (Naked Triple) | Naked triple | – |
+| 6 | srednje | Skrita trojica (Hidden Triple) | Hidden triple | – |
+| 7 | napredne | X-krilo (X-Wing) | X-Wing | – |
+| 8 | napredne | Mečarica (Swordfish) | Swordfish | tehnika mečarice |
+| 9 | napredne | Veriga ene števke (Turbot Fish) | Turbot Fish | podtipa Skyscraper in Zmaj z dvema vrvicama (Two-String Kite) |
+| 10 | napredne | W-krilo (W-Wing) | W-Wing | Krilo W (aplikacija Oakever) |
+| 11 | napredne | XY-krilo (XY-Wing, Y-Wing) | XY-Wing | – |
+| 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1, smrtonosni vzorec (Deadly Pattern) |
+| – | – | Poskus in protislovje | (sestopanje, `tryBifurcation`) | ugibanje, Bifurcation, forcing chain; ni tehnika s številko, ime ostane |
+
+»Presek« je skupno ime tehnik 3 in 4 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
+
 ## Stopnje ugank: najmanjše število različnih tehnik (meritev 2026-09-21)
 
 Številke tehnik so iz `TRENING_TEHNIKE` v [shared/engine.js](../shared/engine.js) (vrstni red

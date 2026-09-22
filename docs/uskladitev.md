@@ -2,7 +2,8 @@
 
 Popis razlik med aplikacijami `app/` (reševalec), `trening/` (trening tehnik) in `igra/`
 (igra), ki so nastajale ločeno. **Samo analiza** – koda ni spremenjena. Stanje kode: commit
-`4a0efc7` (2026-09-23).
+`4a0efc7` (2026-09-23). Odločitve pri odprtih točkah so zapisane 2026-09-23 (razdelek
+»Odločitve, ki so tvoje«) in upoštevane v predlogih.
 
 Pri vsaki točki: **Kje** (datoteka, aplikacija), **Zdaj** (kako je v posamezni aplikaciji),
 **Predlog** (enotna rešitev) in **Obseg**:
@@ -80,15 +81,43 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
     »enojček«, medtem ko je očitna para v koraku jantarna.
   - Izraza »osnovne« in »napredne« tehnike (`docs/tehnike.md`, merila generatorja) igralec
     nikjer ne vidi.
-- **Predlog:** v `shared/engine.js` ena delitev tehnik na tri razrede: *enojčki*,
-  *osnovne* (1–6) in *napredne* (7–12) – na njej že sloni generator. Iz nje:
-  - v treningu značka OSNOVNA / NAPREDNA (ali ohranjene štiri oznake, a X-Wing in
-    Swordfish med napredne),
-  - `tagClass()` z isto delitvijo in istimi barvami kot značke,
-  - v pomoči igre ena poved: »tehnike 1–6 so osnovne, 7–12 napredne«.
+- **Predlog (po odločitvi 2026-09-23):** v `shared/engine.js` ena delitev tehnik na
+  **štiri ravni**, poimenovane kot stopnje ugank:
 
-  `TECHNIQUE_GROUPS` ostane (sidranje potrebuje finejšo delitev), vendar notranje.
-- **Obseg:** srednje (trening, CSS obeh aplikacij, test `trening-tehnike.test.js`).
+  | Raven | Tehnike | Stopnja uganke, če je to najtežja potrebna raven |
+  |---|---|---|
+  | lahke | očitni in skriti enojček | Lahka |
+  | srednje | 1–6 | Srednja |
+  | napredne | 7–12 | Težka ali Zelo težka (ločita se po številu tehnik, kot zdaj) |
+  | ekspertne | XY-Chain in poznejše verige – **zaenkrat prazno** | določi se ob uvedbi XY-Chain (glej spodaj) |
+
+  Uganka, ki zahteva ugibanje, ostane Ekstrem. Pravilo »stopnja uganke izhaja iz najtežje
+  ravni potrebnih tehnik« je enako današnjemu pokrivajočemu merilu `ustreza()`
+  (`skupina` 0 = lahke, 1–3 = srednje, 4 = napredne), zato se merila in razvrstitev ugank
+  **ne spremenijo** – spremenijo se samo imena. Iz ene delitve:
+  - raven kot polje tehnike (npr. v `TRENING_TEHNIKE` ali `TEHNIKE_OPISI`), funkcija
+    `ravenTehnike(kljuc)`;
+  - v treningu značke SREDNJA (1–6) in NAPREDNA (7–12); X-Wing in Swordfish gresta iz
+    »ZAHTEVNO« med napredne, skriti par iz »LAŽJE« med srednje. Lahkih tehnik trening
+    nima (enojčki nimajo vaje). Značka EKSPERTNA pride skupaj z XY-Chain;
+  - `tagClass()` z isto delitvijo in istimi barvami kot značke (lahke – `t-single`,
+    srednje – `t-pair`, napredne – `t-advanced`; poskus s protislovjem ostane `t-chain`,
+    ekspertna raven dobi svojo barvo ob uvedbi);
+  - v merilih stopenj in dokumentaciji izraz »osnovne« zamenja »srednje«:
+    `GEN_NAJMANJ_OSNOVNIH` → `GEN_NAJMANJ_SREDNJIH`, opisi v `STOPNJE_UGANK[].opis`,
+    komentarji v `shared/generator.js`, `tests/generator.test.js`, `docs/tehnike.md`,
+    `docs/uganke.md` in `CLAUDE.md`;
+  - v pomoči igre ena poved: »tehnike 1–6 so srednje, 7–12 napredne; stopnja uganke je
+    raven njene najtežje tehnike«.
+
+  `TECHNIQUE_GROUPS` ostane (sidranje potrebuje finejšo delitev), vendar notranje; raven
+  je unija njegovih skupin (skupine 1–3 = srednje).
+
+  **Odprto ob uvedbi XY-Chain:** katera stopnja pripada uganki z ekspertno tehniko (Zelo
+  težka ali nova stopnja med Zelo težko in Ekstremom). Nova stopnja bi pomenila novo ime v
+  `TEZAVNOSTI` in v `STOPNJE_UGANK` ter novo meritev porazdelitve.
+- **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
+  `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 
 ### 1.2 Ročno vnesena uganka dobi težavnost »Ekstrem«
 
@@ -129,13 +158,49 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   s številko iz oznake »tehnike: 2, 5«. Tudi velike začetnice niso enotne (»Naked pair«
   proti »Naked Pair«). Pointing pair/triple in Box-line reduction nimata slovenskega imena
   nikjer.
-- **Predlog:** `ALL_TECHNIQUES` ostane notranji ključ (dnevnik, izvoz, testi). Za prikaz
-  uvedi v `shared/engine.js` funkcijo `imeTehnike(kljuc)`, ki vrne »2 · Skrita para«
-  (številka iz `TRENING_TEHNIKE` + kratko slovensko ime). V `TEHNIKE_OPISI` dodaj polje
-  `kratko` ter vnose za enojčka in poskus s protislovjem. Iz te funkcije berejo oznaka
-  koraka (reševalec, igra), povzetek v reševalcu (»3x Naked pair«) in `MODES.name`.
-  Slovensko ime za Pointing/Box-line je tvoja odločitev.
-- **Obseg:** srednje (engine, reševalec, igra, trening, testi, ki primerjajo oznake).
+- **Predlog (po odločitvi 2026-09-23):** povsod, kjer ime vidi uporabnik, slovensko ime
+  in angleško v oklepaju. Dogovorjena imena:
+
+  | Št. | Ime za prikaz | Ključ v `ALL_TECHNIQUES` zdaj |
+  |---|---|---|
+  | – | Očitni enojček (Naked Single) | Gol enojček |
+  | – | Skriti enojček (Hidden Single) | Skriti enojček |
+  | 1 | Očitni par (Naked Pair) | Naked pair |
+  | 2 | Skriti par (Hidden Pair) | Hidden pair |
+  | 3 | Izločitev izven bloka (Pointing Pair/Triple) | Pointing pair/triple |
+  | 4 | Izločitev v bloku (Box-Line Reduction) | Box-line reduction |
+  | 5 | Očitna trojica (Naked Triple) | Naked triple |
+  | 6 | Skrita trojica (Hidden Triple) | Hidden triple |
+  | 7 | X-krilo (X-Wing) | X-Wing |
+  | 8 | Mečarica (Swordfish) | Swordfish |
+  | 9 | Veriga ene števke (Turbot Fish) | Turbot Fish |
+  | 10 | W-krilo (W-Wing) | W-Wing |
+  | 11 | XY-krilo (XY-Wing, Y-Wing) | XY-Wing |
+  | 12 | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle |
+
+  Sopomenke (Krilo W, Skyscraper, Zmaj z dvema vrvicama, Locked Candidates …) so v
+  `docs/tehnike.md`, razdelek »Imena in sopomenke«. Podtipa verige ene števke (Skyscraper,
+  Zmaj z dvema vrvicama) ostaneta v sporočilu koraka. »Poskus in protislovje« ostane, kot
+  je (ni tehnika s številko).
+
+  Izvedba: `ALL_TECHNIQUES` ostane notranji ključ (dnevnik, sidranje, `tagClass()`, testi).
+  V `TEHNIKE_OPISI` se `ime` zamenja z dogovorjenim imenom, dodajo se vnosi za oba
+  enojčka in poskus s protislovjem. Funkcija `imeTehnike(kljuc)` v `shared/engine.js` vrne
+  ime za prikaz (po želji s številko: »2 · Skriti par (Hidden Pair)«). Iz nje berejo
+  oznaka koraka (reševalec, igra), povzetek v reševalcu (»3× Naked pair«), `MODES.name`,
+  naslovi kartic v treningu (vpiše jih `trening.js`, tako kot številko) in seznam tehnik
+  v pomoči igre. Test `trening-tehnike.test.js` naj preverja, da je naslov kartice
+  enak `imeTehnike()`.
+
+  Izvoz v Markdown (`**Tehnike:**`) ima danes ključe iz `ALL_TECHNIQUES`. Predlog: izvoz
+  zapiše dogovorjena imena, uvoz pa bere oboje (preslikava starih ključev, kot
+  `STARE_TEZAVNOSTI`), da stari izvozi in `docs/uganke.md` ostanejo berljivi.
+
+  Sprememba spola (»Očitna para« → »Očitni par«, »Skrita para« → »Skriti par«) velja tudi
+  za besedila razlag v `TEHNIKE_OPISI`, namigov (`stepHint`) in sporočil korakov –
+  pregledati jih je treba skupaj z 1.4.
+- **Obseg:** srednje (engine, reševalec, igra, trening, izvoz/uvoz, testi, ki primerjajo
+  oznake in sporočila).
 
 ### 1.4 »Števka« in »številka«
 
@@ -184,9 +249,10 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   (`zbirkaStatusIgre`), vrstica s stanjem pa iz **zapisa v zbirki**. Ta dva vira se lahko
   razlikujeta – glej 2.3.
 - **Predlog:** ena funkcija v `shared/zbirka.js` vrne `{ kljuc, besedilo, kratko, gumb }`
-  za vsa mesta (seznam, primeri, kartica »Uganka«, izvoz). Povsod ženski spol (»nova«,
-  »v teku«, »rešena«, »izpolnjena z napako«) in ena oblika števca »N od 81«. Programovi
-  podatki povsod v obliki izvoza. `zbirkaStatusIgre()` v igri se odstrani (glej 6.2).
+  za vsa mesta (seznam, primeri, kartica »Uganka«, izvoz). Po odločitvi pri 1.6 so stanja
+  samo tri, povsod v ženskem spolu (»nova«, »v teku (12/57)«, »rešena«), napis in gumb
+  pa izhajata iz istega pogoja. Programovi podatki povsod v obliki izvoza.
+  `zbirkaStatusIgre()` v igri se odstrani (glej 6.2).
 - **Obseg:** srednje (igra, reševalec, testi `igra-ui` in `zbirka-zapis`).
 
 ### 1.6 Števec »v teku (24 od 81)« šteje tudi danosti (opažanje 3)
@@ -200,12 +266,34 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   zato igra velja za začeto). Številka je videti kot napredek, v resnici pa pomeni
   »danosti + moji vpisi«. Pri uganki s 17 danostmi in uganki s 32 danostmi ista številka
   pomeni različen napredek.
-- **Predlog:** za prikaz štej samo moje vpise glede na prazne celice: »v teku (vpisanih 0
-  od 57)« ali »v teku (0 / 57)«. Polje `izpolnjeno` ostane, ker iz njega izhajata »rešena«
-  (81) in izvoz – prikaz odšteje danosti. Uganka brez vpisa, a s potezami (samo
-  kandidati), naj ima besedilo »v teku (samo kandidati)« ali ostane »nova« (tvoja
-  odločitev). Izvoz `**Stanje:** v teku (45 od 81)` naj ostane berljiv za uvoz.
-- **Obseg:** majhno do srednje (odvisno od izvoza).
+- **Predlog (po odločitvi 2026-09-23):**
+  - **Zapis napredka:** »12/57«, kjer je 57 = 81 − število danosti (prazne celice), 12 pa
+    število mojih vpisov. Polje `izpolnjeno` v zapisu ostane (iz njega izhaja »rešena«),
+    prikaz odšteje danosti: vpisov = `izpolnjeno − danih`.
+  - **Tri stanja:**
+
+    | Stanje | Pogoj | Napis | Gumb v zbirki |
+    |---|---|---|---|
+    | nova | igra nima nobene poteze | »nova« | Igraj |
+    | v teku | od prve poteze (tudi če so bili samo odstranjeni kandidati) do rešitve | »v teku (12/57)« | Nadaljuj |
+    | rešena | vse prazne celice izpolnjene in pravilne | »rešena« | Poglej |
+
+    »Poteza« je katerakoli poteza v zgodovini igre, tudi razveljavljena (v repu za
+    »Ponovi«) ali pred »Začni znova« – to je današnji `zacetaIgra()`. Uganka s samimi
+    odstranjenimi kandidati je torej »v teku (0/57)«.
+  - Stanje **»izpolnjena z napako« odpade**: polna mreža z napačno števko je »v teku
+    (57/57)«, napako pokaže »Preveri«. Polje `napaka` v zapisu ostane, ker ločuje »v teku
+    (57/57)« od »rešena«.
+  - **Napis in gumb morata slediti istemu pogoju.** Zdaj se napis določa iz zapisa v
+    zbirki (`zbirkaStanjeIgre()`), gumb pa iz shranjene igre (`zbirkaStatusIgre()`), zato
+    se razlikujeta (2.3). Enotno: oba da ena funkcija (1.5) iz enega vira – shranjene igre,
+    kadar obstaja, sicer zapisa v zbirki (uganka, uvožena iz drugega brskalnika, nima
+    shranjene igre). Zamrznjen čas prve rešitve je poseben podatek (2.3), ne stanje.
+  - **Izvoz in uvoz:** `**Stanje:** v teku (12/57)`. Uvoz bere tudi stari obliki
+    »v teku (45 od 81)« (izpolnjeno = 45) in »izpolnjena z napako« (izpolnjeno = 81,
+    napaka), nova oblika pa se preračuna v `izpolnjeno = danih + 12`.
+- **Obseg:** srednje (igra, `shared/zbirka.js`, izvoz/uvoz, testa `igra-ui` in
+  `zbirka-zapis`).
 
 ### 1.7 Oznake gumbov
 
@@ -268,8 +356,8 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   časa zadnjega reševanja, čeprav je čas v shranjeni igri (`nazadnje`).
 - **Predlog:** primer prikaži z isto kartico kot uganko iz zbirke (2.1). Podatke sestavi
   iz shranjene igre (`igrano` = `zapis.nazadnje`, izpolnjeno/napaka iz potez), težavnost
-  in tehnike pa iz `PRIMERI` (glej 3). Pri novi uganki naj oba seznama kažeta isto: ali
-  obe »nova« ali obe nič.
+  in tehnike pa iz `PRIMERI` (glej 3) ali iz zapisa v zbirki, če je primer tam z izvorom
+  `primer` (2.5). Pri novi uganki oba seznama kažeta »nova« (1.6).
 - **Obseg:** srednje (skupaj z 1.5 in 6.1).
 
 ### 2.3 Ponovno reševanje rešene uganke ni vidno (opažanje 2)
@@ -283,8 +371,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   (`igra/index.html:165`) pravi, da ima rešena uganka gumb »Poglej«, kar po »Začni znova«
   ne velja več.
 - **Predlog:** zapis ostane zamrznjen, druga vrstica pa dobi podatek iz shranjene igre:
-  »rešena 21. 9. 2026 ob 17:48 · znova v teku (vpisanih 12 od 57)«. Enako v kartici
-  »Uganka«. Gumb »Nadaljuj« je potem razumljiv. Pomoč v igri dopolni.
+  »rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)«. Enako v kartici »Uganka«. Napis
+  »v teku« in gumb »Nadaljuj« izhajata iz istega pogoja (1.6), čas prve rešitve pa ostane
+  kot dodaten podatek. Pomoč v igri dopolni.
 - **Obseg:** srednje (igra, test `igra-ui.test.js`, ki preverja ponovno reševanje).
 
 ### 2.4 Oblika časa
@@ -306,9 +395,56 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   z izvorom »ročni vnos« in s težavnostjo »Ekstrem«. V igri je nato isti primer dvakrat:
   pod »Vgrajeni primeri« in pod »Tvoja zbirka«. Napredek si delita (iste danosti), prikaz
   pa je različen (2.2).
-- **Predlog:** reševalec uganke, ki je v `PRIMERI`, v zbirko ne shrani (enako pravilo kot
-  igra). Ali pa dobi izvor `primer` in se v igri pokaže samo enkrat – tvoja odločitev.
-- **Obseg:** majhno.
+- **Predlog (po odločitvi 2026-09-23):** vgrajeni primer, rešen v reševalcu, se shrani v
+  zbirko z izvorom **`primer`**:
+  - `ZBIRKA_IZVORI` dobi vrednost `primer` (besedilo »vgrajeni primer«); `zbirkaIzvor()`
+    jo bere tudi iz izvoza;
+  - reševalec v `zbirkaPoResevanju()` preveri, ali so danosti v `PRIMERI`, in namesto
+    `rocno` poda `primer`. Težavnost dobi iz `PRIMERI` (3) ali iz `oceniUganko()` (1.2);
+  - obstoječi zapisi: primer, ki je že v zbirki z izvorom `rocno` ali `''`, se ob branju
+    zbirke prepozna po danostih in dobi `primer` (enkratni popravek, kot pri starih
+    težavnostih). Izvor se sicer po nastanku ne spreminja, zato je to edina izjema;
+  - igra pokaže primer **samo enkrat** – pod »Vgrajeni primeri«, s podatki iz zapisa v
+    zbirki, kadar obstaja (2.2). Pod »Tvoja zbirka« se zapisi z izvorom `primer` ne
+    izpišejo (v izvozu in v reševalcu pa so, tam jih lahko tudi izbrišeš);
+  - igra sama primerov v zbirko še naprej ne dodaja (besedilo pomoči
+    `igra/index.html:165` to pove) – odločitev velja za reševalec.
+
+  **Oblika zapisa ugank (pregled 2026-09-23).** Uganke vnašaš kot niz 81 znakov, pika =
+  prazna celica. Dejansko stanje:
+
+  | Mesto | Prazna celica | Opomba |
+  |---|---|---|
+  | `PRIMERI` v `shared/zbirka.js` | **mešano**: Primer 1 `0`, Primeri 2–5 `.` | igra jih pretvori v `0` (`igra/igra.js:56`), reševalec bere oboje (`app/app.js:271`) |
+  | zbirka v `localStorage` (`sudoku.zbirka.v1`) | `0` | niz danosti je ključ zapisa |
+  | igre v `localStorage` (`sudoku.igra.v1`) | `0` | niz danosti je ključ igre (`s.igre[danosti]`) |
+  | motor (`Board`, `solve()`, `countSolutions()`) | sprejme `0` in `.` | `shared/engine.js:96` |
+  | generator (`ustvariUganko()`) | `0` | |
+  | izvoz Markdown (`zbirkaIzvozi()`) | `.` | `shared/zbirka.js:270`; uvoz sprejme oboje (`:329`) |
+  | `docs/uganke.md` | `.` | |
+  | `tools/ustvari-uganko.js` (izpis) | `.` | `tools/analiziraj-zbirko.js` bere oboje |
+  | igra, polje »Niz« (»Nova uganka«) | sprejme `0` in `.` | druge znake (presledke, nove vrstice) izpusti |
+  | reševalec, vnos | – | **polja za niz ni**, samo mreža 81 polj; niza tudi ni mogoče kopirati |
+
+  **Predlog:** ne povsod enako, ampak dve plasti z eno pretvorbo:
+  - **zunanja oblika** (vse, kar človek vidi, vnaša ali shrani v datoteko): pika. Sem
+    spadajo `PRIMERI` v kodi (Primer 1 pretvoriti v `.`), izvoz, `docs/uganke.md`, orodja
+    in prikaz niza v aplikacijah;
+  - **notranja oblika** (shramba in motor): ostane `0`. Niz danosti je ključ v obeh
+    shrambah; sprememba bi zahtevala selitev obeh ključev hkrati, sicer se shranjene igre
+    ločijo od zapisov v zbirki – korist za uporabnika pa je nič, ker notranjega niza ne
+    vidi;
+  - pretvorba na enem mestu v `shared/`: `danostiIzNiza(niz)` (sprejme `.` in `0`,
+    izpusti presledke in nove vrstice, vrne 81 znakov z `0` ali `null`) in
+    `danostiZaPrikaz(danosti)` (`0` → `.`). Uporabijo jih polje »Niz« v igri, uvoz,
+    `PRIMERI` (`igra/igra.js:56`) in orodja namesto svojih pretvorb;
+  - reševalec dobi polje »Niz« kot igra (skupaj s 6.4, skupna vnosna mreža).
+
+  Dopolnitev primerov za vse stopnje in tehnike je **ločena naloga** (glej 3); nove
+  uganke samo z orodji v `tools/` (`ustvari-uganko.js`, `analiziraj-zbirko.js`), ne
+  sestavljene na pamet.
+- **Obseg:** majhno (izvor `primer`), majhno (pretvorba in `PRIMERI`), polje »Niz« v
+  reševalcu srednje (s 6.4).
 
 ### 2.6 Vrstica »Zapiši ocene (0)«
 
@@ -347,7 +483,13 @@ Glej 0.2 (vzrok je CSS, ne logika).
   - vrstni red Lahka → Srednja → Srednja → Zelo težka → Ekstrem;
   - test v `tests/generator.test.js`: za vsak primer `oceniUganko(danosti).tezavnost ===
     p.tezavnost`. Ob spremembi meril test takoj pokaže, da je ime zastarelo;
-  - v igri naj kartica primera kaže težavnost in tehnike enako kot uganka iz zbirke (2.2).
+  - v igri naj kartica primera kaže težavnost in tehnike enako kot uganka iz zbirke (2.2);
+  - danosti vseh primerov v zunanji obliki s piko (2.5).
+
+  **Ločena naloga (odločitev 2026-09-23):** dopolnitev primerov, da bo pokrita vsaka
+  stopnja (tudi Težka) in vsaka tehnika 1–12. Uganke samo z orodji v `tools/`
+  (`ustvari-uganko.js`, izbor z `analiziraj-zbirko.js`), preverjene s `countSolutions()`
+  in zapisane v `docs/uganke.md` – ne sestavljene na pamet.
 - **Obseg:** majhno (brez 2.2), srednje (z 2.2).
 
 ---
@@ -379,9 +521,12 @@ Glej 0.2 (vzrok je CSS, ne logika).
   | kartica | padding 18 px, razmik 16 px | `.exercise` 18 px / 16 px | padding 16 px, razmik 12 px |
   | Google Fonts | s `preconnect` | brez `preconnect` | s `preconnect` |
 
-- **Predlog:** ena podlaga (bela kot v igri ali siva – tvoja odločitev), ista glava
-  (nadnaslov, naslov, gumbi desno), ista noga in iste mere kartic v `shared/`. Širina
-  ostane po aplikaciji (igra potrebuje dva stolpca).
+- **Predlog (po odločitvi 2026-09-23):** povsod **bela podlaga kot v igri** (#FFFFFF,
+  brez mrežnega vzorca) v `shared/`; reševalec izgubi sivo podlago z mrežnim vzorcem,
+  trening sivo enobarvno. Kartice imajo v vseh treh aplikacijah že obrobo (`--line`),
+  zato na beli podlagi ostanejo ločene; `--card` in `--bg` sta potem enaki. Ista glava (nadnaslov, naslov, gumbi desno), ista
+  noga in iste mere kartic v `shared/`. Širina ostane po aplikaciji (igra potrebuje dva
+  stolpca).
 - **Obseg:** srednje.
 
 ### 4.3 Navigacija med aplikacijami
@@ -466,7 +611,8 @@ Glej 0.2 (vzrok je CSS, ne logika).
   drugače. Besedilo v HTML je dvakrat skoraj enako.
 - **Predlog:** oba opisa v `shared/generator.js` (`opis` = razvrščanje, `opisIskanja` =
   generator). HTML ju izpiše iz JS: okno »Nova uganka« opis generatorja, okno Pomoč oba
-  in eno poved o razliki (»Oceni zbirko« razvršča širše kot generator).
+  in eno poved o razliki (»Oceni zbirko« razvršča širše kot generator). V opisih izraz
+  »srednje« namesto »osnovne« (1.1) in imena tehnik po 1.3.
 - **Obseg:** majhno.
 
 ### 5.3 Pomoč v igri o gumbu »Poglej«
@@ -506,7 +652,9 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   - `igra/igra.js:200` – komentar »ostane poudarjena samo zadnja izbrana števka (modra)«;
     prva barva poudarka je rumena (`--poud`);
   - `docs/tehnike.md` – stolpec »Slovensko ime« ima pri šestih tehnikah angleško ime
-    (Naked pair, Hidden pair …), besedila uporabljajo »številka« (1.4).
+    (Naked pair, Hidden pair …), besedila uporabljajo »številka« (1.4). Dogovorjena imena
+    in sopomenke so od 2026-09-23 v razdelku »Imena in sopomenke«; tabela in izraz
+    »osnovne« se popravita ob 1.3 in 1.1, ko se spremeni koda.
 - **Predlog:** popravi ob sklopu, ki se ga tiče (1.3, 1.4, 6.8), ali v enem commitu
   »dokumentacija«.
 - **Obseg:** majhno.
@@ -620,16 +768,31 @@ kopija podatka, ki bi moral priti iz `TEHNIKE_OPISI`.
 
 ## Odločitve, ki so tvoje
 
-Pri teh točkah je več smiselnih rešitev. Pred popravkom potrebujem tvojo izbiro:
+Vse odločitve so sprejete **2026-09-23**. Predlogi v navedenih točkah so jim prilagojeni.
 
-1. **1.1** – značke v treningu: dve (osnovna/napredna) ali štiri s popravljeno razdelitvijo?
-2. **1.3** – slovensko ime za Pointing pair/triple in Box-line reduction (ali ostaneta
-   angleški)?
-3. **1.6** – kako prikazati napredek (»vpisanih 12 od 57«, »12 / 57«, odstotek) in ali
-   uganka s samimi odstranjenimi kandidati velja za »v teku« ali za »nova«?
-4. **2.5** – vgrajeni primer, rešen v reševalcu: ne shrani ga ali ga shrani z izvorom
-   `primer`?
-5. **4.2** – skupna podlaga strani: bela (igra) ali siva z mrežnim vzorcem (reševalec)?
+1. **1.1 – ravni tehnik:** štiri ravni, poimenovane kot stopnje ugank: *lahke* (enojčki),
+   *srednje* (1–6), *napredne* (7–12), *ekspertne* (XY-Chain in poznejše verige –
+   zaenkrat prazno). Stopnja uganke izhaja iz najtežje ravni potrebnih tehnik (to je
+   današnje pokrivajoče merilo, razvrstitev se ne spremeni). V treningu znački SREDNJA in
+   NAPREDNA, EKSPERTNA pride z XY-Chain. V merilih stopenj izraz »osnovne« zamenja
+   »srednje«. Odprto ostane, katera stopnja pripada uganki z ekspertno tehniko – odloči se
+   ob uvedbi XY-Chain.
+2. **1.3 – imena tehnik:** povsod slovensko, angleško v oklepaju: Očitni enojček (Naked
+   Single), Skriti enojček (Hidden Single), 1 Očitni par (Naked Pair), 2 Skriti par
+   (Hidden Pair), 3 Izločitev izven bloka (Pointing Pair/Triple), 4 Izločitev v bloku
+   (Box-Line Reduction), 5 Očitna trojica (Naked Triple), 6 Skrita trojica (Hidden
+   Triple), 7 X-krilo (X-Wing), 8 Mečarica (Swordfish), 9 Veriga ene števke (Turbot Fish),
+   10 W-krilo (W-Wing), 11 XY-krilo (XY-Wing, Y-Wing), 12 Edinstveni pravokotnik (Unique
+   Rectangle). Sopomenke so v `docs/tehnike.md`.
+3. **1.6 – napredek in stanja:** zapis »12/57« (57 = 81 − danosti, 12 = moji vpisi). Tri
+   stanja: *nova* (brez poteze), *v teku* (od prve poteze, tudi če so bili samo
+   odstranjeni kandidati, do rešitve), *rešena*. Napis stanja in gumb sledita istemu
+   pogoju. »Izpolnjena z napako« kot posebno stanje odpade.
+4. **2.5 – primeri:** vgrajeni primer, rešen v reševalcu, se shrani v zbirko z izvorom
+   `primer`. Uganke vnašaš kot niz 81 znakov s piko za prazno celico; pregled oblik in
+   predlog (pika navzven, `0` v shrambi, ena pretvorba) je v 2.5. Dopolnitev primerov za
+   vse stopnje in tehnike je ločena naloga (3), uganke samo z orodji v `tools/`.
+5. **4.2 – podlaga:** povsod bela, kot v igri.
 
 ---
 
@@ -641,13 +804,26 @@ komponente, na koncu videz in pomoč.
 | Faza | Točke | Zakaj v tem vrstnem redu | Obseg |
 |---|---|---|---|
 | **0 – napake** | 0.1, 0.2 | vidni napaki, popravek je nekaj vrstic, brez odločitev | majhno |
-| **1 – stanje uganke** | 1.5, 1.6, 2.3, 6.2, 6.3 | pokrije opažanja 1–3; določi enotna besedila in en vir podatkov, na katerem gradita 2 in 3 | srednje |
+| **1 – stanje uganke** | 6.2, 6.3, 1.6, 1.5, 2.3 | pokrije opažanja 1–3; najprej en vir podatkov (6.2), nato števec »12/57« in tri stanja (1.6), besedila (1.5) in ponovno reševanje (2.3); na tem gradita fazi 2 in 3 | srednje |
 | **2 – kartica zbirke** | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
-| **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom, ročni vnos dobi pravo stopnjo; uporablja kartico iz faze 2 | majhno–srednje |
-| **4 – imena tehnik in izrazi** | 1.3, 1.4, 1.1, 5.1, 5.2, 5.4, 6.9 | besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov – bolje v enem sklopu | srednje |
-| **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3 | najprej skupni CSS (6.8), nato poenotenje nad njim; navigacija na koncu, ko je glava skupna | srednje |
+| **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, reševalec jih shrani z izvorom `primer`, igra jih pokaže enkrat (s kartico iz faze 2), ročni vnos dobi pravo stopnjo | majhno–srednje |
+| **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
+| **4 – imena tehnik in izrazi** | 1.3, 1.4, 1.1, 5.1, 5.2, 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
+| **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3 | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
 | **6 – pomoč** | 5.3, 5.5, 5.6 | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
-| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes | majhno–srednje |
+| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes (6.4 prinese polje »Niz« v reševalec, 2.5) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu
 spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne spremeni.
+
+**Vpliv odločitev 2026-09-23 na vrstni red:** zaporedje faz ostane. Spremembe:
+
+- v fazi 1 gre 6.2 na začetek – pogoj »napis in gumb iz istega vira« (1.6) je izveden
+  šele, ko je en vir; 1.6 zdaj obsega tudi izvoz/uvoz nove oblike »12/57« in odpravo stanja
+  »izpolnjena z napako«;
+- faza 3 dobi pretvorbo oblike danosti in izvor `primer`; oboje je odvisno od kartice iz
+  faze 2 (primer samo enkrat);
+- dopolnitev primerov je nova ločena naloga 3a za fazo 3;
+- v fazi 4 je jasen notranji vrstni red (1.3 + 1.4, nato 1.1); ker so imena in ravni
+  določeni, faza 4 in 5 nista več odvisni od odločitev. Edino odprto vprašanje (stopnja
+  uganke z ekspertno tehniko) ne zadeva nobene faze – pride z XY-Chain.
