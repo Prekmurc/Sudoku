@@ -348,6 +348,7 @@ znovaBtn.addEventListener('click', () => {
     : 'Začnem znova? Vse poteze bodo razveljavljene. Z »Ponovi« jih lahko vrneš, dokler ne narediš nove poteze.';
   if (!confirm(vprasanje)) return;
   igra.kazalec = 0;
+  igra.znova = true; // namerno prazna mreža: ob osvežitvi strani ostane prazna
   sporocilo = { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' };
   osvezi();
 });
@@ -762,10 +763,19 @@ function zacniIgro(danosti) {
   pomoc = null;
   sidro = null;
   poudarjene = [];
-  sporocilo = opozoriloObnove(shranjena) || (shranjena && shranjena.poteze.length
-    ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }
-    : null);
+  sporocilo = opozoriloObnove(shranjena) || opisNadaljevanja(shranjena, 'shranjeno igro');
   osvezi(false); // samo odprtje uganke ni poteza
+}
+
+// Sporočilo ob nadaljevanju shranjene igre. Pri prazni mreži z zgodovino (po
+// "Začni znova") pove, da so poteze na voljo s "Ponovi" - sicer je videti, kot da
+// je napredek izgubljen.
+function opisNadaljevanja(igra, ime) {
+  if (!igra || !igra.poteze.length) return null;
+  if (igra.kazalec === 0) {
+    return { besedilo: `Mreža je prazna, ker si začel znova; prejšnjih ${igra.poteze.length} potez je na voljo s »Ponovi« (↷), dokler ne narediš nove poteze.`, razred: '' };
+  }
+  return { besedilo: `Nadaljuješ ${ime} (poteza ${igra.kazalec} / ${igra.poteze.length}).`, razred: '' };
 }
 
 // Shranjene igre ni bilo mogoče v celoti obnoviti (poškodovan zapis): povej,
@@ -1716,8 +1726,6 @@ const zadnja = igraZadnja();
 if (zadnja) {
   igra = zadnja;
   stanje = stanjeIgre(igra);
-  sporocilo = opozoriloObnove(zadnja) || (zadnja.poteze.length
-    ? { besedilo: `Nadaljuješ zadnjo igro (poteza ${zadnja.kazalec} / ${zadnja.poteze.length}).`, razred: '' }
-    : null);
+  sporocilo = opozoriloObnove(zadnja) || opisNadaljevanja(zadnja, 'zadnjo igro');
 }
 izrisi();

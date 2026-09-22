@@ -14,8 +14,11 @@
 
 const IGRA_KLJUC = 'sudoku.igra.v1';
 
+// `znova` = igralec je pravkar kliknil "Začni znova" (kazalec 0, zgodovina pa
+// ostane za "Ponovi"). Loči namerno prazno mrežo od stanja, ko je vse
+// razveljavljeno s puščico nazaj - glej igraIzZapisa().
 function novaIgra(danosti) {
-  return { danosti, poteze: [], kazalec: 0 };
+  return { danosti, poteze: [], kazalec: 0, znova: false };
 }
 
 // Odigra eno potezo: vpisi[c] = uporabnikova števka (0 = brez vpisa),
@@ -124,13 +127,14 @@ function dodajPotezo(igra, poteza, stanje = stanjeIgre(igra)) {
   igra.poteze.length = igra.kazalec;
   igra.poteze.push(p);
   igra.kazalec++;
+  igra.znova = false;
   return true;
 }
 
 function lahkoRazveljavi(igra) { return igra.kazalec > 0; }
 function lahkoPonovi(igra) { return igra.kazalec < igra.poteze.length; }
-function razveljavi(igra) { if (lahkoRazveljavi(igra)) igra.kazalec--; }
-function ponovi(igra) { if (lahkoPonovi(igra)) igra.kazalec++; }
+function razveljavi(igra) { if (lahkoRazveljavi(igra)) { igra.kazalec--; igra.znova = false; } }
+function ponovi(igra) { if (lahkoPonovi(igra)) { igra.kazalec++; igra.znova = false; } }
 
 // seManjka[d] (d = 1..9): kolikokrat mora biti števka d še vpisana.
 function seManjka(stanje) {
@@ -193,9 +197,16 @@ function igraZdaj() {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-// Zapis za shrambo: { poteze, kazalec, zacetek, nazadnje }.
+// Zapis za shrambo: { poteze, kazalec, znova, zacetek, nazadnje }. Kazalec pove,
+// koliko potez je odigranih (ostale so v repu za "Ponovi").
 function igraVZapis(igra, zacetek, cas) {
-  return { poteze: igra.poteze.map(p => (p.celice ? { ...p, celice: [...p.celice] } : { ...p })), kazalec: igra.kazalec, zacetek: zacetek || cas, nazadnje: cas };
+  return {
+    poteze: igra.poteze.map(p => (p.celice ? { ...p, celice: [...p.celice] } : { ...p })),
+    kazalec: igra.kazalec,
+    znova: !!igra.znova,
+    zacetek: zacetek || cas,
+    nazadnje: cas,
+  };
 }
 
 // Iz shranjenega zapisa zgradi igro. Poteze odigra eno za drugo in se ustavi
@@ -212,7 +223,13 @@ function igraIzZapisa(danosti, zapis) {
     if (!dodajPotezo(igra, p, stanje)) break;
     stanje = stanjeIgre(igra);
   }
-  igra.kazalec = Math.max(0, Math.min(kazalec, igra.poteze.length));
+  // Kazalec ostane tam, kjer je bil ob shranjevanju (npr. 2 od 3 po "Razveljavi").
+  // Izjema je stanje "vse razveljavljeno": prazna mreža s skrito zgodovino je
+  // videti kot izgubljen napredek, zato se vrnemo na konec zgodovine. Po "Začni
+  // znova" (zapis.znova) prazna mreža ostane - tako je igralec hotel.
+  igra.znova = !!(zapis && zapis.znova);
+  const vseRazveljavljeno = kazalec === 0 && igra.poteze.length > 0 && !igra.znova;
+  igra.kazalec = vseRazveljavljeno ? igra.poteze.length : Math.max(0, Math.min(kazalec, igra.poteze.length));
   igra.izpuscenih = poteze.length - igra.poteze.length;
   return igra;
 }

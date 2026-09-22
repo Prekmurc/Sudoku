@@ -7,8 +7,10 @@
 //   - uganka iz generatorja in ročno vnesena uganka se takoj dodata v zbirko (z
 //     "dodana", brez časa reševanja) in sta v seznamu na vrhu;
 //   - napredek igre (sudoku.igra.v1) se shranjuje ločeno od zapisa v zbirki
-//     (sudoku.zbirka.v1): ponovno reševanje rešene uganke preživi osvežitev strani,
-//     čas prve rešitve pa ostane zamrznjen;
+//     (sudoku.zbirka.v1): ponovno reševanje rešene uganke preživi osvežitev strani
+//     (poteze, KAZALEC in vsebina mreže), čas prve rešitve pa ostane zamrznjen;
+//   - obnova kazalca: delno razveljavljeno stanje ostane, "vse razveljavljeno" se
+//     vrne na konec zgodovine, po "Začni znova" pa mreža ostane prazna;
 //   - rešena uganka takoj po zadnji potezi zaklene mrežo (nizi in razveljavi/ponovi
 //     onemogočeni, razlog pove, zakaj; "Začni znova" ostane), zapis v zbirki pa se
 //     zamrzne.
@@ -260,17 +262,24 @@ test('rešena uganka: napredek ponovnega reševanja preživi osvežitev strani',
   for (let i = 0; i < 2; i++) {
     run("(() => { const c = igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i]); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
   }
-  const vpisanih = run('steviloVpisanih(stanje)');
   const danih = run("igra.danosti.replace(/0/g, '').length");
-  assert.equal(vpisanih, danih + 3, 'tri števke so na mreži');
-  // Napredek gre v sudoku.igra.v1, ne v zbirko.
-  assert.equal(JSON.parse(dom.shramba.get('sudoku.igra.v1')).igre[JSON.parse(D)].poteze.length, 3);
+  assert.equal(run('steviloVpisanih(stanje)'), danih + 3, 'tri števke so na mreži');
+  const mrezaPrej = run('stanje.grid.join("")');
+  // Napredek gre v sudoku.igra.v1 (poteze IN kazalec), ne v zbirko.
+  const shranjeno = JSON.parse(dom.shramba.get('sudoku.igra.v1')).igre[JSON.parse(D)];
+  assert.equal(shranjeno.poteze.length, 3);
+  assert.equal(shranjeno.kazalec, 3, 'kazalec je shranjen na koncu zgodovine');
 
   // F5
   const po = osveziStran(dom);
   assert.equal(po.run('!!igra'), true, 'po osvežitvi je igra odprta');
   assert.equal(po.run('igra.poteze.length'), 3, 'poteze so ohranjene');
+  assert.equal(po.run('igra.kazalec'), 3, 'kazalec je na koncu zgodovine, ne na 0');
+  assert.equal(po.run('stanje.grid.join("")'), mrezaPrej, 'mreža je enaka kot pred osvežitvijo');
   assert.equal(po.run('steviloVpisanih(stanje)'), danih + 3, 'vpisane števke so ohranjene');
+  assert.equal(po.dom.el('stevecPotez').textContent, 'poteza 3 / 3');
+  assert.equal(po.dom.el('razveljaviBtn').disabled, false, 'Razveljavi je na voljo');
+  assert.equal(po.dom.el('znovaBtn').disabled, false, '"Začni znova" je na voljo');
   assert.equal(po.run('samoZaOgled()'), false, 'mreža je igrljiva naprej');
 
   // Zapis v zbirki ostane zamrznjen na prvi rešitvi.
@@ -332,4 +341,72 @@ test('poškodovan zapis igre: obnova pove, koliko potez je izpadlo', () => {
   assert.equal(po.run('igra.izpuscenih'), 1);
   assert.match(po.dom.el('razlogNizov').textContent, /^⚠ Shranjene igre ni bilo mogoče v celoti obnoviti/);
   assert.ok(po.dom.el('razlogNizov').className.includes('opozorilo'));
+});
+
+/* ---------- obnova kazalca v zgodovini potez ---------- */
+
+// Tri poteze v prve tri proste celice (vsaka pravilna).
+function trikratVpisi(run) {
+  for (let i = 0; i < 3; i++) {
+    run("(() => { const c = igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i]); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
+  }
+}
+
+test('kazalec po "Razveljavi" preživi osvežitev strani (2 od 3)', () => {
+  const { dom, run } = zacni();
+  trikratVpisi(run);
+  const danih = run("igra.danosti.replace(/0/g, '').length");
+  dom.klikni('razveljaviBtn');
+  assert.equal(run('igra.kazalec'), 2);
+  const mrezaPrej = run('stanje.grid.join("")');
+  assert.equal(run('steviloVpisanih(stanje)'), danih + 2, 'na mreži sta dve vpisani števki');
+  assert.equal(JSON.parse(dom.shramba.get('sudoku.igra.v1')).igre[JSON.parse(D)].kazalec, 2, 'kazalec se shrani');
+
+  const po = osveziStran(dom);
+  assert.equal(po.run('igra.kazalec'), 2, 'delno razveljavljeno stanje ostane');
+  assert.equal(po.run('igra.poteze.length'), 3, 'zgodovina je cela (tretja poteza v "Ponovi")');
+  assert.equal(po.run('steviloVpisanih(stanje)'), danih + 2, 'na mreži sta dve vpisani števki');
+  assert.equal(po.run('stanje.grid.join("")'), mrezaPrej);
+  assert.equal(po.dom.el('stevecPotez').textContent, 'poteza 2 / 3');
+  assert.equal(po.dom.el('ponoviBtn').disabled, false, '"Ponovi" je na voljo');
+});
+
+test('"vse razveljavljeno" se ob osvežitvi vrne na konec zgodovine', () => {
+  const { dom, run } = zacni();
+  trikratVpisi(run);
+  const danih = run("igra.danosti.replace(/0/g, '').length");
+  const mrezaPolna = run('stanje.grid.join("")');
+  for (let i = 0; i < 3; i++) dom.klikni('razveljaviBtn');
+  assert.equal(run('igra.kazalec'), 0, 'mreža je prazna, zgodovina skrita');
+
+  // Prazna mreža s skrito zgodovino je videti kot izgubljen napredek, zato se ob
+  // osvežitvi vrnemo na konec zgodovine.
+  const po = osveziStran(dom);
+  assert.equal(po.run('igra.kazalec'), 3);
+  assert.equal(po.run('steviloVpisanih(stanje)'), danih + 3);
+  assert.equal(po.run('stanje.grid.join("")'), mrezaPolna);
+});
+
+test('po "Začni znova" mreža ostane prazna tudi po osvežitvi', () => {
+  const { dom, run } = zacni();
+  trikratVpisi(run);
+  const danih = run("igra.danosti.replace(/0/g, '').length");
+  dom.potrdi(true);
+  dom.klikni('znovaBtn');
+  assert.equal(run('igra.kazalec'), 0);
+  assert.equal(JSON.parse(dom.shramba.get('sudoku.igra.v1')).igre[JSON.parse(D)].znova, true, 'namera se shrani');
+
+  const po = osveziStran(dom);
+  assert.equal(po.run('igra.kazalec'), 0, '"Začni znova" se z osvežitvijo ne razveljavi');
+  assert.equal(po.run('steviloVpisanih(stanje)'), danih, 'mreža je prazna');
+  assert.equal(po.run('igra.poteze.length'), 3, 'prejšnje poteze so na voljo s "Ponovi"');
+  assert.match(po.dom.el('status').textContent, /Ponovi/, 'sporočilo pove, kje so poteze');
+
+  // Prva nova poteza pobriše namero in odreže rep.
+  po.run("(() => { const c = igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i]); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
+  assert.equal(po.run('igra.poteze.length'), 1);
+  assert.equal(po.run('igra.znova'), false);
+  const po2 = osveziStran(po.dom);
+  assert.equal(po2.run('igra.kazalec'), 1, 'nova poteza je ohranjena');
+  assert.equal(po2.run('steviloVpisanih(stanje)'), danih + 1);
 });
