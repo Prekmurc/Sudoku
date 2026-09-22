@@ -6,6 +6,9 @@
 //     osveži, kot pri uganki iz generatorja);
 //   - uganka iz generatorja in ročno vnesena uganka se takoj dodata v zbirko (z
 //     "dodana", brez časa reševanja) in sta v seznamu na vrhu;
+//   - napredek igre (sudoku.igra.v1) se shranjuje ločeno od zapisa v zbirki
+//     (sudoku.zbirka.v1): ponovno reševanje rešene uganke preživi osvežitev strani,
+//     čas prve rešitve pa ostane zamrznjen;
 //   - rešena uganka takoj po zadnji potezi zaklene mrežo (nizi in razveljavi/ponovi
 //     onemogočeni, razlog pove, zakaj; "Začni znova" ostane), zapis v zbirki pa se
 //     zamrzne.
@@ -224,4 +227,109 @@ test('uvoz, vgrajeni primer in "Začni znova" ob pogoju brez poteze', () => {
   assert.equal(run('igra.kazalec'), 0);
   assert.ok(zapis(run).igrano, 'čas reševanja ostane zapisan');
   assert.match(stanjeZapisa(run), /^v teku \(\d+ od 81\)$/, 'stanje se posodobi na prazno mrežo');
+});
+
+/* ---------- ponovno reševanje rešene uganke (napredek proti zamrznjenemu zapisu) ---------- */
+
+// Nov DOM z isto hrambo = osvežitev strani (F5): igra/igra.js se naloži znova in
+// mora stanje obnoviti iz localStorage.
+function osveziStran(dom) {
+  const nov = makeDom(dom.shramba);
+  return { dom: nov, run: loadContext(DATOTEKE, nov.globals).run };
+}
+
+test('rešena uganka: napredek ponovnega reševanja preživi osvežitev strani', () => {
+  let { dom, run } = zacni();
+  resiVse(run);
+  const prvaResitev = zapis(run).igrano;
+  assert.equal(stanjeZapisa(run), 'rešena');
+
+  // "Začni znova" -> mreža je spet igrljiva
+  dom.potrdi(true);
+  dom.klikni('znovaBtn');
+  assert.equal(run('samoZaOgled()'), false);
+
+  // Tri nove poteze; prvo naredimo po pravi poti z miško (klik na celico v mreži
+  // in nato na števko v nizu "Vpiši"), ostali dve prek izvedi().
+  const c0 = run("igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i])");
+  run(`celice[${c0}].sprozi('click')`);
+  const d0 = run(`resitev()[${c0}]`);
+  assert.equal(run(`gumbiVpisi[${d0} - 1].disabled`), false, 'niz "Vpiši" je po "Začni znova" spet omogočen');
+  run(`gumbiVpisi[${d0} - 1].sprozi('click')`);
+  assert.equal(run('igra.poteze.length'), 1, 'klik na števko doda potezo');
+  for (let i = 0; i < 2; i++) {
+    run("(() => { const c = igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i]); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
+  }
+  const vpisanih = run('steviloVpisanih(stanje)');
+  const danih = run("igra.danosti.replace(/0/g, '').length");
+  assert.equal(vpisanih, danih + 3, 'tri števke so na mreži');
+  // Napredek gre v sudoku.igra.v1, ne v zbirko.
+  assert.equal(JSON.parse(dom.shramba.get('sudoku.igra.v1')).igre[JSON.parse(D)].poteze.length, 3);
+
+  // F5
+  const po = osveziStran(dom);
+  assert.equal(po.run('!!igra'), true, 'po osvežitvi je igra odprta');
+  assert.equal(po.run('igra.poteze.length'), 3, 'poteze so ohranjene');
+  assert.equal(po.run('steviloVpisanih(stanje)'), danih + 3, 'vpisane števke so ohranjene');
+  assert.equal(po.run('samoZaOgled()'), false, 'mreža je igrljiva naprej');
+
+  // Zapis v zbirki ostane zamrznjen na prvi rešitvi.
+  const z = po.run(`zbirkaBeri().find(z => z.danosti === ${D})`);
+  assert.equal(z.igrano, prvaResitev, 'čas prve rešitve se ni spremenil');
+  assert.equal(z.izpolnjeno, 81);
+  assert.equal(po.run(`zbirkaStanjeIgre(zbirkaBeri().find(z => z.danosti === ${D})).besedilo`), 'rešena');
+});
+
+test('rešena uganka: ponovna rešitev spet zaklene mrežo, čas prve rešitve ostane', () => {
+  const { dom, run } = zacni();
+  resiVse(run);
+  const prvaResitev = zapis(run).igrano;
+
+  dom.potrdi(true);
+  dom.klikni('znovaBtn');
+  resiVse(run); // drugi poskus do konca
+
+  assert.equal(run('samoZaOgled()'), true, 'mreža je spet zaklenjena');
+  assert.ok(dom.el('mreza').className.includes('zaklenjena'));
+  assert.match(dom.el('razlogNizov').textContent, /samo za ogled/);
+  assert.equal(dom.el('razveljaviBtn').disabled, true);
+  assert.equal(zapis(run).igrano, prvaResitev, 'v zbirki ostane čas PRVE rešitve');
+
+  // Tudi po osvežitvi strani.
+  const po = osveziStran(dom);
+  assert.equal(po.run('samoZaOgled()'), true);
+  assert.equal(po.run(`zbirkaBeri().find(z => z.danosti === ${D}).igrano`), prvaResitev);
+});
+
+test('napredka ni mogoče shraniti: opozorilo je vidno pri mreži', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  run(`dodajVZbirko(${D}, 'Težka', 'generator')`);
+  run(`zacniIgro(${D})`);
+  // Shramba neha delovati (npr. polna ali onemogočena).
+  dom.globals.localStorage.setItem = () => { throw new Error('quota'); };
+  run("(() => { const c = igra.danosti.indexOf('0'); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
+
+  assert.match(dom.el('razlogNizov').textContent, /^⚠ Napredka ni bilo mogoče shraniti/);
+  assert.ok(dom.el('razlogNizov').className.includes('opozorilo'));
+  assert.match(dom.el('status').textContent, /Napredka ni bilo mogoče shraniti/);
+});
+
+test('poškodovan zapis igre: obnova pove, koliko potez je izpadlo', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  // Zapis s potezo, ki je ni mogoče odigrati (števka ni kandidat prve prazne celice).
+  const prazna = run(`${D}.indexOf('0')`);
+  const napacna = run(`(() => { const s = stanjeIgre(novaIgra(${D})); for (let d = 1; d <= 9; d++) if (!(s.kandidati[${prazna}] & (1 << d))) return d; return 0; })()`);
+  const zapisIgre = {
+    zadnja: JSON.parse(D),
+    igre: { [JSON.parse(D)]: { poteze: [{ tip: 'vpis', celica: prazna, stevka: napacna }], kazalec: 1, zacetek: '2026-09-22 20:00', nazadnje: '2026-09-22 20:00' } },
+  };
+  dom.shramba.set('sudoku.igra.v1', JSON.stringify(zapisIgre));
+
+  const po = osveziStran(dom);
+  assert.equal(po.run('igra.poteze.length'), 0, 'neveljavna poteza se ne odigra');
+  assert.equal(po.run('igra.izpuscenih'), 1);
+  assert.match(po.dom.el('razlogNizov').textContent, /^⚠ Shranjene igre ni bilo mogoče v celoti obnoviti/);
+  assert.ok(po.dom.el('razlogNizov').className.includes('opozorilo'));
 });

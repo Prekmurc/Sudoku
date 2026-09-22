@@ -79,8 +79,9 @@ class Element {
 
 // Vrne globalne vrednosti za vm kontekst (loadContext v load-engine.js) in
 // pripomočke za test: el(id) da element po id, klikni(el) sproži klik.
-function makeDom() {
-  const shramba = new Map();
+// `shramba` je Map za localStorage: če jo podaš (dom.shramba prejšnjega okolja),
+// nov DOM dobi isto hrambo - tako test simulira ponovno nalaganje strani (F5).
+function makeDom(shramba = new Map()) {
   const poId = new Map();
   const documentElement = new Element('html');
 

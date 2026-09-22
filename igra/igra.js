@@ -255,8 +255,10 @@ function osvezi(jePoteza = true) {
     const zdaj = seManjka(stanje);
     poudarjene = poudarjene.filter(p => !(prej[p.stevka] > 0 && zdaj[p.stevka] === 0));
   }
+  // Napredek trenutne igre (sudoku.igra.v1) se shrani VEDNO in neodvisno od zapisa
+  // v zbirki (sudoku.zbirka.v1) - tudi pri rešeni uganki, ki se rešuje znova.
   if (!igraShrani(igra)) {
-    sporocilo = { besedilo: 'Igre ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', razred: 'err' };
+    sporocilo = { besedilo: 'Napredka ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja) - ob osvežitvi strani bodo poteze izgubljene.', razred: 'err' };
   }
   if (jePoteza) shraniIgranje();
   izrisi();
@@ -390,10 +392,18 @@ function izrisiSezname() {
 
 // Vidna oznaka zaklepa: mreža rešene uganke dobi razred, vrstica z razlogom pa
 // izstopajoč slog - da je jasno, zakaj nizi ne delujejo (igra.css).
-function izrisiZaklep(ogled) {
+function izrisiZaklep(ogled, opozorilo) {
   mrezaEl.classList.toggle('zaklenjena', ogled);
-  razlogNizovEl.classList.toggle('zaklenjeno', ogled);
+  razlogNizovEl.classList.toggle('zaklenjeno', ogled && !opozorilo);
+  razlogNizovEl.classList.toggle('opozorilo', !!opozorilo);
   znovaBtn.classList.toggle('primary', ogled);
+}
+
+// Napaka (npr. shranjevanje ne deluje, obnova igre ni bila popolna) mora biti
+// vidna pri mreži, ne samo v stranski kartici "Uganka" - sicer igralec izgubi
+// napredek, ne da bi karkoli opazil.
+function opozoriloIgre() {
+  return sporocilo && sporocilo.razred === 'err' ? sporocilo.besedilo : '';
 }
 
 function izrisiMrezo() {
@@ -479,8 +489,9 @@ function izrisiNize() {
     o.title = (a.odstrani & bit) ? `Odstrani kandidata ${d}` : (a.vrni & bit) ? `Vrni kandidata ${d}` : '';
     o.setAttribute('aria-label', o.title || String(d));
   }
-  razlogNizovEl.textContent = razlogNizov(a);
-  izrisiZaklep(ogled);
+  const opozorilo = opozoriloIgre();
+  razlogNizovEl.textContent = opozorilo ? `⚠ ${opozorilo}` : razlogNizov(a);
+  izrisiZaklep(ogled, opozorilo);
   zbrisiBtn.disabled = !a.zbrisi;
   razveljaviBtn.disabled = !igra || ogled || !lahkoRazveljavi(igra);
   ponoviBtn.disabled = !igra || ogled || !lahkoPonovi(igra);
@@ -751,10 +762,20 @@ function zacniIgro(danosti) {
   pomoc = null;
   sidro = null;
   poudarjene = [];
-  sporocilo = shranjena && shranjena.poteze.length
+  sporocilo = opozoriloObnove(shranjena) || (shranjena && shranjena.poteze.length
     ? { besedilo: `Nadaljuješ shranjeno igro (poteza ${shranjena.kazalec} / ${shranjena.poteze.length}).`, razred: '' }
-    : null;
+    : null);
   osvezi(false); // samo odprtje uganke ni poteza
+}
+
+// Shranjene igre ni bilo mogoče v celoti obnoviti (poškodovan zapis): povej,
+// koliko potez je izpadlo, da izguba napredka ni tiha.
+function opozoriloObnove(igra) {
+  if (!igra || !igra.izpuscenih) return null;
+  return {
+    besedilo: `Shranjene igre ni bilo mogoče v celoti obnoviti: izpadlo je ${igra.izpuscenih} potez (zapis je poškodovan). Ohranjene so poteze do prve neveljavne.`,
+    razred: 'err',
+  };
 }
 
 /* ---------- tipkovnica ---------- */
@@ -1695,8 +1716,8 @@ const zadnja = igraZadnja();
 if (zadnja) {
   igra = zadnja;
   stanje = stanjeIgre(igra);
-  sporocilo = zadnja.poteze.length
+  sporocilo = opozoriloObnove(zadnja) || (zadnja.poteze.length
     ? { besedilo: `Nadaljuješ zadnjo igro (poteza ${zadnja.kazalec} / ${zadnja.poteze.length}).`, razred: '' }
-    : null;
+    : null);
 }
 izrisi();

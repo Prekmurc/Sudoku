@@ -199,7 +199,10 @@ function igraVZapis(igra, zacetek, cas) {
 }
 
 // Iz shranjenega zapisa zgradi igro. Poteze odigra eno za drugo in se ustavi
-// pri prvi, ki ni dovoljena (poškodovan zapis) - vse do nje ostanejo.
+// pri prvi, ki ni dovoljena (poškodovan zapis) - vse do nje ostanejo. Koliko
+// potez je pri tem izpadlo, pove polje `izpuscenih` (0, kadar je zapis cel):
+// brez tega bi igralec napredek izgubil, ne da bi karkoli opazil. Polje ostane
+// samo v pomnilniku - igraVZapis() ga ne shrani.
 function igraIzZapisa(danosti, zapis) {
   const igra = novaIgra(danosti);
   const poteze = zapis && Array.isArray(zapis.poteze) ? zapis.poteze : [];
@@ -210,6 +213,7 @@ function igraIzZapisa(danosti, zapis) {
     stanje = stanjeIgre(igra);
   }
   igra.kazalec = Math.max(0, Math.min(kazalec, igra.poteze.length));
+  igra.izpuscenih = poteze.length - igra.poteze.length;
   return igra;
 }
 
