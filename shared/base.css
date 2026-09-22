@@ -1,8 +1,14 @@
-/* shared/base.css — skupne osnove za obe Sudoku aplikaciji (reševalec in trening tehnik).
-   Vsebuje samo tisto, kar je bilo v obeh izvornih datotekah dobesedno enako. */
+/* shared/base.css — skupne osnove za vse tri Sudoku aplikacije (reševalec, trening
+   tehnik in igra). Vsebuje samo tisto, kar velja povsod. */
 
 * {
   box-sizing: border-box;
+}
+
+/* Atribut hidden mora skriti element vedno: pravilo z display (npr. display:flex
+   na razredu) bi sicer povozilo privzeto skrivanje brskalnika. */
+[hidden] {
+  display: none !important;
 }
 
 body {

@@ -362,7 +362,6 @@ kbd{
   width:max-content;
 }
 .mreza-okvir .mreza{ grid-column:1; grid-row:1; }
-.seznam[hidden]{ display:none; }
 .seznam{ display:grid; user-select:none; -webkit-user-select:none; }
 .seznam-vrstic{
   grid-column:2; grid-row:1;

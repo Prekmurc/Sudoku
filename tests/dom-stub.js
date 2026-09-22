@@ -1,6 +1,6 @@
 'use strict';
-// Najmanjši nadomestni DOM za teste UI (igra/igra.js). Ni brskalnik: podpira samo
-// to, kar igra.js res uporabi - iskanje in ustvarjanje elementov, razrede, besedilo,
+// Najmanjši nadomestni DOM za teste UI (igra/igra.js, app/zbirka.js). Ni brskalnik:
+// podpira samo to, kar ti datoteki res uporabita - iskanje in ustvarjanje elementov, razrede, besedilo,
 // dogodke (klik sprožimo s klikni()), localStorage, confirm in spremenljivke CSS.
 // Namenjen je preverjanju LOGIKE prikaza (kaj je onemogočeno, kaj piše v vrstici z
 // razlogom), ne postavitve ali slogov.

@@ -19,6 +19,12 @@ Oznake točk (npr. 1.5) uporablja razdelek »Vrstni red popravkov« na koncu.
 
 Niso neskladja, vendar jih je vredno popraviti najprej, ker so vidne pri uporabi.
 
+**Obe popravljeni 2026-09-23** (0.1: `app/zbirka.js` + test `tests/app-zbirka.test.js`;
+0.2: pravilo `[hidden]` v `shared/base.css`, izjema `.seznam[hidden]` v `igra.css`
+odstranjena). Pregled vseh elementov z atributom `hidden` v treh aplikacijah: pravilo z
+`display` je imel poleg `#ocenaGumbi` samo še `.seznam` (že prej popravljen z izjemo);
+gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadevala.
+
 ### 0.1 Reševalec: »Naloži« in »Izbriši« v zbirki ne delujeta
 
 - **Kje:** `app/zbirka.js:142` in `app/zbirka.js:150` (reševalec, okno »Zbirka ugank«).

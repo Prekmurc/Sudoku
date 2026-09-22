@@ -98,6 +98,7 @@ function zbirkaIzrisiSeznam() {
     const li = document.createElement('li');
     const casi = zbirkaPrikazCasov(z);
     const tezavnost = z.tezavnost || 'težavnost ni določena';
+    const dodana = zbirkaPrikazDatuma(z.dodano); // za sporočilo ob nalaganju in brisanju
 
     const glava = document.createElement('div');
     glava.className = 'lib-line';
@@ -139,7 +140,7 @@ function zbirkaIzrisiSeznam() {
     nalozi.type = 'button';
     nalozi.textContent = 'Naloži';
     nalozi.addEventListener('click', () => {
-      naloziDanosti(z.danosti, `Naložena uganka iz zbirke (${tezavnost}, ${datum}).`);
+      naloziDanosti(z.danosti, `Naložena uganka iz zbirke (${tezavnost}, dodana ${dodana}).`);
       zbirkaZapri();
     });
     const izbrisi = document.createElement('button');
@@ -147,7 +148,7 @@ function zbirkaIzrisiSeznam() {
     izbrisi.className = 'danger';
     izbrisi.textContent = 'Izbriši';
     izbrisi.addEventListener('click', () => {
-      if (!confirm(`Izbrišem uganko z dne ${datum} (${tezavnost})?`)) return;
+      if (!confirm(`Izbrišem uganko, dodano ${dodana} (${tezavnost})?`)) return;
       zbirkaPisi(zbirkaBeri().filter(x => x.danosti !== z.danosti));
       if (zbirkaTrenutne === z.danosti) zbirkaSkrijVrstico();
       zbirkaStatus('Uganka je izbrisana.');
