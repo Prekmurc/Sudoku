@@ -250,8 +250,10 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   razlikujeta – glej 2.3.
 - **Predlog:** ena funkcija v `shared/zbirka.js` vrne `{ kljuc, besedilo, kratko, gumb }`
   za vsa mesta (seznam, primeri, kartica »Uganka«, izvoz). Po odločitvi pri 1.6 so stanja
-  samo tri, povsod v ženskem spolu (»nova«, »v teku (12/57)«, »rešena«), napis in gumb
-  pa izhajata iz istega pogoja. Programovi podatki povsod v obliki izvoza.
+  samo tri, povsod v ženskem spolu (»nova«, »v teku (12/57)«, »rešena«), polna mreža z
+  napako pa ima znotraj stanja »v teku« podoznako: »v teku (57/57) · napaka«. Napis in
+  gumb izhajata iz istega pogoja. Funkcija vrne podoznako kot posebno polje (npr.
+  `napaka: true`), da jo seznam lahko obarva. Programovi podatki povsod v obliki izvoza.
   `zbirkaStatusIgre()` v igri se odstrani (glej 6.2).
 - **Obseg:** srednje (igra, reševalec, testi `igra-ui` in `zbirka-zapis`).
 
@@ -276,22 +278,28 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
     |---|---|---|---|
     | nova | igra nima nobene poteze | »nova« | Igraj |
     | v teku | od prve poteze (tudi če so bili samo odstranjeni kandidati) do rešitve | »v teku (12/57)« | Nadaljuj |
+    | v teku, polna mreža z napako | vse prazne celice izpolnjene, vsaj ena napačna | »v teku (57/57) · napaka« | Nadaljuj |
     | rešena | vse prazne celice izpolnjene in pravilne | »rešena« | Poglej |
 
     »Poteza« je katerakoli poteza v zgodovini igre, tudi razveljavljena (v repu za
     »Ponovi«) ali pred »Začni znova« – to je današnji `zacetaIgra()`. Uganka s samimi
     odstranjenimi kandidati je torej »v teku (0/57)«.
-  - Stanje **»izpolnjena z napako« odpade**: polna mreža z napačno števko je »v teku
-    (57/57)«, napako pokaže »Preveri«. Polje `napaka` v zapisu ostane, ker ločuje »v teku
-    (57/57)« od »rešena«.
+  - **Polna mreža z napako** (popravek odločitve 2026-09-23): ni četrto stanje, ampak
+    poseben primer znotraj »v teku« s podoznako »· napaka«. Od mreže, ki še čaka vpise, se
+    loči zato, ker igralec nima več kam vpisovati in mora napako poiskati (»Preveri«).
+    Napis in gumb (»Nadaljuj«) izhajata iz istega vira kot pri ostalih »v teku«, doda se
+    samo podoznaka. Podoznaka je obarvana kot današnje »izpolnjena z napako« (razred
+    `napaka`). Polje `napaka` v zapisu ostane – iz njega izhajata podoznaka in razlika do
+    »rešena«.
   - **Napis in gumb morata slediti istemu pogoju.** Zdaj se napis določa iz zapisa v
     zbirki (`zbirkaStanjeIgre()`), gumb pa iz shranjene igre (`zbirkaStatusIgre()`), zato
     se razlikujeta (2.3). Enotno: oba da ena funkcija (1.5) iz enega vira – shranjene igre,
     kadar obstaja, sicer zapisa v zbirki (uganka, uvožena iz drugega brskalnika, nima
     shranjene igre). Zamrznjen čas prve rešitve je poseben podatek (2.3), ne stanje.
-  - **Izvoz in uvoz:** `**Stanje:** v teku (12/57)`. Uvoz bere tudi stari obliki
-    »v teku (45 od 81)« (izpolnjeno = 45) in »izpolnjena z napako« (izpolnjeno = 81,
-    napaka), nova oblika pa se preračuna v `izpolnjeno = danih + 12`.
+  - **Izvoz in uvoz:** `**Stanje:** v teku (12/57)` oziroma `**Stanje:** v teku (57/57) ·
+    napaka`. Uvoz bere tudi stari obliki »v teku (45 od 81)« (izpolnjeno = 45) in
+    »izpolnjena z napako« (izpolnjeno = 81, napaka), nova oblika pa se preračuna v
+    `izpolnjeno = danih + 12`, »· napaka« pa v `napaka = true`.
 - **Obseg:** srednje (igra, `shared/zbirka.js`, izvoz/uvoz, testa `igra-ui` in
   `zbirka-zapis`).
 
@@ -357,7 +365,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
 - **Predlog:** primer prikaži z isto kartico kot uganko iz zbirke (2.1). Podatke sestavi
   iz shranjene igre (`igrano` = `zapis.nazadnje`, izpolnjeno/napaka iz potez), težavnost
   in tehnike pa iz `PRIMERI` (glej 3) ali iz zapisa v zbirki, če je primer tam z izvorom
-  `primer` (2.5). Pri novi uganki oba seznama kažeta »nova« (1.6).
+  `primer` (2.5). Oba seznama kažeta ista besedila stanj iz 1.6: »nova«, »v teku
+  (12/57)«, »v teku (57/57) · napaka« in »rešena« (namesto »rešeno ✓«, »izpolnjeno z
+  napako«).
 - **Obseg:** srednje (skupaj z 1.5 in 6.1).
 
 ### 2.3 Ponovno reševanje rešene uganke ni vidno (opažanje 2)
@@ -371,7 +381,8 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   (`igra/index.html:165`) pravi, da ima rešena uganka gumb »Poglej«, kar po »Začni znova«
   ne velja več.
 - **Predlog:** zapis ostane zamrznjen, druga vrstica pa dobi podatek iz shranjene igre:
-  »rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)«. Enako v kartici »Uganka«. Napis
+  »rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)«, pri polni mreži z napako
+  »… · znova v teku (57/57) · napaka«. Enako v kartici »Uganka«. Napis
   »v teku« in gumb »Nadaljuj« izhajata iz istega pogoja (1.6), čas prve rešitve pa ostane
   kot dodaten podatek. Pomoč v igri dopolni.
 - **Obseg:** srednje (igra, test `igra-ui.test.js`, ki preverja ponovno reševanje).
@@ -787,10 +798,13 @@ Vse odločitve so sprejete **2026-09-23**. Predlogi v navedenih točkah so jim p
 3. **1.6 – napredek in stanja:** zapis »12/57« (57 = 81 − danosti, 12 = moji vpisi). Tri
    stanja: *nova* (brez poteze), *v teku* (od prve poteze, tudi če so bili samo
    odstranjeni kandidati, do rešitve), *rešena*. Napis stanja in gumb sledita istemu
-   pogoju. »Izpolnjena z napako« kot posebno stanje odpade.
+   pogoju. **Popravek (isti dan):** »izpolnjena z napako« ne odpade – polna mreža z
+   napako je poseben primer znotraj »v teku«, zapis »v teku (57/57) · napaka«, gumb
+   »Nadaljuj«; napis in gumb iz istega vira, doda se samo podoznaka.
 4. **2.5 – primeri:** vgrajeni primer, rešen v reševalcu, se shrani v zbirko z izvorom
    `primer`. Uganke vnašaš kot niz 81 znakov s piko za prazno celico; pregled oblik in
-   predlog (pika navzven, `0` v shrambi, ena pretvorba) je v 2.5. Dopolnitev primerov za
+   predlog (pika navzven, `0` v shrambi, ena pretvorba) je v 2.5. **Potrjeno:** uganke
+   v shrambi (`sudoku.zbirka.v1`, `sudoku.igra.v1`) ostanejo z `0`. Dopolnitev primerov za
    vse stopnje in tehnike je ločena naloga (3), uganke samo z orodji v `tools/`.
 5. **4.2 – podlaga:** povsod bela, kot v igri.
 
@@ -819,8 +833,8 @@ spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne
 **Vpliv odločitev 2026-09-23 na vrstni red:** zaporedje faz ostane. Spremembe:
 
 - v fazi 1 gre 6.2 na začetek – pogoj »napis in gumb iz istega vira« (1.6) je izveden
-  šele, ko je en vir; 1.6 zdaj obsega tudi izvoz/uvoz nove oblike »12/57« in odpravo stanja
-  »izpolnjena z napako«;
+  šele, ko je en vir; 1.6 zdaj obsega tudi izvoz/uvoz nove oblike »12/57« in podoznako
+  »· napaka« namesto posebnega stanja »izpolnjena z napako«;
 - faza 3 dobi pretvorbo oblike danosti in izvor `primer`; oboje je odvisno od kartice iz
   faze 2 (primer samo enkrat);
 - dopolnitev primerov je nova ločena naloga 3a za fazo 3;

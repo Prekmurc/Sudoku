@@ -29,7 +29,7 @@ in poznejše verige, zaenkrat prazno).
 | Št. | Raven | Ime za prikaz | Ključ v `ALL_TECHNIQUES` | Sopomenke in stara imena |
 |---|---|---|---|---|
 | – | lahke | Očitni enojček (Naked Single) | Gol enojček | gol enojček, Sole Candidate |
-| – | lahke | Skriti enojček (Hidden Single) | Skriti enojček | Unique Candidate |
+| – | lahke | Skriti enojček (Hidden Single) | Skriti enojček | – |
 | 1 | srednje | Očitni par (Naked Pair) | Naked pair | očitna para |
 | 2 | srednje | Skriti par (Hidden Pair) | Hidden pair | skrita para |
 | 3 | srednje | Izločitev izven bloka (Pointing Pair/Triple) | Pointing pair/triple | Locked Candidates Type 1 (Pointing), presek |
@@ -45,6 +45,13 @@ in poznejše verige, zaenkrat prazno).
 | – | – | Poskus in protislovje | (sestopanje, `tryBifurcation`) | ugibanje, Bifurcation, forcing chain; ni tehnika s številko, ime ostane |
 
 »Presek« je skupno ime tehnik 3 in 4 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
+
+Angleške sopomenke pri enojčku in presekih so preverjene 2026-09-23 v uveljavljenih virih:
+»Sole Candidate« je v Sudopedii (stran Naked Single: »Alternative terms are Forced Digit and
+Sole Candidate«), »Locked Candidates Type 1 (Pointing)« in »Type 2 (Claiming)« sta v
+Sudopedii (stran Locked Candidates, kjer je Type 2 tudi »Box-Line Reduction«) in v HoDoKu
+(stran Intersections). »Unique Candidate« pri skritem enojčku je odstranjen, ker ga
+uveljavljeni viri ne navajajo (Sudopedia ima za skriti enojček samo »Pinned Digit«).
 
 ## Stopnje ugank: najmanjše število različnih tehnik (meritev 2026-09-21)
 
