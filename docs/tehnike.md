@@ -38,11 +38,11 @@ in poznejše verige, zaenkrat prazno).
 | 6 | srednje | Skrita trojica (Hidden Triple) | Hidden triple | – |
 | 7 | napredne | X-krilo (X-Wing) | X-Wing | – |
 | 8 | napredne | Mečarica (Swordfish) | Swordfish | tehnika mečarice |
-| 9 | napredne | Veriga ene števke (Turbot Fish) | Turbot Fish | podtipa Skyscraper in Zmaj z dvema vrvicama (Two-String Kite) |
+| 9 | napredne | Veriga ene števke (Turbot Fish) | Turbot Fish | podtipa Skyscraper in Zmaj z dvema vrvicama (2-String Kite) |
 | 10 | napredne | W-krilo (W-Wing) | W-Wing | Krilo W (aplikacija Oakever) |
 | 11 | napredne | XY-krilo (XY-Wing, Y-Wing) | XY-Wing | – |
-| 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1, smrtonosni vzorec (Deadly Pattern) |
-| – | – | Poskus in protislovje | (sestopanje, `tryBifurcation`) | ugibanje, Bifurcation, forcing chain; ni tehnika s številko, ime ostane |
+| 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1 (motor pozna samo ta tip); nadpojem: smrtonosni vzorec (Deadly Pattern) |
+| – | – | Poskus in protislovje | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
 
 »Presek« je skupno ime tehnik 3 in 4 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
 
@@ -52,6 +52,34 @@ Sole Candidate«), »Locked Candidates Type 1 (Pointing)« in »Type 2 (Claiming
 Sudopedii (stran Locked Candidates, kjer je Type 2 tudi »Box-Line Reduction«) in v HoDoKu
 (stran Intersections). »Unique Candidate« pri skritem enojčku je odstranjen, ker ga
 uveljavljeni viri ne navajajo (Sudopedia ima za skriti enojček samo »Pinned Digit«).
+
+Preostale angleške sopomenke, preverjene 2026-09-23:
+
+- **2-String Kite** – potrjeno. HoDoKu (stran Single Digit Patterns): »A 2-String Kite is a
+  second special form of Turbot Fish«; Sudopedia ima stran »2-String Kite«, na strani
+  Turbot Fish pa »This pattern is also known as 2-String Kite«. Viri pišejo »2-String«,
+  izpisane oblike »Two-String Kite« v njih nisem našel, zato je v tabeli »2-String Kite«.
+- **Y-Wing** – potrjeno. SudokuWiki opisuje isto tehniko (pivot z dvema kandidatoma in dve
+  krili) pod imenom »Y-Wing« (stran Y-Wing Strategy); LiveSudoku ima naslov »XY-Wing
+  (Y-Wing) Sudoku Strategy«. Sudopedia in HoDoKu uporabljata samo »XY-Wing«.
+- **Unique Rectangle Type 1** – potrjeno. HoDoKu (stran o Unique Rectangles) ima naslov »Unique
+  Rectangle Type 1«. To je tip, ki ga izvaja `uniqueRectangle()` (trije vogali z istim
+  parom, iz četrtega se izbrišeta števki para), zato je podtip, ne splošna sopomenka.
+- **Deadly Pattern** – potrjen kot izraz, **ne kot sopomenka**. Sudopedia: »A Unique
+  Rectangle is a Deadly Pattern formed by 4 cells«. Smrtonosni vzorec je torej širši pojem,
+  pravokotnik pa ena njegova oblika; v tabeli je označen kot nadpojem.
+- **Bifurcation** – odstranjeno. Sudopedia: »A limited form of Trial & Error where only
+  constraints with 2 remaining candidates are considered« (preizkusita se obe veji). Poskus
+  in protislovje (`tryBifurcation`) postavi katerokoli števko v katerokoli prazno celico in
+  išče z vračanjem, zato ni bifurkacija v tem pomenu.
+- **forcing chain** – odstranjeno. Sudopedia: »Forcing Chain is the generic term for all
+  types of chains and loops which propagate implications from one cell or candidate to
+  another«. Poskus in protislovje ne sledi verigi posledic, ampak preišče vse možnosti z
+  vračanjem (`hasSolution()`).
+
+Obe imeni sta še v kodi – funkcija `tryBifurcation` in ključ tehnike »Poskus in protislovje
+(forcing chain)« v `shared/engine.js`. Po zgornjih virih je to Trial & Error (poskus in
+napaka); preimenovanje je sprememba kode in ni del te odločitve.
 
 ## Stopnje ugank: najmanjše število različnih tehnik (meritev 2026-09-21)
 
