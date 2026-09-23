@@ -13,7 +13,10 @@
 //     vrne na konec zgodovine, po "Začni znova" pa mreža ostane prazna;
 //   - rešena uganka takoj po zadnji potezi zaklene mrežo (nizi in razveljavi/ponovi
 //     onemogočeni, razlog pove, zakaj; "Začni znova" ostane), zapis v zbirki pa se
-//     zamrzne.
+//     zamrzne;
+//   - stanje uganke iz enega vira (zbirkaStanjeUganke): napis in gumb v seznamu
+//     zbirke, vgrajeni primeri, kartica "Uganka" in ponovno reševanje rešene uganke
+//     ("rešena … · znova v teku (12/57)", gumb "Nadaljuj").
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -36,11 +39,16 @@ function zacni() {
 
 const zapis = run => run(`zbirkaBeri().find(z => z.danosti === ${D})`);
 const vrstica = run => run(`zbirkaVrsticaIgranja(zbirkaBeri().find(z => z.danosti === ${D}))`);
-const stanjeZapisa = run => run(`zbirkaStanjeIgre(zbirkaBeri().find(z => z.danosti === ${D})).besedilo`);
+// Stanje iz zapisa v zbirki (kot v izvozu) - brez shranjene igre.
+const stanjeZapisa = run => run(`zbirkaStanjeUganke(${D}, zbirkaBeri().find(z => z.danosti === ${D})).besedilo`);
+// Prazne celice uganke - imenovalec v "v teku (12/57)".
+const praznih = [...danosti].filter(ch => ch === '0').length;
 // Vpiše celo rešitev po celicah, vsako z izvedi() - kot igralec z nizom "Vpiši".
 const resiVse = run => run("for (let c = 0; c < 81; c++) if (igra.danosti[c] === '0') izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] });");
 // Napis gumba pri uganki v seznamu zbirke (Igraj / Nadaljuj / Poglej).
-const gumb = run => run(`gumbiUganke(${D}, igreBeri().igre[${D}]).children[0].textContent`);
+const gumb = run => run(`gumbiUganke(${D}, igreBeri().igre[${D}], zbirkaBeri().find(z => z.danosti === ${D})).children[0].textContent`);
+// Ali je shranjena igra začeta (vsaj ena poteza v zgodovini).
+const zaceta = run => run(`zbirkaPovzetekZapisa(${D}, igreBeri().igre[${D}]).zaceta`);
 
 test('odprta uganka brez poteze: ni časa reševanja in ni druge vrstice', () => {
   const { run } = zacni();
@@ -54,7 +62,7 @@ test('odprta uganka brez poteze: ni časa reševanja in ni druge vrstice', () =>
   assert.equal(vrstica(run), '', 'druge vrstice ni');
   assert.equal(stanjeZapisa(run), 'nova');
   // V seznamu zbirke je pri taki uganki gumb "Igraj", ne "Nadaljuj".
-  assert.equal(run(`zacetaIgra(igreBeri().igre[${D}])`), false);
+  assert.equal(zaceta(run), false);
   assert.equal(gumb(run), 'Igraj');
 });
 
@@ -64,8 +72,8 @@ test('prva poteza zapiše čas reševanja in drugo vrstico', () => {
 
   assert.ok(zapis(run).igrano, 'čas reševanja je zapisan');
   assert.ok(vrstica(run).startsWith('zadnje reševanje '), vrstica(run));
-  assert.match(stanjeZapisa(run), /^v teku \(\d+ od 81\)$/);
-  assert.equal(run(`zacetaIgra(igreBeri().igre[${D}])`), true);
+  assert.equal(stanjeZapisa(run), `v teku (1/${praznih})`);
+  assert.equal(zaceta(run), true);
   assert.equal(gumb(run), 'Nadaljuj');
 });
 
@@ -209,7 +217,7 @@ test('uvoz, vgrajeni primer in "Začni znova" ob pogoju brez poteze', () => {
   const uvozena = run(`zbirkaBeri().find(z => z.danosti === ${JSON.stringify(druge[0])})`);
   assert.ok(uvozena, 'uvožena uganka je v zbirki');
   assert.ok(!uvozena.igrano, 'uvožena uganka nima časa reševanja');
-  assert.equal(run(`zbirkaStanjeIgre(zbirkaBeri().find(z => z.danosti === ${JSON.stringify(druge[0])})).besedilo`), 'nova');
+  assert.equal(run(`zbirkaStanjeUganke(${JSON.stringify(druge[0])}, zbirkaBeri().find(z => z.danosti === ${JSON.stringify(druge[0])})).besedilo`), 'nova');
 
   // Vgrajeni primer se igra, a v zbirko ne pride (napredek je v shranjenih igrah).
   const primer = run('primeriIgre[4].danosti');
@@ -228,7 +236,7 @@ test('uvoz, vgrajeni primer in "Začni znova" ob pogoju brez poteze', () => {
   dom.klikni('znovaBtn');
   assert.equal(run('igra.kazalec'), 0);
   assert.ok(zapis(run).igrano, 'čas reševanja ostane zapisan');
-  assert.match(stanjeZapisa(run), /^v teku \(\d+ od 81\)$/, 'stanje se posodobi na prazno mrežo');
+  assert.equal(stanjeZapisa(run), `v teku (0/${praznih})`, 'stanje se posodobi na prazno mrežo');
 });
 
 /* ---------- ponovno reševanje rešene uganke (napredek proti zamrznjenemu zapisu) ---------- */
@@ -286,7 +294,7 @@ test('rešena uganka: napredek ponovnega reševanja preživi osvežitev strani',
   const z = po.run(`zbirkaBeri().find(z => z.danosti === ${D})`);
   assert.equal(z.igrano, prvaResitev, 'čas prve rešitve se ni spremenil');
   assert.equal(z.izpolnjeno, 81);
-  assert.equal(po.run(`zbirkaStanjeIgre(zbirkaBeri().find(z => z.danosti === ${D})).besedilo`), 'rešena');
+  assert.equal(po.run(`zbirkaStanjeUganke(${D}, zbirkaBeri().find(z => z.danosti === ${D})).besedilo`), 'rešena');
 });
 
 test('rešena uganka: ponovna rešitev spet zaklene mrežo, čas prve rešitve ostane', () => {
@@ -409,4 +417,120 @@ test('po "Začni znova" mreža ostane prazna tudi po osvežitvi', () => {
   const po2 = osveziStran(po.dom);
   assert.equal(po2.run('igra.kazalec'), 1, 'nova poteza je ohranjena');
   assert.equal(po2.run('steviloVpisanih(stanje)'), danih + 1);
+});
+
+/* ---------- stanje uganke iz enega vira (zbirkaStanjeUganke) ---------- */
+
+// Vrstica seznama zbirke v igri (li) za testno uganko.
+const vrsticaSeznama = run => {
+  run('izrisiZbirko()');
+  return run(`zbirkaVrstice.get(${D}).textContent`);
+};
+// Ena pravilna poteza v prvo prosto celico.
+const enVpis = run => run("(() => { const c = igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i]); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
+
+test('kartica "Uganka": napredek "moji vpisi / prazne celice"', () => {
+  const { dom, run } = zacni();
+  assert.equal(dom.el('status').textContent, `Nova uganka (0/${praznih}).`);
+  enVpis(run);
+  enVpis(run);
+  assert.equal(dom.el('status').textContent, `V teku (2/${praznih}).`);
+  assert.ok(dom.el('opisUganke').textContent.includes(`· v teku (2/${praznih})`), dom.el('opisUganke').textContent);
+});
+
+test('samo odstranjen kandidat: uganka je v teku (0/57), gumb "Nadaljuj"', () => {
+  const { run } = zacni();
+  run("(() => { const c = igra.danosti.indexOf('0'); izvedi({ tip: 'kandidat', celica: c, stevka: resitev()[c], odstrani: true }); })()");
+  assert.equal(stanjeZapisa(run), `v teku (0/${praznih})`);
+  assert.ok(vrsticaSeznama(run).includes(`v teku (0/${praznih})`));
+  assert.equal(gumb(run), 'Nadaljuj');
+});
+
+test('polna mreža z napako: "v teku (57/57) · napaka", gumb "Nadaljuj"', () => {
+  // V igri take mreže z dovoljenimi potezami ni mogoče dobiti (vpis je samo kandidat,
+  // polna mreža brez sporov pa je pri enolični uganki rešitev) - nastane lahko iz
+  // starejših ali uvoženih podatkov. Shranjeno igro zato zapišemo neposredno.
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  run(`dodajVZbirko(${D}, 'Težka', 'generator')`);
+  const res = run(`solutionOf(${D})`);
+  const prazne = [...danosti].map((ch, c) => (ch === '0' ? c : -1)).filter(c => c >= 0);
+  const poteze = prazne.map((c, i) => ({ tip: 'vpis', celica: c, stevka: i === prazne.length - 1 ? res[c] % 9 + 1 : res[c] }));
+  dom.shramba.set('sudoku.igra.v1', JSON.stringify({ zadnja: null, igre: { [danosti]: { poteze, kazalec: poteze.length, zacetek: '2026-09-23 10:00', nazadnje: '2026-09-23 10:00' } } }));
+  run(`zbirkaShraniIgranje(${D}, '2026-09-23 10:00', 81, true)`);
+
+  assert.equal(stanjeZapisa(run), `v teku (${praznih}/${praznih}) · napaka`);
+  const li = vrsticaSeznama(run);
+  assert.ok(li.includes(`zadnje reševanje 23. 9. 2026 ob 10:00 · v teku (${praznih}/${praznih}) · napaka`), li);
+  assert.equal(gumb(run), 'Nadaljuj');
+  // Podoznaka je svoj element z razredom "napaka" (rdeča v igra.css).
+  run('izrisiZbirko()');
+  assert.equal(run(`zbirkaVrstice.get(${D}).children[1].children.slice(-1)[0].className`), 'napaka');
+});
+
+test('ponovno reševanje rešene uganke: "rešena … · znova v teku", gumb "Nadaljuj"', () => {
+  const { dom, run } = zacni();
+  resiVse(run);
+  assert.equal(gumb(run), 'Poglej');
+  assert.match(vrsticaSeznama(run), /rešena \d+\. \d+\. \d{4} ob \d{2}:\d{2}/);
+
+  dom.potrdi(true);
+  dom.klikni('znovaBtn');
+  enVpis(run);
+  enVpis(run);
+  enVpis(run);
+
+  // Napis in gumb iz istega vira: igra je v teku, čas prve rešitve ostane.
+  assert.equal(gumb(run), 'Nadaljuj');
+  const li = vrsticaSeznama(run);
+  assert.match(li, new RegExp(`rešena \\d+\\. \\d+\\. \\d{4} ob \\d{2}:\\d{2} · znova v teku \\(3/${praznih}\\)`), li);
+  assert.match(dom.el('opisUganke').textContent, new RegExp(`\\nrešena .* · znova v teku \\(3/${praznih}\\)`));
+  // Zapis v zbirki (in izvoz) ostane zamrznjen.
+  assert.equal(stanjeZapisa(run), 'rešena');
+  assert.ok(run('zbirkaIzvozi().besedilo').includes('- **Stanje:** rešena'));
+
+  // Tudi po osvežitvi strani.
+  const po = osveziStran(dom);
+  assert.equal(gumb(po.run), 'Nadaljuj');
+  assert.ok(vrsticaSeznama(po.run).includes(`znova v teku (3/${praznih})`));
+});
+
+test('vgrajeni primer: ista besedila stanj kot zbirka', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const primer = run('primeriIgre[4].danosti');
+  const P = JSON.stringify(primer);
+  const prazniPrimera = [...primer].filter(ch => ch === '0').length;
+  const vrsticaPrimera = () => {
+    run('izrisiZbirko()');
+    return run(`[...document.getElementById('primeriSeznam').children].find(li => li.textContent.includes(primeriIgre[4].ime)).textContent`);
+  };
+  assert.ok(vrsticaPrimera().includes('· nova'));
+  run(`zacniIgro(${P})`);
+  enVpis(run);
+  assert.ok(vrsticaPrimera().includes(`v teku (1/${prazniPrimera})`), vrsticaPrimera());
+  resiVse(run);
+  assert.ok(vrsticaPrimera().includes('· rešena'), vrsticaPrimera());
+  assert.ok(!vrsticaPrimera().includes('rešeno'), 'stara oblika "rešeno ✓" je odpravljena');
+  assert.equal(run(`gumbiUganke(${P}, igreBeri().igre[${P}]).children[0].textContent`), 'Poglej');
+});
+
+test('zapis brez shranjene igre (uvoz z druge naprave): napis iz zapisa, gumb "Igraj"', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const md = [`- **Danosti:** \`${danosti.replace(/0/g, '.')}\``, '- **Dodano:** 2026-09-20 10:00',
+    '- **Zadnje reševanje:** 2026-09-21 10:00', `- **Stanje:** v teku (12/${praznih})`].join('\n');
+  assert.equal(run(`zbirkaUvozi(${JSON.stringify(md)})`).napaka, false);
+  assert.ok(vrsticaSeznama(run).includes(`zadnje reševanje 21. 9. 2026 ob 10:00 · v teku (12/${praznih})`));
+  assert.equal(gumb(run), 'Igraj', 'v tem brskalniku ni česa nadaljevati');
+});
+
+test('"vse razveljavljeno": kartica kaže prazno mrežo, seznam pa to, kar se odpre', () => {
+  const { dom, run } = zacni();
+  trikratVpisi(run);
+  for (let i = 0; i < 3; i++) dom.klikni('razveljaviBtn');
+  assert.equal(dom.el('status').textContent, `V teku (0/${praznih}).`, 'na mreži ni vpisov');
+  // Ob odprtju se igra vrne na konec zgodovine - to kaže seznam.
+  assert.ok(vrsticaSeznama(run).includes(`v teku (3/${praznih})`));
+  assert.equal(gumb(run), 'Nadaljuj');
 });

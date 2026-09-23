@@ -6,7 +6,11 @@
    app/zbirka.js (UI zbirke v reševalcu) in igra/, tudi za gumba Izvozi/Uvozi.
    Tu je tudi seznam vgrajenih primerov (PRIMERI) - reševalec jih ponudi v
    spustnem seznamu "Primer", igra v oknu "Zbirka ugank".
-   Naloži se za shared/engine.js (uporablja ALL_UNITS, ALL_TECHNIQUES, TRENING_TEHNIKE). */
+   Tu je tudi stanje mojega reševanja uganke (zbirkaStanjeUganke - nova / v teku /
+   rešena) za vse prikaze in izvoz ter branje shranjenih iger igre (igreBeri), iz
+   katerih se stanje izračuna.
+   Naloži se za shared/engine.js (uporablja ALL_UNITS, ALL_TECHNIQUES, TRENING_TEHNIKE,
+   solutionOf). */
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
 // Težavnosti: prve štiri so natanko stopnje generatorja (STOPNJE_UGANK v
@@ -91,55 +95,169 @@ function zbirkaPrikazDatuma(s) {
   return m[4] ? `${dan} ob ${m[4]}` : dan;
 }
 
-// Stanje MOJEGA reševanja uganke v igri (ne programovega): nova (še nisem igral),
-// v teku, rešena (vseh 81 celic izpolnjenih in pravilnih) ali izpolnjena z napako
-// (vseh 81 izpolnjenih, a se vsaj ena števka ne ujema z rešitvijo). Ključ je hkrati
-// razred za barvo v seznamu (igra.css).
-function zbirkaStanjeIgre(z) {
-  if (!z || !z.igrano) return { kljuc: 'nova', besedilo: 'nova' };
-  const n = z.izpolnjeno || 0;
-  if (n >= 81) {
-    return z.napaka ? { kljuc: 'napaka', besedilo: 'izpolnjena z napako' }
-      : { kljuc: 'resena', besedilo: 'rešena' };
+/* ---------- shranjene igre (sudoku.igra.v1) ---------- */
+
+// Igra (igra/stanje.js) shranjuje napredek vsake uganke posebej: { zadnja, igre:
+// { [danosti]: { poteze, kazalec, znova, zacetek, nazadnje } } }. Piše samo igra;
+// tu je branje in odigravanje potez, ker stanje uganke (spodaj) potrebuje tudi
+// reševalec, ki igra/stanje.js ne naloži.
+const IGRA_KLJUC = 'sudoku.igra.v1';
+
+// Odigra eno potezo: vpisi[c] = uporabnikova števka (0 = brez vpisa),
+// odstranjeni[c] = maska ročno odstranjenih kandidatov.
+function odigrajPotezo(vpisi, odstranjeni, p) {
+  if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
+  else if (p.tip === 'kandidati') for (const c of p.celice) odstranjeni[c] |= 1 << p.stevka;
+  else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
+  else odstranjeni[p.celica] &= ~(1 << p.stevka);
+}
+
+// Odigra prvih n potez.
+function odigrajPoteze(danosti, poteze, n) {
+  const vpisi = new Array(81).fill(0);
+  const odstranjeni = new Array(81).fill(0);
+  for (let i = 0; i < n; i++) odigrajPotezo(vpisi, odstranjeni, poteze[i]);
+  return { vpisi, odstranjeni };
+}
+
+function igreBeri() {
+  try {
+    const s = JSON.parse(localStorage.getItem(IGRA_KLJUC) || 'null');
+    if (s && typeof s === 'object' && s.igre && typeof s.igre === 'object') return s;
+  } catch (e) { /* brez shrambe */ }
+  return { zadnja: null, igre: {} };
+}
+
+// Kazalec, na katerem se shranjena igra odpre (igraIzZapisa v igra/stanje.js). Ostane,
+// kakor je bil shranjen (npr. 2 od 3 po "Razveljavi"), razen v stanju "vse
+// razveljavljeno" (0 ob neprazni zgodovini in brez "Začni znova"): prazna mreža s
+// skrito zgodovino je videti kot izgubljen napredek, zato se igra vrne na konec.
+function zbirkaKazalecZapisa(zapis) {
+  const poteze = zapis && Array.isArray(zapis.poteze) ? zapis.poteze : [];
+  const k = zapis && Number.isInteger(zapis.kazalec) ? zapis.kazalec : poteze.length;
+  if (k === 0 && poteze.length > 0 && !zapis.znova) return poteze.length;
+  return Math.max(0, Math.min(k, poteze.length));
+}
+
+/* ---------- stanje uganke (moje reševanje) ---------- */
+
+// Povzetek igre - edino mesto, kjer se iz potez štejejo vpisi:
+//   { zaceta, vpisanih, praznih, izpolnjeno, polna, napaka }
+// `zaceta` = v zgodovini je vsaj ena poteza (tudi razveljavljena ali pred "Začni
+// znova"; zapis igre nastane že ob odprtju, zato sam ne zadostuje), `vpisanih` =
+// moji vpisi, `praznih` = 81 - danosti, `izpolnjeno` = danosti + vpisi (tako ga
+// hrani zbirka). `napaka` = vsaj en vpis se ne ujema z rešitvijo; brez podane
+// rešitve se ta poišče (solutionOf) samo pri polni mreži, ker jo prikaz potrebuje
+// samo tam.
+function zbirkaPovzetekIgre(danosti, poteze, kazalec, resitev) {
+  const p = Array.isArray(poteze) ? poteze : [];
+  const { vpisi } = odigrajPoteze(danosti, p, Math.min(kazalec, p.length));
+  let praznih = 0;
+  let vpisanih = 0;
+  for (let c = 0; c < 81; c++) {
+    if (danosti[c] !== '0') continue;
+    praznih++;
+    if (vpisi[c]) vpisanih++;
   }
-  return { kljuc: 'v-teku', besedilo: `v teku (${n} od 81)` };
+  const polna = vpisanih === praznih;
+  const res = resitev || (polna ? solutionOf(danosti) : null);
+  const napaka = !!res && vpisi.some((v, c) => v && danosti[c] === '0' && v !== res[c]);
+  return { zaceta: p.length > 0, vpisanih, praznih, izpolnjeno: 81 - praznih + vpisanih, polna, napaka };
+}
+
+// Povzetek shranjene igre (zapis iz igreBeri().igre) na kazalcu, na katerem se
+// odpre; null, kadar zapisa ni.
+function zbirkaPovzetekZapisa(danosti, zapis, resitev) {
+  if (!zapis) return null;
+  return zbirkaPovzetekIgre(danosti, zapis.poteze, zbirkaKazalecZapisa(zapis), resitev);
+}
+
+// Stanje MOJEGA reševanja uganke (ne programovega) - edini vir za napis, gumb in
+// izvoz v vseh aplikacijah. `z` je zapis v zbirki ali null (vgrajeni primer),
+// `povzetek` iz zbirkaPovzetekIgre/zbirkaPovzetekZapisa ali null. Vrne
+//   { kljuc: 'nova' | 'v-teku' | 'resena', napaka, vpisanih, praznih,
+//     napredek: 'v teku (12/57)', besedilo: 'v teku (12/57) · napaka',
+//     gumb: 'Igraj' | 'Nadaljuj' | 'Poglej', resena: čas prve rešitve ali null }
+// Vir: začeta igra, kadar obstaja, sicer zapis v zbirki (uvoz z druge naprave).
+// Tri stanja: nova (brez poteze), v teku (od prve poteze - tudi samo odstranjeni
+// kandidati - do rešitve), rešena (vse prazne celice izpolnjene in pravilne). Polna
+// mreža z napako je "v teku" s podoznako "· napaka" (`napaka: true`). Gumb sledi
+// stanju, a brez začete igre je vedno "Igraj" - ni česa nadaljevati ali pogledati.
+// `resena` je čas iz zapisa v zbirki, kadar je ta rešen (zapis je zamrznjen): pri
+// "v teku" pomeni, da uganko rešujem znova. Ključ je hkrati razred za barvo (igra.css).
+function zbirkaStanjeUganke(danosti, z, povzetek) {
+  const praznih = danosti.split('').filter(ch => ch === '0').length;
+  const izpolnjenoZapisa = z && z.igrano ? (z.izpolnjeno || 0) : 0;
+  const resena = z && z.igrano && izpolnjenoZapisa >= 81 && !z.napaka ? z.igrano : null;
+  const igra = !!(povzetek && povzetek.zaceta);
+  let p = null;
+  if (igra) p = povzetek;
+  else if (z && z.igrano) {
+    const vpisanih = Math.max(0, Math.min(praznih, izpolnjenoZapisa - (81 - praznih)));
+    p = { vpisanih, polna: izpolnjenoZapisa >= 81, napaka: !!z.napaka };
+  }
+  if (!p) {
+    return { kljuc: 'nova', napaka: false, vpisanih: null, praznih,
+      napredek: 'nova', besedilo: 'nova', gumb: 'Igraj', resena: null };
+  }
+  if (p.polna && !p.napaka) {
+    return { kljuc: 'resena', napaka: false, vpisanih: praznih, praznih,
+      napredek: 'rešena', besedilo: 'rešena', gumb: igra ? 'Poglej' : 'Igraj', resena };
+  }
+  const napaka = !!(p.polna && p.napaka);
+  const napredek = `v teku (${p.vpisanih}/${praznih})`;
+  return { kljuc: 'v-teku', napaka, vpisanih: p.vpisanih, praznih,
+    napredek, besedilo: napaka ? `${napredek} · napaka` : napredek,
+    gumb: igra ? 'Nadaljuj' : 'Igraj', resena };
 }
 
 // Časi in stanje zapisa za prikaz (seznam zbirke v igri in reševalcu, kartica
-// "Uganka"): dve vrstici drugo pod drugo. Vrne
+// "Uganka"): dve vrstici drugo pod drugo. `povzetek` je povzetek igre te uganke
+// (glej zbirkaStanjeUganke) ali nič. Vrne
 //   { dodana: 'dodana 21. 9. 2026 ob 16:33',
-//     igranje: null | { predpona, besedilo, kljuc } }
-// Druge vrstice ni, kadar uganke še nisem igral (`igranje` je null); sicer je
-// vrstica "predpona · besedilo", kjer je besedilo stanje (v seznamu obarvano po
-// `kljuc`). Rešena uganka ima namesto para "zadnje reševanje … · rešena" samo
-// "rešena 21. 9. 2026 ob 17:48" - njen zapis je zamrznjen, zato je to čas prve
-// rešitve. Čas, ko je program uganko ocenil (`nazadnje`), v seznamu ni: je samo v
-// namigu miške in v izvozu.
-function zbirkaPrikazCasov(z) {
+//     igranje: null | { predpona, besedilo, kljuc, napaka } }
+// Druge vrstice ni, kadar je uganka nova (`igranje` je null); sicer je vrstica
+// "predpona · besedilo · napaka", kjer je besedilo stanje (v seznamu obarvano po
+// `kljuc`) in "napaka" podoznaka polne mreže z napako. Rešena uganka ima namesto
+// para "zadnje reševanje … · rešena" samo "rešena 21. 9. 2026 ob 17:48" - njen
+// zapis je zamrznjen, zato je to čas prve rešitve; kadar jo rešujem znova, je
+// vrstica "rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)". Čas je vedno iz
+// zapisa v zbirki (`igrano`, čas moje zadnje poteze), ne iz shranjene igre, ki se
+// osveži že ob odprtju. Čas, ko je program uganko ocenil (`nazadnje`), v seznamu
+// ni: je samo v namigu miške in v izvozu.
+function zbirkaPrikazCasov(z, povzetek) {
   const dodana = z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '—';
-  if (!z || !z.igrano) return { dodana, igranje: null };
-  const st = zbirkaStanjeIgre(z);
-  const igranje = st.kljuc === 'resena'
-    ? { predpona: '', besedilo: `rešena ${zbirkaPrikazDatuma(z.igrano)}`, kljuc: st.kljuc }
-    : { predpona: `zadnje reševanje ${zbirkaPrikazDatuma(z.igrano)}`, besedilo: st.besedilo, kljuc: st.kljuc };
+  if (!z) return { dodana, igranje: null };
+  const st = zbirkaStanjeUganke(z.danosti, z, povzetek);
+  if (st.kljuc === 'nova') return { dodana, igranje: null };
+  const cas = z.igrano ? ` ${zbirkaPrikazDatuma(z.igrano)}` : '';
+  let igranje;
+  if (st.kljuc === 'resena') {
+    igranje = { predpona: '', besedilo: `rešena${cas}`, kljuc: st.kljuc, napaka: false };
+  } else if (st.resena) {
+    igranje = { predpona: `rešena ${zbirkaPrikazDatuma(st.resena)}`, besedilo: `znova ${st.napredek}`, kljuc: st.kljuc, napaka: st.napaka };
+  } else {
+    igranje = { predpona: cas ? `zadnje reševanje${cas}` : '', besedilo: st.napredek, kljuc: st.kljuc, napaka: st.napaka };
+  }
   return { dodana, igranje };
 }
 
 // Druga vrstica kot navadno besedilo (kartica "Uganka" v igri, seznam v reševalcu);
 // seznam v igri stanje obarva, zato sestavi vrstico sam.
-function zbirkaVrsticaIgranja(z) {
-  const i = zbirkaPrikazCasov(z).igranje;
-  return i ? [i.predpona, i.besedilo].filter(Boolean).join(' · ') : '';
+function zbirkaVrsticaIgranja(z, povzetek) {
+  const i = zbirkaPrikazCasov(z, povzetek).igranje;
+  return i ? [i.predpona, i.besedilo, i.napaka ? 'napaka' : ''].filter(Boolean).join(' · ') : '';
 }
 
 // Namig miške pri uganki v seznamu (igra in reševalec): poleg obeh mojih podatkov
 // še oba programova - kdaj je uganko nazadnje ocenil in kako daleč je prišel.
-function zbirkaNamigCasov(z) {
+function zbirkaNamigCasov(z, povzetek) {
   const reseno = zbirkaPrazno(z.reseno) ? '—' : (z.reseno === 81 ? 'v celoti' : `delno (${z.reseno} od 81 celic)`);
+  const st = zbirkaStanjeUganke(z.danosti, z, povzetek);
   return [
     `Dodano: ${z.dodano || '—'}`,
     `Zadnje reševanje: ${z.igrano || '—'}`,
-    `Stanje: ${zbirkaStanjeIgre(z).besedilo}`,
+    `Stanje: ${st.kljuc === 'v-teku' && st.resena ? `rešena, znova ${st.besedilo}` : st.besedilo}`,
     `Ocenjeno: ${z.nazadnje || '—'}`,
     `Program rešil: ${reseno}`,
   ].join(' · ');
@@ -243,7 +361,7 @@ function zbirkaShraniIgranje(danosti, cas, izpolnjeno, napaka) {
   const zbirka = zbirkaBeri();
   const zapis = zbirka.find(z => z.danosti === danosti);
   if (!zapis) return false;
-  if (zbirkaStanjeIgre(zapis).kljuc === 'resena') return false;
+  if (zbirkaStanjeUganke(zapis.danosti, zapis).kljuc === 'resena') return false;
   if (zapis.igrano === cas && zapis.izpolnjeno === izpolnjeno && !!zapis.napaka === !!napaka) return false;
   Object.assign(zapis, { igrano: cas, izpolnjeno, napaka: !!napaka });
   return zbirkaPisi(zbirka);
@@ -274,7 +392,8 @@ function zbirkaVMarkdown(zbirka) {
     // Moje reševanje v igri.
     if (z.igrano) {
       vrstice.push(`- **Zadnje reševanje:** ${z.igrano}`);
-      vrstice.push(`- **Stanje:** ${zbirkaStanjeIgre(z).besedilo}`);
+      // Iz zapisa v zbirki (zamrznjen pri rešeni uganki), ne iz shranjene igre.
+      vrstice.push(`- **Stanje:** ${zbirkaStanjeUganke(z.danosti, z).besedilo}`);
     }
     // Reševanje s programom.
     if (z.nazadnje) vrstice.push(`- **Ocenjeno:** ${z.nazadnje}`);
@@ -342,14 +461,21 @@ function zbirkaPretvoriUvozeni(s) {
   else if (/(\d+)\s+od\s+81/.test(r)) reseno = parseInt(/(\d+)\s+od\s+81/.exec(r)[1], 10);
 
   // Moje reševanje: iz vrstice "Stanje" razberem število izpolnjenih celic in napako.
+  // Nova oblika "v teku (12/57)" šteje samo moje vpise (izpolnjeno = danosti + 12),
+  // "· napaka" je polna mreža z napako. Stari obliki "v teku (45 od 81)" (vse
+  // izpolnjene celice) in "izpolnjena z napako" beremo še naprej.
   const igrano = datum(s['zadnje reševanje']);
   const st = (s.stanje || '').trim();
+  const danih = danosti.replace(/0/g, '').length;
   let izpolnjeno = null;
   let napaka = null;
   if (igrano) {
+    const nova = /(\d+)\s*\/\s*\d+/.exec(st);
+    const stara = /(\d+)\s+od\s+81/.exec(st);
     if (st === 'rešena') { izpolnjeno = 81; napaka = false; }
     else if (st === 'izpolnjena z napako') { izpolnjeno = 81; napaka = true; }
-    else if (/(\d+)\s+od\s+81/.test(st)) { izpolnjeno = parseInt(/(\d+)\s+od\s+81/.exec(st)[1], 10); napaka = false; }
+    else if (nova) { izpolnjeno = Math.min(81, danih + parseInt(nova[1], 10)); napaka = /·\s*napaka/.test(st); }
+    else if (stara) { izpolnjeno = parseInt(stara[1], 10); napaka = false; }
     else { izpolnjeno = 0; napaka = false; }
   }
 

@@ -700,7 +700,7 @@ kbd{
 .zb-vrstica{ font-size:14px; font-weight:600; }
 .zb-info{ font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--pencil); margin-top:3px; }
 .zb-info .v-teku{ color: var(--blue); }
-.zb-info .reseno{ color: var(--green); }
+.zb-info .resena{ color: var(--green); }
 .zb-info .napaka{ color: var(--red); }
 /* druga vrstica zapisa: čas mojega zadnjega reševanja in stanje */
 .zb-casi{ font-size:13px; color:#3C4854; margin-top:2px; }

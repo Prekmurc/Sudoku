@@ -256,6 +256,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   `napaka: true`), da jo seznam lahko obarva. Programovi podatki povsod v obliki izvoza.
   `zbirkaStatusIgre()` v igri se odstrani (glej 6.2).
 - **Obseg:** srednje (igra, reševalec, testi `igra-ui` in `zbirka-zapis`).
+- **Delno narejeno 2026-09-23** (glej 6.2): stanja uganke imajo eno besedilo povsod (seznama,
+  primeri, kartica »Uganka«, izvoz), razred `reseno` je postal `resena`. Odprto: programovi
+  podatki (»program rešil delno (60/81)« / »delno (60 od 81 celic)«).
 
 ### 1.6 Števec »v teku (24 od 81)« šteje tudi danosti (opažanje 3)
 
@@ -302,6 +305,12 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
     `izpolnjeno = danih + 12`, »· napaka« pa v `napaka = true`.
 - **Obseg:** srednje (igra, `shared/zbirka.js`, izvoz/uvoz, testa `igra-ui` in
   `zbirka-zapis`).
+- **Narejeno 2026-09-23** (glej 6.2). Kartica »Uganka« kaže »Nova uganka (0/57).« /
+  »V teku (12/57).« / »V teku (57/57) · napaka – poišči jo s »Preveri«.«. Zapis brez
+  shranjene igre (uvoz z druge naprave) kaže napis iz zapisa, gumb pa je »Igraj« (ni česa
+  nadaljevati). **Ugotovitev:** v igri polne mreže z napako ni mogoče dobiti z dovoljenimi
+  potezami – vpis je samo trenutni kandidat, polna mreža brez sporov pa je pri enolični uganki
+  rešitev. Podoznaka »· napaka« se zato pokaže samo pri starejših ali uvoženih podatkih.
 
 ### 1.7 Oznake gumbov
 
@@ -369,6 +378,8 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   (12/57)«, »v teku (57/57) · napaka« in »rešena« (namesto »rešeno ✓«, »izpolnjeno z
   napako«).
 - **Obseg:** srednje (skupaj z 1.5 in 6.1).
+- **Delno narejeno 2026-09-23** (glej 6.2): primeri kažejo ista besedila stanj kot zbirka.
+  Odprto (faza 2): ista kartica, težavnost, tehnike in čas.
 
 ### 2.3 Ponovno reševanje rešene uganke ni vidno (opažanje 2)
 
@@ -386,6 +397,8 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   »v teku« in gumb »Nadaljuj« izhajata iz istega pogoja (1.6), čas prve rešitve pa ostane
   kot dodaten podatek. Pomoč v igri dopolni.
 - **Obseg:** srednje (igra, test `igra-ui.test.js`, ki preverja ponovno reševanje).
+- **Narejeno 2026-09-23** (glej 6.2): seznam v igri in reševalcu ter kartica »Uganka«,
+  pomoč v igri dopolnjena. Izvoz ostane iz zapisa v zbirki (»rešena«).
 
 ### 2.4 Oblika časa
 
@@ -697,6 +710,17 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   `{ izpolnjeno, vpisanih, napaka }`. Iz nje gredo `shraniIgranje`, `uskladiIgranje` in
   prikaz. Besedila stanja da samo `shared/zbirka.js` (1.5).
 - **Obseg:** srednje (skupaj z 1.5).
+- **Narejeno 2026-09-23** (skupaj z 1.6 in deli 1.5, 2.2, 2.3). Povzetek je v
+  `shared/zbirka.js`, ne v `igra/stanje.js`, ker ga potrebuje tudi reševalec:
+  `zbirkaPovzetekIgre(danosti, poteze, kazalec, resitev?)` →
+  `{ zaceta, vpisanih, praznih, izpolnjeno, polna, napaka }` (edino štetje iz potez) in
+  `zbirkaStanjeUganke(danosti, z, povzetek)` → `{ kljuc, napaka, napredek, besedilo, gumb,
+  resena, … }` (edini vir napisa, gumba in izvoza). Skupaj z njima so se v `shared/` preselili
+  `odigrajPotezo`/`odigrajPoteze`, `igreBeri`, `IGRA_KLJUC` in pravilo kazalca shranjene igre
+  (`zbirkaKazalecZapisa`, uporablja ga tudi `igraIzZapisa`). Odstranjeni: `zbirkaStanjeIgre`,
+  `zbirkaStatusIgre`, `zacetaIgra`, `napacenVpis`. Reševalec zdaj bere tudi `sudoku.igra.v1`
+  (samo bere). Seznam prej ni upošteval pravila »vse razveljavljeno« in je kazal manj, kot se
+  je odprlo – zdaj ga upošteva. Trening ni prizadet (ne pozna zbirke).
 
 ### 6.3 Trenutni čas
 

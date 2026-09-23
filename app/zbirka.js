@@ -84,6 +84,9 @@ function zbirkaStatus(besedilo, napaka) {
 
 function zbirkaIzrisiSeznam() {
   const zbirka = zbirkaBeri();
+  // Stanje uganke (nova / v teku / rešena) je iz shranjene igre, kadar jo igra ima,
+  // enako kot v seznamu zbirke v igri (zbirkaStanjeUganke v shared/zbirka.js).
+  const igre = igreBeri().igre;
 
   libListEl.innerHTML = '';
   if (!zbirka.length) {
@@ -96,14 +99,15 @@ function zbirkaIzrisiSeznam() {
 
   for (const z of zbirkaZaSeznam(zbirka)) {
     const li = document.createElement('li');
-    const casi = zbirkaPrikazCasov(z);
+    const povzetek = zbirkaPovzetekZapisa(z.danosti, igre[z.danosti]);
+    const casi = zbirkaPrikazCasov(z, povzetek);
     const tezavnost = z.tezavnost || 'težavnost ni določena';
     const dodana = zbirkaPrikazDatuma(z.dodano); // za sporočilo ob nalaganju in brisanju
 
     const glava = document.createElement('div');
     glava.className = 'lib-line';
     glava.textContent = [casi.dodana, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
-    glava.title = zbirkaNamigCasov(z);
+    glava.title = zbirkaNamigCasov(z, povzetek);
     li.appendChild(glava);
 
     // Moje reševanje v igri (čas zadnje poteze in stanje) - svoja vrstica pod časom
@@ -111,8 +115,8 @@ function zbirkaIzrisiSeznam() {
     if (casi.igranje) {
       const igranje = document.createElement('div');
       igranje.className = 'lib-casi';
-      igranje.textContent = zbirkaVrsticaIgranja(z);
-      igranje.title = zbirkaNamigCasov(z);
+      igranje.textContent = zbirkaVrsticaIgranja(z, povzetek);
+      igranje.title = zbirkaNamigCasov(z, povzetek);
       li.appendChild(igranje);
     }
 

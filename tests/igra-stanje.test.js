@@ -7,7 +7,8 @@ const assert = require('node:assert/strict');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['igra/stanje.js'],
+  // shared/zbirka.js: odigravanje potez in pravilo kazalca shranjene igre sta skupna z reševalcem.
+  files: ['shared/zbirka.js', 'igra/stanje.js'],
   names: ['novaIgra', 'stanjeIgre', 'mozneAkcije', 'dodajPotezo', 'razveljavi', 'ponovi',
     'lahkoRazveljavi', 'lahkoPonovi', 'seManjka', 'manjkajoceVEnotah', 'steviloVpisanih', 'jeResena',
     'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf', 'skupniKandidati'],

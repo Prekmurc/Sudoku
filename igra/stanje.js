@@ -1,6 +1,8 @@
 /* ==================== STANJE IGRE ====================
    Brez DOM-a (testabilno v Node, glej tests/igra-stanje.test.js). Naloži se za
-   shared/engine.js (uporablja Board, PEERS, FULL, ROWS, COLS, BOXES).
+   shared/engine.js (uporablja Board, PEERS, FULL, ROWS, COLS, BOXES) in
+   shared/zbirka.js (IGRA_KLJUC, odigrajPotezo/odigrajPoteze, igreBeri,
+   zbirkaKazalecZapisa - skupno z reševalcem, ki kaže stanje shranjenih iger).
 
    Igra = { danosti, poteze, kazalec }:
    - danosti: 81 znakov, '0' = prazna celica,
@@ -12,30 +14,11 @@
    števko iz več celic v eni potezi; celice urejene, vsaj dve). Trenutno stanje se
    vedno izračuna z odigravanjem potez od danosti. */
 
-const IGRA_KLJUC = 'sudoku.igra.v1';
-
 // `znova` = igralec je pravkar kliknil "Začni znova" (kazalec 0, zgodovina pa
 // ostane za "Ponovi"). Loči namerno prazno mrežo od stanja, ko je vse
 // razveljavljeno s puščico nazaj - glej igraIzZapisa().
 function novaIgra(danosti) {
   return { danosti, poteze: [], kazalec: 0, znova: false };
-}
-
-// Odigra eno potezo: vpisi[c] = uporabnikova števka (0 = brez vpisa),
-// odstranjeni[c] = maska ročno odstranjenih kandidatov.
-function odigrajPotezo(vpisi, odstranjeni, p) {
-  if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
-  else if (p.tip === 'kandidati') for (const c of p.celice) odstranjeni[c] |= 1 << p.stevka;
-  else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
-  else odstranjeni[p.celica] &= ~(1 << p.stevka);
-}
-
-// Odigra prvih n potez.
-function odigrajPoteze(danosti, poteze, n) {
-  const vpisi = new Array(81).fill(0);
-  const odstranjeni = new Array(81).fill(0);
-  for (let i = 0; i < n; i++) odigrajPotezo(vpisi, odstranjeni, poteze[i]);
-  return { vpisi, odstranjeni };
 }
 
 // Stanje po odigranih potezah igre (do kazalca):
@@ -217,7 +200,6 @@ function igraVZapis(igra, zacetek, cas) {
 function igraIzZapisa(danosti, zapis) {
   const igra = novaIgra(danosti);
   const poteze = zapis && Array.isArray(zapis.poteze) ? zapis.poteze : [];
-  const kazalec = zapis && Number.isInteger(zapis.kazalec) ? zapis.kazalec : poteze.length;
   let stanje = stanjeIgre(igra);
   for (const p of poteze) {
     if (!dodajPotezo(igra, p, stanje)) break;
@@ -226,20 +208,12 @@ function igraIzZapisa(danosti, zapis) {
   // Kazalec ostane tam, kjer je bil ob shranjevanju (npr. 2 od 3 po "Razveljavi").
   // Izjema je stanje "vse razveljavljeno": prazna mreža s skrito zgodovino je
   // videti kot izgubljen napredek, zato se vrnemo na konec zgodovine. Po "Začni
-  // znova" (zapis.znova) prazna mreža ostane - tako je igralec hotel.
+  // znova" (zapis.znova) prazna mreža ostane - tako je igralec hotel. Pravilo je v
+  // shared/zbirka.js, ker po njem stanje shranjene igre kažeta tudi seznama zbirke.
   igra.znova = !!(zapis && zapis.znova);
-  const vseRazveljavljeno = kazalec === 0 && igra.poteze.length > 0 && !igra.znova;
-  igra.kazalec = vseRazveljavljeno ? igra.poteze.length : Math.max(0, Math.min(kazalec, igra.poteze.length));
+  igra.kazalec = Math.min(zbirkaKazalecZapisa(zapis), igra.poteze.length);
   igra.izpuscenih = poteze.length - igra.poteze.length;
   return igra;
-}
-
-function igreBeri() {
-  try {
-    const s = JSON.parse(localStorage.getItem(IGRA_KLJUC) || 'null');
-    if (s && typeof s === 'object' && s.igre && typeof s.igre === 'object') return s;
-  } catch (e) { /* brez shrambe */ }
-  return { zadnja: null, igre: {} };
 }
 
 function igrePisi(s) {
