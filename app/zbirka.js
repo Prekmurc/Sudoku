@@ -170,12 +170,13 @@ libFileEl.addEventListener('change', () => {
 
 // "Izbriši vse": vsa zbirka in vse shranjene igre razen iger primerov (tudi sirote).
 document.getElementById('libDeleteAll').addEventListener('click', () => {
-  const n = zbirkaBeri().length;
-  if (!n) { zbirkaStatus('Zbirka je že prazna.'); return; }
-  if (!confirm(zbirkaVprasanjeIzbrisiVse(n))) return;
-  const { stevilo, ok } = zbirkaIzbrisiVse();
+  // Tudi pri prazni zbirki, kadar so shranjene igre izbrisanih ugank (sirote).
+  const vprasanje = zbirkaVprasanjeIzbrisiVse(zbirkaBeri().length, zbirkaSirote().length);
+  if (!vprasanje) { zbirkaStatus('Zbirka je že prazna.'); return; }
+  if (!confirm(vprasanje)) return;
+  const r = zbirkaIzbrisiVse();
   zbirkaSkrijVrstico();
-  zbirkaStatus(ok ? `Izbrisanih ugank: ${stevilo}.` : 'Brisanja ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', !ok);
+  zbirkaStatus(zbirkaSporociloIzbrisiVse(r), !r.ok);
   zbirkaIzrisiSeznam();
   zbirkaOsveziGumb();
 });

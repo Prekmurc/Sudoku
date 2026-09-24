@@ -469,13 +469,21 @@ function zbirkaIzbrisi(danosti) {
   return zbirkaIzbrisiIgre([danosti]) && ok;
 }
 
+// Sirote: danosti shranjenih iger, ki niso vgrajeni primeri in jih v zbirki ni
+// (uganka je bila izbrisana, preden je brisanje odstranilo tudi igro).
+function zbirkaSirote() {
+  const v = new Set(zbirkaBeri().map(z => z.danosti));
+  return Object.keys(igreBeri().igre).filter(d => !v.has(d) && !zbirkaPrimerZa(d));
+}
+
 // Izbriše vso zbirko in VSE shranjene igre razen iger vgrajenih primerov - tudi
-// sirote (igre ugank, ki so bile iz zbirke izbrisane, preden je brisanje odstranilo
-// tudi igro). Vrne { stevilo, ok }: število izbrisanih ugank in ali je zapisano.
+// sirote. Deluje tudi pri prazni zbirki (počisti samo sirote). Vrne
+// { stevilo, sirot, ok }: število izbrisanih ugank, izbrisanih sirot in ali je zapisano.
 function zbirkaIzbrisiVse() {
   const zbirka = zbirkaBeri();
+  const sirot = zbirkaSirote().length;
   const ok = zbirkaPisi([]);
-  return { stevilo: zbirka.length, ok: zbirkaIzbrisiIgre(Object.keys(igreBeri().igre)) && ok };
+  return { stevilo: zbirka.length, sirot, ok: zbirkaIzbrisiIgre(Object.keys(igreBeri().igre)) && ok };
 }
 
 // Besedili potrditve brisanja - enaki v reševalcu in igri.
@@ -484,9 +492,25 @@ function zbirkaVprasanjeIzbrisi(z) {
     'Izbriše se tudi njen shranjeni napredek.';
 }
 
-function zbirkaVprasanjeIzbrisiVse(n) {
+// `n` = ugank v zbirki, `sirot` = shranjenih iger izbrisanih ugank. Pri prazni
+// zbirki gre samo za napredek izbrisanih ugank (ni česa izvoziti); null, kadar ni
+// ne ugank ne sirot - takrat aplikacija pove "Zbirka je že prazna."
+function zbirkaVprasanjeIzbrisiVse(n, sirot = 0) {
+  if (!n && !sirot) return null;
+  if (!n) {
+    return `Zbirka je prazna, shranjen pa je še napredek izbrisanih ugank (${sirot}). Izbrišem ta napredek? ` +
+      'Vgrajeni primeri in napredek pri njih ostanejo. Izbrisa ni mogoče razveljaviti.';
+  }
   return `Izbrišem vse uganke iz zbirke (${n}) in ves shranjeni napredek? Vgrajeni primeri in napredek pri njih ostanejo. ` +
     'Priporočam, da zbirko najprej izvoziš (gumb »Izvozi«) – izbrisa ni mogoče razveljaviti.';
+}
+
+// Sporočilo po "Izbriši vse" (rezultat zbirkaIzbrisiVse).
+function zbirkaSporociloIzbrisiVse(r) {
+  if (!r.ok) return 'Brisanja ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).';
+  const sirote = `napredek izbrisanih ugank: ${r.sirot}`;
+  if (!r.stevilo) return `Izbrisan ${sirote}.`;
+  return `Izbrisanih ugank: ${r.stevilo}.` + (r.sirot ? ` Izbrisan je tudi ${sirote}.` : '');
 }
 
 /* ---------- izvoz v Markdown ---------- */

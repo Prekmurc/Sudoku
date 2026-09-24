@@ -195,7 +195,38 @@ test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza)
   const { dom, run } = pripravi(true);
   assert.equal(run('zbirkaBeri().length'), 0);
   assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [primer], 'ostane samo igra primera - tudi sirota je izbrisana');
-  assert.equal(dom.el('libStatus').textContent, 'Izbrisanih ugank: 2.');
+  assert.equal(dom.el('libStatus').textContent, 'Izbrisanih ugank: 2. Izbrisan je tudi napredek izbrisanih ugank: 1.');
   assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (0)');
   assert.equal(dom.el('libList').children[0].className, 'prazno');
+});
+
+test('reševalec: »Izbriši vse« pri prazni zbirki počisti sirote, šele nato je »Zbirka je že prazna.«', () => {
+  const primer = '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4'.replace(/\./g, '0');
+  const sirote = [0, 3, 4].map(i => loadPuzzles()[i].danosti.replace(/\./g, '0'));
+  const dom = makeDom();
+  // Zbirka izbrisana s staro različico, igre so ostale.
+  dom.shramba.set('sudoku.zbirka.v1', '[]');
+  const igre = { [primer]: { poteze: [], kazalec: 0 } };
+  for (const d of sirote) igre[d] = { poteze: [], kazalec: 0 };
+  dom.shramba.set('sudoku.igra.v1', JSON.stringify({ zadnja: sirote[0], igre }));
+  const vprasanja = [];
+  let odgovor = false;
+  dom.globals.confirm = (besedilo) => { vprasanja.push(besedilo); return odgovor; };
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  run('zbirkaOdpri()');
+
+  dom.klikni('libDeleteAll');
+  assert.equal(vprasanja.length, 1, 'vpraša, čeprav je zbirka prazna');
+  assert.match(vprasanja[0], /napredek izbrisanih ugank \(3\)/);
+  assert.equal(run('Object.keys(igreBeri().igre).length'), 4, 'brez potrditve se nič ne izbriše');
+
+  odgovor = true;
+  dom.klikni('libDeleteAll');
+  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [primer], 'ostane samo igra primera');
+  assert.equal(dom.el('libStatus').textContent, 'Izbrisan napredek izbrisanih ugank: 3.');
+
+  // Zdaj ni ne ugank ne sirot.
+  dom.klikni('libDeleteAll');
+  assert.equal(vprasanja.length, 2, 'ne vpraša več');
+  assert.equal(dom.el('libStatus').textContent, 'Zbirka je že prazna.');
 });

@@ -1052,17 +1052,18 @@ zbirkaDatotekaEl.addEventListener('change', () => {
 // "Izbriši vse": vsa zbirka in vse shranjene igre razen iger primerov (tudi sirote).
 const zbirkaIzbrisiVseBtn = document.getElementById('zbirkaIzbrisiVseBtn');
 zbirkaIzbrisiVseBtn.addEventListener('click', () => {
-  const zbirka = zbirkaBeri();
-  if (!zbirka.length) { zbirkaStatus('Zbirka je že prazna.'); return; }
-  if (!confirm(zbirkaVprasanjeIzbrisiVse(zbirka.length))) return;
-  const { stevilo, ok } = zbirkaIzbrisiVse();
+  // Tudi pri prazni zbirki, kadar so shranjene igre izbrisanih ugank (sirote).
+  const vprasanje = zbirkaVprasanjeIzbrisiVse(zbirkaBeri().length, zbirkaSirote().length);
+  if (!vprasanje) { zbirkaStatus('Zbirka je že prazna.'); return; }
+  if (!confirm(vprasanje)) return;
+  const r = zbirkaIzbrisiVse();
   // Izbrisane so vse igre razen primerov - tudi igra odprte uganke, ki je v zbirki
   // ni (sirota), zato ostane odprt samo primer.
   if (igra && !zbirkaPrimerZa(igra.danosti)) izprazniIgro();
   ocenaPocisti();
   izrisiZbirko();
   osveziGumbZbirke();
-  zbirkaStatus(ok ? `Izbrisanih ugank: ${stevilo}.` : 'Brisanja ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', !ok);
+  zbirkaStatus(zbirkaSporociloIzbrisiVse(r), !r.ok);
 });
 
 // Zbirka ali igre so se spremenile v drugem zavihku (reševalec ali druga igra):

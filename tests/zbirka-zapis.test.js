@@ -44,7 +44,8 @@ const E = loadEngine(undefined, {
     'zbirkaPrikazCasov', 'zbirkaNamigCasov', 'zbirkaShraniIgranje',
     'zbirkaZaSeznam', 'zbirkaVrsticaIgranja', 'PRIMERI', 'zbirkaPrimerZa', 'zbirkaProgramResil',
     'zbirkaKartica', 'zbirkaUvozi', 'zbirkaIzbrisi', 'zbirkaIzbrisiVse', 'zbirkaVprasanjeIzbrisi',
-    'zbirkaVprasanjeIzbrisiVse', 'igreBeri', 'IGRA_KLJUC', 'ZBIRKA_KLJUC'],
+    'zbirkaVprasanjeIzbrisiVse', 'igreBeri', 'IGRA_KLJUC', 'ZBIRKA_KLJUC', 'zbirkaSirote',
+    'zbirkaSporociloIzbrisiVse'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -586,11 +587,33 @@ test('zbirkaIzbrisi(): zapis in shranjena igra te uganke, drugo ostane', () => {
 test('zbirkaIzbrisiVse(): vsa zbirka in vse igre razen iger primerov (tudi sirote)', () => {
   const p = zbirkaZIgrami(sirota);
   const r = E.zbirkaIzbrisiVse();
-  assert.deepEqual({ ...r }, { stevilo: 2, ok: true });
+  assert.deepEqual({ ...r }, { stevilo: 2, sirot: 1, ok: true });
   assert.equal(E.zbirkaBeri().length, 0);
   const igre = E.igreBeri();
   assert.deepEqual(Object.keys(igre.igre).sort(), p, 'ostanejo samo igre primerov');
   assert.equal(igre.zadnja, null, 'zadnja igra (sirota) je izbrisana');
+});
+
+test('zbirkaIzbrisiVse() pri prazni zbirki: počisti sirote, igre primerov ostanejo', () => {
+  const p = zbirkaZIgrami(sirota);
+  shramba.set(E.ZBIRKA_KLJUC, '[]'); // zbirka izbrisana s staro različico, igre ostale
+  assert.deepEqual([...E.zbirkaSirote()].sort(), [danosti, druga, sirota].sort(), 'sirote so vse igre, ki niso primeri');
+  const r = E.zbirkaIzbrisiVse();
+  assert.deepEqual({ ...r }, { stevilo: 0, sirot: 3, ok: true });
+  assert.deepEqual(Object.keys(E.igreBeri().igre).sort(), p, 'ostanejo samo igre primerov');
+  assert.equal(E.zbirkaSirote().length, 0);
+  assert.equal(E.zbirkaSporociloIzbrisiVse(r), 'Izbrisan napredek izbrisanih ugank: 3.');
+  assert.equal(E.zbirkaSporociloIzbrisiVse({ stevilo: 2, sirot: 0, ok: true }), 'Izbrisanih ugank: 2.');
+  assert.equal(E.zbirkaSporociloIzbrisiVse({ stevilo: 2, sirot: 1, ok: true }),
+    'Izbrisanih ugank: 2. Izbrisan je tudi napredek izbrisanih ugank: 1.');
+});
+
+test('potrditev "Izbriši vse": prazna zbirka s sirotami in brez njih', () => {
+  const v = E.zbirkaVprasanjeIzbrisiVse(0, 6);
+  assert.ok(v.startsWith('Zbirka je prazna, shranjen pa je še napredek izbrisanih ugank (6).'), v);
+  assert.ok(v.includes('Vgrajeni primeri in napredek pri njih ostanejo'));
+  assert.ok(!v.includes('izvoziš'), 'pri prazni zbirki ni česa izvoziti');
+  assert.equal(E.zbirkaVprasanjeIzbrisiVse(0, 0), null, 'ni ne ugank ne sirot - "Zbirka je že prazna."');
 });
 
 test('besedili potrditve brisanja', () => {
