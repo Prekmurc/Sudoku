@@ -165,8 +165,10 @@ test('reševalec: »Izbriši« pobriše tudi shranjeno igro uganke', () => {
   assert.deepEqual([...run('Object.keys(igreBeri().igre)')], []);
 });
 
-test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza), igre primerov ostanejo', () => {
+test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza), ostanejo samo igre primerov', () => {
   const primer = '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4'.replace(/\./g, '0');
+  // Sirota: igra uganke, ki je v zbirki ni več (izbrisana pred novim modelom).
+  const sirota = loadPuzzles()[4].danosti.replace(/\./g, '0');
   const pripravi = (odgovor) => {
     const dom = makeDom();
     dom.shramba.set('sudoku.zbirka.v1', JSON.stringify([
@@ -174,7 +176,7 @@ test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza)
       { danosti: loadPuzzles()[3].danosti.replace(/\./g, '0'), tezavnost: 'Lahka', dodano: '2026-09-22 10:00' },
     ]));
     dom.shramba.set('sudoku.igra.v1', JSON.stringify({ zadnja: primer,
-      igre: { [danosti]: { poteze: [], kazalec: 0 }, [primer]: { poteze: [], kazalec: 0 } } }));
+      igre: { [danosti]: { poteze: [], kazalec: 0 }, [sirota]: { poteze: [], kazalec: 0 }, [primer]: { poteze: [], kazalec: 0 } } }));
     const vprasanja = [];
     dom.globals.confirm = (besedilo) => { vprasanja.push(besedilo); return odgovor; };
     const { run } = loadContext(DATOTEKE, dom.globals);
@@ -188,10 +190,11 @@ test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza)
   assert.match(preklic.vprasanja[0], /\(2\)/, 'navede število ugank');
   assert.match(preklic.vprasanja[0], /izvoziš/, 'priporoči izvoz');
   assert.equal(preklic.run('zbirkaBeri().length'), 2, 'brez potrditve se nič ne izbriše');
+  assert.equal(preklic.run('Object.keys(igreBeri().igre).length'), 3);
 
   const { dom, run } = pripravi(true);
   assert.equal(run('zbirkaBeri().length'), 0);
-  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [primer], 'ostane samo igra primera');
+  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [primer], 'ostane samo igra primera - tudi sirota je izbrisana');
   assert.equal(dom.el('libStatus').textContent, 'Izbrisanih ugank: 2.');
   assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (0)');
   assert.equal(dom.el('libList').children[0].className, 'prazno');

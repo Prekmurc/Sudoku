@@ -585,9 +585,19 @@ test('brisanje v igri: vgrajeni primer nima gumba "Izbriši"', () => {
   assert.deepEqual(delKartice(run, 'zb-gumbi').children.map(b => b.textContent), ['Igraj', 'Izbriši']);
 });
 
-test('"Izbriši vse" v igri: potrditev s številom in izvozom, primeri ostanejo, mreža se izprazni', () => {
+// Sirota: shranjena igra uganke, ki je v zbirki ni več - zapis je odstranjen mimo
+// brisanja, kot pri "Izbriši" v reševalcu pred novim modelom.
+function narediSiroto(run, d) {
+  run(`zacniIgro(${JSON.stringify(d)})`);
+  enVpis(run);
+  run(`zbirkaPisi(zbirkaBeri().filter(z => z.danosti !== ${JSON.stringify(d)}))`);
+  assert.ok(run(`!!igreBeri().igre[${JSON.stringify(d)}]`), 'igra sirote je shranjena');
+}
+
+test('"Izbriši vse" v igri: potrditev s številom in izvozom, ostanejo samo igre primerov, mreža se izprazni', () => {
   const { dom, run } = zacni();
   zbirkaZRezevanimi(run);
+  narediSiroto(run, druge[1]);
   // Napredek pri primeru, nato nazaj na uganko iz zbirke.
   const P = JSON.stringify(run('primeriIgre[4].danosti'));
   run(`zacniIgro(${P})`);
@@ -599,17 +609,17 @@ test('"Izbriši vse" v igri: potrditev s številom in izvozom, primeri ostanejo,
   let vprasanja = zberiVprasanja(run, false);
   dom.klikni('zbirkaIzbrisiVseBtn');
   assert.equal(vprasanja().length, 1);
-  assert.ok(vprasanja()[0].includes('(3)'), vprasanja()[0]);
+  assert.ok(vprasanja()[0].includes('(2)'), vprasanja()[0]);
   assert.ok(vprasanja()[0].includes('najprej izvoziš'), 'priporoči izvoz');
-  assert.equal(run('zbirkaBeri().length'), 3, 'brez potrditve se nič ne izbriše');
+  assert.equal(run('zbirkaBeri().length'), 2, 'brez potrditve se nič ne izbriše');
 
   vprasanja = zberiVprasanja(run, true);
   dom.klikni('zbirkaIzbrisiVseBtn');
   assert.equal(run('zbirkaBeri().length'), 0);
-  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [JSON.parse(P)], 'ostane samo igra primera');
+  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [JSON.parse(P)], 'ostane samo igra primera - tudi sirota je izbrisana');
   assert.equal(run('igra'), null, 'odprta uganka je bila v zbirki - mreža je prazna');
   assert.equal(dom.el('zbirkaBtn').textContent, 'Zbirka (0)');
-  assert.equal(dom.el('zbirkaStatus').textContent, 'Izbrisanih ugank: 3.');
+  assert.equal(dom.el('zbirkaStatus').textContent, 'Izbrisanih ugank: 2.');
   assert.equal(dom.el('zbirkaSeznam').children[0].className, 'prazno');
   // Primer se igra naprej od shranjenega napredka.
   assert.equal(gumb(run, P), 'Nadaljuj');
@@ -623,6 +633,16 @@ test('"Izbriši vse" v igri: odprt primer ostane na mreži', () => {
   dom.klikni('zbirkaIzbrisiVseBtn');
   assert.equal(run('zbirkaBeri().length'), 0);
   assert.equal(run('igra.danosti'), P);
+});
+
+test('"Izbriši vse" v igri: odprta sirota se izprazni (njena igra je izbrisana)', () => {
+  const { dom, run } = zacni();
+  zbirkaZRezevanimi(run);
+  narediSiroto(run, druge[1]); // ostane odprta
+  zberiVprasanja(run, true);
+  dom.klikni('zbirkaIzbrisiVseBtn');
+  assert.equal(run('igra'), null, 'sicer bi naslednja poteza igro sirote zapisala znova');
+  assert.equal(run(`!!igreBeri().igre[${JSON.stringify(druge[1])}]`), false);
 });
 
 test('igra vgrajenega primera v zbirko ne doda', () => {

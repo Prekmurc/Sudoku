@@ -473,7 +473,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   - **brisanje v obeh aplikacijah**: gumb »Izbriši« na kartici (s potrditvijo) tudi v
     igri, in gumb »Izbriši vse« ob »Izvozi«/»Uvozi« (potrditev navede število ugank in
     priporoči izvoz). Brisanje odstrani tudi shranjeno igro teh ugank, igre primerov pa ne
-    (`zbirkaIzbrisi()`, `zbirkaIzbrisiVse()` v `shared/zbirka.js`). Če je izbrisana uganka
+    (`zbirkaIzbrisi()`, `zbirkaIzbrisiVse()` v `shared/zbirka.js`). »Izbriši vse« odstrani
+    **vse** shranjene igre razen iger primerov – tako počisti tudi sirote (igre ugank, ki
+    jih je reševalec izbrisal pred novim modelom, ko brisanje igre še ni odstranilo). Če je izbrisana uganka
     odprta v igri, se mreža izprazni kot ob prvem zagonu – sicer bi naslednja poteza
     znova zapisala shranjeno igro brez zapisa v zbirki;
   - **drug zavihek**: igra in reševalec poslušata dogodek `storage`

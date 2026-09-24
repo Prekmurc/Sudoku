@@ -1049,14 +1049,16 @@ zbirkaDatotekaEl.addEventListener('change', () => {
   }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
 });
 
-// "Izbriši vse": vsa zbirka in shranjene igre njenih ugank (primeri ostanejo).
+// "Izbriši vse": vsa zbirka in vse shranjene igre razen iger primerov (tudi sirote).
 const zbirkaIzbrisiVseBtn = document.getElementById('zbirkaIzbrisiVseBtn');
 zbirkaIzbrisiVseBtn.addEventListener('click', () => {
   const zbirka = zbirkaBeri();
   if (!zbirka.length) { zbirkaStatus('Zbirka je že prazna.'); return; }
   if (!confirm(zbirkaVprasanjeIzbrisiVse(zbirka.length))) return;
   const { stevilo, ok } = zbirkaIzbrisiVse();
-  if (igra && zbirka.some(z => z.danosti === igra.danosti)) izprazniIgro();
+  // Izbrisane so vse igre razen primerov - tudi igra odprte uganke, ki je v zbirki
+  // ni (sirota), zato ostane odprt samo primer.
+  if (igra && !zbirkaPrimerZa(igra.danosti)) izprazniIgro();
   ocenaPocisti();
   izrisiZbirko();
   osveziGumbZbirke();

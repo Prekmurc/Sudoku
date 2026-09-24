@@ -7,8 +7,8 @@
 //     zapiše se ob nastanku zapisa in se pozneje ne spreminja;
 //   - vgrajeni primeri niso del zbirke: zbirkaShraniResitev in uvoz jih ne shranita,
 //     zbirkaBeri stare zapise primerov odstrani (igra primera ostane);
-//   - brisanje (zbirkaIzbrisi, zbirkaIzbrisiVse): zapis in shranjena igra, igre
-//     primerov ostanejo; besedilo potrditve za "Izbriši vse";
+//   - brisanje (zbirkaIzbrisi, zbirkaIzbrisiVse): zapis in shranjena igra; "Izbriši
+//     vse" odstrani vse igre razen iger primerov, tudi sirote; besedilo potrditve;
 //   - števec programa "delno (36/57)" (zbirkaProgramResil) v izvozu in uvozu (tudi
 //     stara oblika "delno (60 od 81 celic)");
 //   - podatki kartice uganke v seznamu (zbirkaKartica) - skupni za igro in reševalec;
@@ -553,15 +553,20 @@ test('primer se ne shrani: zbirkaShraniResitev in uvoz ga preskočita', () => {
 
 // Zbirka z dvema ugankama in shranjene igre obeh ter enega primera.
 const druga = loadPuzzles()[3].danosti.replace(/\./g, '0');
+// Sirota: shranjena igra uganke, ki je v zbirki ni (izbrisana pred novim modelom).
+const sirota = loadPuzzles()[4].danosti.replace(/\./g, '0');
+// Zbirka z dvema ugankama, shranjene igre obeh, sirote in dveh primerov. Vrne
+// danosti primerov (urejene).
 function zbirkaZIgrami(zadnja) {
   shramba.clear();
-  const p = danostiPrimera(4);
+  const p = [danostiPrimera(4), danostiPrimera(0)];
   shramba.set(E.ZBIRKA_KLJUC, JSON.stringify([
     { danosti, tezavnost: 'Težka', izvor: 'rocno', dodano: '2026-09-20 10:00' },
     { danosti: druga, tezavnost: 'Lahka', izvor: 'generator', dodano: '2026-09-21 10:00' },
   ]));
-  shramba.set(E.IGRA_KLJUC, JSON.stringify({ zadnja, igre: { [danosti]: igra(), [druga]: igra(2), [p]: igra(3) } }));
-  return p;
+  shramba.set(E.IGRA_KLJUC, JSON.stringify({ zadnja,
+    igre: { [danosti]: igra(), [druga]: igra(2), [sirota]: igra(), [p[0]]: igra(3), [p[1]]: igra() } }));
+  return p.sort();
 }
 
 test('zbirkaIzbrisi(): zapis in shranjena igra te uganke, drugo ostane', () => {
@@ -569,7 +574,7 @@ test('zbirkaIzbrisi(): zapis in shranjena igra te uganke, drugo ostane', () => {
   assert.equal(E.zbirkaIzbrisi(danosti), true);
   assert.deepEqual([...E.zbirkaBeri()].map(z => z.danosti), [druga]);
   const igre = E.igreBeri();
-  assert.deepEqual(Object.keys(igre.igre).sort(), [druga, p].sort(), 'igra izbrisane uganke je odstranjena');
+  assert.deepEqual(Object.keys(igre.igre).sort(), [druga, sirota, ...p].sort(), 'igra izbrisane uganke je odstranjena, druge ostanejo');
   assert.equal(igre.zadnja, null, 'zadnja igra je bila izbrisana - ob zagonu je mreža prazna');
 
   // Zadnja igra, ki ni izbrisana, ostane zadnja.
@@ -578,12 +583,14 @@ test('zbirkaIzbrisi(): zapis in shranjena igra te uganke, drugo ostane', () => {
   assert.equal(E.igreBeri().zadnja, druga);
 });
 
-test('zbirkaIzbrisiVse(): vsa zbirka in igre njenih ugank, igra primera ostane', () => {
-  const p = zbirkaZIgrami(null);
+test('zbirkaIzbrisiVse(): vsa zbirka in vse igre razen iger primerov (tudi sirote)', () => {
+  const p = zbirkaZIgrami(sirota);
   const r = E.zbirkaIzbrisiVse();
   assert.deepEqual({ ...r }, { stevilo: 2, ok: true });
   assert.equal(E.zbirkaBeri().length, 0);
-  assert.deepEqual(Object.keys(E.igreBeri().igre), [p], 'ostane samo igra primera');
+  const igre = E.igreBeri();
+  assert.deepEqual(Object.keys(igre.igre).sort(), p, 'ostanejo samo igre primerov');
+  assert.equal(igre.zadnja, null, 'zadnja igra (sirota) je izbrisana');
 });
 
 test('besedili potrditve brisanja', () => {
@@ -591,7 +598,8 @@ test('besedili potrditve brisanja', () => {
     'Izbrišem uganko, dodano 21. 9. 2026 ob 16:33 (Težka)? Izbriše se tudi njen shranjeni napredek.');
   const v = E.zbirkaVprasanjeIzbrisiVse(58);
   assert.ok(v.includes('(58)'), 'navede število ugank');
-  assert.ok(v.includes('Vgrajeni primeri ostanejo'));
+  assert.ok(v.includes('ves shranjeni napredek'), 'izbriše ves napredek, tudi sirote');
+  assert.ok(v.includes('Vgrajeni primeri in napredek pri njih ostanejo'));
   assert.ok(v.includes('najprej izvoziš'), 'priporoči izvoz');
 });
 

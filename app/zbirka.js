@@ -168,7 +168,7 @@ libFileEl.addEventListener('change', () => {
   }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
 });
 
-// "Izbriši vse": vsa zbirka in shranjene igre njenih ugank (primeri ostanejo).
+// "Izbriši vse": vsa zbirka in vse shranjene igre razen iger primerov (tudi sirote).
 document.getElementById('libDeleteAll').addEventListener('click', () => {
   const n = zbirkaBeri().length;
   if (!n) { zbirkaStatus('Zbirka je že prazna.'); return; }

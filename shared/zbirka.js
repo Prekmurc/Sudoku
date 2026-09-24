@@ -469,12 +469,13 @@ function zbirkaIzbrisi(danosti) {
   return zbirkaIzbrisiIgre([danosti]) && ok;
 }
 
-// Izbriše vso zbirko in shranjene igre njenih ugank (igre primerov ostanejo).
-// Vrne { stevilo, ok }: število izbrisanih ugank in ali je zapisano.
+// Izbriše vso zbirko in VSE shranjene igre razen iger vgrajenih primerov - tudi
+// sirote (igre ugank, ki so bile iz zbirke izbrisane, preden je brisanje odstranilo
+// tudi igro). Vrne { stevilo, ok }: število izbrisanih ugank in ali je zapisano.
 function zbirkaIzbrisiVse() {
   const zbirka = zbirkaBeri();
   const ok = zbirkaPisi([]);
-  return { stevilo: zbirka.length, ok: zbirkaIzbrisiIgre(zbirka.map(z => z.danosti)) && ok };
+  return { stevilo: zbirka.length, ok: zbirkaIzbrisiIgre(Object.keys(igreBeri().igre)) && ok };
 }
 
 // Besedili potrditve brisanja - enaki v reševalcu in igri.
@@ -484,7 +485,7 @@ function zbirkaVprasanjeIzbrisi(z) {
 }
 
 function zbirkaVprasanjeIzbrisiVse(n) {
-  return `Izbrišem vse uganke iz zbirke (${n}) in njihov shranjeni napredek? Vgrajeni primeri ostanejo. ` +
+  return `Izbrišem vse uganke iz zbirke (${n}) in ves shranjeni napredek? Vgrajeni primeri in napredek pri njih ostanejo. ` +
     'Priporočam, da zbirko najprej izvoziš (gumb »Izvozi«) – izbrisa ni mogoče razveljaviti.';
 }
 
