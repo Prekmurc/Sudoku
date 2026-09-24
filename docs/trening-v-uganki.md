@@ -1,7 +1,8 @@
 # Trening »Vadi v uganki« – analiza in meritev
 
-Stanje: **analiza** (2026-09-24). Koda aplikacij ni spremenjena; dodan je samo merilni
-skript `tools/meri-trening-v-uganki.js`.
+Stanje: **analiza, odločitve sprejete** (2026-09-24; glej 4.5). Koda aplikacij ni
+spremenjena; dodan je samo merilni skript `tools/meri-trening-v-uganki.js`. Delo se še ni
+začelo.
 
 **Zamisel.** Trening dobi za vsako tehniko (E1, E2, 1–12) dva načina:
 
@@ -278,7 +279,7 @@ Niz »Vpiši« je v teh vajah onemogočen (vpis ni odgovor; enojček, ki nastane
 | **pravilno** | obstaja korak `k ∈ KT`, katerega izbrisi so vsi v `R`, in vsak izbris iz `R` je izbris kakega koraka iz `KT` | »Pravilno!« + sporočilo koraka (`k.message`), na mreži oznake koraka `k` | pravilno |
 | **delno** | `R` ni prazen, vsak izbris iz `R` je izbris kakega koraka iz `KT`, noben korak pa ni dokončan | »Prav, a to še ni ves korak – manjka še N izbrisov.« (N za najbližji korak); vaja teče naprej | – |
 | **prav, a z drugo tehniko** | vsak izbris iz `R` je upravičen s kakim korakom iz `KV`, vsaj eden pa ne s korakom iz `KT` | »To drži, a sledi iz W-Wing, ne iz Swordfish.« (ime tehnike koraka, ki ga pokrije) | ne šteje (kot »nevtralno« pri enojčkih) |
-| **neutemeljeno** | v `R` je kandidat, ki ni števka rešitve, a ga iz `S0` ne izbriše noben posamezen korak | »Ta izbris drži, a iz tega stanja ne sledi v enem koraku.« | predlog: napačno (vprašanje 5) |
+| **neutemeljeno** | v `R` je kandidat, ki ni števka rešitve, a ga iz `S0` ne izbriše noben posamezen korak | »Ta izbris drži, a iz tega stanja ne sledi v enem koraku.«; izbris se razveljavi | ne šteje (odločitev 5) |
 | **prazno** | `R` je prazen | »Odstrani kandidate, ki jih tehnika izloči.« | – |
 
 Opombe:
@@ -305,9 +306,9 @@ Odgovor je **prvi vpis** (celica, števka). Presoja je obstoječa `preveriEnojce
 | **nevtralno** | števka je prava (rešitev), a je ta tehnika v `S0` ne dokaže (npr. skriti enojček pri E1) – ne šteje |
 | **napačno** | števka ni prava; z razlogom (»Števka 9 je v vrstici 8 že vpisana (V8S1).«) |
 
-Odstranjevanje kandidatov je pri E1/E2 onemogočeno. Odprto vprašanje je, ali naj mreža
-kaže kandidate (vprašanje 2): igra jih kaže vedno in pri E1 s prikazanimi kandidati vaje
-skoraj ni (celica z enim samim kandidatom je vidna na prvi pogled).
+Odstranjevanje kandidatov je pri E1/E2 onemogočeno. Mreža je **brez kandidatov**
+(odločitev 2): igra jih kaže vedno, pri E1 s prikazanimi kandidati pa vaje skoraj ni (celica
+z enim samim kandidatom je vidna na prvi pogled).
 
 ### 3.4 Pomoč med vajo
 
@@ -403,25 +404,33 @@ Koraki 1–2 so neodvisni od 3–5 in jih je mogoče narediti prej.
 - **Uganka »Ekstrem«** – stanje pred prvim poskusom s protislovjem je veljavno, a če bi
   igralec po vaji uganko reševal naprej (vprašanje 4), brez ugibanja ne bi prišel do konca.
 
-### 4.5 Vprašanja zate
+### 4.5 Odločitve
 
-1. **Definicija »naslednji korak«:** *strogo* (T je prva tehnika po `ALL_TECHNIQUES`, ki
-   kaj najde) ali *skupina* (T je v najlažji skupini, ki kaj najde – pravilo sidra)? Skupina
-   da več stanj za kasnejše tehnike v skupini (npr. Swordfish ob X-Wingu), a stanje takrat
-   vsebuje tudi lažjo tehniko iz iste skupine. **Predlog:** strogo (tako izbere tudi
-   »Naslednji korak« v igri brez poudarjene števke; pri E2 je skupina neuporabna), redke
-   tehnike pa iz banke. Banka s 100 stanji na tehniko zahteva pregled pribl. 10 000 semen
-   (Swordfish), kar orodje naredi v pribl. 7 minutah.
-2. **E1/E2 v uganki:** s kandidati (kot v igri) ali brez (kot v »Spoznaj«)? Brez kandidatov
-   potrebuje skupna mreža način »brez kandidatov«.
-3. **Kandidati, odstranjeni pred vajo:** skriti (kot ročno odstranjeni v igri, brez
-   možnosti vrnitve) ali prikazati prečrtane?
-4. **Po pravilnem odgovoru:** nova uganka, naslednje stanje s `T` v isti uganki (če obstaja
-   – meritev kaže, koliko jih je na uganko) ali ponudba »Nadaljuj to uganko v igri«?
-5. **Neutemeljen izbris** (pravi, a ne sledi v enem koraku): šteje kot napačno ali samo
-   opozorilo?
-6. **Iskanje:** banka semen za vse tehnike (hitro, ponovljivo, a omejen izbor), sprotno
-   iskanje (neomejeno) ali kombinacija (sprotno z mejo, nato banka)?
-7. **Število vaj v krogu** in rezultat – kot »Spoznaj« (9 vaj, »pravilno / vseh«)?
-8. **Pomoč med vajo** (namig, rešitev): ali vaja s pomočjo šteje kot nepravilna ali se ne
-   šteje?
+Sprejete 2026-09-24 (prej »Vprašanja zate«). Veljajo pred predlogi v prejšnjih razdelkih,
+kjer se razlikujejo.
+
+1. **Definicija »naslednji korak«: strogo** – `T` je prva tehnika po `ALL_TECHNIQUES`, ki v
+   stanju kaj najde (tako izbere tudi »Naslednji korak« v igri brez poudarjene števke).
+   Redke tehnike, pri katerih strogih stanj sproti skoraj ni (2.2, 2.5), pridejo iz banke
+   semen.
+2. **E1 in E2 v uganki: brez kandidatov**, sicer pa so na voljo pripomočki kot v igri
+   (poudarek števk, seznami manjkajočih števk, razveljavi/ponovi). Skupna mreža zato
+   potrebuje način »brez kandidatov«.
+3. **Kandidati, odstranjeni pred vajo: skriti** (kot ročno odstranjeni v igri, brez
+   možnosti vrnitve). Nad mrežo je vrstica s **številom** takih kandidatov in stikalo
+   **»Pokaži prečrtane«**, ki jih pokaže prečrtane (samo prikaz, odgovor se ne spremeni).
+4. **Po pravilnem odgovoru: »Nova vaja«** – novo stanje iste tehnike. Ponudba »Nadaljuj v
+   igri« (uganko rešujem naprej v igri) pride **pozneje**, ne v prvi različici.
+5. **Neutemeljen izbris** (pravi kandidat ni, a iz `S0` ga ne izbriše noben posamezen
+   korak): **ni napaka**. Igralec dobi razlago (»Ta izbris drži, a iz tega stanja ne sledi v
+   enem koraku.«), izbris se razveljavi, vaja teče naprej in se zaradi njega ne šteje.
+6. **Iskanje: kombinirano** – najprej sprotno iskanje s časovno mejo **1 s**, ob preseku
+   meje vaja iz banke. Banko imajo zato vse tehnike (tudi hitre – na počasnem telefonu lahko
+   tudi te presežejo mejo).
+7. **Krog in štetje: enako kot pri obstoječih vajah** – 9 vaj v krogu (`MAX_EX`), rezultat
+   »pravilno / vseh« z odstotkom in na koncu »Končano!«.
+8. **Vaja s pomočjo** (namig ali rešitev) **se ne šteje med pravilne.** Opomba: obstoječe
+   vaje tega zdaj ne delajo – gumba »Namig (drži)« in »Rešitev (drži)« v `trening/trening.js`
+   rezultata ne spremenita (vaja, rešena po ogledu rešitve, šteje kot pravilna). Zapis
+   »enako kot pri obstoječih vajah« torej velja za namen, ne za sedanje obnašanje; ali naj
+   se tudi »Spoznaj« spremeni, ostaja odprto.
