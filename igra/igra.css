@@ -683,39 +683,10 @@ kbd{
 /* Vgrajeni primeri: zložljiv razdelek na dnu okna (privzeto zaprt) */
 .primeri-razdelek{ margin-top:18px; }
 .primeri-razdelek summary{ cursor:pointer; width:max-content; }
-.zbirka-seznam{
-  list-style:none;
-  margin:0;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-  gap:9px;
-}
-.zbirka-seznam li{
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:9px;
-  padding:11px 13px;
-}
-.zbirka-seznam li.trenutna{ border-color: var(--blue); box-shadow: inset 3px 0 0 var(--blue); }
-.zbirka-seznam li.prazno{ font-size:13px; color: var(--pencil); background:transparent; border-style:dashed; }
-.zb-vrstica{ font-size:14px; font-weight:600; }
-.zb-info{ font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--pencil); margin-top:3px; }
-.zb-info .v-teku{ color: var(--blue); }
-.zb-info .resena{ color: var(--green); }
-.zb-info .napaka{ color: var(--red); }
-/* druga vrstica zapisa: čas mojega zadnjega reševanja in stanje */
-.zb-casi{ font-size:13px; color:#3C4854; margin-top:2px; }
-.zb-casi .v-teku{ color: var(--blue); }
-.zb-casi .resena{ color: var(--green); font-weight:600; }
-.zb-casi .napaka{ color: var(--red); }
-.zb-tehnike{ color:#3C4854; }
+/* seznam ugank (kartica uganke) je v ../shared/zbirka.css */
 /* predlagana ocena (gumb "Oceni zbirko"), dokler ni zapisana */
 .zb-ocena{ margin-top:3px; }
 .zb-ocena-nova{ color: var(--blue); font-weight:600; }
-.zb-opomba{ font-size:13.5px; color:#3C4854; margin-top:6px; line-height:1.45; overflow-wrap:anywhere; }
-.zb-gumbi{ display:flex; gap:8px; margin-top:9px; }
-.zb-gumbi button{ font-size:12.5px; padding:7px 12px; }
 
 /* izbira stopnje pri "Ustvari uganko" */
 .stopnje{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }

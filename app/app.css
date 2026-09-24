@@ -611,46 +611,4 @@
     line-height:1.5;
   }
   .lib-status.err{ color: var(--red); }
-  #libList{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-direction:column;
-    gap:9px;
-  }
-  #libList li{
-    background:#fff;
-    border:1px solid var(--line);
-    border-radius:9px;
-    padding:11px 13px;
-  }
-  #libList li.lib-empty{
-    font-size:13px;
-    color: var(--pencil);
-    background:transparent;
-    border-style:dashed;
-  }
-  .lib-line{ font-size:14px; font-weight:600; }
-  /* druga vrstica zapisa: čas mojega zadnjega reševanja v igri in stanje */
-  .lib-casi{ font-size:13px; color:#3C4854; margin-top:2px; }
-  .lib-info{
-    font-family:'JetBrains Mono', monospace;
-    font-size:12px;
-    color: var(--pencil);
-    margin-top:3px;
-  }
-  .lib-note{
-    font-size:13.5px;
-    color:#3C4854;
-    margin-top:6px;
-    line-height:1.45;
-    overflow-wrap:anywhere;
-  }
-  .lib-actions{
-    display:flex;
-    gap:8px;
-    margin-top:9px;
-  }
-  .lib-actions button{ font-size:12.5px; padding:7px 12px; }
-  .lib-actions button.danger{ color: var(--red); }
+  /* seznam ugank (#libList) je v ../shared/zbirka.css */

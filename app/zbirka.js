@@ -1,7 +1,8 @@
 /* ==================== ZBIRKA UGANK (UI reševalca) ====================
    Samodejno shranjevanje ugank ob reševanju, seznam shranjenih ugank
-   ("Naloži"/"Izbriši") ter gumba za izvoz/uvoz. Hramba in pretvorba v/iz
-   Markdowna sta v shared/zbirka.js. */
+   ("Odpri"/"Izbriši") ter gumba za izvoz/uvoz. Hramba in pretvorba v/iz
+   Markdowna sta v shared/zbirka.js, kartica uganke v seznamu v
+   shared/zbirka-ui.js (enaka kot v igri). */
 
 const libraryBtn = document.getElementById('libraryBtn');
 const libraryEl = document.getElementById('library');
@@ -44,9 +45,12 @@ function zbirkaOsveziVrstico() {
 // rešitvijo - tudi če je solve() ne reši do konca.
 function zbirkaPoResevanju(givens, board, log, solutionCount) {
   if (solutionCount !== 1) { zbirkaSkrijVrstico(); return; }
-  // Uganka, ki jo rešuješ v reševalcu, je vnesena ročno (naložena iz zbirke ima
-  // zapis že od prej in izvora ne spremeni).
-  const zapis = zbirkaShraniResitev(givens, board, log, { izvor: 'rocno' });
+  // Uganka, ki jo rešuješ v reševalcu, je vnesena ročno, vgrajeni primer pa dobi
+  // izvor in težavnost primera (naložena iz zbirke ima zapis že od prej in izvora
+  // ne spremeni).
+  const primer = zbirkaPrimerZa(givens);
+  const zapis = zbirkaShraniResitev(givens, board, log,
+    primer ? { izvor: 'primer', tezavnost: primer.tezavnost } : { izvor: 'rocno' });
   saveRowEl.style.display = 'block';
   if (!zapis) {
     zbirkaTrenutne = null;
@@ -58,7 +62,7 @@ function zbirkaPoResevanju(givens, board, log, solutionCount) {
   zbirkaTrenutne = givens;
   saveMsgEl.textContent = zapis.reseno === 81
     ? '✓ Shranjeno v zbirko'
-    : `✓ Shranjeno v zbirko (rešeno delno: ${zapis.reseno} od 81 celic)`;
+    : `✓ Shranjeno v zbirko (program rešil ${zbirkaProgramResil(zapis)})`;
   saveMsgEl.className = '';
   saveFieldsEl.style.display = '';
   zbirkaOsveziVrstico();
@@ -91,78 +95,35 @@ function zbirkaIzrisiSeznam() {
   libListEl.innerHTML = '';
   if (!zbirka.length) {
     const li = document.createElement('li');
-    li.className = 'lib-empty';
+    li.className = 'prazno';
     li.textContent = 'Zbirka je prazna. Uganka se shrani samodejno ob reševanju, če ima natanko eno rešitev.';
     libListEl.appendChild(li);
     return;
   }
 
+  // Trenutna je uganka, ki je v vnosni mreži (npr. pravkar odprta iz zbirke).
+  const trenutne = currentGivens();
   for (const z of zbirkaZaSeznam(zbirka)) {
-    const li = document.createElement('li');
-    const povzetek = zbirkaPovzetekZapisa(z.danosti, igre[z.danosti]);
-    const casi = zbirkaPrikazCasov(z, povzetek);
+    const k = zbirkaKartica(z.danosti, z, zbirkaPovzetekZapisa(z.danosti, igre[z.danosti]));
     const tezavnost = z.tezavnost || 'težavnost ni določena';
-    const dodana = zbirkaPrikazDatuma(z.dodano); // za sporočilo ob nalaganju in brisanju
-
-    const glava = document.createElement('div');
-    glava.className = 'lib-line';
-    glava.textContent = [casi.dodana, tezavnost, zbirkaOpisIzvora(z)].filter(Boolean).join(' · ');
-    glava.title = zbirkaNamigCasov(z, povzetek);
-    li.appendChild(glava);
-
-    // Moje reševanje v igri (čas zadnje poteze in stanje) - svoja vrstica pod časom
-    // dodajanja. Uganke, ki je še nisem igral, ta vrstica nima.
-    if (casi.igranje) {
-      const igranje = document.createElement('div');
-      igranje.className = 'lib-casi';
-      igranje.textContent = zbirkaVrsticaIgranja(z, povzetek);
-      igranje.title = zbirkaNamigCasov(z, povzetek);
-      li.appendChild(igranje);
-    }
-
-    const deli = [];
-    if (zbirkaPrazno(z.koraki)) deli.push('ni podatkov o reševanju');
-    else deli.push(zbirkaStKorakov(z.koraki));
-    if (!zbirkaPrazno(z.ugibanje)) deli.push(z.ugibanje === 0 ? 'brez ugibanja' : `ugibal ${z.ugibanje}×`);
-    // Podatek o programu, ne o mojem reševanju - zato je poimenovan enako kot v izvozu.
-    if (!zbirkaPrazno(z.reseno) && z.reseno < 81) deli.push(`program rešil delno (${z.reseno}/81)`);
-    const info = document.createElement('div');
-    info.className = 'lib-info';
-    info.textContent = deli.join(' · ');
-    li.appendChild(info);
-
-    if (z.opomba) {
-      const opomba = document.createElement('div');
-      opomba.className = 'lib-note';
-      opomba.textContent = z.opomba;
-      li.appendChild(opomba);
-    }
-
-    const gumbi = document.createElement('div');
-    gumbi.className = 'lib-actions';
-    const nalozi = document.createElement('button');
-    nalozi.type = 'button';
-    nalozi.textContent = 'Naloži';
-    nalozi.addEventListener('click', () => {
-      naloziDanosti(z.danosti, `Naložena uganka iz zbirke (${tezavnost}, dodana ${dodana}).`);
-      zbirkaZapri();
-    });
-    const izbrisi = document.createElement('button');
-    izbrisi.type = 'button';
-    izbrisi.className = 'danger';
-    izbrisi.textContent = 'Izbriši';
-    izbrisi.addEventListener('click', () => {
-      if (!confirm(`Izbrišem uganko, dodano ${dodana} (${tezavnost})?`)) return;
-      zbirkaPisi(zbirkaBeri().filter(x => x.danosti !== z.danosti));
-      if (zbirkaTrenutne === z.danosti) zbirkaSkrijVrstico();
-      zbirkaStatus('Uganka je izbrisana.');
-      zbirkaIzrisiSeznam();
-      zbirkaOsveziGumb();
-    });
-    gumbi.append(nalozi, izbrisi);
-    li.appendChild(gumbi);
-
-    libListEl.appendChild(li);
+    const dodana = zbirkaPrikazDatuma(z.dodano); // za sporočilo ob odpiranju in brisanju
+    libListEl.appendChild(zbirkaIzrisiKartico(k, {
+      trenutna: z.danosti === trenutne,
+      gumbi: [
+        { napis: 'Odpri', obKliku: () => {
+          naloziDanosti(z.danosti, `Naložena uganka iz zbirke (${tezavnost}, dodana ${dodana}).`);
+          zbirkaZapri();
+        } },
+        { napis: 'Izbriši', razred: 'danger', obKliku: () => {
+          if (!confirm(`Izbrišem uganko, dodano ${dodana} (${tezavnost})?`)) return;
+          zbirkaPisi(zbirkaBeri().filter(x => x.danosti !== z.danosti));
+          if (zbirkaTrenutne === z.danosti) zbirkaSkrijVrstico();
+          zbirkaStatus('Uganka je izbrisana.');
+          zbirkaIzrisiSeznam();
+          zbirkaOsveziGumb();
+        } },
+      ],
+    }));
   }
 }
 

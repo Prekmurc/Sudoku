@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="../shared/zbirka.css">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
@@ -88,7 +89,7 @@
     </div>
     <p class="cand-hint">Izvoz zapiše vse uganke v datoteko Markdown (enaka oblika kot docs/uganke.md). Uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke.</p>
     <div id="libStatus" class="lib-status"></div>
-    <ul id="libList"></ul>
+    <ul id="libList" class="zbirka-seznam"></ul>
   </div>
 </div>
 
@@ -96,6 +97,7 @@
 
 <script src="../shared/engine.js"></script>
 <script src="../shared/zbirka.js"></script>
+<script src="../shared/zbirka-ui.js"></script>
 <script src="app.js"></script>
 <script src="zbirka.js"></script>
 </body>

@@ -24,7 +24,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v igra/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/zbirka.js', 'shared/generator.js', 'igra/stanje.js', 'igra/igra.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/stanje.js', 'igra/igra.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 const D = JSON.stringify(danosti);
 
@@ -45,12 +45,18 @@ const stanjeZapisa = run => run(`zbirkaStanjeUganke(${D}, zbirkaBeri().find(z =>
 const praznih = [...danosti].filter(ch => ch === '0').length;
 // Vpiše celo rešitev po celicah, vsako z izvedi() - kot igralec z nizom "Vpiši".
 const resiVse = run => run("for (let c = 0; c < 81; c++) if (igra.danosti[c] === '0') izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] });");
-// Napis gumba pri uganki v seznamu zbirke (Igraj / Nadaljuj / Poglej).
-const gumb = run => run(`gumbiUganke(${D}, igreBeri().igre[${D}], zbirkaBeri().find(z => z.danosti === ${D})).children[0].textContent`);
+// Del kartice uganke v seznamu zbirke (shared/zbirka-ui.js) po razredu: zb-vrstica
+// (1. vrstica), zb-casi (stanje), zb-info, zb-gumbi. Seznam se pred tem izriše znova.
+const delKartice = (run, razred, d = D) => run(`(() => { izrisiZbirko();
+  const li = zbirkaVrstice.get(${d}) || [...document.getElementById('primeriSeznam').children]
+    .find(li => li.children[0].textContent.startsWith(zbirkaPrimerZa(${d}).ime));
+  return li.children.find(el => el.className === '${razred}'); })()`);
+// Napis gumba pri uganki v seznamu zbirke (Igraj / Nadaljuj / Poglej) - z izrisane kartice.
+const gumb = (run, d = D) => delKartice(run, 'zb-gumbi', d).children[0].textContent;
 // Ali je shranjena igra začeta (vsaj ena poteza v zgodovini).
 const zaceta = run => run(`zbirkaPovzetekZapisa(${D}, igreBeri().igre[${D}]).zaceta`);
 
-test('odprta uganka brez poteze: ni časa reševanja in ni druge vrstice', () => {
+test('odprta uganka brez poteze: ni časa reševanja, v seznamu je "nova"', () => {
   const { run } = zacni();
   // Ustvarjena uganka se odpre, takoj za tem pa se prikaz še enkrat osveži
   // (sporočilo "Ustvarjena uganka ..."). Tudi to ni poteza.
@@ -59,8 +65,10 @@ test('odprta uganka brez poteze: ni časa reševanja in ni druge vrstice', () =>
   const z = zapis(run);
   assert.ok(z, 'uganka je v zbirki');
   assert.ok(!z.igrano, `brez poteze ni časa reševanja (igrano = ${z.igrano})`);
-  assert.equal(vrstica(run), '', 'druge vrstice ni');
+  assert.equal(vrstica(run), '', 'kartica "Uganka" nima vrstice reševanja');
   assert.equal(stanjeZapisa(run), 'nova');
+  // Kartica v seznamu ima 2. vrstico vedno - pri novi uganki samo "nova".
+  assert.equal(delKartice(run, 'zb-casi').textContent, 'nova');
   // V seznamu zbirke je pri taki uganki gumb "Igraj", ne "Nadaljuj".
   assert.equal(zaceta(run), false);
   assert.equal(gumb(run), 'Igraj');
@@ -495,24 +503,68 @@ test('ponovno reševanje rešene uganke: "rešena … · znova v teku", gumb "Na
   assert.ok(vrsticaSeznama(po.run).includes(`znova v teku (3/${praznih})`));
 });
 
-test('vgrajeni primer: ista besedila stanj kot zbirka', () => {
+test('vgrajeni primer: ista kartica in besedila stanj kot zbirka', () => {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
-  const primer = run('primeriIgre[4].danosti');
-  const P = JSON.stringify(primer);
-  const prazniPrimera = [...primer].filter(ch => ch === '0').length;
-  const vrsticaPrimera = () => {
-    run('izrisiZbirko()');
-    return run(`[...document.getElementById('primeriSeznam').children].find(li => li.textContent.includes(primeriIgre[4].ime)).textContent`);
-  };
-  assert.ok(vrsticaPrimera().includes('· nova'));
+  const primer = run('primeriIgre[4]');
+  const P = JSON.stringify(primer.danosti);
+  const prazniPrimera = [...primer.danosti].filter(ch => ch === '0').length;
+  const del = razred => delKartice(run, razred, P).textContent;
+  // 1. vrstica je ime primera, 2. vedno stanje, 3. danosti (primer brez zapisa v
+  // zbirki nima podatkov reševanja).
+  assert.equal(del('zb-vrstica'), primer.ime);
+  assert.equal(del('zb-casi'), 'nova');
+  assert.equal(del('zb-info'), `danih ${81 - prazniPrimera}`);
   run(`zacniIgro(${P})`);
   enVpis(run);
-  assert.ok(vrsticaPrimera().includes(`v teku (1/${prazniPrimera})`), vrsticaPrimera());
+  // Brez zapisa v zbirki ni časa (čas shranjene igre se osveži že ob odprtju).
+  assert.equal(del('zb-casi'), `v teku (1/${prazniPrimera})`);
+  assert.equal(gumb(run, P), 'Nadaljuj');
   resiVse(run);
-  assert.ok(vrsticaPrimera().includes('· rešena'), vrsticaPrimera());
-  assert.ok(!vrsticaPrimera().includes('rešeno'), 'stara oblika "rešeno ✓" je odpravljena');
-  assert.equal(run(`gumbiUganke(${P}, igreBeri().igre[${P}]).children[0].textContent`), 'Poglej');
+  assert.equal(del('zb-casi'), 'rešena');
+  assert.equal(gumb(run, P), 'Poglej');
+});
+
+test('primer, rešen v reševalcu: samo pod "Vgrajeni primeri", s podatki iz zapisa', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const primer = run('primeriIgre[4]');
+  const P = JSON.stringify(primer.danosti);
+  // Tako ga shrani reševalec (zbirkaPoResevanju v app/zbirka.js).
+  run(`(() => { const { board, log } = solve(${P}); zbirkaShraniResitev(${P}, board, log, { izvor: 'primer', tezavnost: 'Lahka' }); })()`);
+  assert.equal(run('zbirkaBeri().length'), 1);
+
+  // "Tvoja zbirka" je brez njega - tudi števec na gumbu in razdelek s primeri je odprt.
+  run('osveziGumbZbirke()');
+  assert.equal(dom.el('zbirkaBtn').textContent, 'Zbirka (0)');
+  dom.klikni('zbirkaBtn');
+  assert.equal(dom.el('zbirkaSeznam').children.length, 1);
+  assert.equal(dom.el('zbirkaSeznam').children[0].className, 'prazno');
+  assert.equal(dom.el('primeriRazdelek').open, true);
+  assert.equal(run("document.getElementById('primeriSeznam').children.length"), run('PRIMERI.length'), 'primer je izrisan enkrat');
+
+  // Kartica primera ima podatke iz zapisa: čas dodajanja, tehnike, korake.
+  const del = razred => delKartice(run, razred, P).textContent;
+  assert.match(del('zb-vrstica'), new RegExp(`^${primer.ime.replace(/[()]/g, '\\$&')} · dodana \\d+\\. \\d+\\. \\d{4} ob \\d{2}:\\d{2}$`));
+  assert.match(del('zb-info'), /^danih \d+ · tehnike: samo enojčki · \d+ korak/);
+
+  // Moje reševanje gre v zapis, zato ima zdaj tudi čas.
+  run(`zacniIgro(${P})`);
+  enVpis(run);
+  assert.match(del('zb-casi'), /^zadnje reševanje .* · v teku \(1\/\d+\)$/);
+  // Kartica "Uganka" obdrži ime primera.
+  assert.ok(dom.el('opisUganke').textContent.startsWith(`Vgrajeni primer »${primer.ime}«`), dom.el('opisUganke').textContent);
+
+  // "Oceni zbirko" primerov ne ocenjuje - njihova težavnost je v PRIMERI.
+  dom.klikni('oceniBtn');
+  assert.equal(dom.el('zbirkaStatus').textContent, 'Zbirka je prazna - ni česa oceniti.');
+});
+
+test('igra vgrajenega primera v zbirko ne doda', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  run(`dodajVZbirko(${JSON.stringify(run('primeriIgre[1].danosti'))}, 'Ekstrem', 'rocno')`);
+  assert.equal(run('zbirkaBeri().length'), 0);
 });
 
 test('zapis brez shranjene igre (uvoz z druge naprave): napis iz zapisa, gumb "Igraj"', () => {
@@ -567,7 +619,11 @@ test('vgrajeni primeri: odprti, ko je odprta uganka primer', () => {
   run(`zacniIgro(${JSON.stringify(primer.danosti)})`);
   assert.equal(primeriOdprtiObOdprtju(dom), true);
   const li = run(`[...document.getElementById('primeriSeznam').children].find(li => li.className === 'trenutna')`);
-  assert.ok(li && li.textContent.includes(primer.ime) && li.textContent.includes('trenutno odprta'));
+  assert.ok(li && li.textContent.includes(primer.ime), 'kartica primera je označena kot trenutna');
+  // Oznaka je značka v 1. vrstici - edino mesto, ne v vrstici z danostmi.
+  const znacka = li.children[0].children.find(el => el.className === 'zb-trenutna');
+  assert.equal(znacka && znacka.textContent, 'trenutno odprta');
+  assert.ok(!li.children.find(el => el.className === 'zb-info').textContent.includes('trenutno'));
   // Nazaj na uganko iz zbirke: razdelek je ob odprtju okna spet zaprt.
   run(`zacniIgro(${D})`);
   assert.equal(primeriOdprtiObOdprtju(dom), false);

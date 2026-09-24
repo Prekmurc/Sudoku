@@ -11,7 +11,7 @@ const E = loadEngine(undefined, {
   files: ['shared/zbirka.js', 'shared/generator.js'],
   names: ['applyStep', 'STOPNJE_UGANK', 'stopnjaUganke', 'ustvariUganko', 'oceniStopnjo',
     'oceniUganko', 'genPot', 'genRazvrsti', 'genTehnikeSolve', 'GEN_ENOJCKI', 'GEN_PRESEKI',
-    'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'TEZAVNOSTI'],
+    'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'TEZAVNOSTI', 'PRIMERI'],
 });
 
 // Semena, pri katerih generator da uganko te stopnje (preverjeno ob pisanju testa;
@@ -268,4 +268,14 @@ test('strogoSrednja zahteva par in trojico na poti', () => {
 
 test('neznana stopnja vrže napako', () => {
   assert.throws(() => E.oceniStopnjo('ekstrem', '0'.repeat(81)), /Neznana stopnja/);
+});
+
+// Težavnost vgrajenih primerov (PRIMERI v shared/zbirka.js) je zapisana ročno, zato
+// test ob spremembi meril stopenj takoj pokaže, da je zastarela. Iz nje dobi težavnost
+// zapis primera, ki ga reševalec shrani v zbirko.
+test('PRIMERI: težavnost je rezultat oceniUganko()', () => {
+  for (const p of E.PRIMERI) {
+    assert.ok(E.TEZAVNOSTI.includes(p.tezavnost), `${p.ime}: ${p.tezavnost}`);
+    assert.equal(E.oceniUganko(p.danosti.replace(/\./g, '0')).tezavnost, p.tezavnost, p.ime);
+  }
 });

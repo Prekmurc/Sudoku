@@ -415,8 +415,9 @@ document.getElementById('solveBtn').addEventListener('click', () => {
     } else {
       // Sem pridemo samo pri solutionCount === 1 - vnos je torej pravilen,
       // odpovedal je reševalec.
-      const reseno = board.grid.filter(v => v !== 0).length;
-      statusEl.textContent = `Uganka ima eno rešitev, a je reševalec z razpoložljivimi tehnikami ni rešil do konca (rešenih ${reseno} od 81 celic).`;
+      const praznih = givens.split('').filter(ch => ch === '0').length;
+      const reseno = board.grid.filter(v => v !== 0).length - (81 - praznih);
+      statusEl.textContent = `Uganka ima eno rešitev, a je reševalec z razpoložljivimi tehnikami ni rešil do konca (rešil ${reseno}/${praznih} praznih celic).`;
       statusEl.className = 'warn';
     }
     // Namenoma NE skočimo avtomatsko na rezultat - vnosna mreža in

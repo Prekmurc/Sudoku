@@ -5,7 +5,8 @@
    Brez DOM-a (razen zbirkaPrenesi() za prenos datoteke) - uporabljata jo
    app/zbirka.js (UI zbirke v reševalcu) in igra/, tudi za gumba Izvozi/Uvozi.
    Tu je tudi seznam vgrajenih primerov (PRIMERI) - reševalec jih ponudi v
-   spustnem seznamu "Primer", igra v oknu "Zbirka ugank".
+   spustnem seznamu "Primer", igra v oknu "Zbirka ugank" - in podatki kartice
+   uganke v seznamu (zbirkaKartica); izriše jo shared/zbirka-ui.js.
    Tu je tudi stanje mojega reševanja uganke (zbirkaStanjeUganke - nova / v teku /
    rešena) za vse prikaze in izvoz ter branje shranjenih iger igre (igreBeri), iz
    katerih se stanje izračuna.
@@ -47,10 +48,12 @@ const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'izvor', 'dodano', 'igrano', 'izpo
 
 // Od kod je uganka v zbirki: 'generator' (ustvaril jo je generator v igri),
 // 'rocno' (vnesel jo je uporabnik - vnos v igri ali reševanje v reševalcu),
-// '' (starejši zapisi, ki podatka nimajo). Izvor se zapiše samo ob NASTANKU
-// zapisa in se pozneje ne spreminja. V izvozu je ključ "Izvor" z besedilom
-// spodaj - "Vir" je v docs/uganke.md že zaseden za prosto besedilo o poreklu.
-const ZBIRKA_IZVORI = { generator: 'ustvaril generator', rocno: 'ročni vnos' };
+// 'primer' (vgrajeni primer, rešen v reševalcu - glej PRIMERI), '' (starejši
+// zapisi, ki podatka nimajo). Izvor se zapiše samo ob NASTANKU zapisa in se
+// pozneje ne spreminja - edina izjema je enkratni popravek primerov v zbirkaBeri().
+// V izvozu je ključ "Izvor" z besedilom spodaj - "Vir" je v docs/uganke.md že
+// zaseden za prosto besedilo o poreklu.
+const ZBIRKA_IZVORI = { generator: 'ustvaril generator', rocno: 'ročni vnos', primer: 'vgrajeni primer' };
 
 // Shranjena vrednost izvora iz zapisa ali iz uvoženega besedila; neznano -> ''.
 function zbirkaIzvor(v) {
@@ -68,14 +71,21 @@ function zbirkaOpisIzvora(z) {
 // Vgrajeni primeri (reševalec: spustni seznam "Primer", igra: razdelek "Vgrajeni
 // primeri" v oknu Zbirka ugank). Nov primer = nova vrstica tu. Danosti morajo biti
 // preverjene (countSolutions() === 1) in zapisane v docs/uganke.md; '0' ali '.' =
-// prazna celica.
+// prazna celica. `tezavnost` je rezultat oceniUganko() (shared/generator.js) - to
+// preverja tests/generator.test.js; dobi jo zapis primera, rešenega v reševalcu.
 const PRIMERI = [
-  { ime: 'Primer 1 (z ugibanjem)', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
-  { ime: 'Primer 2 (Ekstrem, brez ugibanja)', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
-  { ime: 'Primer 3 (srednja – presek)', danosti: '.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7' }, // lahka-seme-197
-  { ime: 'Primer 4 (srednja – trojica)', danosti: '..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761' }, // srednja-a
-  { ime: 'Primer 5 (lahka)', danosti: '876.....4......7.....2..58..34.1.8..21..69......3.5.7.......6...4..769....8....4.' }, // lahka-seme-1
+  { ime: 'Primer 1 (z ugibanjem)', tezavnost: 'Ekstrem', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
+  { ime: 'Primer 2 (Ekstrem, brez ugibanja)', tezavnost: 'Zelo težka', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
+  { ime: 'Primer 3 (srednja – presek)', tezavnost: 'Srednja', danosti: '.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7' }, // lahka-seme-197
+  { ime: 'Primer 4 (srednja – trojica)', tezavnost: 'Srednja', danosti: '..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761' }, // srednja-a
+  { ime: 'Primer 5 (lahka)', tezavnost: 'Lahka', danosti: '876.....4......7.....2..58..34.1.8..21..69......3.5.7.......6...4..769....8....4.' }, // lahka-seme-1
 ];
+
+// Vgrajeni primer s temi danostmi ('0' ali '.' = prazna celica) ali null.
+function zbirkaPrimerZa(danosti) {
+  const d = String(danosti || '').replace(/\./g, '0');
+  return PRIMERI.find(p => p.danosti.replace(/\./g, '0') === d) || null;
+}
 
 /* ---------- pomožne ---------- */
 
@@ -251,16 +261,70 @@ function zbirkaVrsticaIgranja(z, povzetek) {
 
 // Namig miške pri uganki v seznamu (igra in reševalec): poleg obeh mojih podatkov
 // še oba programova - kdaj je uganko nazadnje ocenil in kako daleč je prišel.
+// Časi so v isti obliki kot v seznamu ("21. 9. 2026 ob 16:33"), izvoz pa ostane
+// v obliki "2026-09-21 16:33".
 function zbirkaNamigCasov(z, povzetek) {
-  const reseno = zbirkaPrazno(z.reseno) ? '—' : (z.reseno === 81 ? 'v celoti' : `delno (${z.reseno} od 81 celic)`);
   const st = zbirkaStanjeUganke(z.danosti, z, povzetek);
   return [
-    `Dodano: ${z.dodano || '—'}`,
-    `Zadnje reševanje: ${z.igrano || '—'}`,
+    `Dodano: ${zbirkaPrikazDatuma(z.dodano)}`,
+    `Zadnje reševanje: ${zbirkaPrikazDatuma(z.igrano)}`,
     `Stanje: ${st.kljuc === 'v-teku' && st.resena ? `rešena, znova ${st.besedilo}` : st.besedilo}`,
-    `Ocenjeno: ${z.nazadnje || '—'}`,
-    `Program rešil: ${reseno}`,
+    `Ocenjeno: ${zbirkaPrikazDatuma(z.nazadnje)}`,
+    `Program rešil: ${zbirkaProgramResil(z) || '—'}`,
   ].join(' · ');
+}
+
+// Kako daleč je uganko rešil program (solve()), z istim števcem kot moj napredek:
+// samo celice, ki jih je treba izpolniti - "v celoti" ali "delno (36/57)". V zapisu
+// je `reseno` število vseh izpolnjenih celic (z danostmi). '' brez podatka.
+function zbirkaProgramResil(z) {
+  if (!z || zbirkaPrazno(z.reseno)) return '';
+  if (z.reseno >= 81) return 'v celoti';
+  const praznih = z.danosti.split('').filter(ch => ch === '0').length;
+  const resenih = Math.max(0, Math.min(praznih, z.reseno - (81 - praznih)));
+  return `delno (${resenih}/${praznih})`;
+}
+
+// Podatki kartice uganke v seznamu (seznam zbirke v igri in reševalcu, vgrajeni
+// primeri v igri) - izriše jo zbirkaIzrisiKartico() v shared/zbirka-ui.js, gumbe
+// doda aplikacija. `z` je zapis v zbirki ali null (vgrajeni primer, ki ga v zbirki
+// ni), `povzetek` povzetek shranjene igre ali null. Vrne
+//   { primer, naslov, stanje: { predpona, besedilo, kljuc, napaka }, info, opomba,
+//     namig, gumb }
+// 1. vrstica (naslov): "Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33", pri
+//    vgrajenem primeru njegovo ime (in "· dodana …", kadar je v zbirki);
+// 2. vrstica (stanje) je vedno: "nova", "zadnje reševanje … · v teku (12/57)",
+//    "rešena …" ali "rešena … · znova v teku (12/57)" (zbirkaPrikazCasov); primer
+//    brez zapisa je brez časa (čas shranjene igre se osveži že ob odprtju);
+// 3. vrstica (info): "danih 24 · tehnike: 1, 3, 7 + poskus · 42 korakov", pri delni
+//    rešitvi še "· program rešil delno (36/57)"; primer brez zapisa samo "danih 17"
+//    (podatkov reševanja nima).
+// `gumb` (Igraj / Nadaljuj / Poglej) je iz istega stanja kot 2. vrstica.
+function zbirkaKartica(danosti, z, povzetek) {
+  const primer = zbirkaPrimerZa(danosti);
+  const st = zbirkaStanjeUganke(danosti, z, povzetek);
+  const dodana = z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '';
+  const naslov = (primer ? [primer.ime, dodana]
+    : [(z && z.tezavnost) || 'težavnost ni določena', zbirkaOpisIzvora(z), dodana]).filter(Boolean).join(' · ');
+
+  let stanje = z ? zbirkaPrikazCasov(z, povzetek).igranje : null;
+  if (!stanje) stanje = { predpona: '', besedilo: st.napredek, kljuc: st.kljuc, napaka: st.napaka };
+
+  const info = [`danih ${81 - st.praznih}`];
+  if (z) {
+    info.push(zbirkaOznakaTehnik(z));
+    if (!zbirkaPrazno(z.koraki)) info.push(zbirkaStKorakov(z.koraki));
+    if (!zbirkaPrazno(z.reseno) && z.reseno < 81) info.push(`program rešil ${zbirkaProgramResil(z)}`);
+  }
+  return {
+    primer: primer ? primer.ime : null,
+    naslov,
+    stanje,
+    info: info.join(' · '),
+    opomba: (z && z.opomba) || '',
+    namig: z ? zbirkaNamigCasov(z, povzetek) : '',
+    gumb: st.gumb,
+  };
 }
 
 function zbirkaStKorakov(n) {
@@ -292,8 +356,16 @@ function zbirkaBeri() {
   try {
     const a = JSON.parse(localStorage.getItem(ZBIRKA_KLJUC) || '[]');
     if (!Array.isArray(a)) return [];
-    // Stara imena težavnosti preslikamo ob branju (zapišejo se ob prvem shranjevanju).
-    for (const z of a) if (z && z.tezavnost) z.tezavnost = zbirkaTezavnost(z.tezavnost);
+    for (const z of a) {
+      if (!z) continue;
+      // Stara imena težavnosti preslikamo ob branju (zapišejo se ob prvem shranjevanju).
+      if (z.tezavnost) z.tezavnost = zbirkaTezavnost(z.tezavnost);
+      // Enkratni popravek: vgrajeni primer, ki ga je reševalec shranil, preden je
+      // obstajal izvor 'primer' (kot ročni vnos s privzeto težavnostjo), dobi izvor
+      // in težavnost primera. Edina izjema od pravila, da se izvor ne spreminja.
+      const primer = !z.izvor || z.izvor === 'rocno' ? zbirkaPrimerZa(z.danosti) : null;
+      if (primer) Object.assign(z, { izvor: 'primer', tezavnost: primer.tezavnost });
+    }
     return a;
   } catch (e) {
     return [];
@@ -398,7 +470,7 @@ function zbirkaVMarkdown(zbirka) {
     // Reševanje s programom.
     if (z.nazadnje) vrstice.push(`- **Ocenjeno:** ${z.nazadnje}`);
     if (!zbirkaPrazno(z.reseno)) {
-      vrstice.push(`- **Program rešil:** ${z.reseno === 81 ? 'v celoti' : `delno (${z.reseno} od 81 celic)`}`);
+      vrstice.push(`- **Program rešil:** ${zbirkaProgramResil(z)}`);
     }
     if (!zbirkaPrazno(z.koraki)) vrstice.push(`- **Koraki:** ${z.koraki}`);
     if (!zbirkaPrazno(z.ugibanje)) vrstice.push(`- **Ugibanje:** ${z.ugibanje}`);
@@ -454,11 +526,17 @@ function zbirkaPretvoriUvozeni(s) {
   const tezavnost = zbirkaTezavnost(s['težavnost']);
   const izvor = zbirkaIzvor(s.izvor);
 
-  // "Program rešil" se je prej imenoval "Rešeno" - staro ime beremo še naprej.
+  // "Program rešil" se je prej imenoval "Rešeno" - staro ime beremo še naprej. Nova
+  // oblika "delno (36/57)" šteje samo prazne celice (reseno = danosti + 36), stara
+  // "delno (60 od 81 celic)" vse izpolnjene.
+  const danih = danosti.replace(/0/g, '').length;
   let reseno = null;
   const r = s['program rešil'] || s['rešeno'] || '';
+  const rStara = /(\d+)\s+od\s+81/.exec(r);
+  const rNova = /(\d+)\s*\/\s*\d+/.exec(r);
   if (r === 'v celoti') reseno = 81;
-  else if (/(\d+)\s+od\s+81/.test(r)) reseno = parseInt(/(\d+)\s+od\s+81/.exec(r)[1], 10);
+  else if (rStara) reseno = parseInt(rStara[1], 10);
+  else if (rNova) reseno = Math.min(81, danih + parseInt(rNova[1], 10));
 
   // Moje reševanje: iz vrstice "Stanje" razberem število izpolnjenih celic in napako.
   // Nova oblika "v teku (12/57)" šteje samo moje vpise (izpolnjeno = danosti + 12),
@@ -466,7 +544,6 @@ function zbirkaPretvoriUvozeni(s) {
   // izpolnjene celice) in "izpolnjena z napako" beremo še naprej.
   const igrano = datum(s['zadnje reševanje']);
   const st = (s.stanje || '').trim();
-  const danih = danosti.replace(/0/g, '').length;
   let izpolnjeno = null;
   let napaka = null;
   if (igrano) {

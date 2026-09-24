@@ -259,6 +259,11 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
 - **Delno narejeno 2026-09-23** (glej 6.2): stanja uganke imajo eno besedilo povsod (seznama,
   primeri, kartica »Uganka«, izvoz), razred `reseno` je postal `resena`. Odprto: programovi
   podatki (»program rešil delno (60/81)« / »delno (60 od 81 celic)«).
+- **Programovi podatki narejeni 2026-09-24** (faza 2, odločitev pri načrtu): števec programa
+  ima isto obliko kot moj napredek – samo celice, ki jih je treba izpolniti: »program rešil
+  delno (36/57)« v kartici, `**Program rešil:** delno (36/57)` v izvozu in namigu, isto v
+  sporočilu ob shranjevanju in v statusu reševalca (`zbirkaProgramResil()`). Uvoz bere tudi
+  staro obliko »delno (60 od 81 celic)«.
 
 ### 1.6 Števec »v teku (24 od 81)« šteje tudi danosti (opažanje 3)
 
@@ -331,6 +336,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   reševalcu« (ker naloži samo danosti, igra pa odpre igro). Oznaki »Namig« in »Rešitev« v
   treningu lahko ostaneta, ker delujeta drugače (drži za ogled).
 - **Obseg:** majhno.
+- **Delno narejeno 2026-09-24** (faza 2): gumb v seznamu zbirke reševalca je »Odpri«
+  (odločitev: ne »Odpri v reševalcu«, ker je uganka že v reševalcu). Poenotenje
+  »Prikaži«/»Pokaži« ostaja odprto.
 
 ---
 
@@ -362,6 +370,12 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   tehnike: 1, 3, 7 · 42 korakov«, (4) opomba. Različni so samo gumbi. En izraz za
   ugibanje (»+ poskus«, ker ga že uporablja oznaka tehnik).
 - **Obseg:** srednje (skupaj s 6.1).
+- **Narejeno 2026-09-24** (glej 6.1). Odločitve pri načrtu: 2. vrstica je **vedno**, tudi
+  pri novi uganki (»nova«); 3. vrstica »danih 24 · tehnike: 1, 3, 7 + poskus · 42 korakov«,
+  pri delni rešitvi programa še »· program rešil delno (36/57)« (1.5); »ugibal 2×« odpade.
+  »Trenutno odprta« je na enem mestu: modra črta in značka v 1. vrstici (v reševalcu je
+  trenutna uganka v vnosni mreži). Prazen seznam ima v obeh aplikacijah razred `prazno`,
+  besedili ostaneta različni.
 
 ### 2.2 Vgrajeni primeri so prikazani drugače kot uganke iz zbirke (opažanje 1)
 
@@ -380,6 +394,10 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
 - **Obseg:** srednje (skupaj z 1.5 in 6.1).
 - **Delno narejeno 2026-09-23** (glej 6.2): primeri kažejo ista besedila stanj kot zbirka.
   Odprto (faza 2): ista kartica, težavnost, tehnike in čas.
+- **Narejeno 2026-09-24:** primeri imajo isto kartico kot zbirka. Primer, ki je v zbirki (izvor
+  `primer`, 2.5), kaže podatke iz zapisa (dodana, čas reševanja, tehnike, koraki). Primer brez
+  zapisa kaže samo ime, stanje in »danih N«: brez časa, ker se `nazadnje` v shranjeni igri
+  osveži že ob odprtju igre, in brez tehnik, ker bi jih moral vsakič izračunati s `solve()`.
 
 ### 2.3 Ponovno reševanje rešene uganke ni vidno (opažanje 2)
 
@@ -410,6 +428,7 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
 - **Predlog:** namig miške v isti obliki kot seznam (`zbirkaPrikazDatuma()`), izvoz ostane
   nespremenjen.
 - **Obseg:** majhno.
+- **Narejeno 2026-09-24** (`zbirkaNamigCasov()`).
 
 ### 2.5 Reševalec shrani vgrajeni primer v zbirko, igra ne
 
@@ -469,6 +488,13 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   sestavljene na pamet.
 - **Obseg:** majhno (izvor `primer`), majhno (pretvorba in `PRIMERI`), polje »Niz« v
   reševalcu srednje (s 6.4).
+- **Izvor `primer` narejen 2026-09-24** (skupaj s fazo 2): reševalec shrani rešen primer z
+  izvorom `primer` in težavnostjo iz `PRIMERI` (3); `zbirkaBeri()` stare zapise primerov
+  (`rocno` ali `''`) popravi v `primer` s težavnostjo primera; igra primer pokaže samo pod
+  »Vgrajeni primeri« (»Tvoja zbirka«, števec na gumbu »Zbirka« in »Oceni zbirko« so brez
+  primerov), sama ga v zbirko ne doda; reševalec ga kaže v seznamu z imenom primera (tam ga
+  lahko izbrišeš). Odprto: pretvorba danosti (pika navzven, `danostiIzNiza()`) in polje »Niz«
+  v reševalcu.
 
 ### 2.6 Vrstica »Zapiši ocene (0)«
 
@@ -510,6 +536,11 @@ Glej 0.2 (vzrok je CSS, ne logika).
   - v igri naj kartica primera kaže težavnost in tehnike enako kot uganka iz zbirke (2.2);
   - danosti vseh primerov v zunanji obliki s piko (2.5).
 
+  **Delno narejeno 2026-09-24:** `PRIMERI` imajo polje `tezavnost` (vrednosti iz
+  `oceniUganko()`: Ekstrem, Zelo težka, Srednja, Srednja, Lahka) s testom v
+  `tests/generator.test.js`; iz njega dobi težavnost zapis primera, ki ga shrani reševalec
+  (2.5). Odprto: ime brez stopnje (`opis`), vrstni red, oblika s piko.
+
   **Ločena naloga (odločitev 2026-09-23):** dopolnitev primerov, da bo pokrita vsaka
   stopnja (tudi Težka) in vsaka tehnika 1–12. Uganke samo z orodji v `tools/`
   (`ustvari-uganko.js`, izbor z `analiziraj-zbirko.js`), preverjene s `countSolutions()`
@@ -537,7 +568,8 @@ Glej 0.2 (vzrok je CSS, ne logika).
   odprtem primeru).
 - **Vpliv na fazo 3:** ko bo primer, rešen v reševalcu, v zbirki z izvorom `primer` (2.5),
   se bo pokazal v zbirki na vrhu in v zaprtem razdelku spodaj – »pokaži enkrat« iz faze 3
-  ostane odprto.
+  ostane odprto. **Rešeno 2026-09-24** (2.5): primer je samo v razdelku spodaj; razdelek je
+  odprt tudi, kadar so v zbirki samo primeri (moja zbirka je takrat prazna).
 
 ---
 
@@ -720,6 +752,12 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 - **Predlog:** `shared/zbirka-ui.js` s funkcijo, ki za zapis vrne element kartice, gumbe
   pa doda klicatelj. Slogi seznama v `shared/`.
 - **Obseg:** srednje.
+- **Narejeno 2026-09-24:** podatki kartice so v `shared/zbirka.js` (`zbirkaKartica()` – brez
+  DOM-a, ker `zbirka.js` nalaga tudi `oceni-worker.js`), izris v `shared/zbirka-ui.js`
+  (`zbirkaIzrisiKartico(k, { trenutna, gumbi })`), slogi v `shared/zbirka.css`. Razredi so
+  povsod `.zbirka-seznam`/`.zb-*` (`.lib-line`, `.lib-casi`, `.lib-info`, `.lib-note` in
+  `.lib-actions` so odstranjeni). Iz igre so odstranjeni `oznakaStanja`, `infoUganke`,
+  `vrsticaIgranja`, `gumbiUganke` in `stanjeVSeznamu`.
 
 ### 6.2 Stanje igre se računa na treh mestih
 
@@ -866,7 +904,7 @@ komponente, na koncu videz in pomoč.
 |---|---|---|---|
 | **0 – napake** | 0.1, 0.2 | vidni napaki, popravek je nekaj vrstic, brez odločitev | majhno |
 | **1 – stanje uganke** | 6.2, 6.3, 1.6, 1.5, 2.3 | pokrije opažanja 1–3; najprej en vir podatkov (6.2), nato števec »12/57« in tri stanja (1.6), besedila (1.5) in ponovno reševanje (2.3); na tem gradita fazi 2 in 3 | srednje |
-| **2 – kartica zbirke** | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
+| **2 – kartica zbirke** (narejeno 2026-09-24, z izvorom `primer` iz 2.5 in težavnostjo primerov iz 3; od 1.7 samo gumb »Odpri«) | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
 | **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, reševalec jih shrani z izvorom `primer`, igra jih pokaže enkrat (s kartico iz faze 2), ročni vnos dobi pravo stopnjo | majhno–srednje |
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
 | **4 – imena tehnik in izrazi** | 1.3, 1.4, 1.1, 5.1, 5.2, 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |

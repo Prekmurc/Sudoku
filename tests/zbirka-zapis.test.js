@@ -3,8 +3,12 @@
 //   - težavnosti (TEZAVNOSTI): prve štiri so natanko stopnje generatorja, "Ekstrem"
 //     ostane za uganke z ugibanjem, stara imena (Začetnik, Preprosto, Srednje, Težko,
 //     Ekspert) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna;
-//   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator ali je vnesena ročno;
-//     zapiše se ob nastanku zapisa in se pozneje ne spreminja;
+//   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator, je vnesena ročno ali
+//     je vgrajeni primer; zapiše se ob nastanku zapisa in se pozneje ne spreminja -
+//     razen enkratnega popravka primerov, shranjenih kot ročni vnos (zbirkaBeri);
+//   - števec programa "delno (36/57)" (zbirkaProgramResil) v izvozu in uvozu (tudi
+//     stara oblika "delno (60 od 81 celic)");
+//   - podatki kartice uganke v seznamu (zbirkaKartica) - skupni za igro in reševalec;
 //   - moje reševanje v igri (igrano/izpolnjeno/napaka, zbirkaShraniIgranje) proti
 //     programovemu (nazadnje = "Ocenjeno", reseno = "Program rešil"), prikaz v dveh
 //     vrsticah in izvoz/uvoz obojega (uvoz bere tudi stari imeni "Nazadnje rešeno"
@@ -35,7 +39,8 @@ const E = loadEngine(undefined, {
     'zbirkaIzvor', 'zbirkaOpisIzvora', 'zbirkaShraniResitev', 'zbirkaBeri', 'zbirkaPisi',
     'zbirkaStanjeUganke', 'zbirkaPovzetekIgre', 'zbirkaPovzetekZapisa', 'zbirkaKazalecZapisa',
     'zbirkaPrikazCasov', 'zbirkaNamigCasov', 'zbirkaShraniIgranje',
-    'zbirkaZaSeznam', 'zbirkaVrsticaIgranja'],
+    'zbirkaZaSeznam', 'zbirkaVrsticaIgranja', 'PRIMERI', 'zbirkaPrimerZa', 'zbirkaProgramResil',
+    'zbirkaKartica'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -91,12 +96,13 @@ test('uvoz iz Markdowna: neznano ime težavnosti postane Drugo, novo ostane', ()
 /* ---------- izvor uganke (generator ali ročni vnos) ---------- */
 
 test('zbirkaIzvor(): ključ, besedilo iz izvoza ali nič', () => {
-  assert.deepEqual({ ...E.ZBIRKA_IZVORI }, { generator: 'ustvaril generator', rocno: 'ročni vnos' });
+  assert.deepEqual({ ...E.ZBIRKA_IZVORI }, { generator: 'ustvaril generator', rocno: 'ročni vnos', primer: 'vgrajeni primer' });
   assert.ok([...E.ZBIRKA_POLJA].includes('izvor'), 'izvor je med polji zapisa');
   assert.equal(E.zbirkaIzvor('generator'), 'generator');
   assert.equal(E.zbirkaIzvor('rocno'), 'rocno');
   assert.equal(E.zbirkaIzvor('ustvaril generator'), 'generator', 'besedilo iz izvoza');
   assert.equal(E.zbirkaIzvor('ročni vnos'), 'rocno');
+  assert.equal(E.zbirkaIzvor('vgrajeni primer'), 'primer');
   assert.equal(E.zbirkaIzvor(''), '');
   assert.equal(E.zbirkaIzvor(undefined), '');
   assert.equal(E.zbirkaIzvor('Oakever, Ekstrem (Lv4)'), '', 'neznano besedilo');
@@ -307,7 +313,8 @@ test('zbirkaPrikazCasov(): dve vrstici, brez reševanja samo prva', () => {
   assert.equal(E.zbirkaVrsticaIgranja(z), `zadnje reševanje 22. 9. 2026 ob 10:05 · v teku (12/${praznih})`);
   // Čas, ko je uganko ocenil program, v seznamu ni - je samo v namigu miške.
   assert.ok(!(casi.dodana + ' ' + E.zbirkaVrsticaIgranja(z)).includes('ocenjeno'));
-  assert.ok(E.zbirkaNamigCasov(z).includes('Ocenjeno: 2026-09-21 16:33'));
+  assert.ok(E.zbirkaNamigCasov(z).includes('Ocenjeno: 21. 9. 2026 ob 16:33'), 'namig v isti obliki kot seznam');
+  assert.ok(E.zbirkaNamigCasov(z).includes('Dodano: 21. 9. 2026 ob 16:33'));
   assert.ok(E.zbirkaNamigCasov(z).includes(`Stanje: v teku (12/${praznih})`));
   // Iz shranjene igre: napredek iz potez, čas še vedno iz zapisa.
   assert.equal(E.zbirkaVrsticaIgranja(z, povzetekIgre(vpisi(3))), `zadnje reševanje 22. 9. 2026 ob 10:05 · v teku (3/${praznih})`);
@@ -481,4 +488,93 @@ test('zbirkaZaSeznam(): po mojem zadnjem dogodku - reševanju, sicer dodajanju',
   // daljši zbirki pod vsemi reševanimi in je videti, kot da je sploh ni.
   const nova = { danosti: 'nova', dodano: '2026-09-22 19:30' };
   assert.equal([...E.zbirkaZaSeznam([...zbirka, nova])][0].danosti, 'nova');
+});
+
+/* ---------- vgrajeni primeri v zbirki (izvor "primer") ---------- */
+
+test('zbirkaPrimerZa(): primer po danostih, s piko ali ničlo', () => {
+  const p = E.PRIMERI[2];
+  assert.equal(E.zbirkaPrimerZa(p.danosti).ime, p.ime);
+  assert.equal(E.zbirkaPrimerZa(p.danosti.replace(/\./g, '0')).ime, p.ime);
+  assert.equal(E.zbirkaPrimerZa(danosti), null);
+});
+
+test('zbirkaBeri(): primer, shranjen kot ročni vnos, dobi izvor in težavnost primera', () => {
+  shramba.clear();
+  const p = E.PRIMERI[4];
+  const d = p.danosti.replace(/\./g, '0');
+  shramba.set('sudoku.zbirka.v1', JSON.stringify([
+    { danosti: d, tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 10:00' },
+    { danosti, tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 11:00' },
+  ]));
+  const [a, b] = [...E.zbirkaBeri()];
+  assert.equal(a.izvor, 'primer');
+  assert.equal(a.tezavnost, p.tezavnost);
+  assert.equal(b.izvor, 'rocno', 'navadna uganka ostane ročni vnos');
+  assert.equal(b.tezavnost, 'Ekstrem');
+  // Izvoz in uvoz izvora "vgrajeni primer".
+  const md = E.zbirkaVMarkdown(E.zbirkaBeri());
+  assert.ok(md.includes('- **Izvor:** vgrajeni primer'), md);
+  assert.equal([...E.zbirkaIzMarkdowna(md).zapisi][0].izvor, 'primer');
+});
+
+/* ---------- števec programa ---------- */
+
+test('zbirkaProgramResil(): "v celoti" ali "delno (36/57)" - samo prazne celice', () => {
+  assert.equal(E.zbirkaProgramResil({ danosti, reseno: 81 }), 'v celoti');
+  assert.equal(E.zbirkaProgramResil({ danosti, reseno: danih + 36 }), `delno (36/${praznih})`);
+  assert.equal(E.zbirkaProgramResil({ danosti, reseno: null }), '');
+  assert.equal(E.zbirkaProgramResil({ danosti }), '');
+
+  const z = { danosti, dodano: '2026-09-21 16:33', reseno: danih + 36 };
+  const md = E.zbirkaVMarkdown([z]);
+  assert.ok(md.includes(`- **Program rešil:** delno (36/${praznih})`), md);
+  assert.ok(!md.includes('od 81'), 'stara oblika se ne izvaža več');
+  assert.equal([...E.zbirkaIzMarkdowna(md).zapisi][0].reseno, danih + 36, 'iz "36/57" nazaj v izpolnjene celice');
+  // Stara oblika "delno (60 od 81 celic)" se še bere.
+  const staro = ['- **Danosti:** `' + danosti.replace(/0/g, '.') + '`', '- **Program rešil:** delno (60 od 81 celic)'].join('\n');
+  assert.equal([...E.zbirkaIzMarkdowna(staro).zapisi][0].reseno, 60);
+});
+
+/* ---------- kartica uganke ---------- */
+
+test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
+  const z = { danosti, tezavnost: 'Težka', izvor: 'generator', dodano: '2026-09-21 16:33',
+    reseno: 81, koraki: 42, ugibanje: 1, tehnike: [['Poskus in protislovje (V1S1 = 5)', 1]], opomba: 'op' };
+  const k = E.zbirkaKartica(danosti, z, null);
+  assert.equal(k.primer, null);
+  assert.equal(k.naslov, 'Težka · ustvaril generator · dodana 21. 9. 2026 ob 16:33');
+  assert.deepEqual({ ...k.stanje }, { predpona: '', besedilo: 'nova', kljuc: 'nova', napaka: false }, 'nova uganka ima 2. vrstico');
+  assert.equal(k.info, `danih ${danih} · tehnike: samo enojčki + poskus · 42 korakov`, 'ugibanje je "+ poskus"');
+  assert.equal(k.opomba, 'op');
+  assert.equal(k.gumb, 'Igraj');
+  assert.ok(k.namig.startsWith('Dodano: 21. 9. 2026 ob 16:33'));
+
+  // V teku iz shranjene igre: stanje in gumb iz istega vira.
+  const vTeku = E.zbirkaKartica(danosti, { ...z, igrano: cas, izpolnjeno: danih + 2 }, povzetekIgre(vpisi(3)));
+  assert.equal(vTeku.stanje.predpona, 'zadnje reševanje 22. 9. 2026 ob 10:05');
+  assert.equal(vTeku.stanje.besedilo, `v teku (3/${praznih})`);
+  assert.equal(vTeku.gumb, 'Nadaljuj');
+
+  // Brez težavnosti in izvora; delna rešitev programa.
+  const brez = E.zbirkaKartica(danosti, { danosti, dodano: '2026-09-21 16:33', reseno: danih + 36, koraki: 1 }, null);
+  assert.equal(brez.naslov, 'težavnost ni določena · dodana 21. 9. 2026 ob 16:33');
+  assert.equal(brez.info, `danih ${danih} · tehnike: ni podatkov · 1 korak · program rešil delno (36/${praznih})`);
+});
+
+test('zbirkaKartica(): vgrajeni primer z zapisom in brez njega', () => {
+  const p = E.PRIMERI[4];
+  const d = p.danosti.replace(/\./g, '0');
+  const danihP = d.replace(/0/g, '').length;
+  const brez = E.zbirkaKartica(d, null, null);
+  assert.equal(brez.primer, p.ime);
+  assert.equal(brez.naslov, p.ime);
+  assert.equal(brez.stanje.besedilo, 'nova');
+  assert.equal(brez.info, `danih ${danihP}`, 'brez zapisa ni podatkov reševanja');
+  assert.equal(brez.namig, '');
+
+  const z = { danosti: d, tezavnost: p.tezavnost, izvor: 'primer', dodano: '2026-09-21 16:33', reseno: 81, koraki: 50, tehnike: [] };
+  const zZapisom = E.zbirkaKartica(d, z, null);
+  assert.equal(zZapisom.naslov, `${p.ime} · dodana 21. 9. 2026 ob 16:33`, 'izvor pove že ime');
+  assert.equal(zZapisom.info, `danih ${danihP} · tehnike: samo enojčki · 50 korakov`);
 });
