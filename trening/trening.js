@@ -6,6 +6,10 @@ const MAX_EX=9;
 /* ========== UI ========== */
 
 let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
+// Pomoč (Namig ali Rešitev - vsak ogled, tudi kratek): vaja s pomočjo se ne šteje nikamor,
+// ne med pravilne ne med napačne - že šteti poskusi te vaje se ob ogledu odštejejo.
+// Ogled po pravilnem odgovoru ne spremeni ničesar (vaja je končana).
+let pomocVaje=false,vajaResena=false,vajaPrav=0,vajaVseh=0,sPomocjo=0,stetoObPreveri=false;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
 // Vrstni red in oznake kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE (1-12)
@@ -20,7 +24,7 @@ const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('
 
 document.querySelectorAll('.menu-card').forEach(card=>{
   card.addEventListener('click',()=>{
-    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;
+    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;
     updateScore();menuEl.style.display='none';trainerEl.style.display='block';
     renderExercise();
   });
@@ -223,12 +227,14 @@ function renderExercise(){
   if(exNum>=MAX_EX){
     area.innerHTML='';const d=document.createElement('div');d.className='exercise';
     const pct=scoreTotal>0?Math.round(scoreRight/scoreTotal*100):0;
-    d.innerHTML=`<h3>Končano!</h3><p style="font-size:15px">Rezultat: <b>${scoreRight}</b> / <b>${scoreTotal}</b> (${pct}%)</p>
+    d.innerHTML=`<h3>Končano!</h3><p style="font-size:15px">Rezultat: <b>${scoreRight}</b> / <b>${scoreTotal}</b> (${pct}%)</p>${sPomocjo?`
+      <p style="font-size:14px;color:#3C4854">S pomočjo: <b>${sPomocjo}</b> (ne štejejo)</p>`:''}
       <p style="font-size:14px;color:#3C4854">Pritisni "Nazaj na izbiro" za novo vadbo.</p>`;
     area.appendChild(d);return;
   }
   const ex=M.gen(exNum);
   selected=[];pickedDigits=[];area.innerHTML='';
+  pomocVaje=false;vajaResena=false;vajaPrav=0;vajaVseh=0;
 
   const div=document.createElement('div');div.className='exercise';
   div.innerHTML=`<p class="ex-label">${M.name} · Vaja ${exNum+1} / ${MAX_EX}</p><h3>${ex.unitLabel}</h3><p class="desc">${ex.desc||M.desc}</p>`;
@@ -334,11 +340,11 @@ function renderExercise(){
     }
     phase2.appendChild(digitBtnsDiv);
     const ch2=document.createElement('button');ch2.className='pri '+M.btnClass;ch2.textContent='Preveri '+p2word;
-    ch2.addEventListener('click',()=>checkPhase2(ex,M,cellEls,ch2,nextBtn,fb));
+    ch2.addEventListener('click',()=>preveri(()=>checkPhase2(ex,M,cellEls,ch2,nextBtn,fb),fb));
     phase2.appendChild(ch2);
   }
 
-  checkBtn.addEventListener('click',()=>checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2));
+  checkBtn.addEventListener('click',()=>preveri(()=>checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2),fb));
   btnRow.appendChild(checkBtn);btnRow.appendChild(nextBtn);
   div.appendChild(btnRow);
   if(phase2) div.appendChild(phase2);
@@ -464,6 +470,7 @@ function renderExercise(){
   const solOverlay=document.createElement('div');solOverlay.className='peek-overlay';
 
   function peekOn(overlay,text,showHL){
+    oznaciPomoc();
     overlay.innerHTML=text;
     overlay.classList.add('visible');
     if(showHL){
@@ -535,9 +542,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     const selSet=new Set(selected.map(si=>ex.slots[si].idx));
     const steps=techFn(fakeBoard).filter(s=>s.eliminate.length&&s.eliminate[0][1]===ex.digit);
     const match=steps.find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
-    scoreTotal++;
+    stej(!!match);
     if(match){
-      scoreRight++;updateScore();
       const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
       fb.className='fb ok';
       fb.innerHTML=`<b>Pravilno!</b> ${match.message}`;
@@ -550,7 +556,6 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       });
       checkBtn.style.display='none';nextBtn.style.display='inline-block';
     } else {
-      updateScore();
       const where=M.isPointing?'bloku':(ex.primaryType==='row'?'vrstici':'stolpcu');
       const target=M.isPointing?'eno vrstico/stolpec':'en blok';
       fb.className='fb err';
@@ -570,9 +575,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
     const selSet=new Set(selected.map(si=>ex.slots[si].idx));
     const match=techFn(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
-    scoreTotal++;
+    stej(!!match);
     if(match){
-      scoreRight++;updateScore();
       const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
       fb.className='fb ok';
       fb.innerHTML=`<b>Pravilno!</b> ${match.message}`;
@@ -585,7 +589,6 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       });
       checkBtn.style.display='none';nextBtn.style.display='inline-block';
     } else {
-      updateScore();
       fb.className='fb err';
       fb.innerHTML=M.isXYWing
         ? '<b>To še ni veljaven XY-Wing.</b> Pivot mora imeti natanko dva kandidata, <b>obe krili</b> morata pivota videti (ista vrstica, stolpec ali blok) in si z njim deliti po eno številko, skupna pa jima mora biti tretja številka.'
@@ -669,9 +672,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
         }
       }
     }
-    scoreTotal++;
+    stej(valid);
     if(valid){
-      scoreRight++;updateScore();
       const typeLabel=baseIsRow?'Vrstični':'Stolpčni';
       const techName=M.isSwordfish?'Swordfish':'X-Wing';
       const baseWord=baseIsRow?'vrsticah':'stolpcih';
@@ -684,7 +686,6 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       elimNow.forEach(idx=>cellEls[idx].classList.add('xw-elim'));
       checkBtn.style.display='none';nextBtn.style.display='inline-block';
     } else {
-      updateScore();
       const rArr=[...rows],cArr=[...cols];
       let detail=`Izbrane celice: ${rows.size} vrstic, ${cols.size} stolpcev. `;
       if(M.isSwordfish){
@@ -727,7 +728,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
   const isTarget=sorted.every((v,i)=>v===target[i]);
   const isValid=allOk&&union.size===M.pickN;
 
-  scoreTotal++;if(isTarget||isValid) scoreRight++;updateScore();
+  // Izbira dane (fiksne) celice se ne šteje.
+  if(allOk) stej(isTarget||isValid);
 
   if(isTarget||isValid){
     const ds=isTarget?new Set(ex.targetDigits):union;
@@ -743,7 +745,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     ex.slots.forEach((slot,si)=>{if(ps.includes(si)||!slot.c)return;cellEls[si].querySelectorAll('.cd').forEach(cd=>{const d=+cd.dataset.d;if(ds.has(d)&&slot.c.includes(d))cd.classList.add('elim');});});
     checkBtn.style.display='none';nextBtn.style.display='inline-block';
   } else if(!allOk){
-    fb.className='fb err';fb.textContent='Ena od izbranih celic je fiksna.';cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];scoreTotal--;
+    fb.className='fb err';fb.textContent='Ena od izbranih celic je fiksna.';cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
   } else {
     fb.className='fb err';fb.innerHTML=`<b>Ni ${M.pickN===2?'par':'trojica'}.</b> Unija: {${[...union].sort((a,b)=>a-b).join(', ')}} = ${union.size} različnih (rabiš ${M.pickN}).`;
     cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
@@ -763,7 +765,7 @@ function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
     pickedDigits=[];document.querySelectorAll('.digit-btns button').forEach(b=>b.classList.remove('picked'));
   };
   if(r.izid==='prav'){
-    scoreTotal++;scoreRight++;updateScore();
+    stej(true);
     fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${r.sporocilo}`;
     const gc=cellEls[celica];
     gc.classList.remove(M.selClass,'selectable');gc.classList.add('stevka','correct');gc.textContent=stevka;
@@ -773,7 +775,7 @@ function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
     fb.className='fb err';fb.innerHTML=`<b>Še ne.</b> ${r.sporocilo}`;
     pocisti();
   } else {
-    scoreTotal++;updateScore();
+    stej(false);
     fb.className='fb err';fb.innerHTML=`<b>Ni pravilno.</b> ${r.sporocilo}`;
     pocisti();
   }
@@ -784,7 +786,7 @@ function checkPhase2(ex,M,cellEls,ch2,nextBtn,fb){
   if(pickedDigits.length!==p2n){fb.className='fb err';fb.textContent=`Izberi natanko ${p2n} številk${p2n===2?'i':'e'}.`;return;}
   const s=[...pickedDigits].sort((a,b)=>a-b),t=[...ex.targetDigits].sort((a,b)=>a-b);
   const correct=s.length===t.length&&s.every((v,i)=>v===t[i]);
-  scoreTotal++;if(correct) scoreRight++;updateScore();
+  stej(correct);
 
   if(correct){
     const ds=new Set(t);
@@ -802,8 +804,38 @@ function checkPhase2(ex,M,cellEls,ch2,nextBtn,fb){
   }
 }
 
+// Edino mesto, ki spremeni rezultat: poskus trenutne vaje (pravilen ali napačen).
+function stej(pravilno){
+  stetoObPreveri=true;
+  if(pravilno) vajaResena=true;
+  if(!pomocVaje){
+    scoreTotal++;vajaVseh++;
+    if(pravilno){scoreRight++;vajaPrav++;}
+  }
+  updateScore();
+}
+
+// Ogled namiga ali rešitve: vaja se ne šteje - že šteti poskusi se odštejejo.
+function oznaciPomoc(){
+  if(pomocVaje||vajaResena) return;
+  pomocVaje=true;sPomocjo++;
+  scoreTotal-=vajaVseh;scoreRight-=vajaPrav;vajaVseh=0;vajaPrav=0;
+  updateScore();
+}
+
+// Preverjanje odgovora; če je bil poskus ocenjen pri vaji s pomočjo, sporočilo to pove.
+function preveri(f,fb){
+  stetoObPreveri=false;
+  f();
+  if(stetoObPreveri&&pomocVaje){
+    const o=document.createElement('span');o.className='s-pomocjo';o.textContent=' (s pomočjo – ne šteje)';
+    fb.appendChild(o);
+  }
+}
+
 function updateScore(){
   document.getElementById('scoreRight').textContent=scoreRight;
   document.getElementById('scoreTotal').textContent=scoreTotal;
   document.getElementById('scorePercent').textContent=scoreTotal>0?Math.round(scoreRight/scoreTotal*100)+'%':'';
+  document.getElementById('scorePomoc').textContent=sPomocjo?` · s pomočjo: ${sPomocjo}`:'';
 }

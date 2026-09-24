@@ -124,6 +124,7 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .fb{padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.6;margin:10px 0 0;display:none}
 .fb.ok{display:block;background:var(--green-bg);border:1px solid #A8D9BE;color:#135A3C}
 .fb.err{display:block;background:var(--red-bg);border:1px solid #E0B0B0;color:#7A1F1F}
+.fb .s-pomocjo{font-style:italic;color:var(--pencil)}
 
 /* Namig/Rešitev gumbi - prikaže se samo med držanjem */
 .peek-row{display:flex;gap:8px;margin:8px 0 0}

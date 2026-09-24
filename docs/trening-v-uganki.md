@@ -429,8 +429,10 @@ kjer se razlikujejo.
    tudi te presežejo mejo).
 7. **Krog in štetje: enako kot pri obstoječih vajah** – 9 vaj v krogu (`MAX_EX`), rezultat
    »pravilno / vseh« z odstotkom in na koncu »Končano!«.
-8. **Vaja s pomočjo** (namig ali rešitev) **se ne šteje med pravilne.** Opomba: obstoječe
-   vaje tega zdaj ne delajo – gumba »Namig (drži)« in »Rešitev (drži)« v `trening/trening.js`
-   rezultata ne spremenita (vaja, rešena po ogledu rešitve, šteje kot pravilna). Zapis
-   »enako kot pri obstoječih vajah« torej velja za namen, ne za sedanje obnašanje; ali naj
-   se tudi »Spoznaj« spremeni, ostaja odprto.
+8. **Vaja s pomočjo se ne šteje nikamor** – ne med pravilne ne med napačne. Pomoč je ogled
+   namiga **ali** rešitve (vsak ogled, tudi kratek); že šteti poskusi vaje se ob ogledu
+   odštejejo, ogled po pravilnem odgovoru pa ne spremeni ničesar. Ob rezultatu je oznaka
+   **»s pomočjo«** (pri sporočilu po »Preveri«, v vrstici rezultata »s pomočjo: N« in v
+   povzetku kroga). »Nova vaja« oznako ponastavi. Pravilo velja za »Vadi v uganki« **in**
+   za »Spoznaj« (v `trening/trening.js` narejeno 2026-09-24, test
+   `tests/trening-pomoc.test.js`).
