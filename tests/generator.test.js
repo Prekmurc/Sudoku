@@ -48,7 +48,7 @@ test('stopnje: ključi, imena in opisi', () => {
   assert.equal(E.stopnjaUganke('ni-take'), null);
   // Napredne tehnike = vse razen enojčkov, presekov, parov in trojic.
   assert.deepEqual([...E.GEN_NAPREDNE],
-    ['X-Wing', 'Turbot Fish', 'Swordfish', 'W-Wing', 'XY-Wing', 'Unique Rectangle']);
+    ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle']);
 });
 
 test('vsaka ustvarjena uganka ima natanko eno rešitev in jo solve() reši brez ugibanja', () => {
@@ -242,25 +242,31 @@ test('seme 1 da uganko lahka-seme-1 iz docs/uganke.md', () => {
 test('lahka-seme-197 iz docs/uganke.md je po novem merilu srednja', () => {
   const danosti = '073004002049060800105800000000000026000090370387002000492070600000009050500206907';
   assert.deepEqual(stopnjeZa(danosti), ['srednja']);
-  assert.equal(E.genRazvrsti(danosti).skupina, 2, 'najlažja zadostna skupina so preseki');
+  assert.equal(E.genRazvrsti(danosti).skupina, 1, 'najlažja zadostna skupina so preseki');
 });
 
-test('seme 97 (strogoSrednja) da uganko, ki ustreza srednji stopnji', () => {
-  const u = E.ustvariUganko('srednja', 97, { strogoSrednja: true });
+// Od preureditve tehnik 2026-09-24 (preseki pred očitno paro) je prvo seme, ki da
+// uganko po strogem merilu, 1185 (prej 97 - ta pot zdaj namesto para uporabi presek).
+test('seme 1185 (strogoSrednja) da uganko, ki ustreza srednji stopnji', () => {
+  const u = E.ustvariUganko('srednja', 1185, { strogoSrednja: true });
   assert.equal(u.danosti,
-    '004007025100003000070800000800090034040005009960000002001006000000000000000004761');
+    '709003000050000600002007509007040000000000010004280000095070003030000075000000260');
   assert.equal(E.countSolutions(u.danosti), 1);
   assert.deepEqual(stopnjeZa(u.danosti), ['srednja']);
 });
 
-test('srednja-a iz docs/uganke.md še ustreza merilu srednje stopnje', () => {
+// srednja-a je nastala po strogem merilu (par in trojica na poti). Od preureditve
+// tehnik 2026-09-24 pridejo preseki pred očitno paro in pot para ne potrebuje več,
+// zato strogemu merilu ne ustreza; srednja ostaja po obeh merilih brez strogega.
+test('srednja-a iz docs/uganke.md je srednja, strogemu merilu pa ne ustreza več', () => {
   const danosti = '004007025100003000070800000800090034040005009960000572001006000000000000000004761';
-  const o = E.oceniStopnjo('srednja', danosti, { strogoSrednja: true });
-  assert.ok(o.ustreza, 'uganka mora ustrezati merilu srednje stopnje');
+  assert.equal(E.oceniUganko(danosti).tezavnost, 'Srednja');
+  assert.ok(E.oceniStopnjo('srednja', danosti).ustreza, 'merilo iskanja srednje stopnje');
+  assert.ok(!E.oceniStopnjo('srednja', danosti, { strogoSrednja: true }).ustreza, 'strogo merilo');
 });
 
 test('strogoSrednja zahteva par in trojico na poti', () => {
-  const u = E.ustvariUganko('srednja', 97, { strogoSrednja: true });
+  const u = E.ustvariUganko('srednja', 1185, { strogoSrednja: true });
   const pot = [...u.mere.uporabljene];
   assert.ok(pot.some(ime => E.GEN_PARI.includes(ime)), 'par na poti');
   assert.ok(pot.some(ime => E.GEN_TROJICE.includes(ime)), 'trojica na poti');

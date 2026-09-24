@@ -13,8 +13,8 @@ s semenom).
 
 ## Pokritost tehnik
 
-Stanje 2026-09-20 za spodnjih osem ugank, z vrstnim redom tehnik po težavnosti opažanja
-za človeka (glej `CLAUDE.md`, razdelek Arhitektura). »Uporabljena« pomeni, da `solve()`
+Stanje 2026-09-24 za spodnjih osem ugank, z vrstnim redom tehnik po zahtevnosti znotraj
+ravni (glej `CLAUDE.md`, razdelek Arhitektura, in `docs/tehnike.md`). »Uporabljena« pomeni, da `solve()`
 korak te tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike
 vzorec v kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak
 tehnike, ki je v `ALL_TECHNIQUES` pred njo. Preglednico osveži
@@ -24,17 +24,17 @@ zbirke bi zaprla katero vrzel.
 | Tehnika | Št. ugank | Uporabljena v |
 |---|---|---|
 | Gol enojček, Skriti enojček | 8 | vseh osem |
-| Pointing pair/triple | 5 | vse razen oakever-ekstrem-lv4 in srednja-a (tam samo najdena) |
-| Naked pair | 5 | vse razen oakever-ekstrem-17-b in lahka-seme-197 (tam samo najdena) |
+| Pointing pair/triple | 7 | vse razen lahka-seme-1 (od 2026-09-24; prej ne v oakever-ekstrem-lv4 in srednja-a) |
+| Box-line reduction | 4 | hard-17-a, example-app, oakever-ekstrem-17-a, srednja-a (od 2026-09-24; prej samo hard-17-a in example-app) |
 | Turbot Fish | 4 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
 | Hidden pair | 3 | hard-17-a, example-app, oakever-ekstrem-17-b |
 | Naked triple | 3 | hard-17-a, oakever-ekstrem-17-a, srednja-a |
-| **Box-line reduction** | **2** | hard-17-a, example-app (od 2026-09-20; prej samo hard-17-a) |
 | **W-Wing** | **2** | oakever-ekstrem-lv4, oakever-ekstrem-17-b (od 2026-09-20 ne več v hard-17-a) |
+| **Naked pair** | **1** | samo oakever-ekstrem-17-a; od 2026-09-24 (preseki pred očitnim parom) ne več v hard-17-a, oakever-ekstrem-lv4, example-app in srednja-a – tam te korake zdaj naredita preseka |
 | **Hidden triple** | **1** | samo srednja-a (blok); od 2026-09-20 ne več v example-app in oakever-ekstrem-17-b – tam je samo najdena |
 | **X-Wing** | **1** | samo oakever-ekstrem-lv4 (tam dvakrat) |
 | **Unique Rectangle** | **1** | samo oakever-ekstrem-lv4; od 2026-09-20 ne več v hard-17-a |
-| **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing, Turbot Fish ali tehnika pred njima najde korak prej |
+| **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing ali tehnika pred njim najde korak prej (od 2026-09-24 je Swordfish pred Turbot Fish) |
 | **XY-Wing** | **0** | samo najdena; od uvedbe W-Wing ni več na vrsti – pokrita neposredno s `tests/xy-wing.test.js` |
 
 Uganka `lahka-seme-1` (dodana 2026-09-20 kot najlažja stopnja) pokritosti ne spremeni –
@@ -44,10 +44,10 @@ Vsaka tehnika iz `ALL_TECHNIQUES` je v teh ugankah vsaj *najdena*, zato je vsako
 pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish, W-Wing in
 XY-Wing), brez novih ugank. Za pokritost prek dnevnika `solve()` manjkata Swordfish in
 XY-Wing (1–2 novi uganki, ena, če bi ena uganka zahtevala obe), na eni sami uganki pa
-slonijo Hidden triple, X-Wing in Unique Rectangle. Teh tehnik iskanje po težavnosti ne
-zadene zanesljivo – odloča vrstni red v `ALL_TECHNIQUES`: Swordfish pride na vrsto šele,
-ko odpovesta X-Wing in Turbot Fish, XY-Wing šele, ko odpove tudi W-Wing, Box-line
-reduction pa šele, ko odpovesta Naked pair in Pointing pair/triple.
+slonijo Naked pair, Hidden triple, X-Wing in Unique Rectangle. Teh tehnik iskanje po
+težavnosti ne zadene zanesljivo – odloča vrstni red v `ALL_TECHNIQUES`: Swordfish pride na
+vrsto šele, ko odpove X-Wing, XY-Wing šele, ko odpovesta tudi Turbot Fish in W-Wing, Naked
+pair pa šele, ko odpovesta oba preseka.
 
 Sprememba sidranja 2026-09-20 (sidro na številko popusti lažji skupini tehnik, glej
 `nextStep()` v `shared/engine.js`) je pokritost premaknila: zahtevnejših korakov je manj
@@ -56,6 +56,13 @@ Rectangle 2 → 1, Turbot Fish 8 → 7), presekov in golih enojčkov pa več (Po
 Gol enojček 152 → 156). Skupno je korakov 504 → 493, ugibanj pa enako (3). Ker so zdaj
 zahtevnejše tehnike pokrite slabše, so zanje toliko pomembnejši neposredni testi nad
 posnetki stanja (`turbot-fish.test.js`, `w-wing.test.js`, `xy-wing.test.js`).
+
+Sprememba vrstnega reda tehnik 2026-09-24 (znotraj ravni po zahtevnosti: preseki pred
+očitnim parom, Swordfish pred Turbot Fish; `docs/tehnike.md`) je spremenila dnevnike petih
+ugank, težavnosti pa nobene. Na vseh osmih ugankah: korakov 548 → 554, Pointing
+pair/triple 30 → 42, Box-line reduction 3 → 5, Naked pair 9 → 1, Gol enojček 185 → 187,
+Skriti enojček 294 → 292; ugibanj je enako (3), z istimi izbrisi. Naked pair je zdaj
+pokrit samo še z eno uganko – kandidat za dopolnitev (naloga 3a v `docs/uskladitev.md`).
 
 ## Porazdelitev naključnih ugank (meritev 2026-09-20)
 
@@ -131,6 +138,12 @@ tehnik, 2,8 [1–12] korakov nad enojčki, 59,5 skupaj; težka 2,7 [1–4] tehni
 korakov nad enojčki, 60,6 skupaj; zelo težka 4,6 [2–7] tehnik, 7,4 [1–18] korakov nad
 enojčki, 64,1 skupaj. Danosti so v vseh razredih 21–27 z mediano 24.
 
+Skupine v zgornjih tabelah so iz meritve 2026-09-20 (»Naked pair« je bila takrat svoja
+skupina pred preseki). Od 2026-09-24 so skupine `TECHNIQUE_GROUPS` enojčki · preseki ·
+para · trojici · napredne; meje ravni (enojčki / srednje / napredne) in z njimi merila
+stopenj so ostale iste – na 300 naključnih minimalnih ugankah je težavnost spremenila ena
+sama (Težka → Zelo težka, ker pot zdaj pred Turbot Fish vzame Swordfish).
+
 Očitna para je namenoma v **srednji**, ne v lahki: zahteva zapisane kandidate in iskanje
 vzorca, lahka pa pomeni uganko, ki se reši s samim pregledovanjem mreže.
 
@@ -157,10 +170,13 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   `hard-17-bifurcation-x3`.
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši.
 - **Značilnost:** `solve()` (`shared/engine.js`) jo reši v 83 korakih: Skriti enojček (38),
-  Gol enojček (26), Pointing pair/triple (8), Hidden pair (3), Box-line reduction (2),
-  Naked triple (2), Turbot Fish (2), Naked pair (1) in enkrat `tryBifurcation` ("Poskus in
-  protislovje (forcing chain)"), na indeksu koraka 29 od 83 (V1S2≠8). Turbot Fish: Zmaj z
-  dvema vrvicama (4) na indeksu 28, Skyscraper (4) na indeksu 37.
+  Gol enojček (26), Pointing pair/triple (9), Hidden pair (3), Box-line reduction (2),
+  Naked triple (2), Turbot Fish (2) in enkrat `tryBifurcation` ("Poskus in protislovje
+  (forcing chain)"), na indeksu koraka 29 od 83 (V1S2≠8). Turbot Fish: Zmaj z dvema
+  vrvicama (4) na indeksu 28, Skyscraper (4) na indeksu 37.
+- **Zgodovina (vrstni red 2026-09-24):** korakov enako (83), ugibanje in Turbot Fish na
+  istih indeksih; dnevnika se razideta na indeksu 20, kjer izbris 3 iz stolpca 5 namesto
+  Naked pair naredi Pointing pair/triple (8 → 9, Naked pair 1 → 0).
 - **Zgodovina:** po spremembi sidranja (2026-09-20; sidro na številko popusti lažji skupini
   tehnik) je korakov enako (83) in ugibanje isto (V1S2≠8), le dve mesti pozneje (indeks 29
   namesto 27); W-Wing in Unique Rectangle se ne uporabita več (sta samo najdena), namesto
@@ -191,13 +207,18 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   (81/81 zapolnjenih celic).
 - **Značilnost:** naš `solve()` (`shared/engine.js`) jo reši brez sestopanja
   (`tryBifurcation` – "Poskus in protislovje" – se ne uporabi niti enkrat), v 72
-  korakih. Uporabljene tehnike in število uporab: Skriti enojček (47), Gol enojček (17),
-  Naked pair (3), X-Wing (2 – na številki 4, na indeksih 43 in 44), Turbot Fish (1 – Zmaj
-  z dvema vrvicama na številki 4, na indeksu 42), Unique Rectangle (1, na indeksu 45),
-  W-Wing (1 – par {3,9} v V1S9 in V2S2, izbris V1S3≠3, na indeksu 48). Od tehnik, ki jih
+  korakih. Uporabljene tehnike in število uporab: Skriti enojček (46), Gol enojček (18),
+  Pointing pair/triple (5), X-Wing (2 – na številki 4, na indeksih 45 in 46), Turbot Fish
+  (1 – Zmaj z dvema vrvicama na številki 4, na indeksu 44), Unique Rectangle (1, na
+  indeksu 47), W-Wing (1 – par {3,9} v V1S9 in V2S2, na indeksu 50). Od tehnik, ki jih
   je navedel Oakever, reševalec uporabi X-Wing, Zmaj z dvema vrvicama (kot Turbot Fish) in
   W-Wing; Jellyfish (ki ga nima) ne potrebuje, XY-Wing pa od uvedbe W-Wing ni več na
   vrsti. Edina uganka tu, ki uporabi X-Wing in Unique Rectangle.
+- **Zgodovina (vrstni red 2026-09-24):** 74 korakov namesto 72, še vedno brez ugibanja;
+  dnevnika se razideta že na indeksu 2: Naked pair (3 → 0) zamenja Pointing pair/triple
+  (0 → 5), napredni koraki so isti, le dve mesti pozneje. Prej: Skriti enojček (47), Gol
+  enojček (17), Naked pair (3), X-Wing (2, indeksa 43 in 44), Turbot Fish (1, indeks 42),
+  Unique Rectangle (1, indeks 45), W-Wing (1, izbris V1S3≠3, indeks 48).
 - **Zgodovina:** po spremembi sidranja (2026-09-20) 72 korakov namesto 75, še vedno brez
   ugibanja: Pointing pair/triple (3 → 0) in Hidden pair (1 → 0) odpadeta, Turbot Fish
   2 → 1, X-Wing 1 → 2, W-Wing izbriše V1S3≠3 namesto V2S5≠3. Prej: Skriti enojček (51),
@@ -219,8 +240,11 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   tam je isti niz zapisan z ničlami namesto pik.
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši.
 - **Značilnost:** `solve()` jo reši v 79 korakih: Skriti enojček (40), Gol enojček (24),
-  Pointing pair/triple (9), Hidden pair (3), Box-line reduction (1, na indeksu 12), Naked
-  pair (1) in enkrat `tryBifurcation`, na indeksu koraka 52 od 79 (V1S6≠7).
+  Pointing pair/triple (10), Hidden pair (3), Box-line reduction (1, na indeksu 12) in
+  enkrat `tryBifurcation`, na indeksu koraka 52 od 79 (V1S6≠7).
+- **Zgodovina (vrstni red 2026-09-24):** korakov enako (79), ugibanje isto na istem
+  indeksu; razlika je samo na indeksu 50, kjer izbris 2 iz V9S6 namesto Naked pair naredi
+  Pointing pair/triple (9 → 10, Naked pair 1 → 0).
 - **Zgodovina:** po spremembi sidranja (2026-09-20) 79 korakov namesto 77, ugibanje isto
   (V1S6≠7), le na indeksu 52 namesto 50. Hidden triple (številke 2,7,8 v bloku 1, prej na
   indeksu 41) se ne uporabi več – je samo najdena; Box-line reduction se je vrnila v
@@ -238,12 +262,17 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   ugibanja s tehnikami Skyscraper, Two-String Kite in XY-Chain.
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
-- **Značilnost:** `solve()` jo reši v 73 korakih: Skriti enojček (41), Gol enojček (23),
-  Pointing pair/triple (3), Naked pair (2), Turbot Fish (2), Naked triple (1) in enkrat
-  `tryBifurcation` ("Poskus in protislovje (forcing chain)"), na indeksu koraka 46 od 73
-  (V1S5≠2). Turbot Fish: Zmaj z dvema vrvicama (4) na indeksu 42, Skyscraper (7) na
-  indeksu 44. Na mestu ugibanja `turbotFish()` ne najde ničesar. Merilni primer za Turbot
-  Fish in W-Wing.
+- **Značilnost:** `solve()` jo reši v 75 korakih: Skriti enojček (40), Gol enojček (24),
+  Pointing pair/triple (5), Turbot Fish (2), Box-line reduction (1), Naked pair (1), Naked
+  triple (1) in enkrat `tryBifurcation` ("Poskus in protislovje (forcing chain)"), na
+  indeksu koraka 48 od 75 (V1S5≠2). Turbot Fish: Zmaj z dvema vrvicama (4) na indeksu 44,
+  Skyscraper (7) na indeksu 46. Na mestu ugibanja `turbotFish()` ne najde ničesar.
+  Merilni primer za Turbot Fish in W-Wing; od 2026-09-24 edina uganka tu, ki v dnevniku
+  `solve()` uporabi Naked pair (na indeksu 43).
+- **Zgodovina (vrstni red 2026-09-24):** 75 korakov namesto 73, ugibanje isto (V1S5≠2) na
+  indeksu 48 namesto 46; dnevnika se razideta na indeksu 18, kjer Naked pair zamenjata
+  Pointing pair/triple in Box-line reduction (Pointing 3 → 5, Box-line 0 → 1, Naked pair
+  2 → 1). Oba koraka Turbot Fish ostaneta, dve mesti pozneje.
 - **Zgodovina (sidranje 2026-09-20):** 73 korakov namesto 78, ugibanje isto (V1S5≠2) na
   indeksu 46 namesto 51. Hidden pair (4 → 0) se ne uporabi več (je samo najdena),
   Pointing pair/triple 4 → 3; oba koraka Turbot Fish ostaneta, le prej (indeksa 42 in 44
@@ -279,8 +308,8 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   enojček (19), Pointing pair/triple (9), Turbot Fish (2), Hidden pair (1), W-Wing (1).
   Turbot Fish: Skyscraper in Zmaj z dvema vrvicama, oba na številki 3, na indeksih 52 in
   53. W-Wing: par {3,5} v V2S9 in V8S8, izbris V9S9≠3, na indeksu 54.
-- **Zgodovina:** sprememba vrstnega reda tehnik (2026-09-18) dnevnika ni spremenila (korak
-  za korakom enak). Po spremembi sidranja (2026-09-20) 77 korakov namesto 79: Hidden
+- **Zgodovina:** spremembi vrstnega reda tehnik (2026-09-18 in 2026-09-24) dnevnika nista
+  spremenili (korak za korakom enak). Po spremembi sidranja (2026-09-20) 77 korakov namesto 79: Hidden
   triple (številke 1,6,7 v vrstici 1, prej na indeksu 9) in Naked triple se ne uporabita
   več (sta samo najdena), Hidden pair 3 → 1, Pointing pair/triple 7 → 9; Turbot Fish in
   W-Wing ostanejo, le dve mesti prej.
@@ -322,8 +351,9 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   nad enojčki). Samo z enojčki se reševanje zatakne, z enojčki in Pointing/Box-line se
   reši (Box-line reduction ni potrebna). `solve()` jo reši v 50 korakih: Skriti enojček
   (29), Gol enojček (20), Pointing pair/triple (1 – številka 5 v bloku 6, vrstica 6,
-  izbris V6S5≠5, na indeksu 24). V zbirki: »tehnike: 3«. Sprememba sidranja (2026-09-20)
-  dnevnika ni spremenila (korak za korakom enak).
+  izbris V6S5≠5, na indeksu 24). V zbirki: »tehnike: 1« (do 2026-09-24 »tehnike: 3«).
+  Sprememba sidranja (2026-09-20) in sprememba vrstnega reda tehnik (2026-09-24) dnevnika
+  nista spremenili (korak za korakom enak).
 - **Zakaj je tu:** najlažja uganka s tehniko nad enojčki – preizkus reševalca in igre na
   uganki, ki potrebuje samo en Pointing korak.
 
@@ -333,18 +363,25 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Vir:** ustvarjena 2026-09-19 z `node tools/ustvari-uganko.js srednja --seme 97`; do
   2026-09-20 imenovana `srednja-seme-97`. **Iz semena 97 ni več reproducibilna:** ocena
   stopnje bere dnevnik `solve()`, ta pa se je s spremembo sidranja (2026-09-20) spremenil,
-  zato na poti odstranjevanja zmaga drug kandidat (uganka s 24 danostmi). Uganka sama
-  merilu srednje stopnje še vedno ustreza (preverja `tests/generator.test.js`), zato
-  ostaja tu – testne uganke naj se ne spreminjajo, da so primerjave z zgodovino smiselne.
+  zato na poti odstranjevanja zmaga drug kandidat (uganka s 24 danostmi). Od spremembe
+  vrstnega reda tehnik (2026-09-24) seme 97 s strogim merilom ne da nobene uganke; prvo
+  seme, ki jo da, je 1185 (`tests/generator.test.js`). Uganka sama je še vedno srednja
+  (tudi po merilu iskanja generatorja), **strogemu merilu** (par in trojica na poti) pa ne
+  ustreza več: preseki zdaj pridejo pred očitnim parom in pot para ne potrebuje. Oboje
+  preverja `tests/generator.test.js`. Uganka ostaja tu – testne uganke naj se ne
+  spreminjajo, da so primerjave z zgodovino smiselne.
 - **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 4 (srednja – trojica)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
 - **Značilnost:** z enojčki in Pointing/Box-line se reševanje zatakne, s pari in trojicami
   se reši, naprednih tehnik ne potrebuje. Trojice so nujne (brez njih se zatakne), pari ne
-  – brez parov jo rešijo trojice. `solve()` jo reši v 59 korakih: Skriti enojček (28),
-  Gol enojček (27), Naked pair (2 – na indeksih 8 in 9), Hidden triple (1 – številke 4,6,7
-  v bloku 7, na indeksu 10), Naked triple (1 – 1,6,9 v bloku 2, na indeksu 11). V zbirki:
-  »tehnike: 1, 5, 6«.
+  – brez parov jo rešijo trojice. `solve()` jo reši v 61 korakih: Skriti enojček (28),
+  Gol enojček (27), Pointing pair/triple (3 – na indeksih 8–10), Box-line reduction (1 – na
+  indeksu 11), Hidden triple (1 – številke 4,6,7 v bloku 7, na indeksu 12), Naked triple
+  (1 – 1,6,9 v bloku 2, na indeksu 13). V zbirki: »tehnike: 1, 2, 5, 6«.
+- **Zgodovina (vrstni red 2026-09-24):** 61 korakov namesto 59; Naked pair (2, na indeksih
+  8 in 9) zamenjajo Pointing pair/triple (3) in Box-line reduction (1), trojici ostaneta,
+  dve mesti pozneje. Prej v zbirki »tehnike: 1, 5, 6« (po starem oštevilčenju).
 - **Zgodovina (sidranje 2026-09-20):** 59 korakov namesto 62: Naked pair 4 → 2 (prej na
   indeksih 1, 2, 6, 10), Hidden triple 2 → 1 – korak s številkami 2,4,9 v stolpcu 7 (prej
   indeks 31) se ne uporabi več, ker ga prehitijo enojčki.

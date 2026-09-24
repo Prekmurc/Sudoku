@@ -115,7 +115,14 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
 
   **Odprto ob uvedbi XY-Chain:** katera stopnja pripada uganki z ekspertno tehniko (Zelo
   težka ali nova stopnja med Zelo težko in Ekstremom). Nova stopnja bi pomenila novo ime v
-  `TEZAVNOSTI` in v `STOPNJE_UGANK` ter novo meritev porazdelitve.
+  `TEZAVNOSTI` in v `STOPNJE_UGANK` ter novo meritev porazdelitve. **Odločeno 2026-09-24**
+  (razdelek 7): ekspertna raven (13) je stopnja Ekstrem.
+- **Delno narejeno 2026-09-24** (vrstni red in preštevilčenje): znotraj ravni velja vrstni
+  red po zahtevnosti, povsod enak – motor, »Naslednji korak«, številke v treningu in pri
+  ugankah (`docs/tehnike.md`, razdelek »Vrstni red znotraj ravni«). `TECHNIQUE_GROUPS` so
+  zdaj enojčki · preseki · para · trojici · napredne (meje ravni ostanejo). Značke v
+  treningu sta samo še SREDNJA (1–6) in NAPREDNA (7–12). Odprto: raven kot polje tehnike,
+  `tagClass()`, izraz »osnovne« → »srednje«, poved v pomoči igre.
 - **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
   `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 
@@ -165,10 +172,10 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   |---|---|---|
   | – | Očitni enojček (Naked Single) | Gol enojček |
   | – | Skriti enojček (Hidden Single) | Skriti enojček |
-  | 1 | Očitni par (Naked Pair) | Naked pair |
-  | 2 | Skriti par (Hidden Pair) | Hidden pair |
-  | 3 | Izločitev izven bloka (Pointing Pair/Triple) | Pointing pair/triple |
-  | 4 | Izločitev v bloku (Box-Line Reduction) | Box-line reduction |
+  | 1 | Izločitev izven bloka (Pointing Pair/Triple) | Pointing pair/triple |
+  | 2 | Izločitev v bloku (Box-Line Reduction) | Box-line reduction |
+  | 3 | Očitni par (Naked Pair) | Naked pair |
+  | 4 | Skriti par (Hidden Pair) | Hidden pair |
   | 5 | Očitna trojica (Naked Triple) | Naked triple |
   | 6 | Skrita trojica (Hidden Triple) | Hidden triple |
   | 7 | X-krilo (X-Wing) | X-Wing |
@@ -177,6 +184,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   | 10 | W-krilo (W-Wing) | W-Wing |
   | 11 | XY-krilo (XY-Wing, Y-Wing) | XY-Wing |
   | 12 | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle |
+
+  Številke so od 2026-09-24 po vrstnem redu znotraj ravni (1.1); prej sta bila očitni in
+  skriti par 1 in 2, preseka pa 3 in 4. V tabeli `Zdaj` zgoraj so številke še stare.
 
   Sopomenke (Krilo W, Skyscraper, Zmaj z dvema vrvicama, Locked Candidates …) so v
   `docs/tehnike.md`, razdelek »Imena in sopomenke«. Podtipa verige ene števke (Skyscraper,
@@ -544,6 +554,8 @@ Glej 0.2 (vzrok je CSS, ne logika).
 - **Zdaj:** stopnja je zapisana v imenu primera, ročno in po starih merilih. Ocena
   `oceniUganko()` na današnji kodi (izmerjeno 2026-09-23):
 
+  Številke v stolpcu »Tehnike« so po oštevilčenju do 2026-09-24 (1 očitna para … 4 box-line).
+
   | Ime zdaj | Vir v `docs/uganke.md` | Danih | `oceniUganko()` danes | Tehnike | Skladno? |
   |---|---|---|---|---|---|
   | Primer 1 (z ugibanjem) | example-app | 17 | Ekstrem | 1, 2, 3, 4 + poskus | da, a brez imena stopnje |
@@ -904,6 +916,99 @@ kopija podatka, ki bi moral priti iz `TEHNIKE_OPISI`.
 
 ---
 
+## 7. Opredelitve stopenj ugank (odločitev 2026-09-24)
+
+**Samo zapis** – koda zanj še ni spremenjena. Razlike do današnje kode so naštete na koncu
+razdelka in se odpravijo v posebni nalogi. Ločeno od te opredelitve je bil isti dan izveden
+vrstni red tehnik znotraj ravni s preštevilčenjem 1–12 (1.1, `docs/tehnike.md`).
+
+### 7.1 Ocena uganke
+
+1. **Najprej število rešitev** (`countSolutions()`). Uganka brez natanko ene rešitve ne dobi
+   stopnje, ampak eno od dveh oznak (namesto današnje »Drugo«):
+   - **Brez rešitve** – 0 rešitev (danosti si nasprotujejo);
+   - **Več rešitev** – dve ali več rešitev.
+2. **Nato motor v stalnem vrstnem redu** (`ALL_TECHNIQUES`): uganko reši motor, ki vedno
+   poskusi tehnike v istem vrstnem redu, od najlažje navzgor.
+3. **Šteje se množica različnih uporabljenih tehnik**, ne število korakov: uganka, ki
+   dvajsetkrat uporabi Izločitev izven bloka, ima eno srednjo tehniko.
+
+### 7.2 Stopnja po najtežji uporabljeni ravni
+
+| Stopnja | Pogoj (iz množice uporabljenih tehnik) |
+|---|---|
+| **Lahka** | samo enojčki |
+| **Srednja** | najtežja raven so srednje tehnike (1–6) |
+| **Težka** | natanko **ena** različna napredna tehnika (7–12) |
+| **Zelo težka** | vsaj **dve** različni napredni tehniki |
+| **Ekstrem** | ekspertna tehnika (13, XY-veriga – ko bo uvedena) |
+
+Število srednjih tehnik stopnje ne spremeni: Težka ostane Težka, ne glede na to, koliko
+srednjih tehnik uporabi.
+
+### 7.3 Ugibanje ni tehnika
+
+Poskus s protislovjem (`tryBifurcation`) ni tehnika in ni raven. Če ga motor potrebuje,
+uganka ne dobi stopnje, ampak oznako **»Presega tehnike«**: z danimi tehnikami je ni mogoče
+rešiti. Ekstrem od tu naprej pomeni ekspertno raven, ne ugibanja.
+
+### 7.4 Pogoji generatorja (ločeni od stopnje)
+
+Stopnja razvrsti **vsako** uganko (tudi uvoženo ali ročno vneseno). Generator pa izbira med
+ugankami, ki stopnji ustrezajo, in dodatno zahteva, da je uganka za svojo stopnjo tipična.
+Pogoji generatorja morajo biti zato **podmnožica** stopnje: ustvarjena uganka mora pri
+oceni dobiti isto stopnjo.
+
+| Stopnja | Pogoj generatorja poleg stopnje |
+|---|---|
+| Lahka | – (stopnja sama: samo enojčki) |
+| Srednja | vsaj **2 različni srednji** tehniki |
+| Težka | vsaj **2 različni srednji**, skupaj **največ 4 različne** tehnike nad enojčki |
+| Zelo težka | vsaj **2 različni srednji** |
+| Ekstrem | določi se ob uvedbi XY-verige |
+
+**Spodnja meja (vsaj 2 srednji):** brez nje generator pogosto ponudi uganko, ki nad enojčki
+stoji na eni sami tehniki. Meritev 2026-09-21 (`docs/tehnike.md`): med ugankami brez
+napredne tehnike jih 61 % uporabi eno samo srednjo, med ugankami z eno napredno 35 %
+nobene ali eno.
+
+**Zakaj je pri Težki meja največ 4 različne tehnike nad enojčki.** Z eno napredno in vsaj
+dvema srednjima to pomeni dve ali tri srednje tehnike.
+- *Težavnost:* stopnja Težka po 7.2 nima zgornje meje števila srednjih tehnik. Uganka z eno
+  napredno in štirimi ali več srednjimi pa od igralca zahteva pet ali več različnih
+  vzorcev – več kot najmanjša Zelo težka uganka, ki jo ponudi generator (dve napredni in dve
+  srednji, skupaj štiri). Generator take uganke kot Težke ne ponudi, da ustvarjena Težka
+  ostane jasno pod Zelo težko.
+- *Cena je majhna:* takih ugank je malo – med 660 naključnimi minimalnimi ugankami jih ima
+  eno napredno in vsaj štiri srednje 10 (1,5 %; med ugankami z eno napredno 10 %), zato meja
+  iskanja skoraj ne podaljša.
+- *Skladnost:* današnji generator ima isto mejo, zato ustvarjene Težke uganke v zbirkah
+  ustrezajo tudi novi opredelitvi.
+
+### 7.5 Razlike do današnje kode (odpravijo se v naslednji nalogi)
+
+- **Pravilo »5 ali več tehnik → Zelo težka«:** `STOPNJE_UGANK` (`shared/generator.js`) ima
+  pri Zelo težki `napredne >= 2 || tehNad >= 5` in pri Težki zgornjo mejo `tehNad <= 4` tudi
+  v merilu stopnje (`ustreza`), ne samo v generatorju. Po 7.2 je uganka z eno napredno in
+  petimi ali več tehnikami Težka.
+- **Ekstrem pomeni ugibanje:** danes dobi Ekstrem uganka, ki je `solve()` ne reši brez
+  poskusa s protislovjem (in ročno vnesena uganka kot privzeto, `PRIVZETA_TEZAVNOST`). Po
+  7.3 je to »Presega tehnike«, Ekstrem pa je ekspertna raven.
+- **»Drugo«:** danes ena oznaka za 0 rešitev, več rešitev in neprepoznano vrednost iz uvoza.
+  Po 7.1 »Brez rešitve« in »Več rešitev«; odprto ostane, kako označiti uganko, katere
+  enoličnosti `countSolutions()` ni mogel preveriti (`'unknown'`), in neznano vrednost iz
+  uvoza.
+- **Vir množice tehnik:** danes `genRazvrsti()` – najkrajša predpona skupin
+  `TECHNIQUE_GROUPS`, s katero pot uganko reši, in tehnike te poti. Dnevnik `solve()`
+  (pokaže ga oznaka »tehnike: 1, 3, 7«) se lahko razlikuje, ker `solve()` sidra na števko.
+  Po 7.1 je vir motor v stalnem vrstnem redu; odločiti je treba, ali je to pot z vsemi
+  tehnikami brez sidranja (`genPot()` z `ALL_TECHNIQUES`) ali dnevnik `solve()`.
+- **Imena v zbirki:** `TEZAVNOSTI` dobi »Presega tehnike«, »Več rešitev« in »Brez
+  rešitve«; stari zapisi z »Ekstrem« (= ugibanje) in »Drugo« se morajo preslikati ali
+  ponovno oceniti (»Oceni zbirko«).
+
+---
+
 ## Odločitve, ki so tvoje
 
 Vse odločitve so sprejete **2026-09-23**. Predlogi v navedenih točkah so jim prilagojeni.
@@ -916,12 +1021,13 @@ Vse odločitve so sprejete **2026-09-23**. Predlogi v navedenih točkah so jim p
    »srednje«. Odprto ostane, katera stopnja pripada uganki z ekspertno tehniko – odloči se
    ob uvedbi XY-Chain.
 2. **1.3 – imena tehnik:** povsod slovensko, angleško v oklepaju: Očitni enojček (Naked
-   Single), Skriti enojček (Hidden Single), 1 Očitni par (Naked Pair), 2 Skriti par
-   (Hidden Pair), 3 Izločitev izven bloka (Pointing Pair/Triple), 4 Izločitev v bloku
-   (Box-Line Reduction), 5 Očitna trojica (Naked Triple), 6 Skrita trojica (Hidden
+   Single), Skriti enojček (Hidden Single), 1 Izločitev izven bloka (Pointing
+   Pair/Triple), 2 Izločitev v bloku (Box-Line Reduction), 3 Očitni par (Naked Pair),
+   4 Skriti par (Hidden Pair), 5 Očitna trojica (Naked Triple), 6 Skrita trojica (Hidden
    Triple), 7 X-krilo (X-Wing), 8 Mečarica (Swordfish), 9 Veriga ene števke (Turbot Fish),
    10 W-krilo (W-Wing), 11 XY-krilo (XY-Wing, Y-Wing), 12 Edinstveni pravokotnik (Unique
-   Rectangle). Sopomenke so v `docs/tehnike.md`.
+   Rectangle). Sopomenke so v `docs/tehnike.md`. **Preštevilčeno 2026-09-24** (vrstni red
+   znotraj ravni po zahtevnosti, 1.1): preseka sta 1 in 2, para 3 in 4.
 3. **1.6 – napredek in stanja:** zapis »12/57« (57 = 81 − danosti, 12 = moji vpisi). Tri
    stanja: *nova* (brez poteze), *v teku* (od prve poteze, tudi če so bili samo
    odstranjeni kandidati, do rešitve), *rešena*. Napis stanja in gumb sledita istemu

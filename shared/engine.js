@@ -569,15 +569,15 @@ function uniqueRectangle(b) {
 const ALL_TECHNIQUES = [
   ['Gol enojček', nakedSingles],
   ['Skriti enojček', hiddenSingles],
-  ['Naked pair', nakedPairs],
   ['Pointing pair/triple', pointing],
   ['Box-line reduction', boxLineReduction],
+  ['Naked pair', nakedPairs],
   ['Hidden pair', hiddenPairs],
   ['Naked triple', nakedTriples],
   ['Hidden triple', hiddenTriples],
   ['X-Wing', xWing],
-  ['Turbot Fish', turbotFish],
   ['Swordfish', swordfish],
+  ['Turbot Fish', turbotFish],
   ['W-Wing', wWing],
   ['XY-Wing', xyWing],
   ['Unique Rectangle', uniqueRectangle],
@@ -588,15 +588,15 @@ const ALL_TECHNIQUES = [
 // korak iz lažje skupine ima vedno prednost pred sidranim korakom iz težje, sidro
 // pa odloča znotraj skupine. Tako reševalec dela tako kot človek - najprej naredi
 // najlažje, šele nato nadaljuje z isto številko.
-// "Naked pair" je v ALL_TECHNIQUES pred preseki (očitno paro človek opazi hitro),
-// zato ima svojo skupino: če bi ga uvrstili k param in trojicam, bi se spremenil
-// vrstni red tehnik, ne le sidranje.
+// Srednje tehnike (1-6 v TRENING_TEHNIKE) so razdeljene na tri skupine po vrsti
+// vzorca: preseki, para, trojici. Indeksi 0 (enojčki), 1-3 (srednje) in 4 (napredne)
+// so meje ravni, na katerih slonijo merila stopenj v shared/generator.js.
 const TECHNIQUE_GROUPS = [
   ['Gol enojček', 'Skriti enojček'],
-  ['Naked pair'],
   ['Pointing pair/triple', 'Box-line reduction'],
-  ['Hidden pair', 'Naked triple', 'Hidden triple'],
-  ['X-Wing', 'Turbot Fish', 'Swordfish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'],
+  ['Naked pair', 'Hidden pair'],
+  ['Naked triple', 'Hidden triple'],
+  ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'],
 ];
 const TECHNIQUE_GROUP_OF = new Map();
 TECHNIQUE_GROUPS.forEach((imena, i) => imena.forEach(ime => TECHNIQUE_GROUP_OF.set(ime, i)));
@@ -606,18 +606,21 @@ function techniqueGroup(name) {
   return g === undefined ? TECHNIQUE_GROUPS.length : g;
 }
 
-// Tehnike v treningu po vrstnem redu kartic (po težavnosti za vadbo, ne po vrstnem
-// redu v ALL_TECHNIQUES): [oznaka kartice v trening/index.html (data-mode),
-// ime v ALL_TECHNIQUES]. Številka tehnike je položaj v tem seznamu (1 = prvi) -
-// trening po njem razvrsti in oštevilči kartice, igra pa pri uganki izpiše
-// "tehnike: 1, 3, 7" (zbirkaOznakaTehnik v shared/zbirka.js). Edino mesto teh
-// številk: nova tehnika v treningu dobi vnos tu, na mestu po težavnosti.
+// Tehnike s številkami: [oznaka kartice v trening/index.html (data-mode), ime v
+// ALL_TECHNIQUES]. Številka tehnike je položaj v tem seznamu (1 = prvi) - trening po
+// njem razvrsti in oštevilči kartice, igra pa pri uganki izpiše "tehnike: 1, 3, 7"
+// (zbirkaOznakaTehnik v shared/zbirka.js). Edino mesto teh številk. Vrstni red je
+// ISTI kot v ALL_TECHNIQUES (brez enojčkov): znotraj ravni po zahtevnosti - srednje
+// 1-6 po Sudoku Explainerju, napredne 7-12 po Sudoku Explainerju, Turbot Fish in
+// W-Wing (SE ju ne ocenjuje) po točkah HoDoKu (docs/tehnike.md, odločitev 2026-09-24).
+// Številke niso shranjene nikjer (zbirka in izvoz hranita imena), zato stari izvozi
+// po preštevilčenju pokažejo nove številke.
 // Enojčkov in poskusa s protislovjem v treningu ni (tests/trening-tehnike.test.js).
 const TRENING_TEHNIKE = [
-  ['naked-pair', 'Naked pair'],
-  ['hidden-pair', 'Hidden pair'],
   ['pointing', 'Pointing pair/triple'],
   ['box-line', 'Box-line reduction'],
+  ['naked-pair', 'Naked pair'],
+  ['hidden-pair', 'Hidden pair'],
   ['naked-triple', 'Naked triple'],
   ['hidden-triple', 'Hidden triple'],
   ['x-wing', 'X-Wing'],

@@ -86,10 +86,13 @@ test('brez vzorca', () => {
   assert.deepEqual(plain(E.turbotFish(boardFromText(E, NO_PATTERN_POS))), []);
 });
 
-test('Turbot Fish je v ALL_TECHNIQUES takoj za X-Wing in pred Swordfish', () => {
+// Vrstni red po točkah HoDoKu (odločitev 2026-09-24, docs/tehnike.md): Turbot Fish
+// (2-String Kite 150) je izenačen s Swordfish (150), pred njim je po vrstnem redu
+// korakov v HoDoKu Swordfish.
+test('Turbot Fish je v ALL_TECHNIQUES takoj za Swordfish in pred W-Wing', () => {
   const names = E.ALL_TECHNIQUES.map(([n]) => n);
-  assert.equal(names[names.indexOf('X-Wing') + 1], 'Turbot Fish');
-  assert.equal(names[names.indexOf('Turbot Fish') + 1], 'Swordfish');
+  assert.equal(names[names.indexOf('Swordfish') + 1], 'Turbot Fish');
+  assert.equal(names[names.indexOf('Turbot Fish') + 1], 'W-Wing');
 });
 
 for (const { ime, danosti } of loadPuzzles()) {

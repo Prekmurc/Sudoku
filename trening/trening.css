@@ -34,11 +34,10 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .menu-card h3[data-stevilka]::before{content:attr(data-stevilka) ". ";color:var(--pencil)}
 .menu-card p{font-size:13px;color:#4A5664;line-height:1.5;margin:0}
 .menu-card .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:6px}
-/* Barva značke pove težavnost (ne tehnike - te ločijo barve izbire v vaji, glej MODES). */
-.badge-lazje{background:var(--green-bg);color:var(--green)}
-.badge-srednje{background:var(--blue-bg);color:var(--blue)}
-.badge-zahtevno{background:var(--amber-bg);color:var(--amber)}
-.badge-napredno{background:var(--red-bg);color:var(--red)}
+/* Barva značke pove raven tehnike: srednja (1-6) ali napredna (7-12) - docs/uskladitev.md,
+   točka 1.1 (ne tehnike - te ločijo barve izbire v vaji, glej MODES). */
+.badge-srednja{background:var(--blue-bg);color:var(--blue)}
+.badge-napredna{background:var(--red-bg);color:var(--red)}
 
 /* --- VAJE --- */
 #trainer{display:none}

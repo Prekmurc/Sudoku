@@ -13,6 +13,7 @@ const { loadEngine, loadPuzzles } = require('./load-engine.js');
 const E = loadEngine(undefined, {
   files: ['trening/generators.js', 'shared/zbirka.js'],
   names: ['TRENING_TEHNIKE', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
+    'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
     'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike'],
 });
 
@@ -37,6 +38,49 @@ test('TRENING_TEHNIKE vsebuje vse tehnike iz ALL_TECHNIQUES razen enojčkov, vsa
   for (const t of vse) {
     if (!ENOJCKA.includes(t)) assert.ok(imena.includes(t), `${t} nima številke v treningu`);
   }
+});
+
+// Odločitev 2026-09-24: znotraj ravni po zahtevnosti (srednje po Sudoku Explainerju,
+// napredne po SE, Turbot Fish in W-Wing po točkah HoDoKu - docs/tehnike.md), povsod
+// isti vrstni red: motor, pomoč v igri, številke v treningu in pri ugankah.
+test('številke tehnik 1-12 in isti vrstni red kot v ALL_TECHNIQUES', () => {
+  assert.deepEqual([...imena], [
+    'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Hidden pair',
+    'Naked triple', 'Hidden triple',
+    'X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle',
+  ]);
+  assert.deepEqual([...E.ALL_TECHNIQUES.map(([t]) => t)].filter(t => !ENOJCKA.includes(t)), [...imena]);
+});
+
+// Značka kartice v treningu je raven tehnike (docs/uskladitev.md, 1.1): srednja 1-6,
+// napredna 7-12.
+test('značke v treningu: SREDNJA za 1-6, NAPREDNA za 7-12', () => {
+  const znacke = new Map([...treningHtml.matchAll(/data-mode="([^"]+)">\s*<span class="badge badge-(\w+)">([^<]+)<\/span>/g)]
+    .map(m => [m[1], [m[2], m[3]]]));
+  nacini.forEach((m, i) => {
+    const pricakovano = i < 6 ? ['srednja', 'SREDNJA'] : ['napredna', 'NAPREDNA'];
+    assert.deepEqual(znacke.get(m), pricakovano, `${i + 1}. ${m}`);
+  });
+});
+
+// Številke niso shranjene nikjer: zbirka in izvoz hranita imena tehnik, številko da
+// zbirkaOznakaTehnik() ob prikazu. Izvoz iz časa pred preštevilčenjem (2026-09-24,
+// takrat je bil Naked pair 1, Pointing 3) zato po uvozu kaže nove številke.
+test('izvoz hrani imena tehnik, star izvoz po uvozu dobi nove številke', () => {
+  // Uganka, ki ni vgrajeni primer (primere uvoz preskoči).
+  const danosti = loadPuzzles().find(p => p.ime === 'hard-17-a').danosti;
+  const star = [
+    '### 2026-09-20 10:00 · Srednja', '',
+    `- **Danosti:** \`${danosti}\``,
+    '- **Težavnost:** Srednja',
+    '- **Tehnike:** Skriti enojček 30, Gol enojček 27, Naked pair 2, Hidden triple 1, Pointing pair/triple 1',
+  ].join('\n');
+  const { zapisi } = E.zbirkaIzMarkdowna(star);
+  assert.equal(zapisi.length, 1);
+  assert.equal(E.zbirkaOznakaTehnik(zapisi[0]), 'tehnike: 1, 3, 6');
+  const izvoz = E.zbirkaVMarkdown(zapisi);
+  assert.match(izvoz, /\*\*Tehnike:\*\* Skriti enojček 30, Gol enojček 27, Naked pair 2/);
+  assert.doesNotMatch(izvoz, /tehnike: \d/, 'v izvozu ni številk tehnik');
 });
 
 test('zbirkaOznakaTehnik(): številke iz treninga, brez enojčkov, poskus posebej', () => {

@@ -77,7 +77,7 @@ const STOPNJE_UGANK = [
     ustreza: (m) => m.skupina === 4 && m.napredne === 1 && m.tehNad <= 4,
     // Napredna tehnika na poti pomeni skupino 4; tehNad <= 4 je zgornja meja iz ustreza.
     ustrezaIskanju: (m) => m.napredne === 1 && m.tehNad <= 4 && genOsnovne(m) >= GEN_NAJMANJ_OSNOVNIH,
-    opis: 'potrebuje natanko eno napredno tehniko (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle) in vsaj dve osnovni',
+    opis: 'potrebuje natanko eno napredno tehniko (X-Wing, Swordfish, Turbot Fish, W-Wing, XY-Wing, Unique Rectangle) in vsaj dve osnovni',
   },
   {
     kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,
