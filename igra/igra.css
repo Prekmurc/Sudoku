@@ -670,7 +670,7 @@ kbd{
 .vzorec-izbris{ background: var(--red-bg); color: var(--red); padding:0 3px; border-radius:3px; text-decoration: line-through; }
 .vzorec-vpis{ background: var(--green-bg); color: var(--green); padding:0 3px; border-radius:3px; }
 
-/* razdelka v oknu Zbirka ugank: Vgrajeni primeri, Tvoja zbirka */
+/* razdelka v oknu Zbirka ugank: Tvoja zbirka, Vgrajeni primeri */
 .zbirka-razdelek{
   font-family:'JetBrains Mono', monospace;
   font-size:11px;
@@ -680,7 +680,9 @@ kbd{
   color: var(--pencil);
   margin: 4px 0 8px;
 }
-#primeriSeznam{ margin-bottom:18px; }
+/* Vgrajeni primeri: zložljiv razdelek na dnu okna (privzeto zaprt) */
+.primeri-razdelek{ margin-top:18px; }
+.primeri-razdelek summary{ cursor:pointer; width:max-content; }
 .zbirka-seznam{
   list-style:none;
   margin:0;

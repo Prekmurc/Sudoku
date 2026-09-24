@@ -516,6 +516,29 @@ Glej 0.2 (vzrok je CSS, ne logika).
   in zapisane v `docs/uganke.md` – ne sestavljene na pamet.
 - **Obseg:** majhno (brez 2.2), srednje (z 2.2).
 
+### 3.1 Vgrajeni primeri v igri: na dnu okna, zložljivi (odločitev 2026-09-24)
+
+- **Kje:** `igra/index.html` (okno »Zbirka ugank«), `igra/igra.js` (`primeriOdprti()`,
+  poslušalec gumba »Zbirka«), `igra/igra.css` (`.primeri-razdelek`).
+- **Prej:** razdelek »Vgrajeni primeri« je bil na vrhu okna, vedno odprt, »Tvoja zbirka«
+  pa pod njim – pri daljši zbirki je bilo pet primerov vedno prvo, kar igralec vidi.
+- **Odločitev:** samo igra; reševalec obdrži spustni seznam »Primer«.
+  - Razdelek je na dnu okna, pod mojo zbirko, kot zložljiv `<details>` z naslovom
+    »Vgrajeni primeri (N)« (N = `PRIMERI.length`).
+  - Privzeto je zaprt. Ob odprtju okna je odprt samo, kadar je moja zbirka prazna (nov
+    igralec takoj vidi, kaj lahko igra) ali kadar je trenutno odprta uganka primer (da je
+    oznaka »trenutno odprta« vidna).
+  - Stanje se določi samo ob odprtju okna; ponoven izris seznama (uvoz, ocenjevanje) ga ne
+    spremeni, zato igralčeva izbira med delom v oknu ostane.
+  - Kartice primerov so nespremenjene (stanje, gumb »Igraj«/»Nadaljuj«/»Poglej«).
+  - Sporočilo pri prazni zbirki napoti na primere spodaj; okno Pomoč opisuje novo
+    postavitev.
+- **Testi:** `tests/igra-ui.test.js` (privzeto zaprt, odprt pri prazni zbirki, odprt pri
+  odprtem primeru).
+- **Vpliv na fazo 3:** ko bo primer, rešen v reševalcu, v zbirki z izvorom `primer` (2.5),
+  se bo pokazal v zbirki na vrhu in v zaprtem razdelku spodaj – »pokaži enkrat« iz faze 3
+  ostane odprto.
+
 ---
 
 ## 4. Videz

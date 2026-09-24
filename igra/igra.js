@@ -910,6 +910,8 @@ for (const el of [document.getElementById('navodilaBtn'), document.getElementByI
 const zbirkaDialog = document.getElementById('zbirkaDialog');
 const zbirkaSeznamEl = document.getElementById('zbirkaSeznam');
 const primeriSeznamEl = document.getElementById('primeriSeznam');
+const primeriRazdelekEl = document.getElementById('primeriRazdelek');
+document.getElementById('primeriNaslov').textContent = `Vgrajeni primeri (${primeriIgre.length})`;
 const zbirkaStatusEl = document.getElementById('zbirkaStatus');
 // Vrstica seznama po danostih - da med ocenjevanjem osvežimo samo njo.
 const zbirkaVrstice = new Map();
@@ -1002,7 +1004,7 @@ function izrisiZbirko() {
   if (!zbirka.length) {
     const li = document.createElement('li');
     li.className = 'prazno';
-    li.textContent = 'Zbirka je prazna. Uganko dodaš z gumbom »Nova uganka« ali z reševanjem v reševalcu.';
+    li.textContent = 'Zbirka je prazna. Uganko dodaš z gumbom »Nova uganka« ali z reševanjem v reševalcu. Lahko pa zaigraš enega od vgrajenih primerov spodaj.';
     zbirkaSeznamEl.appendChild(li);
     return;
   }
@@ -1046,6 +1048,14 @@ function izrisiZbirko() {
   }
 }
 
+// Razdelek "Vgrajeni primeri" je na dnu okna in privzeto zaprt. Odprt je, kadar je
+// moja zbirka prazna (nov igralec takoj vidi, kaj lahko igra) ali kadar je odprta
+// uganka primer (da je "trenutno odprta" vidna). Nastavi se samo ob odprtju okna -
+// izrisiZbirko() ga ne spreminja, zato igralčeva izbira ostane med uvozom in oceno.
+function primeriOdprti() {
+  return !zbirkaBeri().length || primeriIgre.some(p => igra && igra.danosti === p.danosti);
+}
+
 function igrajIzZbirke(danosti) {
   // Uvožene uganke v zbirki niso nujno preverjene - shranjena igra pa je bila.
   if (!igraNalozi(danosti)) {
@@ -1070,6 +1080,7 @@ zbirkaBtn.addEventListener('click', () => {
   zbirkaStatus('');
   ocenaPocisti();
   izrisiZbirko();
+  primeriRazdelekEl.open = primeriOdprti();
   odpriDialog(zbirkaDialog);
 });
 

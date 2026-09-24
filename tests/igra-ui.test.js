@@ -534,3 +534,41 @@ test('"vse razveljavljeno": kartica kaže prazno mrežo, seznam pa to, kar se od
   assert.ok(vrsticaSeznama(run).includes(`v teku (3/${praznih})`));
   assert.equal(gumb(run), 'Nadaljuj');
 });
+
+/* ---------- okno "Zbirka ugank": vgrajeni primeri na dnu, zložljivi ---------- */
+
+// Odpre okno "Zbirka ugank" z gumbom v glavi in vrne, ali je razdelek s primeri odprt.
+const primeriOdprtiObOdprtju = dom => { dom.klikni('zbirkaBtn'); return dom.el('primeriRazdelek').open; };
+
+test('vgrajeni primeri: privzeto zaprti, v naslovu število primerov', () => {
+  const { dom, run } = zacni(); // zbirka ni prazna, odprta je uganka iz zbirke
+  assert.equal(dom.el('primeriNaslov').textContent, `Vgrajeni primeri (${run('PRIMERI.length')})`);
+  assert.equal(primeriOdprtiObOdprtju(dom), false);
+  // Igralec razdelek odpre; ponoven izris seznama (uvoz, ocene) ga ne zapre.
+  dom.el('primeriRazdelek').open = true;
+  run('izrisiZbirko()');
+  assert.equal(dom.el('primeriRazdelek').open, true, 'izris ne spremeni igralčeve izbire');
+  // Ob naslednjem odprtju okna velja spet privzeto.
+  assert.equal(primeriOdprtiObOdprtju(dom), false);
+  assert.equal(run("document.getElementById('primeriSeznam').children.length"), run('PRIMERI.length'), 'kartice primerov so izrisane');
+});
+
+test('vgrajeni primeri: odprti, ko je moja zbirka prazna', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  assert.equal(run('zbirkaBeri().length'), 0);
+  assert.equal(primeriOdprtiObOdprtju(dom), true);
+  assert.ok(dom.el('zbirkaSeznam').textContent.includes('vgrajenih primerov spodaj'), dom.el('zbirkaSeznam').textContent);
+});
+
+test('vgrajeni primeri: odprti, ko je odprta uganka primer', () => {
+  const { dom, run } = zacni();
+  const primer = run('primeriIgre[2]');
+  run(`zacniIgro(${JSON.stringify(primer.danosti)})`);
+  assert.equal(primeriOdprtiObOdprtju(dom), true);
+  const li = run(`[...document.getElementById('primeriSeznam').children].find(li => li.className === 'trenutna')`);
+  assert.ok(li && li.textContent.includes(primer.ime) && li.textContent.includes('trenutno odprta'));
+  // Nazaj na uganko iz zbirke: razdelek je ob odprtju okna spet zaprt.
+  run(`zacniIgro(${D})`);
+  assert.equal(primeriOdprtiObOdprtju(dom), false);
+});

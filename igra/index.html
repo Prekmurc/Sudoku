@@ -107,8 +107,6 @@
       <h2 id="zbirkaNaslov">Zbirka ugank</h2>
       <button type="button" class="dialog-zapri" data-zapri aria-label="Zapri">✕</button>
     </div>
-    <h3 class="zbirka-razdelek">Vgrajeni primeri</h3>
-    <ul id="primeriSeznam" class="zbirka-seznam"></ul>
     <h3 class="zbirka-razdelek">Tvoja zbirka</h3>
     <p class="namig">Zbirko si deli z reševalcem (<code>app/</code>). Izvoz zapiše vse uganke v datoteko Markdown, uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Tako zbirko preneseš na drugo napravo. Uganke brišeš v reševalcu.</p>
     <div class="dialog-gumbi zbirka-gumbi">
@@ -124,6 +122,10 @@
       <button type="button" id="oceniPreklicBtn">Prekliči</button>
     </div>
     <ul id="zbirkaSeznam" class="zbirka-seznam"></ul>
+    <details id="primeriRazdelek" class="primeri-razdelek">
+      <summary id="primeriNaslov" class="zbirka-razdelek">Vgrajeni primeri</summary>
+      <ul id="primeriSeznam" class="zbirka-seznam"></ul>
+    </details>
   </div>
 </div>
 
@@ -162,7 +164,7 @@
 
     <h3 class="navodila-razdelek">Zbirka ugank</h3>
     <p>Uganke in napredek se hranijo v tem brskalniku (<code>localStorage</code>), nič se ne pošilja nikamor. Zbirko si igra deli z reševalcem (<code>app/</code>), zanesljivo takrat, ko obe strani tečeta z istega naslova (lokalni strežnik); pri odpiranju datotek z <code>file://</code> jih nekateri brskalniki ločijo.</p>
-    <p>V oknu <b>Zbirka ugank</b> so zgoraj <b>vgrajeni primeri</b>, pod njimi <b>tvoja zbirka</b>. Uganka, ki je še nisi začel, se odpre z <b>Igraj</b>, začeta z <b>Nadaljuj</b>, rešena pa s <b>Poglej</b> (pri njej ni kaj nadaljevati; po <b>Začni znova</b> je spet začeta, zato <b>Nadaljuj</b>) – napredek se shrani za vsako uganko posebej, po njenih danostih. Uganka, uvožena iz drugega brskalnika, se začne z <b>Igraj</b>, tudi kadar je v zbirki zapisana kot začeta ali rešena: njen napredek je ostal tam. Vgrajeni primeri se v zbirko ne dodajo, napredek pri njih pa se shrani prav tako. Nova uganka (gumb <b>Nova uganka</b>) se začne samo, če ima natanko eno rešitev, in se doda v zbirko. Uganke v zbirko doda tudi reševalec, ko jih reši; brišeš jih lahko samo tam.</p>
+    <p>V oknu <b>Zbirka ugank</b> je zgoraj <b>tvoja zbirka</b>, na dnu pa zložen razdelek <b>Vgrajeni primeri</b> (v naslovu je število primerov) – odpreš ga s klikom na naslov. Sam je odprt, kadar je tvoja zbirka prazna ali kadar igraš enega od primerov. Uganka, ki je še nisi začel, se odpre z <b>Igraj</b>, začeta z <b>Nadaljuj</b>, rešena pa s <b>Poglej</b> (pri njej ni kaj nadaljevati; po <b>Začni znova</b> je spet začeta, zato <b>Nadaljuj</b>) – napredek se shrani za vsako uganko posebej, po njenih danostih. Uganka, uvožena iz drugega brskalnika, se začne z <b>Igraj</b>, tudi kadar je v zbirki zapisana kot začeta ali rešena: njen napredek je ostal tam. Vgrajeni primeri se v zbirko ne dodajo, napredek pri njih pa se shrani prav tako. Nova uganka (gumb <b>Nova uganka</b>) se začne samo, če ima natanko eno rešitev, in se doda v zbirko. Uganke v zbirko doda tudi reševalec, ko jih reši; brišeš jih lahko samo tam.</p>
     <p>V oknu <b>Nova uganka</b> ti uganko lahko <b>ustvari</b> program: izbereš stopnjo (<b>lahka</b>, <b>srednja</b>, <b>težka</b>, <b>zelo težka</b>) in počakaš – navadno gre za sekundo ali dve. Stopnjo določata najzahtevnejša tehnika, ki jo uganka potrebuje, in število različnih tehnik: lahka se reši samo z enojčki, torej brez zapisanih kandidatov, srednja potrebuje očitno ali skrito paro, trojico ali presek (Pointing pair/triple, Box-line reduction), težka natanko eno napredno tehniko (X-Wing, Turbot Fish, Swordfish, W-Wing, XY-Wing, Unique Rectangle), zelo težka pa dve različni napredni tehniki ali pet različnih tehnik nad enojčki. Iskanje lahko kadar koli <b>prekineš</b>; če v 30 sekundah ne najde uganke, to pove in lahko poskusiš znova. Ustvarjena uganka se doda v zbirko s težavnostjo svoje stopnje (<b>Lahka</b>, <b>Srednja</b>, <b>Težka</b> ali <b>Zelo težka</b>) – težavnosti v zbirki so iste kot stopnje. Iskanje teče v ločeni niti, zato stran med njim deluje normalno – pri odpiranju z <code>file://</code> to nekateri brskalniki preprečijo in stran med iskanjem malo zastaja (z lokalnim strežnikom ne).</p>
     <p>Pri vsaki uganki piše tudi, od kod je: <b>ustvaril generator</b> ali <b>ročni vnos</b>. Uganke, ki so bile v zbirki že prej, tega podatka nimajo, ker ga ni mogoče naknadno ugotoviti.</p>
     <p>V prvi vrstici piše, kdaj je bila uganka <b>dodana</b>, v drugi pa tvoje <b>zadnje reševanje</b> in <b>stanje</b>: <b>nova</b> (še je nisi igral – takrat te vrstice ni), <b>v teku (12/57)</b> (12 tvojih vpisov od 57 praznih celic) ali <b>rešena</b>. Kadar so izpolnjene vse prazne celice, a se vsaj ena števka ne ujema z rešitvijo, piše <b>v teku (57/57) · napaka</b> – napako poišči z gumbom <b>Preveri</b>. Uganka, ki si jo samo odprl in v njej še nisi naredil poteze, ostane <b>nova</b> (gumb <b>Igraj</b>); že odstranjen kandidat pa je poteza, zato je taka uganka <b>v teku (0/57)</b>. Pri rešeni uganki je v drugi vrstici <b>rešena 21. 9. 2026 ob 17:48</b> – zapis se takrat zamrzne, zato ostane čas prve rešitve. Če jo po <b>Začni znova</b> rešuješ še enkrat, piše <b>rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)</b>. Vgrajeni primeri kažejo ista stanja. Kdaj je uganko ocenil program in kako daleč je prišel (<b>Ocenjeno</b>, <b>Program rešil</b>), pokaže namig miške nad vrstico; oboje je tudi v izvozu.</p>
