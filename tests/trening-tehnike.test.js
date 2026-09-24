@@ -1,8 +1,9 @@
 'use strict';
-// Številke tehnik iz treninga (TRENING_TEHNIKE v shared/engine.js): seznam se mora ujemati
-// s karticami v trening/index.html in z MODES v trening/generators.js, vsebovati mora vse
-// tehnike iz ALL_TECHNIQUES razen enojčkov; oznaka "tehnike: 1, 3, 7" v zbirki
-// (zbirkaOznakaTehnik v shared/zbirka.js).
+// Številke tehnik iz treninga (TRENING_TEHNIKE v shared/engine.js) in enojčka z oznakama
+// E1, E2 (TRENING_ENOJCKA): seznama se skupaj morata ujemati s karticami v
+// trening/index.html in z MODES v trening/generators.js, TRENING_TEHNIKE mora vsebovati
+// vse tehnike iz ALL_TECHNIQUES razen enojčkov; oznaka "tehnike: 1, 3, 7" v zbirki
+// (zbirkaOznakaTehnik v shared/zbirka.js) enojčkov ne izpisuje.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,8 +12,8 @@ const path = require('node:path');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['trening/generators.js', 'shared/zbirka.js'],
-  names: ['TRENING_TEHNIKE', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
+  files: ['shared/generator.js', 'trening/generators.js', 'shared/zbirka.js'],
+  names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
     'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike'],
 });
@@ -24,11 +25,26 @@ const naslovi = new Map([...treningHtml.matchAll(/data-mode="([^"]+)"[\s\S]*?<h3
 const nacini = E.TRENING_TEHNIKE.map(([m]) => m);
 const imena = E.TRENING_TEHNIKE.map(([, t]) => t);
 const ENOJCKA = ['Gol enojček', 'Skriti enojček'];
+// Vse vaje v treningu: E1, E2, nato 1-12.
+const vseVaje = [...E.TRENING_ENOJCKA.map(([m]) => m), ...nacini];
 
-test('TRENING_TEHNIKE se ujema s karticami v trening/index.html in z MODES', () => {
-  assert.equal(new Set(nacini).size, nacini.length, 'oznaka kartice se ponovi');
-  assert.deepEqual([...kartice].sort(), [...nacini].sort(), 'kartice v HTML');
-  assert.deepEqual(Object.keys(E.MODES).sort(), [...nacini].sort(), 'MODES v generators.js');
+test('TRENING_ENOJCKA in TRENING_TEHNIKE se ujemata s karticami v trening/index.html in z MODES', () => {
+  assert.deepEqual([...E.TRENING_ENOJCKA.map(([m]) => m)], ['naked-single', 'hidden-single']);
+  assert.equal(new Set(vseVaje).size, vseVaje.length, 'oznaka kartice se ponovi');
+  assert.deepEqual([...kartice].sort(), [...vseVaje].sort(), 'kartice v HTML');
+  assert.deepEqual(Object.keys(E.MODES).sort(), [...vseVaje].sort(), 'MODES v generators.js');
+});
+
+// Enojčka imata oznaki E1 in E2 namesto številke: številke 1-12 ostanejo nespremenjene.
+test('oznake v treningu: E1, E2, nato 1-12', () => {
+  assert.deepEqual(vseVaje.map(m => E.oznakaTehnike(m)),
+    ['E1', 'E2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
+  assert.equal(E.oznakaTehnike('neznana'), '');
+});
+
+test('TRENING_TEHNIKE je brez enojčkov', () => {
+  for (const m of E.TRENING_ENOJCKA.map(([k]) => k)) assert.ok(!nacini.includes(m), m);
+  for (const t of ENOJCKA) assert.ok(!imena.includes(t), t);
 });
 
 test('TRENING_TEHNIKE vsebuje vse tehnike iz ALL_TECHNIQUES razen enojčkov, vsako enkrat', () => {
@@ -52,11 +68,12 @@ test('številke tehnik 1-12 in isti vrstni red kot v ALL_TECHNIQUES', () => {
   assert.deepEqual([...E.ALL_TECHNIQUES.map(([t]) => t)].filter(t => !ENOJCKA.includes(t)), [...imena]);
 });
 
-// Značka kartice v treningu je raven tehnike (docs/uskladitev.md, 1.1): srednja 1-6,
-// napredna 7-12.
-test('značke v treningu: SREDNJA za 1-6, NAPREDNA za 7-12', () => {
+// Značka kartice v treningu je raven tehnike (docs/uskladitev.md, 1.1): lahka E1, E2,
+// srednja 1-6, napredna 7-12.
+test('značke v treningu: LAHKA za E1-E2, SREDNJA za 1-6, NAPREDNA za 7-12', () => {
   const znacke = new Map([...treningHtml.matchAll(/data-mode="([^"]+)">\s*<span class="badge badge-(\w+)">([^<]+)<\/span>/g)]
     .map(m => [m[1], [m[2], m[3]]]));
+  for (const [m] of E.TRENING_ENOJCKA) assert.deepEqual(znacke.get(m), ['lahka', 'LAHKA'], m);
   nacini.forEach((m, i) => {
     const pricakovano = i < 6 ? ['srednja', 'SREDNJA'] : ['napredna', 'NAPREDNA'];
     assert.deepEqual(znacke.get(m), pricakovano, `${i + 1}. ${m}`);
@@ -112,27 +129,27 @@ test('zbirkaOznakaTehnik() na ugankah iz docs/uganke.md: vsaka uporabljena tehni
 /* ---------- opisi tehnik (TEHNIKE_OPISI v shared/engine.js) ---------- */
 
 test('TEHNIKE_OPISI: vsaka tehnika iz treninga ima ime in razlago, besedili za vajo in za pomoč nista prazni', () => {
-  assert.deepEqual(Object.keys(E.TEHNIKE_OPISI).sort(), [...nacini].sort());
-  for (const kljuc of nacini) {
+  assert.deepEqual(Object.keys(E.TEHNIKE_OPISI).sort(), [...vseVaje].sort());
+  for (const kljuc of vseVaje) {
     const o = E.TEHNIKE_OPISI[kljuc];
     assert.ok(o.ime && o.razlaga, `${kljuc}: ime in razlaga`);
     assert.equal(o.razlaga.trim(), o.razlaga, `${kljuc}: razlaga brez odvečnih presledkov`);
     assert.ok(E.opisVaje(kljuc).startsWith(o.razlaga), `${kljuc}: besedilo vaje se začne z razlago`);
     assert.ok(E.opisTehnike(kljuc).startsWith(o.razlaga), `${kljuc}: besedilo pomoči se začne z razlago`);
     // V oknu Pomoč mora razlaga povedati tudi, kaj iz vzorca sledi (izbris ali vpis).
-    assert.match(E.opisTehnike(kljuc), /izbriš|izbrišemo/, `${kljuc}: pomoč pove, kaj se izbriše`);
+    assert.match(E.opisTehnike(kljuc), /izbriš|izbrišemo|vpišeš/, `${kljuc}: pomoč pove, kaj se izbriše ali vpiše`);
   }
 });
 
 test('TEHNIKE_OPISI: ime je enako naslovu kartice v trening/index.html, MODES.desc je opisVaje()', () => {
-  for (const kljuc of nacini) {
+  for (const kljuc of vseVaje) {
     assert.equal(E.TEHNIKE_OPISI[kljuc].ime, naslovi.get(kljuc), `${kljuc}: naslov kartice`);
     assert.equal(E.MODES[kljuc].desc, E.opisVaje(kljuc), `${kljuc}: MODES.desc`);
   }
 });
 
 test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
-  for (const kljuc of nacini) {
+  for (const kljuc of vseVaje) {
     const o = E.TEHNIKE_OPISI[kljuc];
     for (const [polje, t] of Object.entries(o)) {
       assert.doesNotMatch(t, /številk/i, `${kljuc}.${polje}`);

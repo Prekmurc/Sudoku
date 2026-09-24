@@ -615,7 +615,8 @@ function techniqueGroup(name) {
 // W-Wing (SE ju ne ocenjuje) po točkah HoDoKu (docs/tehnike.md, odločitev 2026-09-24).
 // Številke niso shranjene nikjer (zbirka in izvoz hranita imena), zato stari izvozi
 // po preštevilčenju pokažejo nove številke.
-// Enojčkov in poskusa s protislovjem v treningu ni (tests/trening-tehnike.test.js).
+// Enojčka sta v treningu z oznakama E1 in E2 (TRENING_ENOJCKA spodaj), poskusa s
+// protislovjem v treningu ni (tests/trening-tehnike.test.js).
 const TRENING_TEHNIKE = [
   ['pointing', 'Pointing pair/triple'],
   ['box-line', 'Box-line reduction'],
@@ -631,6 +632,23 @@ const TRENING_TEHNIKE = [
   ['unique-rectangle', 'Unique Rectangle'],
 ];
 
+// Enojčka v treningu (raven lahke, docs/uskladitev.md 1.1): oznaki E1 in E2 namesto
+// številke, zato nista v TRENING_TEHNIKE - številke 1-12 in oznaka "tehnike: 1, 3, 7"
+// pri ugankah ostanejo brez enojčkov. Ime je že novo (1.3); motor in dnevnik
+// reševalca imata do faze imen še "Gol enojček".
+const TRENING_ENOJCKA = [
+  ['naked-single', 'Očitni enojček'],
+  ['hidden-single', 'Skriti enojček'],
+];
+
+// Oznaka tehnike v treningu in v oknu Pomoč v igri: "E1", "E2" ali "1".."12".
+function oznakaTehnike(kljuc) {
+  const e = TRENING_ENOJCKA.findIndex(([k]) => k === kljuc);
+  if (e >= 0) return 'E' + (e + 1);
+  const i = TRENING_TEHNIKE.findIndex(([k]) => k === kljuc);
+  return i >= 0 ? String(i + 1) : '';
+}
+
 // Opisi tehnik - edini vir teh besedil (trening in okno "Pomoč" v igri):
 // - ime: polno ime, enako naslovu kartice v trening/index.html,
 // - razlaga: kaj tehnika pove (uporabljata jo oba),
@@ -639,6 +657,18 @@ const TRENING_TEHNIKE = [
 // MODES.desc v trening/generators.js je opisVaje(), okno Pomoč izpiše opisTehnike().
 // Izraz je povsod "števka" (glej razpredelnico izrazov v CLAUDE.md).
 const TEHNIKE_OPISI = {
+  'naked-single': {
+    ime: 'Očitni enojček (Naked Single)',
+    razlaga: 'Poišči prazno celico, v kateri je mogoča samo še ena števka: njena vrstica, stolpec in blok skupaj že vsebujejo vseh drugih osem števk.',
+    navodilo: 'Izberi celico in nato števko, ki jo vpišeš.',
+    posledica: 'To števko vpišeš v celico; v igri je to celica z enim samim kandidatom.',
+  },
+  'hidden-single': {
+    ime: 'Skriti enojček (Hidden Single)',
+    razlaga: 'Izberi vrstico, stolpec ali blok in števko, ki je v njem še ni. Če je števka v tej enoti mogoča samo v eni celici, mora biti tam – četudi bi bile v celici sicer mogoče tudi druge števke.',
+    navodilo: 'Izberi celico in nato števko, ki jo vpišeš.',
+    posledica: 'To števko vpišeš v celico.',
+  },
   'naked-pair': {
     ime: 'Očitna para (Naked Pair)',
     razlaga: 'Najdi 2 celici z natanko istima dvema kandidatoma.',

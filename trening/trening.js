@@ -8,12 +8,13 @@ const MAX_EX=9;
 let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
-// Vrstni red in številke kartic iz TRENING_TEHNIKE (shared/engine.js) - iste številke
-// igra izpisuje pri ugankah ("tehnike: 1, 3, 7"). Vrstni red kartic v HTML ni pomemben.
-TRENING_TEHNIKE.forEach(([m],i)=>{
+// Vrstni red in oznake kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE (1-12)
+// v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3, 7").
+// Vrstni red kartic v HTML ni pomemben.
+[...TRENING_ENOJCKA,...TRENING_TEHNIKE].forEach(([m])=>{
   const card=menuEl.querySelector(`.menu-card[data-mode="${m}"]`);
   if(!card)return;
-  card.querySelector('h3').dataset.stevilka=i+1;
+  card.querySelector('h3').dataset.stevilka=oznakaTehnike(m);
   menuEl.appendChild(card);
 });
 
@@ -166,6 +167,57 @@ function buildFullGridLayout(div,ex,M){
   return{cellEls,countEls};
 }
 
+// Prikaz za enojčka (E1, E2): cela mreža prave uganke s števkami, brez kandidatov
+// (raven lahke). Prazne celice so klikljive (izbrana je vedno ena), pod mrežo je niz
+// števk 1-9 za vpis. cellEls je indeksiran s celico (0-80).
+function buildSingleLayout(div,ex,M){
+  const cellEls=[];
+  const g=document.createElement('div');g.className='g9';
+  const corner=document.createElement('div');corner.className='g9-hdr';g.appendChild(corner);
+  for(let c=0;c<9;c++){const h=document.createElement('div');h.className='g9-hdr';h.textContent='S'+(c+1);g.appendChild(h);}
+  for(let r=0;r<9;r++){
+    const rh=document.createElement('div');rh.className='g9-hdr';rh.textContent='V'+(r+1);g.appendChild(rh);
+    for(let c=0;c<9;c++){
+      const idx=r*9+c,gc=document.createElement('div');
+      gc.className='gc';gc.dataset.r=r;gc.dataset.c=c;
+      const v=ex.boardGrid[idx];
+      if(v){
+        gc.classList.add('stevka');gc.textContent=v;
+        if(ex.danosti[idx]==='0') gc.classList.add('vpis');
+      } else {
+        gc.classList.add('selectable');
+        gc.addEventListener('click',()=>{
+          if(!gc.classList.contains('selectable')) return;
+          const bil=selected[0];
+          if(bil!==undefined) cellEls[bil].classList.remove(M.selClass);
+          if(bil===idx){selected=[];return;}
+          selected=[idx];gc.classList.add(M.selClass);
+        });
+      }
+      g.appendChild(gc);cellEls[idx]=gc;
+    }
+  }
+  div.appendChild(g);
+  const note=document.createElement('div');note.className='g9-note';
+  note.textContent='Temne števke so dane, modre so že vpisane.';
+  div.appendChild(note);
+  const lbl=document.createElement('p');lbl.className='stevke-label';lbl.textContent='Števka za vpis:';
+  div.appendChild(lbl);
+  const stevkeEl=document.createElement('div');stevkeEl.className='digit-btns';
+  for(let d=1;d<=9;d++){
+    const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
+    b.addEventListener('click',()=>{
+      const bil=pickedDigits[0];
+      stevkeEl.querySelectorAll('button').forEach(x=>x.classList.remove('picked'));
+      if(bil===d){pickedDigits=[];return;}
+      pickedDigits=[d];b.classList.add('picked');
+    });
+    stevkeEl.appendChild(b);
+  }
+  div.appendChild(stevkeEl);
+  return{cellEls,countEls:[],stevkeEl};
+}
+
 function renderExercise(){
   const M=MODES[mode];
   if(exNum>=MAX_EX){
@@ -183,7 +235,10 @@ function renderExercise(){
 
   let cellEls=[],countEls=[];
 
-  if(M.isXWing||M.isSwordfish){
+  if(M.isSingle){
+    const layout=buildSingleLayout(div,ex,M);
+    cellEls=layout.cellEls;countEls=layout.countEls;
+  } else if(M.isXWing||M.isSwordfish){
     // Poseben prikaz: 9x9 mreža za eno številko
     const dlabel=document.createElement('div');dlabel.className='xw-digit-label';
     dlabel.textContent=`Označena številka: ${ex.digit}`;
@@ -304,6 +359,7 @@ function renderExercise(){
 
   // Besedilo namiga glede na tip
   function buildHintText(){
+    if(M.isSingle) return ex.namig;
     if(M.isPointing||M.isBoxLine){
       const withDigit=ex.slots.filter(s=>s.group==='primary'&&s.c&&s.c.includes(ex.digit)).map(s=>s.pos);
       const seek=M.isPointing?'eni vrstici ali stolpcu':'enem bloku';
@@ -351,6 +407,7 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
+    if(M.isSingle) return ex.korak.message;
     if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
       const step=exDigitStep();
       return step?step.message:'(ni najdenega vzorca)';
@@ -410,7 +467,11 @@ function renderExercise(){
     overlay.innerHTML=text;
     overlay.classList.add('visible');
     if(showHL){
-      if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
+      if(M.isSingle){
+        // Pri skritem enojčku je bistvena enota, v kateri je števka omejena na eno mesto.
+        if(ex.korak.hint&&ex.korak.hint.unit) ex.korak.hint.unit.forEach(c=>cellEls[c].classList.add('peek-enota'));
+        cellEls[ex.korak.assign[0][0]].classList.add('peek-hl');
+      } else if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
         const step=exDigitStep();
         if(step){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
@@ -428,7 +489,7 @@ function renderExercise(){
   }
   function peekOff(overlay){
     overlay.classList.remove('visible');
-    cellEls.forEach(c=>c.classList.remove('peek-hl','peek-elim'));
+    cellEls.forEach(c=>c.classList.remove('peek-hl','peek-elim','peek-enota'));
   }
 
   const hintBtn=document.createElement('button');hintBtn.className='peek-btn';hintBtn.textContent='Namig (drži)';
@@ -453,6 +514,7 @@ function renderExercise(){
 }
 
 function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
+  if(M.isSingle){checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb);return;}
   // Swordfish: 6-9 celic, X-Wing: natanko 4, ostalo: natanko pickN
   if(M.isSwordfish){
     if(selected.length<6||selected.length>9){fb.className='fb err';fb.textContent='Izberi 6–9 celic (vse celice s to številko v 3 vrsticah ali stolpcih).';return;}
@@ -685,6 +747,35 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
   } else {
     fb.className='fb err';fb.innerHTML=`<b>Ni ${M.pickN===2?'par':'trojica'}.</b> Unija: {${[...union].sort((a,b)=>a-b).join(', ')}} = ${union.size} različnih (rabiš ${M.pickN}).`;
     cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
+  }
+}
+
+// Enojčka: odgovor je vpis števke v celico. Presodi preveriEnojcek() (generators.js) s
+// koraki motorja na mreži vaje; 'nevtralno' (prava števka, a ne po tej tehniki) se ne
+// šteje - tako kot izbira dane celice pri parih.
+function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
+  if(!selected.length){fb.className='fb err';fb.textContent='Izberi prazno celico.';return;}
+  if(!pickedDigits.length){fb.className='fb err';fb.textContent='Izberi števko, ki jo vpišeš.';return;}
+  const celica=selected[0],stevka=pickedDigits[0];
+  const r=preveriEnojcek(ex,celica,stevka);
+  const pocisti=()=>{
+    cellEls[celica].classList.remove(M.selClass);selected=[];
+    pickedDigits=[];document.querySelectorAll('.digit-btns button').forEach(b=>b.classList.remove('picked'));
+  };
+  if(r.izid==='prav'){
+    scoreTotal++;scoreRight++;updateScore();
+    fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${r.sporocilo}`;
+    const gc=cellEls[celica];
+    gc.classList.remove(M.selClass,'selectable');gc.classList.add('stevka','correct');gc.textContent=stevka;
+    cellEls.forEach(c=>c.classList.remove('selectable'));
+    checkBtn.style.display='none';nextBtn.style.display='inline-block';
+  } else if(r.izid==='nevtralno'){
+    fb.className='fb err';fb.innerHTML=`<b>Še ne.</b> ${r.sporocilo}`;
+    pocisti();
+  } else {
+    scoreTotal++;updateScore();
+    fb.className='fb err';fb.innerHTML=`<b>Ni pravilno.</b> ${r.sporocilo}`;
+    pocisti();
   }
 }
 

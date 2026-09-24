@@ -99,7 +99,8 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
     `ravenTehnike(kljuc)`;
   - v treningu značke SREDNJA (1–6) in NAPREDNA (7–12); X-Wing in Swordfish gresta iz
     »ZAHTEVNO« med napredne, skriti par iz »LAŽJE« med srednje. Lahkih tehnik trening
-    nima (enojčki nimajo vaje). Značka EKSPERTNA pride skupaj z XY-Chain;
+    nima (enojčki nimajo vaje) – **dopolnjeno 2026-09-24:** enojčka imata vaji E1 in E2 z
+    značko LAHKA (oznaki namesto številke, 1–12 ostane). Značka EKSPERTNA pride skupaj z XY-Chain;
   - `tagClass()` z isto delitvijo in istimi barvami kot značke (lahke – `t-single`,
     srednje – `t-pair`, napredne – `t-advanced`; poskus s protislovjem ostane `t-chain`,
     ekspertna raven dobi svojo barvo ob uvedbi);

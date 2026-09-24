@@ -887,17 +887,20 @@ document.querySelectorAll('.dialog').forEach(el => {
 /* ---------- navodila (okno Pomoč) ---------- */
 
 const navodilaDialog = document.getElementById('navodilaDialog');
-// Razdelek "Tehnike": številke, imena in razlage so v shared/engine.js
-// (TRENING_TEHNIKE + TEHNIKE_OPISI), zato so iste kot v treningu. Vrstni red
-// seznama <ol> da številke 1..12.
+// Razdelek "Tehnike": oznake (E1, E2, 1..12), imena in razlage so v shared/engine.js
+// (TRENING_ENOJCKA + TRENING_TEHNIKE, oznakaTehnike(), TEHNIKE_OPISI), zato so iste
+// kot v treningu.
 const tehnikeSeznamEl = document.getElementById('tehnikeSeznam');
-for (const [kljuc] of TRENING_TEHNIKE) {
+for (const [kljuc] of [...TRENING_ENOJCKA, ...TRENING_TEHNIKE]) {
   const li = document.createElement('li');
+  const oznaka = document.createElement('span');
+  oznaka.className = 'tehnika-oznaka';
+  oznaka.textContent = oznakaTehnike(kljuc);
   const ime = document.createElement('b');
   ime.textContent = TEHNIKE_OPISI[kljuc].ime;
   const razlaga = document.createElement('p');
   razlaga.textContent = opisTehnike(kljuc);
-  li.append(ime, razlaga);
+  li.append(oznaka, ime, razlaga);
   tehnikeSeznamEl.appendChild(li);
 }
 

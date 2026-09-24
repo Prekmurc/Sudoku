@@ -15,6 +15,16 @@
 </header>
 <div class="container">
   <div id="menu">
+    <div class="menu-card" data-mode="naked-single">
+      <span class="badge badge-lahka">LAHKA</span>
+      <h3>Očitni enojček (Naked Single)</h3>
+      <p>Najdi prazno celico, v kateri je mogoča samo še ena števka, in jo vpiši.</p>
+    </div>
+    <div class="menu-card" data-mode="hidden-single">
+      <span class="badge badge-lahka">LAHKA</span>
+      <h3>Skriti enojček (Hidden Single)</h3>
+      <p>Najdi števko, ki je v vrstici, stolpcu ali bloku mogoča samo na enem mestu, in jo vpiši.</p>
+    </div>
     <div class="menu-card" data-mode="naked-pair">
       <span class="badge badge-srednja">SREDNJA</span>
       <h3>Očitna para (Naked Pair)</h3>
@@ -84,6 +94,7 @@
 </div>
 
 <script src="../shared/engine.js"></script>
+<script src="../shared/generator.js"></script>
 <script src="generators.js"></script>
 <script src="trening.js"></script>
 </body>

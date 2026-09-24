@@ -27,10 +27,15 @@ točka 1.3). Koda in zgornja tabela še uporabljata stara imena – popravita se
 Ravni so iz točke 1.1: *lahke*, *srednje* (1–6), *napredne* (7–12), *ekspertne* (XY-Chain
 in poznejše verige, zaenkrat prazno).
 
+Enojčka imata od 2026-09-24 v treningu vaji z oznakama **E1** in **E2** namesto številke
+(`TRENING_ENOJCKA` in `oznakaTehnike()` v `shared/engine.js`), zato se številke 1–12 niso
+spremenile; oznaki sta tudi v seznamu tehnik v oknu Pomoč v igri. Pri ugankah se enojčki
+ne izpisujejo (»tehnike: 1, 3, 7«), ker jih potrebuje vsaka uganka.
+
 | Št. | Raven | Ime za prikaz | Ključ v `ALL_TECHNIQUES` | Sopomenke in stara imena |
 |---|---|---|---|---|
-| – | lahke | Očitni enojček (Naked Single) | Gol enojček | gol enojček, Sole Candidate |
-| – | lahke | Skriti enojček (Hidden Single) | Skriti enojček | – |
+| E1 | lahke | Očitni enojček (Naked Single) | Gol enojček | gol enojček, Sole Candidate |
+| E2 | lahke | Skriti enojček (Hidden Single) | Skriti enojček | – |
 | 1 | srednje | Izločitev izven bloka (Pointing Pair/Triple) | Pointing pair/triple | Locked Candidates Type 1 (Pointing), presek |
 | 2 | srednje | Izločitev v bloku (Box-Line Reduction) | Box-line reduction | Locked Candidates Type 2 (Claiming), presek |
 | 3 | srednje | Očitni par (Naked Pair) | Naked pair | očitna para |
