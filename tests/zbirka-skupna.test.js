@@ -13,7 +13,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html in igra/index.html.
-const RESEVALEC = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'app/app.js', 'app/zbirka.js'];
+const RESEVALEC = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
 const IGRA = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/stanje.js', 'igra/igra.js'];
 const ZBIRKA = 'sudoku.zbirka.v1';
 

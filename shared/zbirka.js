@@ -11,14 +11,19 @@
    rešena) za vse prikaze in izvoz ter branje shranjenih iger igre (igreBeri), iz
    katerih se stanje izračuna.
    Naloži se za shared/engine.js (uporablja ALL_UNITS, ALL_TECHNIQUES, TRENING_TEHNIKE,
-   solutionOf). */
+   solutionOf). Za težavnost nove uganke in uvožene uganke brez znane težavnosti
+   potrebuje še oceniTezavnost iz shared/generator.js (naloži se lahko tudi za to
+   datoteko - kliče se šele ob shranjevanju in uvozu). */
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
-// Težavnosti: prve štiri so natanko stopnje generatorja (STOPNJE_UGANK v
-// shared/generator.js, polje `ime`), "Ekstrem" je uganka, ki zahteva ugibanje,
-// "Drugo" pa vrednost iz uvoza, ki je ne prepoznamo.
-const TEZAVNOSTI = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem', 'Drugo'];
-const PRIVZETA_TEZAVNOST = 'Ekstrem';
+// Težavnosti (opredelitev 2026-09-24, docs/uskladitev.md, razdelek 7): prvih pet so
+// natanko stopnje (STOPNJE_UGANK v shared/generator.js, polje `ime`; Ekstrem =
+// ekspertna tehnika), sledijo oznake uganke brez stopnje iz oceniTezavnost():
+// "Presega tehnike" (motor bi moral ugibati), "Več rešitev" in "Brez rešitve".
+// Težavnost, ki je ni mogoče določiti (neznana vrednost iz uvoza, nepreverjena
+// enoličnost), je prazna - "težavnost ni določena".
+const TEZAVNOSTI = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem',
+  'Presega tehnike', 'Več rešitev', 'Brez rešitve'];
 // Imena težavnosti iz starejših zapisov (shramba tega brskalnika in stari izvozi).
 // Preslikajo se ob branju zbirke in ob uvozu; v shrambo se novo ime zapiše ob
 // prvem naslednjem shranjevanju.
@@ -31,11 +36,13 @@ const STARE_TEZAVNOSTI = {
 };
 
 // Težavnost v veljavnem zapisu: novo ime, staro ime preslikano, prazno ostane
-// prazno, karkoli drugega je 'Drugo'.
+// prazno, karkoli drugega (tudi nekdanja oznaka "Drugo") postane prazno - uvoz tako
+// težavnost izračuna (zbirkaUvozi). Stari "Ekstrem" (prej: ugibanje) ostane; popravi
+// ga gumb "Oceni zbirko" v igri.
 function zbirkaTezavnost(v) {
   if (zbirkaPrazno(v)) return '';
   if (TEZAVNOSTI.includes(v)) return v;
-  return STARE_TEZAVNOSTI[v] || 'Drugo';
+  return STARE_TEZAVNOSTI[v] || '';
 }
 // Polja zapisa v stalnem vrstnem redu (tudi vrstni red pri uvozu/dopolnjevanju).
 // Ločena sta dva para podatkov: PROGRAM (`nazadnje` = kdaj je solve() uganko
@@ -75,7 +82,7 @@ function zbirkaOpisIzvora(z) {
 // docs/uganke.md; '0' ali '.' = prazna celica. `tezavnost` je rezultat oceniUganko()
 // (shared/generator.js) - to preverja tests/generator.test.js.
 const PRIMERI = [
-  { ime: 'Primer 1 (z ugibanjem)', tezavnost: 'Ekstrem', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
+  { ime: 'Primer 1 (z ugibanjem)', tezavnost: 'Presega tehnike', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
   { ime: 'Primer 2 (Ekstrem, brez ugibanja)', tezavnost: 'Zelo težka', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
   { ime: 'Primer 3 (srednja – presek)', tezavnost: 'Srednja', danosti: '.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7' }, // lahka-seme-197
   { ime: 'Primer 4 (srednja – trojica)', tezavnost: 'Srednja', danosti: '..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761' }, // srednja-a
@@ -396,8 +403,10 @@ function zbirkaPodatkiResevanja(board, log) {
   };
 }
 
-// Nova uganka dobi privzeto težavnost in izvor iz `dodatno` ({ tezavnost, izvor });
-// pri že shranjeni se posodobijo samo datum zadnjega reševanja in izračunani podatki
+// Nova uganka dobi težavnost in izvor iz `dodatno` ({ tezavnost, izvor }); brez
+// težavnosti (ročni vnos) se ta izračuna z oceniTezavnost() iz shared/generator.js,
+// prav tako pri že shranjeni uganki, ki težavnosti nima. Pri že shranjeni se
+// posodobijo samo datum zadnjega reševanja in izračunani podatki
 // (težavnost, izvor in opomba ostanejo - izvor pove, kako je uganka nastala, ne kdaj
 // je bila nazadnje rešena). Vrne shranjeni zapis ali null, če brskalnik ne dovoli
 // shranjevanja ali če je uganka vgrajeni primer (ta se v zbirko nikoli ne shrani).
@@ -409,11 +418,11 @@ function zbirkaShraniResitev(givens, board, log, dodatno = {}) {
   let zapis = zbirka.find(z => z.danosti === givens);
   if (zapis) {
     Object.assign(zapis, podatki, { nazadnje: cas });
-    if (!zapis.tezavnost) zapis.tezavnost = PRIVZETA_TEZAVNOST;
+    if (!zapis.tezavnost) zapis.tezavnost = oceniTezavnost(givens).tezavnost;
   } else {
     zapis = {
       danosti: givens,
-      tezavnost: dodatno.tezavnost || PRIVZETA_TEZAVNOST,
+      tezavnost: dodatno.tezavnost || oceniTezavnost(givens).tezavnost,
       izvor: zbirkaIzvor(dodatno.izvor),
       dodano: cas, nazadnje: cas, ...podatki, opomba: '',
     };
@@ -698,7 +707,9 @@ function zbirkaIzvozi() {
 }
 
 // Uvoz besedila datoteke (Markdown) v zbirko tega brskalnika: nove uganke
-// doda, obstoječe le dopolni (zbirkaZdruzi). Vrne { sporocilo, napaka,
+// doda, obstoječe le dopolni (zbirkaZdruzi). Uvožena uganka, ki po združitvi
+// nima težavnosti (v datoteki je ni ali je neznana), jo dobi z oceniTezavnost() -
+// kot ob ročnem vnosu; znana vrednost ostane. Vrne { sporocilo, napaka,
 // spremenjeno } - spremenjeno = zbirka je bila zapisana (osveži prikaz).
 function zbirkaUvozi(besedilo) {
   const { zapisi, neveljavni, primerov } = zbirkaIzMarkdowna(besedilo);
@@ -707,11 +718,19 @@ function zbirkaUvozi(besedilo) {
   }
   const zbirka = zbirkaBeri();
   const p = zbirkaZdruzi(zbirka, zapisi, zbirkaZdaj());
+  const uvozene = new Set(zapisi.map(z => z.danosti));
+  let ocenjenih = 0;
+  for (const z of zbirka) {
+    if (!uvozene.has(z.danosti) || z.tezavnost) continue;
+    z.tezavnost = oceniTezavnost(z.danosti).tezavnost;
+    if (z.tezavnost) ocenjenih++; // '' = enoličnosti ni bilo mogoče preveriti
+  }
   if (!zbirkaPisi(zbirka)) {
     return { sporocilo: 'Uvoza ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', napaka: true, spremenjeno: false };
   }
   return {
     sporocilo: `Uvoz končan - novih: ${p.novi} · dopolnjenih: ${p.dopolnjeni} · že obstoječih brez sprememb: ${p.nespremenjeni}` +
+      (ocenjenih ? ` · težavnost izračunana: ${ocenjenih}` : '') +
       (neveljavni ? ` · neveljavnih (preskočenih): ${neveljavni}` : '') +
       (primerov ? ` · vgrajenih primerov (niso del zbirke, preskočenih): ${primerov}` : '') + '.',
     napaka: neveljavni > 0,

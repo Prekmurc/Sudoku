@@ -38,7 +38,7 @@ function zbirkaSkrijVrstico() {
 function zbirkaOsveziVrstico() {
   const z = zbirkaTrenutne && zbirkaBeri().find(x => x.danosti === zbirkaTrenutne);
   if (!z) { zbirkaSkrijVrstico(); return; }
-  saveDifficultyEl.value = z.tezavnost || PRIVZETA_TEZAVNOST;
+  saveDifficultyEl.value = z.tezavnost || '';
   saveNoteEl.value = z.opomba || '';
 }
 

@@ -25,8 +25,9 @@ onmessage = (e) => {
   }
 };
 
-// Ena uganka: težavnost po štirih stopnjah ("Ekstrem" za ugibanje, "Drugo" za
-// uganko brez natanko ene rešitve) in podatki reševanja iz istega klica solve() -
+// Ena uganka: težavnost po stopnjah ("Presega tehnike", kadar motor brez ugibanja
+// obtiči, "Brez rešitve"/"Več rešitev" za uganko brez natanko ene rešitve, '' pri
+// nepreverjeni enoličnosti - oceniTezavnost v ../shared/generator.js) in podatki reševanja iz istega klica solve() -
 // enaki kot jih zapiše reševalec. `resitve` je countSolutions(), da igra lahko
 // pove, zakaj uganka ni dobila stopnje.
 function oceniEno(danosti) {

@@ -14,7 +14,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'app/app.js', 'app/zbirka.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 
 // Reševalec z eno uganko v zbirki (dodana 21. 9. 2026 ob 16:33). `vprasanja` zbere
@@ -150,6 +150,11 @@ test('reševalec: rešen vgrajeni primer se v zbirko ne shrani', () => {
   const d = JSON.stringify(danosti);
   run(`(() => { const { board, log } = solve(${d}); zbirkaPoResevanju(${d}, board, log, 1); })()`);
   assert.equal(run(`zbirkaBeri().find(z => z.danosti === ${d}).izvor`), 'rocno');
+  // Težavnost se izračuna ob nastanku zapisa (shared/generator.js je naložen).
+  const tezavnost = run(`oceniTezavnost(${d}).tezavnost`);
+  assert.ok(tezavnost, 'težavnost je določena');
+  assert.equal(run(`zbirkaBeri().find(z => z.danosti === ${d}).tezavnost`), tezavnost);
+  assert.equal(dom.el('saveDifficulty').value, tezavnost, 'spustni seznam kaže izračunano');
   assert.equal(dom.el('saveMsg').textContent, '✓ Shranjeno v zbirko');
   assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (1)');
 });

@@ -1115,7 +1115,8 @@ function stUgank(n) {
 }
 
 // Zakaj uganka ni dobila stopnje: countSolutions() v oceniUganko(). Uganke brez
-// natanko ene rešitve (pridejo lahko z uvozom) ni mogoče igrati, zato dobi "Drugo".
+// natanko ene rešitve (pridejo lahko z uvozom) ni mogoče igrati, zato dobi "Brez
+// rešitve" ali "Več rešitev"; pri nepreverjeni enoličnosti ostane stara težavnost.
 function opisResitev(resitve) {
   if (resitve === 1 || resitve === undefined) return '';
   if (resitve === 0) return 'nima rešitve';
@@ -1124,9 +1125,11 @@ function opisResitev(resitve) {
 }
 
 // Kaj bi se iz ocene zapisalo v uganko. Uganka brez natanko ene rešitve dobi samo
-// težavnost "Drugo": podatki reševanja bi bili iz ene od več poti (reševalec jih
-// pri taki uganki tudi ne shrani - glej zbirkaPoResevanju v app/zbirka.js).
+// težavnost ("Brez rešitve" ali "Več rešitev"): podatki reševanja bi bili iz ene od
+// več poti (reševalec jih pri taki uganki tudi ne shrani - glej zbirkaPoResevanju v
+// app/zbirka.js). Če enoličnosti ni bilo mogoče preveriti, se ne zapiše nič.
 function ocenaZapis(o) {
+  if (o.resitve === 'unknown') return {};
   return o.resitve === 1 ? { ...o.podatki, tezavnost: o.tezavnost } : { tezavnost: o.tezavnost };
 }
 
@@ -1135,7 +1138,7 @@ function ocenaZapis(o) {
 function ocenaSprememba(z, o) {
   const zapis = ocenaZapis(o);
   const deli = [];
-  if ((z.tezavnost || '') !== zapis.tezavnost) {
+  if (zapis.tezavnost !== undefined && (z.tezavnost || '') !== zapis.tezavnost) {
     deli.push(`${z.tezavnost || 'brez težavnosti'} → ${zapis.tezavnost}`);
   }
   if (zapis.tehnike) {
@@ -1216,11 +1219,13 @@ function obdelajOceno(m) {
     return;
   }
   const sprememb = ocenaSprememb();
-  const brezEnolicne = [...ocene.values()].filter(o => opisResitev(o.resitve)).length;
+  const brezEnolicne = [...ocene.values()].filter(o => o.resitve === 0 || o.resitve === 2).length;
+  const nepreverjenih = [...ocene.values()].filter(o => o.resitve === 'unknown').length;
   zbirkaStatus((sprememb
     ? `Ocenjeno: ${stUgank(ocenjenih)}, predlaganih sprememb: ${sprememb}. Preglej jih v seznamu in potrdi.`
     : `Ocenjeno: ${stUgank(ocenjenih)}. Vse ocene so že zapisane.`)
-    + (brezEnolicne ? ` Brez natanko ene rešitve: ${brezEnolicne} (teh ni mogoče igrati, zato dobijo »Drugo«).` : ''));
+    + (brezEnolicne ? ` Brez natanko ene rešitve: ${brezEnolicne} (teh ni mogoče igrati, zato dobijo »Brez rešitve« ali »Več rešitev«).` : '')
+    + (nepreverjenih ? ` Enoličnosti ni bilo mogoče preveriti: ${nepreverjenih} (težavnost ostane).` : ''));
 }
 
 // Ustavi ocenjevanje (gumb Prekini, zaprtje okna, konec). Že prejete ocene ostanejo
@@ -1332,15 +1337,16 @@ const stopnjeGumbiEl = document.getElementById('stopnjeGumbi');
 const ustvariBtn = document.getElementById('ustvariBtn');
 const prekiniBtn = document.getElementById('prekiniBtn');
 const ustvariStatusEl = document.getElementById('ustvariStatus');
-let izbranaStopnja = STOPNJE_UGANK[0].kljuc;
+let izbranaStopnja = STOPNJE_GENERATORJA[0].kljuc;
 let iskanje = null; // { stopnja, zacetek, poskusi, worker } ali { ..., vGlavniNiti: true }
 
 try {
   const shranjena = localStorage.getItem(STOPNJA_KLJUC);
-  if (stopnjaUganke(shranjena)) izbranaStopnja = shranjena;
+  if (STOPNJE_GENERATORJA.includes(stopnjaUganke(shranjena))) izbranaStopnja = shranjena;
 } catch (e) { /* privzeta stopnja */ }
 
-const stopnjeGumbi = STOPNJE_UGANK.map(s => {
+// Samo stopnje, ki jih generator ustvarja (Ekstrem ne - ekspertne tehnike še ni).
+const stopnjeGumbi = STOPNJE_GENERATORJA.map(s => {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'stopnja';
@@ -1473,8 +1479,9 @@ prekiniBtn.addEventListener('click', () => {
 });
 
 // Uganko doda v zbirko (enako kot "Reši" v reševalcu); obstoječega zapisa ne
-// spreminjamo. Ustvarjena uganka dobi težavnost svoje stopnje namesto privzete,
-// izvor pa pove, ali jo je ustvaril generator ali si jo vnesel sam.
+// spreminjamo. Ustvarjena uganka dobi težavnost svoje stopnje, ročno vnesena
+// (tezavnost '') pa izračunano (oceniTezavnost v zbirkaShraniResitev), izvor pa
+// pove, ali jo je ustvaril generator ali si jo vnesel sam.
 // Vgrajenih primerov igra v zbirko ne dodaja (primeri niso del zbirke).
 function dodajVZbirko(danosti, tezavnost, izvor) {
   if (zbirkaPrimerZa(danosti) || zbirkaBeri().some(z => z.danosti === danosti)) return;

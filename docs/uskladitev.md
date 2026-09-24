@@ -129,6 +129,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
 
 ### 1.2 Ročno vnesena uganka dobi težavnost »Ekstrem«
 
+**Narejeno 2026-09-24** z opredelitvijo stopenj (7.5): težavnost se izračuna ob nastanku
+zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
+
 - **Kje:** `shared/zbirka.js:226` (`PRIVZETA_TEZAVNOST`), `app/zbirka.js:49` (reševalec,
   »Reši«), `igra/igra.js:1582` (igra, »Ali vnesi svojo« → `dodajVZbirko(danosti, '', 'rocno')`).
 - **Zdaj:** `Ekstrem` pomeni »zahteva ugibanje«. Vsaka ročno vnesena uganka (tudi taka, ki
@@ -919,9 +922,10 @@ kopija podatka, ki bi moral priti iz `TEHNIKE_OPISI`.
 
 ## 7. Opredelitve stopenj ugank (odločitev 2026-09-24)
 
-**Samo zapis** – koda zanj še ni spremenjena. Razlike do današnje kode so naštete na koncu
-razdelka in se odpravijo v posebni nalogi. Ločeno od te opredelitve je bil isti dan izveden
-vrstni red tehnik znotraj ravni s preštevilčenjem 1–12 (1.1, `docs/tehnike.md`).
+**Izvedeno 2026-09-24** (`shared/generator.js`, `shared/zbirka.js`, igra in reševalec) –
+razlike do prejšnje kode in kako so odpravljene so v 7.5, kar ostane za pozneje, v 7.6.
+Ločeno od te opredelitve je bil isti dan izveden vrstni red tehnik znotraj ravni s
+preštevilčenjem 1–12 (1.1, `docs/tehnike.md`).
 
 ### 7.1 Ocena uganke
 
@@ -986,27 +990,67 @@ dvema srednjima to pomeni dve ali tri srednje tehnike.
 - *Skladnost:* današnji generator ima isto mejo, zato ustvarjene Težke uganke v zbirkah
   ustrezajo tudi novi opredelitvi.
 
-### 7.5 Razlike do današnje kode (odpravijo se v naslednji nalogi)
+### 7.5 Razlike do prejšnje kode (odpravljene 2026-09-24)
+
+Pogoji generatorja (7.4) so bili že pred to nalogo natanko taki, kot jih zahteva 7.4 –
+spremenila se je samo stopnja. Meritev na 600 naključnih minimalnih ugankah: 6 ugank
+(1,0 %) gre iz Zelo težke v Težko (ena napredna, pet ali več tehnik), 129 (21,5 %) iz
+»Ekstrem« v »Presega tehnike«, vse druge ostanejo. Hitrost generatorja: 0,23 / 0,81 /
+1,00 / 1,92 s (lahka / srednja / težka / zelo težka, prej 0,23 / 0,89 / 1,21 / 2,11 s) –
+iste uganke, hitrejša je samo razvrstitev (en klic motorja namesto enega na skupino).
+Točke spodaj so zapis stanja pred nalogo, pod vsako je, kako je odpravljena.
 
 - **Pravilo »5 ali več tehnik → Zelo težka«:** `STOPNJE_UGANK` (`shared/generator.js`) ima
   pri Zelo težki `napredne >= 2 || tehNad >= 5` in pri Težki zgornjo mejo `tehNad <= 4` tudi
   v merilu stopnje (`ustreza`), ne samo v generatorju. Po 7.2 je uganka z eno napredno in
   petimi ali več tehnikami Težka.
+  *Odpravljeno:* `ustreza` je samo še raven (Težka `napredne === 1`, Zelo težka
+  `napredne >= 2`); meja štirih tehnik ostane v `ustrezaIskanju` (`GEN_TEZKA_NAJVEC`).
 - **Ekstrem pomeni ugibanje:** danes dobi Ekstrem uganka, ki je `solve()` ne reši brez
   poskusa s protislovjem (in ročno vnesena uganka kot privzeto, `PRIVZETA_TEZAVNOST`). Po
   7.3 je to »Presega tehnike«, Ekstrem pa je ekspertna raven.
+  *Odpravljeno:* `oceniTezavnost()` vrne »Presega tehnike«, kadar motor v stalnem
+  vrstnem redu obtiči. Ekstrem je peta stopnja v `STOPNJE_UGANK` (`ekspertne >= 1`,
+  `GEN_EKSPERTNE` je prazen) brez merila iskanja, zato je generator ne ponuja.
+  `PRIVZETA_TEZAVNOST` je odstranjena: ročno vnesena uganka dobi težavnost z
+  `oceniTezavnost()` ob nastanku zapisa (`zbirkaShraniResitev()`; reševalec zato naloži
+  `shared/generator.js`) – s tem je narejena tudi 1.2 (brez prikaza »izračunano« ob ročni
+  izbiri v reševalcu). Stari zapisi »Ekstrem« se samodejno ne preslikajo – popravi jih
+  »Oceni zbirko« (odločitev 2026-09-24).
 - **»Drugo«:** danes ena oznaka za 0 rešitev, več rešitev in neprepoznano vrednost iz uvoza.
   Po 7.1 »Brez rešitve« in »Več rešitev«; odprto ostane, kako označiti uganko, katere
   enoličnosti `countSolutions()` ni mogel preveriti (`'unknown'`), in neznano vrednost iz
   uvoza.
+  *Odpravljeno (odločitev 2026-09-24):* `'unknown'` da prazno težavnost (»težavnost ni
+  določena«), »Oceni zbirko« obstoječe ne prepiše. Neznana ali manjkajoča težavnost iz
+  uvoza (tudi nekdanji »Drugo«) se izračuna z `oceniTezavnost()`, kot pri ročnem vnosu;
+  znana vrednost ostane. Izračun traja povprečno 7,6 ms na uganko (mediana 4,6 ms, največ
+  pribl. 70 ms), 100 uvoženih ugank brez težavnosti pribl. 0,8 s v glavni niti.
 - **Vir množice tehnik:** danes `genRazvrsti()` – najkrajša predpona skupin
   `TECHNIQUE_GROUPS`, s katero pot uganko reši, in tehnike te poti. Dnevnik `solve()`
   (pokaže ga oznaka »tehnike: 1, 3, 7«) se lahko razlikuje, ker `solve()` sidra na števko.
   Po 7.1 je vir motor v stalnem vrstnem redu; odločiti je treba, ali je to pot z vsemi
   tehnikami brez sidranja (`genPot()` z `ALL_TECHNIQUES`) ali dnevnik `solve()`.
+  *Odpravljeno:* vir je `genPot()` z vsemi tehnikami (`genRazvrsti()`). To je ista pot
+  kot prej po skupinah (motor v vsakem koraku vzame najlažjo tehniko, ki kaj najde; na
+  600 ugankah 0 razlik), le brez ponavljanja po skupinah. Mere so `{ srednje, napredne,
+  ekspertne, tehNad }` iz množice tehnik; ravni so izrecne (`GEN_LAHKE`, `GEN_SREDNJE`,
+  `GEN_NAPREDNE`, `GEN_EKSPERTNE`), test preveri, da je vsaka tehnika iz
+  `ALL_TECHNIQUES` (tudi enojčka) v natanko eni.
 - **Imena v zbirki:** `TEZAVNOSTI` dobi »Presega tehnike«, »Več rešitev« in »Brez
   rešitve«; stari zapisi z »Ekstrem« (= ugibanje) in »Drugo« se morajo preslikati ali
   ponovno oceniti (»Oceni zbirko«).
+  *Odpravljeno:* `TEZAVNOSTI` = Lahka, Srednja, Težka, Zelo težka, Ekstrem, Presega
+  tehnike, Več rešitev, Brez rešitve. »Drugo« ob branju postane prazno (»težavnost ni
+  določena«), »Ekstrem« ostane do »Oceni zbirko«.
+
+### 7.6 Kasneje
+
+- **Oznaka »tehnike: 1, 3, 7« ne ustreza vedno poti, po kateri je določena stopnja.**
+  Oznaka je iz dnevnika `solve()`, ki sidra na števko, stopnja pa iz motorja v stalnem
+  vrstnem redu (7.1). Pri 12 od 471 naključnih ugank brez ugibanja (2,5 %, meritev
+  2026-09-24) bi tehnike iz dnevnika dale drugo stopnjo. Odločeno 2026-09-24: tokrat se ne
+  spreminja.
 
 ---
 

@@ -143,6 +143,18 @@ uganke in vgrajeni primeri enako, na 300 naključnih minimalnih ugankah ena spre
 
 ## Stopnje ugank: najmanjše število različnih tehnik (meritev 2026-09-21)
 
+**Opredelitev stopenj od 2026-09-24** ([uskladitev.md](uskladitev.md), razdelek 7): stopnja je
+raven najtežje tehnike, ki jo uporabi motor v stalnem vrstnem redu (`genPot()` z vsemi
+tehnikami), šteje se množica različnih tehnik. Lahka = samo enojčki, Srednja = najtežje so
+srednje (1–6), Težka = natanko ena napredna (7–12), Zelo težka = vsaj dve napredni, Ekstrem =
+ekspertna tehnika (13, XY-veriga – še ni v motorju). Uganka, pri kateri motor obtiči, dobi
+»Presega tehnike«, uganka brez rešitve »Brez rešitve«, uganka z več rešitvami »Več rešitev«. Pravila
+»pet ali več tehnik → Zelo težka« ni več; meja štirih tehnik pri Težki velja samo za
+generator. Pogoji generatorja (spodaj) so ostali enaki. Tabela spodaj je zapis meritve
+2026-09-21; stolpca »Delež« in »Čas iskanja« sta iz nje, vrstica Ekstrem je danes »Presega
+tehnike«. Časi iskanja po spremembi (2026-09-24, 30 iskanj na stopnjo, Node 24): lahka 0,23 s,
+srednja 0,81 s, težka 1,00 s, zelo težka 1,92 s (povprečje; največ 9,7 s pri zelo težki).
+
 Številke tehnik so iz `TRENING_TEHNIKE` v [shared/engine.js](../shared/engine.js) (od
 2026-09-24): **1** pointing, **2** box-line, **3** očitna para, **4** skrita para, **5** očitna
 trojica, **6** skrita trojica, **7** X-Wing, **8** Swordfish, **9** Turbot Fish, **10** W-Wing,
@@ -162,7 +174,8 @@ več kot eno osnovno. Spodnja meja to odpravi.
 | Srednja | 1–6 | **≥ 2** iz 1–6, nobene napredne | 9,1 % | 1,3 s |
 | Težka | 1–6 + ena iz 7–12 | **≥ 2** iz 1–6 + **natanko 1** iz 7–12, skupaj ≤ 4 | 8,0 % | 2,1 s |
 | Zelo težka | 1–12 | **≥ 2** iz 1–6 + **≥ 2** iz 7–12 | 5,9 % | 2,1 s |
-| Ekstrem | vse + poskus | pogoj je ugibanje (`solve()` uganke ne reši brez poskusa s protislovjem) | 21,4 % vseh izkopanih | – |
+| Presega tehnike (prej Ekstrem) | vse + poskus | motor uganke brez ugibanja ne reši | 21,4 % vseh izkopanih | – |
+| Ekstrem (od 2026-09-24) | ekspertne (13) | vsaj ena ekspertna tehnika – generator je ne ponuja | – | – |
 
 Minimum velja **samo za iskanje v generatorju** (kaj gumb »Ustvari uganko« ustvari), ne za
 razvrščanje že znanih ugank: `oceniUganko()` (gumb »Oceni zbirko« v igri) mora ostati pokrivajoč,
@@ -173,11 +186,13 @@ ugibanja – takih je 21 % ugank, ki jih `solve()` reši brez poskusa. V
 (s spodnjo mejo, zanj gre `oceniStopnjo` oziroma `ustvariUganko`).
 
 Merilo iskanja mora biti **podmnožica** pokrivajočega, sicer bi ustvarjena uganka pri
-»Oceni zbirko« dobila drugo težavnost, kot jo ima v zbirki. Zato ima Težka poleg spodnje
-meje še zgornjo iz pokrivajočega merila (največ štiri tehnike nad enojčki; uganka z eno
-napredno in štirimi osnovnimi se razvrsti kot Zelo težka), Zelo težka pa se pri iskanju
-omeji na vejo z dvema naprednima in ne lovi tudi uganke s petimi tehnikami nad enojčki.
-To preverja `tests/generator.test.js`.
+»Oceni zbirko« dobila drugo težavnost, kot jo ima v zbirki. To preverja
+`tests/generator.test.js`. Od 2026-09-24 je meja največ štirih tehnik nad enojčki pri Težki
+samo pogoj generatorja (`GEN_TEZKA_NAJVEC`): uganka z eno napredno in štirimi ali več
+srednjimi je po stopnji Težka, generator pa je ne ponudi, da ustvarjena Težka ostane jasno
+pod Zelo težko. (Do 2026-09-24 je bila meja tudi v pokrivajočem merilu, tako uganko pa je
+razvrstilo pravilo »pet ali več tehnik« med Zelo težke.) Izraz »osnovne« v tem razdelku je
+isto kot »srednje« (1–6).
 
 **Meritev.** Vzorec kot pri meritvi stopenj v [uganke.md](uganke.md) (razdelek »Porazdelitev
 naključnih ugank«): semena 1–840 dajo 660 minimalnih ugank, ki jih `solve()` reši brez ugibanja

@@ -590,7 +590,8 @@ const ALL_TECHNIQUES = [
 // najlažje, šele nato nadaljuje z isto številko.
 // Srednje tehnike (1-6 v TRENING_TEHNIKE) so razdeljene na tri skupine po vrsti
 // vzorca: preseki, para, trojici. Indeksi 0 (enojčki), 1-3 (srednje) in 4 (napredne)
-// so meje ravni, na katerih slonijo merila stopenj v shared/generator.js.
+// so meje ravni; stopnje ugank pa shared/generator.js računa iz svojih izrecnih ravni
+// (GEN_LAHKE ... GEN_EKSPERTNE), ne iz teh skupin.
 const TECHNIQUE_GROUPS = [
   ['Gol enojček', 'Skriti enojček'],
   ['Pointing pair/triple', 'Box-line reduction'],

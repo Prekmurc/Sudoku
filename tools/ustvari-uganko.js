@@ -6,20 +6,18 @@
 // Zagon iz korena projekta:
 //   node tools/ustvari-uganko.js <lahka|srednja|tezka|zelotezka> [--seme N] [--poskusov M]
 //
-// Kategorije (stopnje). Merilo sta dve meri (genRazvrsti v shared/generator.js):
-// najlažja skupina tehnik, ki uganko še reši, in število različnih tehnik nad
-// enojčki, ki jih ta pot uporabi. Podlaga je meritev 600 naključnih ugank
-// (docs/uganke.md, razdelek "Porazdelitev naključnih ugank"):
+// Kategorije (stopnje generatorja, ustrezaIskanju v shared/generator.js). Mere so
+// iz množice različnih tehnik, ki jih motor v stalnem vrstnem redu uporabi
+// (genRazvrsti); srednje = 1-6, napredne = 7-12 (docs/uskladitev.md, razdelek 7):
 //   lahka      - reši se samo z enojčki (brez zapisanih kandidatov).
-//   srednja    - potrebuje očitno/skrito paro, trojico ali presek (Pointing,
-//                Box-line), naprednih tehnik pa ne. To orodje tu zahteva še par IN
-//                trojico na poti (moznosti.strogoSrednja), da so testne uganke v
-//                docs/uganke.md bogatejše; igra tega ne zahteva, ker je iskanje s
-//                tem pribl. 30x daljše.
-//   tezka      - potrebuje natanko eno napredno tehniko, skupaj največ štiri
-//                tehnike nad enojčki.
-//   zelotezka  - potrebuje dve različni napredni tehniki ali pet različnih tehnik
-//                nad enojčki.
+//   srednja    - vsaj dve različni srednji tehniki, naprednih pa ne. To orodje tu
+//                zahteva še par IN trojico na poti (moznosti.strogoSrednja), da so
+//                testne uganke v docs/uganke.md bogatejše; igra tega ne zahteva,
+//                ker je iskanje s tem precej daljše.
+//   tezka      - natanko ena napredna tehnika, vsaj dve srednji, skupaj največ
+//                štiri tehnike nad enojčki.
+//   zelotezka  - vsaj dve različni napredni in vsaj dve srednji tehniki.
+// Stopnje Ekstrem (ekspertna tehnika) generator ne ustvarja.
 // Pri vseh mora solve() (vse tehnike) uganko rešiti brez ugibanja. Njegov dnevnik
 // se lahko od poti razlikuje, ker se solve() "usidra" na številko prejšnjega koraka
 // in zanjo vzame tudi zahtevnejšo tehniko pred enojčkom z drugo številko; iz istega
@@ -34,7 +32,7 @@ const { loadEngine } = require('../tests/load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js'],
-  names: ['applyStep', 'STOPNJE_UGANK', 'stopnjaUganke', 'ustvariUganko', 'oceniStopnjo',
+  names: ['applyStep', 'STOPNJE_GENERATORJA', 'stopnjaUganke', 'ustvariUganko', 'oceniStopnjo',
     'genRazvrsti', 'GEN_NAPREDNE'],
 });
 
@@ -45,8 +43,8 @@ const vrednost = (ime, privzeto) => {
   return i >= 0 ? Number(args[i + 1]) : privzeto;
 };
 const stopnja = E.stopnjaUganke(kategorija);
-if (!stopnja) {
-  console.error(`Uporaba: node tools/ustvari-uganko.js <${E.STOPNJE_UGANK.map(s => s.kljuc).join('|')}> [--seme N] [--poskusov M]`);
+if (!stopnja || !stopnja.ustrezaIskanju) {
+  console.error(`Uporaba: node tools/ustvari-uganko.js <${E.STOPNJE_GENERATORJA.map(s => s.kljuc).join('|')}> [--seme N] [--poskusov M]`);
   process.exit(2);
 }
 const MOZNOSTI = { strogoSrednja: true }; // velja samo za kategorijo srednja
@@ -68,7 +66,7 @@ console.log(`seme:       ${seme}`);
 console.log(`danosti:    ${danosti.replace(/0/g, '.')} (${danosti.replace(/0/g, '').length})`);
 console.log(`countSolutions(): ${E.countSolutions(danosti)}`);
 console.log(`pot:        ${[...uporabljene].join(', ')}`);
-console.log(`mere:       skupina ${mere.skupina}, tehnik nad enojčki ${mere.tehNad}, naprednih ${mere.napredne}`);
+console.log(`mere:       tehnik nad enojčki ${mere.tehNad}: srednjih ${mere.srednje}, naprednih ${mere.napredne}, ekspertnih ${mere.ekspertne}`);
 console.log(`dnevnik solve() ustreza istemu merilu: ${prednost ? 'da' : 'ne'}`);
 console.log(`napredne tehnike v dnevniku solve(): ${E.GEN_NAPREDNE.filter(ime => tehnike[ime]).join(', ') || 'nobena'}`);
 console.log(`solve():    ${Object.entries(tehnike).map(([ime, n]) => `${ime} (${n})`).join(', ')}; korakov ${Object.values(tehnike).reduce((a, b) => a + b, 0)}`);

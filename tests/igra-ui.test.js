@@ -200,6 +200,9 @@ test('ročno vnesena uganka: takoj v zbirki, z "dodana" in brez časa reševanja
   assert.equal(run('zbirkaBeri().length'), prej + 1);
   assert.ok(z.dodano, 'ima čas dodajanja');
   assert.equal(z.izvor, 'rocno');
+  // Težavnost se izračuna ob nastanku zapisa (docs/uskladitev.md 1.2 in 7).
+  assert.equal(z.tezavnost, run(`oceniTezavnost(${D}).tezavnost`), 'izračunana težavnost');
+  assert.ok(z.tezavnost, 'težavnost je določena');
   assert.ok(!z.igrano, 'brez poteze nima časa reševanja');
   assert.equal(run('igra.danosti'), JSON.parse(D), 'uganka se začne igrati');
   assert.equal(run('zbirkaZaSeznam(zbirkaBeri())[0].danosti'), JSON.parse(D), 'nova uganka je na vrhu');
@@ -742,4 +745,17 @@ test('vgrajeni primeri: odprti, ko je odprta uganka primer', () => {
   // Nazaj na uganko iz zbirke: razdelek je ob odprtju okna spet zaprt.
   run(`zacniIgro(${D})`);
   assert.equal(primeriOdprtiObOdprtju(dom), false);
+});
+
+// "Oceni zbirko" (docs/uskladitev.md 7): uganka brez natanko ene rešitve dobi samo
+// oznako "Brez rešitve"/"Več rešitev"; pri nepreverjeni enoličnosti ('unknown') se
+// ne zapiše nič, zato obstoječa težavnost ostane.
+test('ocena zbirke: oznake brez rešitve, nepreverjena enoličnost ne prepiše težavnosti', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const z = { tezavnost: 'Težka' };
+  assert.equal(run(`ocenaSprememba(${JSON.stringify(z)}, { resitve: 0, tezavnost: 'Brez rešitve' })`), 'Težka → Brez rešitve');
+  assert.equal(run(`ocenaSprememba(${JSON.stringify(z)}, { resitve: 2, tezavnost: 'Več rešitev' })`), 'Težka → Več rešitev');
+  assert.equal(run(`JSON.stringify(ocenaZapis({ resitve: 'unknown', tezavnost: '' }))`), '{}');
+  assert.equal(run(`ocenaSprememba(${JSON.stringify(z)}, { resitve: 'unknown', tezavnost: '' })`), '', 'brez spremembe');
 });

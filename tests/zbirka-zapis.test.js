@@ -1,8 +1,10 @@
 'use strict';
 // Zapis uganke v zbirki (shared/zbirka.js):
-//   - težavnosti (TEZAVNOSTI): prve štiri so natanko stopnje generatorja, "Ekstrem"
-//     ostane za uganke z ugibanjem, stara imena (Začetnik, Preprosto, Srednje, Težko,
-//     Ekspert) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna;
+//   - težavnosti (TEZAVNOSTI): prvih pet so natanko stopnje, sledijo "Presega tehnike",
+//     "Več rešitev" in "Brez rešitve"; stara imena (Začetnik, Preprosto, Srednje, Težko,
+//     Ekspert) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna -,
+//     neznano ime (tudi nekdanji "Drugo") postane prazno; nova uganka brez težavnosti
+//     (ročni vnos) in uvožena brez znane težavnosti jo dobita z oceniTezavnost();
 //   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator ali je vnesena ročno;
 //     zapiše se ob nastanku zapisa in se pozneje ne spreminja;
 //   - vgrajeni primeri niso del zbirke: zbirkaShraniResitev in uvoz jih ne shranita,
@@ -37,7 +39,7 @@ const E = loadEngine(undefined, {
       removeItem: k => shramba.delete(k),
     },
   },
-  names: ['TEZAVNOSTI', 'PRIVZETA_TEZAVNOST', 'STARE_TEZAVNOSTI', 'zbirkaTezavnost',
+  names: ['TEZAVNOSTI', 'STARE_TEZAVNOSTI', 'zbirkaTezavnost', 'oceniTezavnost',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown', 'STOPNJE_UGANK', 'ZBIRKA_IZVORI', 'ZBIRKA_POLJA',
     'zbirkaIzvor', 'zbirkaOpisIzvora', 'zbirkaShraniResitev', 'zbirkaBeri', 'zbirkaPisi',
     'zbirkaStanjeUganke', 'zbirkaPovzetekIgre', 'zbirkaPovzetekZapisa', 'zbirkaKazalecZapisa',
@@ -50,11 +52,11 @@ const E = loadEngine(undefined, {
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 
-test('TEZAVNOSTI: štiri stopnje, Ekstrem in Drugo', () => {
-  assert.deepEqual([...E.TEZAVNOSTI], ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem', 'Drugo']);
-  assert.equal(E.PRIVZETA_TEZAVNOST, 'Ekstrem');
-  // Prve štiri so imena stopenj iz shared/generator.js.
-  assert.deepEqual([...E.TEZAVNOSTI].slice(0, 4), [...E.STOPNJE_UGANK].map(s => s.ime));
+test('TEZAVNOSTI: pet stopenj in tri oznake uganke brez stopnje', () => {
+  assert.deepEqual([...E.TEZAVNOSTI], ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem',
+    'Presega tehnike', 'Več rešitev', 'Brez rešitve']);
+  // Prvih pet so imena stopenj iz shared/generator.js.
+  assert.deepEqual([...E.TEZAVNOSTI].slice(0, 5), [...E.STOPNJE_UGANK].map(s => s.ime));
 });
 
 test('zbirkaTezavnost(): stara imena se preslikajo, nova ostanejo', () => {
@@ -71,7 +73,8 @@ test('zbirkaTezavnost(): stara imena se preslikajo, nova ostanejo', () => {
   for (const t of E.TEZAVNOSTI) assert.equal(E.zbirkaTezavnost(t), t, t);
   assert.equal(E.zbirkaTezavnost(''), '', 'prazno ostane prazno');
   assert.equal(E.zbirkaTezavnost(undefined), '');
-  assert.equal(E.zbirkaTezavnost('Lv4'), 'Drugo', 'neznano ime');
+  assert.equal(E.zbirkaTezavnost('Lv4'), '', 'neznano ime');
+  assert.equal(E.zbirkaTezavnost('Drugo'), '', 'nekdanja oznaka "Drugo"');
 });
 
 test('uvoz iz Markdowna: staro ime težavnosti se preslika v novo', () => {
@@ -88,14 +91,43 @@ test('uvoz iz Markdowna: staro ime težavnosti se preslika v novo', () => {
   assert.equal(zapisi[0].tezavnost, 'Zelo težka');
 });
 
-test('uvoz iz Markdowna: neznano ime težavnosti postane Drugo, novo ostane', () => {
+test('uvoz iz Markdowna: neznano ime težavnosti postane prazno, znano ostane', () => {
   const vrstice = t => [
     `- **Danosti:** \`${danosti.replace(/0/g, '.')}\``,
     `- **Težavnost:** ${t}`,
   ].join('\n');
-  assert.equal(E.zbirkaIzMarkdowna(vrstice('Oakever Lv4')).zapisi[0].tezavnost, 'Drugo');
+  assert.equal(E.zbirkaIzMarkdowna(vrstice('Oakever Lv4')).zapisi[0].tezavnost, '');
+  assert.equal(E.zbirkaIzMarkdowna(vrstice('Drugo')).zapisi[0].tezavnost, '');
   assert.equal(E.zbirkaIzMarkdowna(vrstice('Zelo težka')).zapisi[0].tezavnost, 'Zelo težka');
+  // Stari "Ekstrem" (prej: ugibanje) se ne preslika - popravi ga "Oceni zbirko".
   assert.equal(E.zbirkaIzMarkdowna(vrstice('Ekstrem')).zapisi[0].tezavnost, 'Ekstrem');
+  assert.equal(E.zbirkaIzMarkdowna(vrstice('Več rešitev')).zapisi[0].tezavnost, 'Več rešitev');
+});
+
+// Uvoz (zbirkaUvozi): uganka brez znane težavnosti (manjka, neznana, nekdanji "Drugo")
+// jo dobi z oceniTezavnost(), kot ob ročnem vnosu; znana vrednost ostane - tudi pri
+// obstoječem zapisu, ki ga uvoz samo dopolni.
+test('uvoz: manjkajočo ali neznano težavnost izračuna, znano pusti', () => {
+  shramba.clear();
+  // docs/uganke.md ima samo tri uganke, ki niso primeri; četrta je naključna minimalna
+  // uganka iz tests/generator.test.js (seme 100239, preverjena ena rešitev).
+  const [a, b, c] = loadPuzzles().filter(p => !E.zbirkaPrimerZa(p.danosti)).map(p => p.danosti);
+  const d = '060070000000000805030600000000901020200500900700000004003200506000014000000005001';
+  assert.equal(E.countSolutions(d), 1);
+  const razdelek = (dan, t) => [`- **Danosti:** \`${dan}\``, ...(t ? [`- **Težavnost:** ${t}`] : []), ''];
+  // d je v zbirki že od prej, brez težavnosti.
+  E.zbirkaPisi([{ danosti: d.replace(/\./g, '0'), tezavnost: '', izvor: '', dodano: '2026-09-20 10:00', opomba: '' }]);
+  const md = [...razdelek(a, 'Oakever Lv4'), ...razdelek(b, ''), ...razdelek(c, 'Lahka'), ...razdelek(d, 'Drugo')].join('\n');
+  const r = E.zbirkaUvozi(md);
+  assert.ok(r.spremenjeno, r.sporocilo);
+  assert.match(r.sporocilo, /težavnost izračunana: 3/);
+  const po = new Map(E.zbirkaBeri().map(z => [z.danosti, z.tezavnost]));
+  for (const x of [a, b, d]) {
+    const dan = x.replace(/\./g, '0');
+    assert.equal(po.get(dan), E.oceniTezavnost(dan).tezavnost, `${x}: izračunana težavnost`);
+    assert.ok(po.get(dan), 'izračunana težavnost ni prazna');
+  }
+  assert.equal(po.get(c.replace(/\./g, '0')), 'Lahka', 'znana vrednost ostane (tudi če ocena ni enaka)');
 });
 
 /* ---------- izvor uganke (generator ali ročni vnos) ---------- */
@@ -134,6 +166,23 @@ test('zbirkaShraniResitev(): izvor se zapiše ob nastanku in se pozneje ne sprem
   // Brez podatka o izvoru (starejša pot) ostane prazen.
   shramba.clear();
   assert.equal(E.zbirkaShraniResitev(danosti, board, log).izvor, '');
+});
+
+// Ročni vnos (brez podane težavnosti): težavnost se izračuna ob nastanku zapisa.
+test('zbirkaShraniResitev(): brez težavnosti jo izračuna z oceniTezavnost()', () => {
+  for (const { danosti: d } of loadPuzzles().filter(p => !E.zbirkaPrimerZa(p.danosti))) {
+    shramba.clear();
+    const dan = d.replace(/\./g, '0');
+    const { board: b, log: l } = E.solve(dan);
+    const z = E.zbirkaShraniResitev(dan, b, l, { izvor: 'rocno' });
+    assert.equal(z.tezavnost, E.oceniTezavnost(dan).tezavnost, d);
+    assert.ok([...E.TEZAVNOSTI].includes(z.tezavnost), `${d}: ${z.tezavnost}`);
+  }
+  // Obstoječi zapis brez težavnosti jo dobi ob naslednjem reševanju.
+  shramba.clear();
+  E.zbirkaPisi([{ danosti, tezavnost: '', izvor: 'rocno', dodano: '2026-09-20 10:00', opomba: '' }]);
+  const { board: b, log: l } = E.solve(danosti);
+  assert.equal(E.zbirkaShraniResitev(danosti, b, l).tezavnost, 'Presega tehnike');
 });
 
 test('izvoz in uvoz: vrstica Izvor gre skozi datoteko', () => {

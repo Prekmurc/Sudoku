@@ -19,7 +19,8 @@ onmessage = (e) => {
   const stopnja = e.data && e.data.stopnja;
   const meja = (e.data && e.data.meja) || PRIVZETA_MEJA;
   try {
-    if (!stopnjaUganke(stopnja)) throw new Error('Neznana stopnja: ' + stopnja);
+    // Stopnja brez merila iskanja (Ekstrem) se ne ustvarja.
+    if (!STOPNJE_GENERATORJA.includes(stopnjaUganke(stopnja))) throw new Error('Neznana stopnja: ' + stopnja);
     const zacetek = Date.now();
     let poskusi = 0;
     while (Date.now() - zacetek < meja) {

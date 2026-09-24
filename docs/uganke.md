@@ -64,7 +64,18 @@ pair/triple 30 → 42, Box-line reduction 3 → 5, Naked pair 9 → 1, Gol enoj�
 Skriti enojček 294 → 292; ugibanj je enako (3), z istimi izbrisi. Naked pair je zdaj
 pokrit samo še z eno uganko – kandidat za dopolnitev (naloga 3a v `docs/uskladitev.md`).
 
+Opredelitev stopenj 2026-09-24 (`docs/uskladitev.md`, razdelek 7) ne spremeni težavnosti
+nobene od osmih ugank: tri, pri katerih reševalec ugiba (`hard-17-a`, `example-app`,
+`oakever-ekstrem-17-a`), so namesto »Ekstrem« zdaj »Presega tehnike«, druge ostanejo.
+
 ## Porazdelitev naključnih ugank (meritev 2026-09-20)
+
+**Opomba 2026-09-24:** merila spodaj so iz 2026-09-20. Po opredelitvi stopenj 2026-09-24
+(`docs/uskladitev.md`, razdelek 7) je stopnja samo raven najtežje tehnike – pravilo »pet ali
+več tehnik → Zelo težka« je odpadlo, »Ekstrem« (ugibanje) je »Presega tehnike«. Na 600
+naključnih minimalnih ugankah (semena 100001–100600) je to spremenilo 6 ugank (1,0 %) iz
+Zelo težke v Težko; delež med ugankami brez ugibanja je Lahka 53 %, Srednja 25 %, Težka 14 %,
+Zelo težka 8 %, ugibanje zahteva 21,5 % vseh.
 
 Meritev za določitev štirih stopenj generatorja. Vzorec: naključne **minimalne** uganke
 brez kakršne koli omejitve stopnje – iz naključne polne mreže se odstranjujejo celice v

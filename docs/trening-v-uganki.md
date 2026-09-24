@@ -118,8 +118,9 @@ nato se začne novo iskanje. »V 2 s« je delež iskanj, končanih v 2 s. **Čis
 stanje, pred katerim so bili na poti sami enojčki – kandidati so natanko tisti, ki jih
 dovolijo števke, brez izbrisov prejšnjih korakov.
 
-Porazdelitev ugank: Lahka 41,6 %, Srednja 18,7 %, Težka 8,8 %, Zelo težka 7,5 %,
-Ekstrem 23,4 % (od ugank brez ugibanja je lahkih 54 % – enako kot meritev 600 ugank v
+Porazdelitev ugank (»Ekstrem« je v tej meritvi uganka z ugibanjem – od opredelitve stopenj
+2026-09-24 »Presega tehnike«, `docs/uskladitev.md`, razdelek 7): Lahka 41,6 %, Srednja
+18,7 %, Težka 8,8 %, Zelo težka 7,5 %, Ekstrem 23,4 % (od ugank brez ugibanja je lahkih 54 % – enako kot meritev 600 ugank v
 `docs/uganke.md`).
 
 ### 2.2 Rezultati – strogo

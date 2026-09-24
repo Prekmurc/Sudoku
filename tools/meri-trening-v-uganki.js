@@ -64,7 +64,8 @@ const TEHNIKE = [
 const FN = new Map(E.ALL_TECHNIQUES);
 const ENOJCKA = ['Gol enojček', 'Skriti enojček'];
 const POSKUS = 'Poskus in protislovje (forcing chain)';
-const STOPNJE = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem'];
+// Stopnje in oznaka uganke, ki jo motor reši samo z ugibanjem (oceniUganko()).
+const STOPNJE = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Presega tehnike'];
 
 const zdaj = () => Number(process.hrtime.bigint()) / 1e6; // ms
 
