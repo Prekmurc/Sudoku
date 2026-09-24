@@ -5,7 +5,8 @@
 // ReferenceError in ni naredil nič. Kartica uganke je skupna z igro
 // (shared/zbirka-ui.js): stanje je iz istega vira kot v igri (zbirkaStanjeUganke) -
 // iz shranjene igre, kadar obstaja, sicer iz zapisa v zbirki. Vgrajeni primer,
-// rešen v reševalcu, dobi izvor "primer" in težavnost iz PRIMERI.
+// rešen v reševalcu, se v zbirko ne shrani. "Izbriši" in "Izbriši vse" pobrišeta
+// tudi shranjene igre (igre primerov ostanejo).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -52,7 +53,7 @@ test('reševalec: »Odpri« vpiše danosti v mrežo in zapre okno', () => {
 test('reševalec: »Izbriši« vpraša z datumom in po potrditvi uganko izbriše', () => {
   const { dom, run, vprasanja } = zacni(true);
   gumb(dom, 'Izbriši').sprozi('click');
-  assert.deepEqual(vprasanja, ['Izbrišem uganko, dodano 21. 9. 2026 ob 16:33 (Težka)?']);
+  assert.deepEqual(vprasanja, ['Izbrišem uganko, dodano 21. 9. 2026 ob 16:33 (Težka)? Izbriše se tudi njen shranjeni napredek.']);
   assert.equal(run('zbirkaBeri().length'), 0);
   assert.equal(dom.el('libStatus').textContent, 'Uganka je izbrisana.');
   assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (0)');
@@ -135,22 +136,63 @@ test('reševalec: uganka v vnosni mreži je označena kot trenutno odprta', () =
   assert.equal(znacka && znacka.textContent, 'trenutno odprta');
 });
 
-test('reševalec: rešen vgrajeni primer dobi izvor "primer" in težavnost primera', () => {
+test('reševalec: rešen vgrajeni primer se v zbirko ne shrani', () => {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
   const primer = run('PRIMERI[4]');
   const g = JSON.stringify(primer.danosti.replace(/\./g, '0'));
   run(`(() => { const { board, log } = solve(${g}); zbirkaPoResevanju(${g}, board, log, 1); })()`);
-  const z = run('zbirkaBeri()[0]');
-  assert.equal(z.izvor, 'primer');
-  assert.equal(z.tezavnost, primer.tezavnost);
-  assert.equal(dom.el('saveMsg').textContent, '✓ Shranjeno v zbirko');
-  // V seznamu reševalca je (lahko ga izbrišeš) - z imenom primera v 1. vrstici.
-  run('zbirkaOdpri()');
-  assert.equal(dom.el('libList').children.length, 1);
-  assert.ok(delKartice(dom, 'zb-vrstica').textContent.startsWith(`${primer.ime} · dodana `));
-  // Navadna uganka ostane ročni vnos.
+  assert.equal(run('zbirkaBeri().length'), 0);
+  assert.equal(dom.el('saveMsg').textContent, 'Vgrajeni primer – v zbirko se ne shrani.');
+  assert.equal(dom.el('saveFields').style.display, 'none', 'težavnosti in opombe ni mogoče nastaviti');
+  assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (0)');
+  // Navadna uganka se shrani kot ročni vnos.
   const d = JSON.stringify(danosti);
   run(`(() => { const { board, log } = solve(${d}); zbirkaPoResevanju(${d}, board, log, 1); })()`);
   assert.equal(run(`zbirkaBeri().find(z => z.danosti === ${d}).izvor`), 'rocno');
+  assert.equal(dom.el('saveMsg').textContent, '✓ Shranjeno v zbirko');
+  assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (1)');
+});
+
+test('reševalec: »Izbriši« pobriše tudi shranjeno igro uganke', () => {
+  const dom = makeDom();
+  dom.shramba.set('sudoku.zbirka.v1', JSON.stringify([{ danosti, tezavnost: 'Težka', dodano: '2026-09-21 16:33' }]));
+  dom.shramba.set('sudoku.igra.v1', JSON.stringify({ zadnja: danosti, igre: { [danosti]: { poteze: [], kazalec: 0 } } }));
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  run('zbirkaOdpri()');
+  gumb(dom, 'Izbriši').sprozi('click');
+  assert.equal(run('zbirkaBeri().length'), 0);
+  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], []);
+});
+
+test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza), igre primerov ostanejo', () => {
+  const primer = '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4'.replace(/\./g, '0');
+  const pripravi = (odgovor) => {
+    const dom = makeDom();
+    dom.shramba.set('sudoku.zbirka.v1', JSON.stringify([
+      { danosti, tezavnost: 'Težka', dodano: '2026-09-21 16:33' },
+      { danosti: loadPuzzles()[3].danosti.replace(/\./g, '0'), tezavnost: 'Lahka', dodano: '2026-09-22 10:00' },
+    ]));
+    dom.shramba.set('sudoku.igra.v1', JSON.stringify({ zadnja: primer,
+      igre: { [danosti]: { poteze: [], kazalec: 0 }, [primer]: { poteze: [], kazalec: 0 } } }));
+    const vprasanja = [];
+    dom.globals.confirm = (besedilo) => { vprasanja.push(besedilo); return odgovor; };
+    const { run } = loadContext(DATOTEKE, dom.globals);
+    run('zbirkaOdpri()');
+    dom.klikni('libDeleteAll');
+    return { dom, run, vprasanja };
+  };
+
+  const preklic = pripravi(false);
+  assert.equal(preklic.vprasanja.length, 1);
+  assert.match(preklic.vprasanja[0], /\(2\)/, 'navede število ugank');
+  assert.match(preklic.vprasanja[0], /izvoziš/, 'priporoči izvoz');
+  assert.equal(preklic.run('zbirkaBeri().length'), 2, 'brez potrditve se nič ne izbriše');
+
+  const { dom, run } = pripravi(true);
+  assert.equal(run('zbirkaBeri().length'), 0);
+  assert.deepEqual([...run('Object.keys(igreBeri().igre)')], [primer], 'ostane samo igra primera');
+  assert.equal(dom.el('libStatus').textContent, 'Izbrisanih ugank: 2.');
+  assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (0)');
+  assert.equal(dom.el('libList').children[0].className, 'prazno');
 });

@@ -1,6 +1,7 @@
 /* ==================== ZBIRKA UGANK (UI reševalca) ====================
-   Samodejno shranjevanje ugank ob reševanju, seznam shranjenih ugank
-   ("Odpri"/"Izbriši") ter gumba za izvoz/uvoz. Hramba in pretvorba v/iz
+   Samodejno shranjevanje ugank ob reševanju (vgrajeni primeri se ne shranijo),
+   seznam shranjenih ugank ("Odpri"/"Izbriši") ter gumbi za izvoz/uvoz in
+   "Izbriši vse". Hramba, brisanje in pretvorba v/iz
    Markdowna sta v shared/zbirka.js, kartica uganke v seznamu v
    shared/zbirka-ui.js (enaka kot v igri). */
 
@@ -42,16 +43,21 @@ function zbirkaOsveziVrstico() {
 }
 
 // Kliče app.js po vsakem reševanju. Shrani se samo uganka z enolično
-// rešitvijo - tudi če je solve() ne reši do konca.
+// rešitvijo - tudi če je solve() ne reši do konca. Vgrajeni primer se ne shrani
+// (primeri niso del zbirke).
 function zbirkaPoResevanju(givens, board, log, solutionCount) {
   if (solutionCount !== 1) { zbirkaSkrijVrstico(); return; }
-  // Uganka, ki jo rešuješ v reševalcu, je vnesena ročno, vgrajeni primer pa dobi
-  // izvor in težavnost primera (naložena iz zbirke ima zapis že od prej in izvora
-  // ne spremeni).
-  const primer = zbirkaPrimerZa(givens);
-  const zapis = zbirkaShraniResitev(givens, board, log,
-    primer ? { izvor: 'primer', tezavnost: primer.tezavnost } : { izvor: 'rocno' });
   saveRowEl.style.display = 'block';
+  if (zbirkaPrimerZa(givens)) {
+    zbirkaTrenutne = null;
+    saveMsgEl.textContent = 'Vgrajeni primer – v zbirko se ne shrani.';
+    saveMsgEl.className = '';
+    saveFieldsEl.style.display = 'none';
+    return;
+  }
+  // Uganka, ki jo rešuješ v reševalcu, je vnesena ročno (naložena iz zbirke ima
+  // zapis že od prej in izvora ne spremeni).
+  const zapis = zbirkaShraniResitev(givens, board, log, { izvor: 'rocno' });
   if (!zapis) {
     zbirkaTrenutne = null;
     saveMsgEl.textContent = 'Uganke ni bilo mogoče shraniti v zbirko (brskalnik ne dovoli shranjevanja).';
@@ -115,10 +121,10 @@ function zbirkaIzrisiSeznam() {
           zbirkaZapri();
         } },
         { napis: 'Izbriši', razred: 'danger', obKliku: () => {
-          if (!confirm(`Izbrišem uganko, dodano ${dodana} (${tezavnost})?`)) return;
-          zbirkaPisi(zbirkaBeri().filter(x => x.danosti !== z.danosti));
+          if (!confirm(zbirkaVprasanjeIzbrisi(z))) return;
+          const ok = zbirkaIzbrisi(z.danosti);
           if (zbirkaTrenutne === z.danosti) zbirkaSkrijVrstico();
-          zbirkaStatus('Uganka je izbrisana.');
+          zbirkaStatus(ok ? 'Uganka je izbrisana.' : 'Brisanja ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', !ok);
           zbirkaIzrisiSeznam();
           zbirkaOsveziGumb();
         } },
@@ -160,6 +166,26 @@ libFileEl.addEventListener('change', () => {
     zbirkaOsveziGumb();
     zbirkaOsveziVrstico();
   }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
+});
+
+// "Izbriši vse": vsa zbirka in shranjene igre njenih ugank (primeri ostanejo).
+document.getElementById('libDeleteAll').addEventListener('click', () => {
+  const n = zbirkaBeri().length;
+  if (!n) { zbirkaStatus('Zbirka je že prazna.'); return; }
+  if (!confirm(zbirkaVprasanjeIzbrisiVse(n))) return;
+  const { stevilo, ok } = zbirkaIzbrisiVse();
+  zbirkaSkrijVrstico();
+  zbirkaStatus(ok ? `Izbrisanih ugank: ${stevilo}.` : 'Brisanja ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', !ok);
+  zbirkaIzrisiSeznam();
+  zbirkaOsveziGumb();
+});
+
+// Zbirka ali igre so se spremenile v drugem zavihku (igra ali drug reševalec):
+// števec, odprt seznam in vrstica "Shranjeno v zbirko" (uganka je morda izbrisana).
+zbirkaObSpremembiDrugje(() => {
+  zbirkaOsveziGumb();
+  if (libraryEl.style.display === 'block') zbirkaIzrisiSeznam();
+  if (zbirkaTrenutne) zbirkaOsveziVrstico();
 });
 
 zbirkaOsveziGumb();

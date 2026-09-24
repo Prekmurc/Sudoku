@@ -1,7 +1,8 @@
 'use strict';
 // Najmanjši nadomestni DOM za teste UI (igra/igra.js, app/zbirka.js). Ni brskalnik:
 // podpira samo to, kar ti datoteki res uporabita - iskanje in ustvarjanje elementov, razrede, besedilo,
-// dogodke (klik sprožimo s klikni()), localStorage, confirm in spremenljivke CSS.
+// dogodke (klik sprožimo s klikni()), localStorage (tudi dogodek "storage" iz drugega
+// zavihka - drugZavihek()), confirm in spremenljivke CSS.
 // Namenjen je preverjanju LOGIKE prikaza (kaj je onemogočeno, kaj piše v vrstici z
 // razlogom), ne postavitve ali slogov.
 
@@ -106,8 +107,16 @@ function makeDom(shramba = new Map()) {
     },
   };
 
+  // window: samo poslušalci (dogodek "storage" ob zapisu v drugem zavihku).
+  const window = {
+    poslusalci: {},
+    addEventListener(tip, f) { (this.poslusalci[tip] = this.poslusalci[tip] || []).push(f); },
+    sprozi(tip, dogodek = {}) { for (const f of this.poslusalci[tip] || []) f(dogodek); },
+  };
+
   const globals = {
     document,
+    window,
     localStorage: {
       getItem: k => (shramba.has(k) ? shramba.get(k) : null),
       setItem: (k, v) => shramba.set(k, String(v)),
@@ -137,6 +146,18 @@ function makeDom(shramba = new Map()) {
     el: id => document.getElementById(id),
     klikni: (id) => document.getElementById(id).sprozi('click'),
     tipka: (dogodek) => document.sprozi('keydown', dogodek),
+    // Drug zavihek zapiše vrednost v skupno hrambo: brskalnik v TEM zavihku sproži
+    // dogodek "storage" (s staro in novo vrednostjo), v zavihku, ki je pisal, pa ne.
+    drugZavihek(kljuc, vrednost) {
+      const oldValue = shramba.has(kljuc) ? shramba.get(kljuc) : null;
+      if (vrednost === null) shramba.delete(kljuc); else shramba.set(kljuc, String(vrednost));
+      this.obvesti(kljuc, oldValue);
+    },
+    // Samo dogodek: v skupno hrambo je že pisal drug zavihek (drug kontekst z isto
+    // `shramba`), `oldValue` je vrednost pred tem.
+    obvesti(kljuc, oldValue) {
+      window.sprozi('storage', { key: kljuc, oldValue, newValue: shramba.has(kljuc) ? shramba.get(kljuc) : null });
+    },
     // Kaj vrne confirm() (gumb "Začni znova").
     potrdi(v) { vprasanja.odgovor = v; },
   };

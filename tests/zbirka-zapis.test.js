@@ -3,9 +3,12 @@
 //   - težavnosti (TEZAVNOSTI): prve štiri so natanko stopnje generatorja, "Ekstrem"
 //     ostane za uganke z ugibanjem, stara imena (Začetnik, Preprosto, Srednje, Težko,
 //     Ekspert) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna;
-//   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator, je vnesena ročno ali
-//     je vgrajeni primer; zapiše se ob nastanku zapisa in se pozneje ne spreminja -
-//     razen enkratnega popravka primerov, shranjenih kot ročni vnos (zbirkaBeri);
+//   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator ali je vnesena ročno;
+//     zapiše se ob nastanku zapisa in se pozneje ne spreminja;
+//   - vgrajeni primeri niso del zbirke: zbirkaShraniResitev in uvoz jih ne shranita,
+//     zbirkaBeri stare zapise primerov odstrani (igra primera ostane);
+//   - brisanje (zbirkaIzbrisi, zbirkaIzbrisiVse): zapis in shranjena igra, igre
+//     primerov ostanejo; besedilo potrditve za "Izbriši vse";
 //   - števec programa "delno (36/57)" (zbirkaProgramResil) v izvozu in uvozu (tudi
 //     stara oblika "delno (60 od 81 celic)");
 //   - podatki kartice uganke v seznamu (zbirkaKartica) - skupni za igro in reševalec;
@@ -40,7 +43,8 @@ const E = loadEngine(undefined, {
     'zbirkaStanjeUganke', 'zbirkaPovzetekIgre', 'zbirkaPovzetekZapisa', 'zbirkaKazalecZapisa',
     'zbirkaPrikazCasov', 'zbirkaNamigCasov', 'zbirkaShraniIgranje',
     'zbirkaZaSeznam', 'zbirkaVrsticaIgranja', 'PRIMERI', 'zbirkaPrimerZa', 'zbirkaProgramResil',
-    'zbirkaKartica'],
+    'zbirkaKartica', 'zbirkaUvozi', 'zbirkaIzbrisi', 'zbirkaIzbrisiVse', 'zbirkaVprasanjeIzbrisi',
+    'zbirkaVprasanjeIzbrisiVse', 'igreBeri', 'IGRA_KLJUC', 'ZBIRKA_KLJUC'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -96,13 +100,13 @@ test('uvoz iz Markdowna: neznano ime težavnosti postane Drugo, novo ostane', ()
 /* ---------- izvor uganke (generator ali ročni vnos) ---------- */
 
 test('zbirkaIzvor(): ključ, besedilo iz izvoza ali nič', () => {
-  assert.deepEqual({ ...E.ZBIRKA_IZVORI }, { generator: 'ustvaril generator', rocno: 'ročni vnos', primer: 'vgrajeni primer' });
+  assert.deepEqual({ ...E.ZBIRKA_IZVORI }, { generator: 'ustvaril generator', rocno: 'ročni vnos' });
   assert.ok([...E.ZBIRKA_POLJA].includes('izvor'), 'izvor je med polji zapisa');
   assert.equal(E.zbirkaIzvor('generator'), 'generator');
   assert.equal(E.zbirkaIzvor('rocno'), 'rocno');
   assert.equal(E.zbirkaIzvor('ustvaril generator'), 'generator', 'besedilo iz izvoza');
   assert.equal(E.zbirkaIzvor('ročni vnos'), 'rocno');
-  assert.equal(E.zbirkaIzvor('vgrajeni primer'), 'primer');
+  assert.equal(E.zbirkaIzvor('vgrajeni primer'), '', 'primeri niso del zbirke, izvora zanje ni');
   assert.equal(E.zbirkaIzvor(''), '');
   assert.equal(E.zbirkaIzvor(undefined), '');
   assert.equal(E.zbirkaIzvor('Oakever, Ekstrem (Lv4)'), '', 'neznano besedilo');
@@ -490,7 +494,7 @@ test('zbirkaZaSeznam(): po mojem zadnjem dogodku - reševanju, sicer dodajanju',
   assert.equal([...E.zbirkaZaSeznam([...zbirka, nova])][0].danosti, 'nova');
 });
 
-/* ---------- vgrajeni primeri v zbirki (izvor "primer") ---------- */
+/* ---------- vgrajeni primeri niso del zbirke ---------- */
 
 test('zbirkaPrimerZa(): primer po danostih, s piko ali ničlo', () => {
   const p = E.PRIMERI[2];
@@ -499,23 +503,96 @@ test('zbirkaPrimerZa(): primer po danostih, s piko ali ničlo', () => {
   assert.equal(E.zbirkaPrimerZa(danosti), null);
 });
 
-test('zbirkaBeri(): primer, shranjen kot ročni vnos, dobi izvor in težavnost primera', () => {
+// Danosti primera v notranji obliki ('0' = prazna celica).
+const danostiPrimera = i => E.PRIMERI[i].danosti.replace(/\./g, '0');
+const igra = (poteze = 1) => ({ poteze: Array.from({ length: poteze }, () => ({ tip: 'kandidat', celica: 0, stevka: 1, odstrani: true })), kazalec: poteze });
+
+test('zbirkaBeri(): stari zapisi primerov se odstranijo, igra primera ostane', () => {
   shramba.clear();
-  const p = E.PRIMERI[4];
-  const d = p.danosti.replace(/\./g, '0');
-  shramba.set('sudoku.zbirka.v1', JSON.stringify([
-    { danosti: d, tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 10:00' },
+  const d = danostiPrimera(4);
+  shramba.set(E.ZBIRKA_KLJUC, JSON.stringify([
+    { danosti: d, tezavnost: 'Lahka', izvor: 'primer', dodano: '2026-09-20 10:00' },
+    { danosti: danostiPrimera(0), tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 10:30' },
     { danosti, tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 11:00' },
   ]));
-  const [a, b] = [...E.zbirkaBeri()];
-  assert.equal(a.izvor, 'primer');
-  assert.equal(a.tezavnost, p.tezavnost);
-  assert.equal(b.izvor, 'rocno', 'navadna uganka ostane ročni vnos');
-  assert.equal(b.tezavnost, 'Ekstrem');
-  // Izvoz in uvoz izvora "vgrajeni primer".
-  const md = E.zbirkaVMarkdown(E.zbirkaBeri());
-  assert.ok(md.includes('- **Izvor:** vgrajeni primer'), md);
-  assert.equal([...E.zbirkaIzMarkdowna(md).zapisi][0].izvor, 'primer');
+  shramba.set(E.IGRA_KLJUC, JSON.stringify({ zadnja: d, igre: { [d]: igra() } }));
+
+  const zbirka = [...E.zbirkaBeri()];
+  assert.deepEqual(zbirka.map(z => z.danosti), [danosti], 'ostane samo navadna uganka');
+  assert.equal(JSON.parse(shramba.get(E.ZBIRKA_KLJUC)).length, 1, 'zbirka je enkrat prepisana brez primerov');
+  assert.ok(E.igreBeri().igre[d], 'napredek igranja primera ostane');
+  assert.equal(E.igreBeri().zadnja, d);
+});
+
+test('primer se ne shrani: zbirkaShraniResitev in uvoz ga preskočita', () => {
+  shramba.clear();
+  const d = danostiPrimera(4);
+  const { board, log } = E.solve(d);
+  assert.equal(E.zbirkaShraniResitev(d, board, log, { izvor: 'rocno' }), null);
+  assert.equal(E.zbirkaBeri().length, 0);
+  assert.equal(shramba.has(E.ZBIRKA_KLJUC), false, 'v shrambo se nič ne zapiše');
+
+  // Uvoz (npr. star izvoz z zapisi primerov ali docs/uganke.md) primere preskoči.
+  const md = [
+    `- **Danosti:** \`${E.PRIMERI[4].danosti}\``, '- **Izvor:** vgrajeni primer', '',
+    `- **Danosti:** \`${danosti.replace(/0/g, '.')}\``, '- **Težavnost:** Težka',
+  ].join('\n');
+  assert.equal(E.zbirkaIzMarkdowna(md).primerov, 1);
+  const u = E.zbirkaUvozi(md);
+  assert.equal(u.napaka, false, u.sporocilo);
+  assert.match(u.sporocilo, /novih: 1 .*vgrajenih primerov \(niso del zbirke, preskočenih\): 1/);
+  assert.deepEqual([...E.zbirkaBeri()].map(z => z.danosti), [danosti]);
+  // Datoteka s samimi primeri ni "brez ugank" - pove, da so preskočeni.
+  shramba.clear();
+  const samo = E.zbirkaUvozi(`- **Danosti:** \`${E.PRIMERI[1].danosti}\``);
+  assert.match(samo.sporocilo, /novih: 0 .*preskočenih\): 1/);
+  assert.equal(E.zbirkaBeri().length, 0);
+});
+
+/* ---------- brisanje ---------- */
+
+// Zbirka z dvema ugankama in shranjene igre obeh ter enega primera.
+const druga = loadPuzzles()[3].danosti.replace(/\./g, '0');
+function zbirkaZIgrami(zadnja) {
+  shramba.clear();
+  const p = danostiPrimera(4);
+  shramba.set(E.ZBIRKA_KLJUC, JSON.stringify([
+    { danosti, tezavnost: 'Težka', izvor: 'rocno', dodano: '2026-09-20 10:00' },
+    { danosti: druga, tezavnost: 'Lahka', izvor: 'generator', dodano: '2026-09-21 10:00' },
+  ]));
+  shramba.set(E.IGRA_KLJUC, JSON.stringify({ zadnja, igre: { [danosti]: igra(), [druga]: igra(2), [p]: igra(3) } }));
+  return p;
+}
+
+test('zbirkaIzbrisi(): zapis in shranjena igra te uganke, drugo ostane', () => {
+  const p = zbirkaZIgrami(danosti);
+  assert.equal(E.zbirkaIzbrisi(danosti), true);
+  assert.deepEqual([...E.zbirkaBeri()].map(z => z.danosti), [druga]);
+  const igre = E.igreBeri();
+  assert.deepEqual(Object.keys(igre.igre).sort(), [druga, p].sort(), 'igra izbrisane uganke je odstranjena');
+  assert.equal(igre.zadnja, null, 'zadnja igra je bila izbrisana - ob zagonu je mreža prazna');
+
+  // Zadnja igra, ki ni izbrisana, ostane zadnja.
+  zbirkaZIgrami(druga);
+  E.zbirkaIzbrisi(danosti);
+  assert.equal(E.igreBeri().zadnja, druga);
+});
+
+test('zbirkaIzbrisiVse(): vsa zbirka in igre njenih ugank, igra primera ostane', () => {
+  const p = zbirkaZIgrami(null);
+  const r = E.zbirkaIzbrisiVse();
+  assert.deepEqual({ ...r }, { stevilo: 2, ok: true });
+  assert.equal(E.zbirkaBeri().length, 0);
+  assert.deepEqual(Object.keys(E.igreBeri().igre), [p], 'ostane samo igra primera');
+});
+
+test('besedili potrditve brisanja', () => {
+  assert.equal(E.zbirkaVprasanjeIzbrisi({ dodano: '2026-09-21 16:33', tezavnost: 'Težka' }),
+    'Izbrišem uganko, dodano 21. 9. 2026 ob 16:33 (Težka)? Izbriše se tudi njen shranjeni napredek.');
+  const v = E.zbirkaVprasanjeIzbrisiVse(58);
+  assert.ok(v.includes('(58)'), 'navede število ugank');
+  assert.ok(v.includes('Vgrajeni primeri ostanejo'));
+  assert.ok(v.includes('najprej izvoziš'), 'priporoči izvoz');
 });
 
 /* ---------- števec programa ---------- */
@@ -562,7 +639,7 @@ test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
   assert.equal(brez.info, `danih ${danih} · tehnike: ni podatkov · 1 korak · program rešil delno (36/${praznih})`);
 });
 
-test('zbirkaKartica(): vgrajeni primer z zapisom in brez njega', () => {
+test('zbirkaKartica(): vgrajeni primer (brez zapisa)', () => {
   const p = E.PRIMERI[4];
   const d = p.danosti.replace(/\./g, '0');
   const danihP = d.replace(/0/g, '').length;
@@ -572,9 +649,4 @@ test('zbirkaKartica(): vgrajeni primer z zapisom in brez njega', () => {
   assert.equal(brez.stanje.besedilo, 'nova');
   assert.equal(brez.info, `danih ${danihP}`, 'brez zapisa ni podatkov reševanja');
   assert.equal(brez.namig, '');
-
-  const z = { danosti: d, tezavnost: p.tezavnost, izvor: 'primer', dodano: '2026-09-21 16:33', reseno: 81, koraki: 50, tehnike: [] };
-  const zZapisom = E.zbirkaKartica(d, z, null);
-  assert.equal(zZapisom.naslov, `${p.ime} · dodana 21. 9. 2026 ob 16:33`, 'izvor pove že ime');
-  assert.equal(zZapisom.info, `danih ${danihP} · tehnike: samo enojčki · 50 korakov`);
 });

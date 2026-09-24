@@ -43,3 +43,5 @@
 .zb-gumbi{ display:flex; gap:8px; margin-top:9px; }
 .zb-gumbi button{ font-size:12.5px; padding:7px 12px; }
 .zb-gumbi button.danger{ color: var(--red); }
+/* "Izbriši vse" ob Izvozi/Uvozi (reševalec: .lib-tools, igra: .zbirka-gumbi) */
+button.zbirka-izbrisi-vse{ color: var(--red); }

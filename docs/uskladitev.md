@@ -398,6 +398,7 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   `primer`, 2.5), kaže podatke iz zapisa (dodana, čas reševanja, tehnike, koraki). Primer brez
   zapisa kaže samo ime, stanje in »danih N«: brez časa, ker se `nazadnje` v shranjeni igri
   osveži že ob odprtju igre, in brez tehnik, ker bi jih moral vsakič izračunati s `solve()`.
+  Od spremembe 2.5 (primeri niso del zbirke) ima primer vedno samo to kartico brez zapisa.
 
 ### 2.3 Ponovno reševanje rešene uganke ni vidno (opažanje 2)
 
@@ -453,6 +454,34 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   - igra sama primerov v zbirko še naprej ne dodaja (besedilo pomoči
     `igra/index.html:165` to pove) – odločitev velja za reševalec.
 
+  **Odločitev spremenjena 2026-09-24: primeri niso del zbirke.** Izvor `primer` je naredil
+  model, ki ga ni bilo mogoče razložiti: ista hramba je v igri kazala 54 ugank, v
+  reševalcu 58. Razlika so bili zapisi, katerih danosti so v `PRIMERI` – igra jih je iz
+  »Tvoje zbirke« in števca skrila (`mojaZbirka()`), reševalec pa ne. Tak zapis je nastal
+  tudi tiho: testna uganka iz `docs/uganke.md`, ki je hkrati primer (npr. `lahka-seme-1`),
+  je z »Reši« ali z uvozom prišla v zbirko kot navadna, `zbirkaBeri()` pa ji je nastavil
+  izvor `primer`, zato je izginila iz števca v igri. Nov, preprost model:
+  - **ena zbirka, povsod enaka**: isti seznam, isto število na gumbu »Zbirka« in iste
+    kartice v igri in reševalcu (`mojaZbirka()` odpade);
+  - **primeri niso del zbirke**: nikoli se ne shranijo (`zbirkaShraniResitev()` vrne `null`,
+    reševalec pokaže »Vgrajeni primer – v zbirko se ne shrani.«, uvoz jih preskoči in
+    to pove) in se ne štejejo. V igri ostanejo v zloženem razdelku na dnu okna, v
+    reševalcu v izbiri »Primer«. `zbirkaBeri()` obstoječe zapise primerov odstrani in
+    zbirko enkrat prepiše; napredek igranja primera (`sudoku.igra.v1`) ostane. Izvor
+    `primer` odpade (`ZBIRKA_IZVORI` ima samo `generator` in `rocno`), polje `tezavnost` v
+    `PRIMERI` ostane;
+  - **brisanje v obeh aplikacijah**: gumb »Izbriši« na kartici (s potrditvijo) tudi v
+    igri, in gumb »Izbriši vse« ob »Izvozi«/»Uvozi« (potrditev navede število ugank in
+    priporoči izvoz). Brisanje odstrani tudi shranjeno igro teh ugank, igre primerov pa ne
+    (`zbirkaIzbrisi()`, `zbirkaIzbrisiVse()` v `shared/zbirka.js`). Če je izbrisana uganka
+    odprta v igri, se mreža izprazni kot ob prvem zagonu – sicer bi naslednja poteza
+    znova zapisala shranjeno igro brez zapisa v zbirki;
+  - **drug zavihek**: igra in reševalec poslušata dogodek `storage`
+    (`zbirkaObSpremembiDrugje()` v `shared/zbirka-ui.js`) in osvežita števec in odprt
+    seznam; uganka, izbrisana v drugem zavihku, izprazni mrežo tudi v igri. Prej se je
+    števec osvežil samo ob zagonu, uvozu in dodajanju, zato je lahko kazal zastarelo
+    število.
+
   **Oblika zapisa ugank (pregled 2026-09-23).** Uganke vnašaš kot niz 81 znakov, pika =
   prazna celica. Dejansko stanje:
 
@@ -495,6 +524,8 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   primerov), sama ga v zbirko ne doda; reševalec ga kaže v seznamu z imenom primera (tam ga
   lahko izbrišeš). Odprto: pretvorba danosti (pika navzven, `danostiIzNiza()`) in polje »Niz«
   v reševalcu.
+- **Nadomeščeno isti dan** z odločitvijo »primeri niso del zbirke« (zgoraj): izvor
+  `primer`, popravek v `zbirkaBeri()` in `mojaZbirka()` so odstranjeni.
 
 ### 2.6 Vrstica »Zapiši ocene (0)«
 
@@ -570,6 +601,13 @@ Glej 0.2 (vzrok je CSS, ne logika).
   se bo pokazal v zbirki na vrhu in v zaprtem razdelku spodaj – »pokaži enkrat« iz faze 3
   ostane odprto. **Rešeno 2026-09-24** (2.5): primer je samo v razdelku spodaj; razdelek je
   odprt tudi, kadar so v zbirki samo primeri (moja zbirka je takrat prazna).
+- **Odločitev spremenjena 2026-09-24** (2.5, »primeri niso del zbirke«): primerov v zbirki ni
+  več, zato razdelek na dnu ni več »druga polovica« zbirke, ampak edino mesto primerov v
+  igri. Razlog: dve različni števili (igra 54, reševalec 58) iz iste hrambe in skriti
+  zapisi, ki jih igralec ni mogel ne videti ne izbrisati. Postavitev ostane: razdelek je
+  na dnu, zložen, odprt ob prazni zbirki ali ko je odprta uganka primer (pogoj je zdaj
+  `!zbirkaBeri().length`). Kartice primerov nimajo gumba »Izbriši« in so vedno brez zapisa
+  (ime, stanje iz shranjene igre, »danih N«).
 
 ---
 
@@ -887,7 +925,9 @@ Vse odločitve so sprejete **2026-09-23**. Predlogi v navedenih točkah so jim p
    napako je poseben primer znotraj »v teku«, zapis »v teku (57/57) · napaka«, gumb
    »Nadaljuj«; napis in gumb iz istega vira, doda se samo podoznaka.
 4. **2.5 – primeri:** vgrajeni primer, rešen v reševalcu, se shrani v zbirko z izvorom
-   `primer`. Uganke vnašaš kot niz 81 znakov s piko za prazno celico; pregled oblik in
+   `primer`. **Spremenjeno 2026-09-24:** primeri niso del zbirke (nikoli se ne shranijo,
+   ne štejejo se, stari zapisi se odstranijo); zbirka je v obeh aplikacijah ista, brisanje
+   (»Izbriši«, »Izbriši vse«) je v obeh – razlog v 2.5. Uganke vnašaš kot niz 81 znakov s piko za prazno celico; pregled oblik in
    predlog (pika navzven, `0` v shrambi, ena pretvorba) je v 2.5. **Potrjeno:** uganke
    v shrambi (`sudoku.zbirka.v1`, `sudoku.igra.v1`) ostanejo z `0`. Dopolnitev primerov za
    vse stopnje in tehnike je ločena naloga (3), uganke samo z orodji v `tools/`.
@@ -905,7 +945,7 @@ komponente, na koncu videz in pomoč.
 | **0 – napake** | 0.1, 0.2 | vidni napaki, popravek je nekaj vrstic, brez odločitev | majhno |
 | **1 – stanje uganke** | 6.2, 6.3, 1.6, 1.5, 2.3 | pokrije opažanja 1–3; najprej en vir podatkov (6.2), nato števec »12/57« in tri stanja (1.6), besedila (1.5) in ponovno reševanje (2.3); na tem gradita fazi 2 in 3 | srednje |
 | **2 – kartica zbirke** (narejeno 2026-09-24, z izvorom `primer` iz 2.5 in težavnostjo primerov iz 3; od 1.7 samo gumb »Odpri«) | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
-| **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, reševalec jih shrani z izvorom `primer`, igra jih pokaže enkrat (s kartico iz faze 2), ročni vnos dobi pravo stopnjo | majhno–srednje |
+| **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, ročni vnos dobi pravo stopnjo; primeri niso del zbirke (odločitev spremenjena 2026-09-24, narejeno: ena zbirka, brisanje v obeh aplikacijah, dogodek `storage`) | majhno–srednje |
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
 | **4 – imena tehnik in izrazi** | 1.3, 1.4, 1.1, 5.1, 5.2, 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3 | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |

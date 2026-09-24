@@ -47,13 +47,12 @@ const ZBIRKA_POLJA = ['danosti', 'tezavnost', 'izvor', 'dodano', 'igrano', 'izpo
   'nazadnje', 'reseno', 'koraki', 'ugibanje', 'tehnike', 'opomba'];
 
 // Od kod je uganka v zbirki: 'generator' (ustvaril jo je generator v igri),
-// 'rocno' (vnesel jo je uporabnik - vnos v igri ali reševanje v reševalcu),
-// 'primer' (vgrajeni primer, rešen v reševalcu - glej PRIMERI), '' (starejši
-// zapisi, ki podatka nimajo). Izvor se zapiše samo ob NASTANKU zapisa in se
-// pozneje ne spreminja - edina izjema je enkratni popravek primerov v zbirkaBeri().
-// V izvozu je ključ "Izvor" z besedilom spodaj - "Vir" je v docs/uganke.md že
-// zaseden za prosto besedilo o poreklu.
-const ZBIRKA_IZVORI = { generator: 'ustvaril generator', rocno: 'ročni vnos', primer: 'vgrajeni primer' };
+// 'rocno' (vnesel jo je uporabnik - vnos v igri ali reševanje v reševalcu), ''
+// (starejši zapisi, ki podatka nimajo). Izvor se zapiše samo ob NASTANKU zapisa in
+// se pozneje ne spreminja. Vgrajenih primerov v zbirki ni (glej PRIMERI), zato
+// zanje ni izvora. V izvozu je ključ "Izvor" z besedilom spodaj - "Vir" je v
+// docs/uganke.md že zaseden za prosto besedilo o poreklu.
+const ZBIRKA_IZVORI = { generator: 'ustvaril generator', rocno: 'ročni vnos' };
 
 // Shranjena vrednost izvora iz zapisa ali iz uvoženega besedila; neznano -> ''.
 function zbirkaIzvor(v) {
@@ -69,10 +68,12 @@ function zbirkaOpisIzvora(z) {
 }
 
 // Vgrajeni primeri (reševalec: spustni seznam "Primer", igra: razdelek "Vgrajeni
-// primeri" v oknu Zbirka ugank). Nov primer = nova vrstica tu. Danosti morajo biti
-// preverjene (countSolutions() === 1) in zapisane v docs/uganke.md; '0' ali '.' =
-// prazna celica. `tezavnost` je rezultat oceniUganko() (shared/generator.js) - to
-// preverja tests/generator.test.js; dobi jo zapis primera, rešenega v reševalcu.
+// primeri" v oknu Zbirka ugank). Primeri NISO del zbirke: nikoli se ne shranijo v
+// zbirko (tudi ne, ko jih reši reševalec, ali z uvozom) in se ne štejejo; napredek
+// igranja primera je samo v shranjenih igrah (sudoku.igra.v1). Nov primer = nova
+// vrstica tu. Danosti morajo biti preverjene (countSolutions() === 1) in zapisane v
+// docs/uganke.md; '0' ali '.' = prazna celica. `tezavnost` je rezultat oceniUganko()
+// (shared/generator.js) - to preverja tests/generator.test.js.
 const PRIMERI = [
   { ime: 'Primer 1 (z ugibanjem)', tezavnost: 'Ekstrem', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
   { ime: 'Primer 2 (Ekstrem, brez ugibanja)', tezavnost: 'Zelo težka', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
@@ -287,25 +288,25 @@ function zbirkaProgramResil(z) {
 
 // Podatki kartice uganke v seznamu (seznam zbirke v igri in reševalcu, vgrajeni
 // primeri v igri) - izriše jo zbirkaIzrisiKartico() v shared/zbirka-ui.js, gumbe
-// doda aplikacija. `z` je zapis v zbirki ali null (vgrajeni primer, ki ga v zbirki
-// ni), `povzetek` povzetek shranjene igre ali null. Vrne
+// doda aplikacija. `z` je zapis v zbirki ali null (vgrajeni primer - ta v zbirki
+// nikoli ni), `povzetek` povzetek shranjene igre ali null. Vrne
 //   { primer, naslov, stanje: { predpona, besedilo, kljuc, napaka }, info, opomba,
 //     namig, gumb }
 // 1. vrstica (naslov): "Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33", pri
-//    vgrajenem primeru njegovo ime (in "· dodana …", kadar je v zbirki);
+//    vgrajenem primeru njegovo ime;
 // 2. vrstica (stanje) je vedno: "nova", "zadnje reševanje … · v teku (12/57)",
 //    "rešena …" ali "rešena … · znova v teku (12/57)" (zbirkaPrikazCasov); primer
-//    brez zapisa je brez časa (čas shranjene igre se osveži že ob odprtju);
+//    je brez časa (čas shranjene igre se osveži že ob odprtju);
 // 3. vrstica (info): "danih 24 · tehnike: 1, 3, 7 + poskus · 42 korakov", pri delni
-//    rešitvi še "· program rešil delno (36/57)"; primer brez zapisa samo "danih 17"
-//    (podatkov reševanja nima).
+//    rešitvi še "· program rešil delno (36/57)"; primer samo "danih 17" (podatkov
+//    reševanja nima).
 // `gumb` (Igraj / Nadaljuj / Poglej) je iz istega stanja kot 2. vrstica.
 function zbirkaKartica(danosti, z, povzetek) {
   const primer = zbirkaPrimerZa(danosti);
   const st = zbirkaStanjeUganke(danosti, z, povzetek);
   const dodana = z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '';
-  const naslov = (primer ? [primer.ime, dodana]
-    : [(z && z.tezavnost) || 'težavnost ni določena', zbirkaOpisIzvora(z), dodana]).filter(Boolean).join(' · ');
+  const naslov = primer ? primer.ime
+    : [(z && z.tezavnost) || 'težavnost ni določena', zbirkaOpisIzvora(z), dodana].filter(Boolean).join(' · ');
 
   let stanje = z ? zbirkaPrikazCasov(z, povzetek).igranje : null;
   if (!stanje) stanje = { predpona: '', besedilo: st.napredek, kljuc: st.kljuc, napaka: st.napaka };
@@ -353,23 +354,21 @@ function zbirkaBrezKonfliktov(danosti) {
 /* ---------- hramba ---------- */
 
 function zbirkaBeri() {
+  let a;
   try {
-    const a = JSON.parse(localStorage.getItem(ZBIRKA_KLJUC) || '[]');
-    if (!Array.isArray(a)) return [];
-    for (const z of a) {
-      if (!z) continue;
-      // Stara imena težavnosti preslikamo ob branju (zapišejo se ob prvem shranjevanju).
-      if (z.tezavnost) z.tezavnost = zbirkaTezavnost(z.tezavnost);
-      // Enkratni popravek: vgrajeni primer, ki ga je reševalec shranil, preden je
-      // obstajal izvor 'primer' (kot ročni vnos s privzeto težavnostjo), dobi izvor
-      // in težavnost primera. Edina izjema od pravila, da se izvor ne spreminja.
-      const primer = !z.izvor || z.izvor === 'rocno' ? zbirkaPrimerZa(z.danosti) : null;
-      if (primer) Object.assign(z, { izvor: 'primer', tezavnost: primer.tezavnost });
-    }
-    return a;
+    a = JSON.parse(localStorage.getItem(ZBIRKA_KLJUC) || '[]');
   } catch (e) {
     return [];
   }
+  if (!Array.isArray(a)) return [];
+  // Vgrajeni primeri niso del zbirke. Zapise primerov, ki jih je reševalec shranil
+  // prej (ali so prišli z uvozom), odstranimo in zbirko enkrat prepišemo; shranjena
+  // igra primera (sudoku.igra.v1) ostane.
+  const zbirka = a.filter(z => z && !zbirkaPrimerZa(z.danosti));
+  if (zbirka.length !== a.length) zbirkaPisi(zbirka);
+  // Stara imena težavnosti preslikamo ob branju (zapišejo se ob prvem shranjevanju).
+  for (const z of zbirka) if (z.tezavnost) z.tezavnost = zbirkaTezavnost(z.tezavnost);
+  return zbirka;
 }
 
 function zbirkaPisi(zbirka) {
@@ -401,8 +400,9 @@ function zbirkaPodatkiResevanja(board, log) {
 // pri že shranjeni se posodobijo samo datum zadnjega reševanja in izračunani podatki
 // (težavnost, izvor in opomba ostanejo - izvor pove, kako je uganka nastala, ne kdaj
 // je bila nazadnje rešena). Vrne shranjeni zapis ali null, če brskalnik ne dovoli
-// shranjevanja.
+// shranjevanja ali če je uganka vgrajeni primer (ta se v zbirko nikoli ne shrani).
 function zbirkaShraniResitev(givens, board, log, dodatno = {}) {
+  if (zbirkaPrimerZa(givens)) return null;
   const zbirka = zbirkaBeri();
   const cas = zbirkaZdaj();
   const podatki = zbirkaPodatkiResevanja(board, log);
@@ -437,6 +437,55 @@ function zbirkaShraniIgranje(danosti, cas, izpolnjeno, napaka) {
   if (zapis.igrano === cas && zapis.izpolnjeno === izpolnjeno && !!zapis.napaka === !!napaka) return false;
   Object.assign(zapis, { igrano: cas, izpolnjeno, napaka: !!napaka });
   return zbirkaPisi(zbirka);
+}
+
+/* ---------- brisanje (reševalec in igra) ---------- */
+
+// Iz shranjenih iger (sudoku.igra.v1) odstrani igre teh ugank: brisanje uganke iz
+// zbirke pobriše tudi njen napredek, da ne ostane shranjena igra brez zapisa. Igre
+// vgrajenih primerov ostanejo. Edino mesto, kjer v shranjene igre piše shared/
+// (sicer jih piše samo igra/stanje.js). Vrne true, če je zapisano.
+function zbirkaIzbrisiIgre(danosti) {
+  const s = igreBeri();
+  let spremenjeno = false;
+  for (const d of danosti) {
+    if (!s.igre[d] || zbirkaPrimerZa(d)) continue;
+    delete s.igre[d];
+    spremenjeno = true;
+  }
+  if (!spremenjeno) return true;
+  if (s.zadnja && !s.igre[s.zadnja]) s.zadnja = null;
+  try {
+    localStorage.setItem(IGRA_KLJUC, JSON.stringify(s));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Izbriše uganko iz zbirke in njeno shranjeno igro. Vrne true, če je zapisano.
+function zbirkaIzbrisi(danosti) {
+  const ok = zbirkaPisi(zbirkaBeri().filter(z => z.danosti !== danosti));
+  return zbirkaIzbrisiIgre([danosti]) && ok;
+}
+
+// Izbriše vso zbirko in shranjene igre njenih ugank (igre primerov ostanejo).
+// Vrne { stevilo, ok }: število izbrisanih ugank in ali je zapisano.
+function zbirkaIzbrisiVse() {
+  const zbirka = zbirkaBeri();
+  const ok = zbirkaPisi([]);
+  return { stevilo: zbirka.length, ok: zbirkaIzbrisiIgre(zbirka.map(z => z.danosti)) && ok };
+}
+
+// Besedili potrditve brisanja - enaki v reševalcu in igri.
+function zbirkaVprasanjeIzbrisi(z) {
+  return `Izbrišem uganko, dodano ${zbirkaPrikazDatuma(z.dodano)} (${z.tezavnost || 'težavnost ni določena'})? ` +
+    'Izbriše se tudi njen shranjeni napredek.';
+}
+
+function zbirkaVprasanjeIzbrisiVse(n) {
+  return `Izbrišem vse uganke iz zbirke (${n}) in njihov shranjeni napredek? Vgrajeni primeri ostanejo. ` +
+    'Priporočam, da zbirko najprej izvoziš (gumb »Izvozi«) – izbrisa ni mogoče razveljaviti.';
 }
 
 /* ---------- izvoz v Markdown ---------- */
@@ -488,8 +537,8 @@ function zbirkaVMarkdown(zbirka) {
 
 // Iz besedila pobere vse razdelke, ki imajo vrstico "- **Danosti:** ...".
 // Razdelek se začne z naslovom (#...) ali z novo vrstico Danosti. Neznane
-// vrstice (npr. **Vir**, **Značilnost** v docs/uganke.md) se preskočijo.
-// Vrne { zapisi, neveljavni }.
+// vrstice (npr. **Vir**, **Značilnost** v docs/uganke.md) se preskočijo, prav tako
+// vgrajeni primeri (niso del zbirke). Vrne { zapisi, neveljavni, primerov }.
 function zbirkaIzMarkdowna(besedilo) {
   const surovi = [];
   let tren = null;
@@ -508,12 +557,15 @@ function zbirkaIzMarkdowna(besedilo) {
 
   const zapisi = [];
   let neveljavni = 0;
+  let primerov = 0;
   for (const s of surovi) {
     if (s.danosti === undefined) continue;
     const z = zbirkaPretvoriUvozeni(s);
-    if (z) zapisi.push(z); else neveljavni++;
+    if (!z) neveljavni++;
+    else if (zbirkaPrimerZa(z.danosti)) primerov++; // primeri niso del zbirke
+    else zapisi.push(z);
   }
-  return { zapisi, neveljavni };
+  return { zapisi, neveljavni, primerov };
 }
 
 function zbirkaPretvoriUvozeni(s) {
@@ -624,8 +676,8 @@ function zbirkaIzvozi() {
 // doda, obstoječe le dopolni (zbirkaZdruzi). Vrne { sporocilo, napaka,
 // spremenjeno } - spremenjeno = zbirka je bila zapisana (osveži prikaz).
 function zbirkaUvozi(besedilo) {
-  const { zapisi, neveljavni } = zbirkaIzMarkdowna(besedilo);
-  if (!zapisi.length && !neveljavni) {
+  const { zapisi, neveljavni, primerov } = zbirkaIzMarkdowna(besedilo);
+  if (!zapisi.length && !neveljavni && !primerov) {
     return { sporocilo: 'V datoteki ni nobene uganke (pričakujem vrstice oblike "- **Danosti:** `...`").', napaka: true, spremenjeno: false };
   }
   const zbirka = zbirkaBeri();
@@ -635,7 +687,8 @@ function zbirkaUvozi(besedilo) {
   }
   return {
     sporocilo: `Uvoz končan - novih: ${p.novi} · dopolnjenih: ${p.dopolnjeni} · že obstoječih brez sprememb: ${p.nespremenjeni}` +
-      (neveljavni ? ` · neveljavnih (preskočenih): ${neveljavni}` : '') + '.',
+      (neveljavni ? ` · neveljavnih (preskočenih): ${neveljavni}` : '') +
+      (primerov ? ` · vgrajenih primerov (niso del zbirke, preskočenih): ${primerov}` : '') + '.',
     napaka: neveljavni > 0,
     spremenjeno: true,
   };

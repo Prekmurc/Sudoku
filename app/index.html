@@ -85,9 +85,10 @@
     <div class="lib-tools">
       <button type="button" id="libExport">Izvozi</button>
       <button type="button" id="libImport">Uvozi</button>
+      <button type="button" id="libDeleteAll" class="zbirka-izbrisi-vse">Izbriši vse</button>
       <input type="file" id="libFile" accept=".md,.txt,text/markdown,text/plain" hidden>
     </div>
-    <p class="cand-hint">Izvoz zapiše vse uganke v datoteko Markdown (enaka oblika kot docs/uganke.md). Uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke.</p>
+    <p class="cand-hint">Zbirka je ista kot v igri. Izvoz zapiše vse uganke v datoteko Markdown (enaka oblika kot docs/uganke.md). Uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Brisanje odstrani uganko skupaj s shranjenim napredkom v igri. Vgrajeni primeri (izbira »Primer«) niso del zbirke in se vanjo ne shranijo.</p>
     <div id="libStatus" class="lib-status"></div>
     <ul id="libList" class="zbirka-seznam"></ul>
   </div>

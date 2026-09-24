@@ -2,8 +2,19 @@
    Izris uganke v seznamu zbirke - enak v reševalcu (app/zbirka.js) in igri
    (igra/igra.js, tudi vgrajeni primeri). Podatke da zbirkaKartica() v
    shared/zbirka.js (brez DOM-a), gumbe pa aplikacija: reševalec Odpri/Izbriši,
-   igra Igraj/Nadaljuj/Poglej. Slogi so v shared/zbirka.css.
+   igra Igraj/Nadaljuj/Poglej/Izbriši. Slogi so v shared/zbirka.css.
+   Tu je tudi poslušalec sprememb zbirke v drugem zavihku (zbirkaObSpremembiDrugje).
    Naloži se za shared/zbirka.js. */
+
+// Zbirko (sudoku.zbirka.v1) in shranjene igre (sudoku.igra.v1) si delita reševalec
+// in igra, lahko odprta v več zavihkih. Brskalnik ob zapisu v drugem zavihku sproži
+// dogodek "storage" (v zavihku, ki je pisal, ne) - takrat aplikacija osveži števec
+// na gumbu "Zbirka" in odprt seznam. `e.key === null` pomeni localStorage.clear().
+function zbirkaObSpremembiDrugje(obSpremembi) {
+  window.addEventListener('storage', (e) => {
+    if (e.key === null || e.key === ZBIRKA_KLJUC || e.key === IGRA_KLJUC) obSpremembi(e);
+  });
+}
 
 // Stanje kot obarvani del vrstice: "v teku (12/57)", po potrebi še " · napaka".
 // Ključ stanja (nova / v-teku / resena) je hkrati razred za barvo.
