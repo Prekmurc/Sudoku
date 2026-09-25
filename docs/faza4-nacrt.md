@@ -238,8 +238,16 @@ omenjajo »številko« v besedilu za uporabnika.
    1.3, 1.4, 1.7, 5.4, 6.9 in tabela faz (faza 4 brez 1.1 in 5.1; 1.1 v fazo 5, 5.1 v
    fazo 6 – odgovor 5).
 
-**Testi:** `zbirka-zapis.test.js` (izvoz z novimi imeni, uvoz starih ključev in novih
-imen, krožni izvoz–uvoz), `trening-tehnike.test.js:86–100` (izvoz hrani imena).
+Dopolnitvi ob potrditvi dela 3 (2026-09-25):
+- **Izvoz:** vse ključe poskusa (»Poskus in protislovje (forcing chain)« in stari zapisi s
+  celico) sešteje v eno postavko »Poskus in protislovje N«, da se ime v vrstici ne ponovi.
+- **Uvoz:** pri primerjanju imen odreže presledke (na robovih, več zaporednih šteje kot
+  enega) in ne loči velikih in malih črk – velja za nova imena in stare ključe. Ista
+  tehnika dvakrat (npr. dva stara zapisa poskusa) se sešteje, neznano ime ostane.
+
+**Testi:** `zbirka-zapis.test.js` (izvoz z novimi imeni in eno postavko poskusa, nobeno
+ime nima vejice, uvoz starih ključev in novih imen, presledki in velike/male črke, krožni
+izvoz–uvoz), `trening-tehnike.test.js:86–100` (izvoz hrani imena).
 
 ### Del 4 – odpade (odgovor 5)
 

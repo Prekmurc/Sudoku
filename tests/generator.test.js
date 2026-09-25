@@ -373,8 +373,8 @@ test('neznana stopnja ali stopnja brez generatorja vrže napako', () => {
 });
 
 // Težavnost vgrajenih primerov (PRIMERI v shared/zbirka.js) je zapisana ročno, zato
-// test ob spremembi meril stopenj takoj pokaže, da je zastarela. Iz nje dobi težavnost
-// zapis primera, ki ga reševalec shrani v zbirko.
+// test ob spremembi meril stopenj takoj pokaže, da je zastarela. Pokaže se v kartici
+// primera (primeri se od 2026-09-24 ne shranjujejo v zbirko).
 test('PRIMERI: težavnost je rezultat oceniUganko()', () => {
   for (const p of E.PRIMERI) {
     assert.ok(E.TEZAVNOSTI.includes(p.tezavnost), `${p.ime}: ${p.tezavnost}`);

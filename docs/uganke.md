@@ -164,7 +164,7 @@ meritev, na kateri sloni, ima [tehnike.md](tehnike.md), razdelek »Stopnje ugank
 število različnih tehnik«.
 
 Generator od 2026-09-21 išče po ožjem merilu `ustrezaIskanju` (ta merila **in** spodnja
-meja dveh različnih osnovnih tehnik), zato so njegovi časi drugačni od zgornjih: 0,3 s
+meja dveh različnih srednjih tehnik), zato so njegovi časi drugačni od zgornjih: 0,3 s
 (lahka), 1,3 s (srednja), 2,1 s (težka), 2,1 s (zelo težka). Razvrščanje že znane uganke
 (`oceniUganko()`, gumb »Oceni zbirko«) ostaja pri zgornjem, pokrivajočem merilu.
 

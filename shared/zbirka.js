@@ -396,6 +396,36 @@ function zbirkaUrediTehnike(tehnike) {
   return [...tehnike].sort((a, b) => redTehnike(a[0]) - redTehnike(b[0]));
 }
 
+// Ključ poskusa s protislovjem v dnevniku solve(); starejši zapisi imajo namesto
+// "(forcing chain)" celico ("Poskus in protislovje (V1S1 = 5)").
+const ZBIRKA_POSKUS = POSKUS_KLJUC + ' (forcing chain)';
+
+// Tehnike za izvoz "**Tehnike:**": slovensko ime brez oklepaja (imeTehnike() v
+// shared/engine.js - angleško ime ne gre, ker "XY-Wing, Y-Wing" vsebuje vejico, po
+// kateri uvoz loči tehnike). Vsi ključi poskusa so ena postavka "Poskus in
+// protislovje N", neznan ključ ostane. V shrambi ostanejo ključi.
+function zbirkaTehnikeZaIzvoz(tehnike) {
+  const skupaj = new Map();
+  for (const [t, n] of zbirkaUrediTehnike(tehnike)) {
+    const ime = imeTehnike(t, { anglesko: false });
+    skupaj.set(ime, (skupaj.get(ime) || 0) + n);
+  }
+  return [...skupaj].map(([ime, n]) => `${ime} ${n}`).join(', ');
+}
+
+// Ključ motorja iz imena tehnike v uvozu: novo slovensko ime (izvoz od faze 4) ali
+// stari ključ (starejši izvozi), brez presledkov na robovih in ne glede na velike in
+// male črke. Vsak poskus je ZBIRKA_POSKUS; neznano ime ostane, kot je.
+function zbirkaKljucTehnike(ime) {
+  const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
+  const iskano = norm(ime);
+  if (iskano.startsWith(norm(POSKUS_KLJUC))) return ZBIRKA_POSKUS;
+  for (const [k] of ALL_TECHNIQUES) {
+    if (norm(k) === iskano || norm(imeTehnike(k, { anglesko: false })) === iskano) return k;
+  }
+  return ime.trim();
+}
+
 // Podatki iz dnevnika solve(). Psevdo-koraka 'OBSTALO'/'NAPAKA' (reševalec
 // se je ustavil) nista pravi koraki, zato ju ne štejemo. Tehnike so po vrstnem redu
 // tehnik, ne po pogostosti.
@@ -566,7 +596,7 @@ function zbirkaVMarkdown(zbirka) {
     if (!zbirkaPrazno(z.koraki)) vrstice.push(`- **Koraki:** ${z.koraki}`);
     if (!zbirkaPrazno(z.ugibanje)) vrstice.push(`- **Ugibanje:** ${z.ugibanje}`);
     if (!zbirkaPrazno(z.tehnike)) {
-      vrstice.push(`- **Tehnike:** ${z.tehnike.length ? zbirkaUrediTehnike(z.tehnike).map(([t, n]) => `${t} ${n}`).join(', ') : '(brez)'}`);
+      vrstice.push(`- **Tehnike:** ${z.tehnike.length ? zbirkaTehnikeZaIzvoz(z.tehnike) : '(brez)'}`);
     }
     if (z.opomba) vrstice.push(`- **Opomba:** ${z.opomba}`);
     // Zapis z "Rešeno" je nastal ob reševanju, ki se shrani le pri enolični rešitvi.
@@ -654,8 +684,17 @@ function zbirkaPretvoriUvozeni(s) {
   if (s.tehnike === '(brez)') {
     tehnike = [];
   } else if (s.tehnike) {
+    // Imena v ključe (novo slovensko ime ali stari ključ); ista tehnika dvakrat -
+    // npr. dva stara zapisa poskusa s celico - se sešteje.
     const deli = s.tehnike.split(',').map(t => /^(.*\S)\s+(\d+)$/.exec(t.trim()));
-    if (deli.every(Boolean)) tehnike = deli.map(m => [m[1], parseInt(m[2], 10)]);
+    if (deli.every(Boolean)) {
+      const stevci = new Map();
+      for (const m of deli) {
+        const k = zbirkaKljucTehnike(m[1]);
+        stevci.set(k, (stevci.get(k) || 0) + parseInt(m[2], 10));
+      }
+      tehnike = zbirkaUrediTehnike([...stevci]);
+    }
   }
 
   return {

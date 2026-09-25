@@ -4,25 +4,27 @@ Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js)
 
 | Ime v kodi | Slovensko ime | Kaj počne | Vaja v treningu |
 |---|---|---|---|
-| `nakedSingles` | Gol enojček | Poišče celico, ki ima samo še enega možnega kandidata, in vanjo vpiše to številko. | ne |
-| `hiddenSingles` | Skriti enojček | Poišče enoto, kjer je določena številka možna samo še v eni celici, in jo tja vpiše. | ne |
-| `pointing` | Pointing pair/triple | Če je kandidat v bloku možen samo v celicah ene same vrstice ali stolpca, ga izbriše iz preostanka te vrstice/stolpca zunaj bloka. | da |
-| `boxLineReduction` | Box-line reduction | Če je kandidat v vrstici ali stolpcu možen samo znotraj enega bloka, ga izbriše iz preostanka tega bloka. | da |
-| `nakedPairs` | Naked pair | Poišče dve celici v isti enoti, ki imata skupaj natanko dva kandidata, in ju izbriše iz preostalih celic enote. | da |
-| `hiddenPairs` | Hidden pair | Poišče dve številki, ki sta v enoti možni samo v istih dveh celicah, in izbriše vse druge kandidate iz teh dveh celic. | da |
-| `nakedTriples` | Naked triple | Poišče tri celice v isti enoti, ki skupaj pokrivajo natanko tri kandidate, in te kandidate izbriše iz preostanka enote. | da |
-| `hiddenTriples` | Hidden triple | Poišče tri številke, ki so v enoti možne samo v istih treh celicah, in izbriše vse druge kandidate iz teh celic. | da |
-| `xWing` | X-Wing | Poišče kandidata, ki je v dveh vrsticah (ali stolpcih) možen na istih dveh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
-| `swordfish` | Swordfish | Poišče kandidata, ki je v treh vrsticah (ali stolpcih) možen na istih treh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
-| `turbotFish` | Turbot Fish | Poišče dve močni povezavi za isto številko (vrstica ali stolpec, kjer je številka mogoča v natanko dveh celicah), katerih konca se vidita. Vsaj eden od drugih dveh koncev je potem ta številka, zato jo izbriše iz celic, ki vidijo oba. Podtipa: Skyscraper (vzporedni povezavi) in Zmaj z dvema vrvicama / Two-String Kite (vrstica + stolpec, konca v istem bloku); podtip je naveden v sporočilu. Močne povezave v bloku niso vključene. | da |
-| `wWing` | W-Wing (Krilo W) | Poišče dve celici z natanko istim parom kandidatov {a,b}, ki se med sabo ne vidita, in enoto, kjer je b mogoč samo v dveh celicah (močna povezava), od katerih ena vidi prvo, druga pa drugo celico para. Vsaj ena celica para je potem a, zato a izbriše iz celic, ki vidijo obe. V aplikaciji Oakever se tehnika imenuje »Krilo W«. | da |
-| `xyWing` | XY-Wing | Poišče pivota z dvema kandidatoma in dve krili, ki si delita skupnega kandidata, ter ga izbriše iz celic, ki vidijo obe krili. | da |
-| `uniqueRectangle` | Unique Rectangle | Prepreči smrtonosni vzorec (situacijo z dvema možnima rešitvama) tako, da iz četrte celice pravokotnika izbriše kandidata, ki bi dvoumnost povzročil. | da |
+| `nakedSingles` | Očitni enojček | Poišče celico, ki ima samo še enega možnega kandidata, in vanjo vpiše to števko. | ne |
+| `hiddenSingles` | Skriti enojček | Poišče enoto, kjer je določena števka možna samo še v eni celici, in jo tja vpiše. | ne |
+| `pointing` | Izločitev izven bloka | Če je kandidat v bloku možen samo v celicah ene same vrstice ali stolpca, ga izbriše iz preostanka te vrstice/stolpca zunaj bloka. | da |
+| `boxLineReduction` | Izločitev v bloku | Če je kandidat v vrstici ali stolpcu možen samo znotraj enega bloka, ga izbriše iz preostanka tega bloka. | da |
+| `nakedPairs` | Očitni par | Poišče dve celici v isti enoti, ki imata skupaj natanko dva kandidata, in ju izbriše iz preostalih celic enote. | da |
+| `hiddenPairs` | Skriti par | Poišče dve števki, ki sta v enoti možni samo v istih dveh celicah, in izbriše vse druge kandidate iz teh dveh celic. | da |
+| `nakedTriples` | Očitna trojica | Poišče tri celice v isti enoti, ki skupaj pokrivajo natanko tri kandidate, in te kandidate izbriše iz preostanka enote. | da |
+| `hiddenTriples` | Skrita trojica | Poišče tri števke, ki so v enoti možne samo v istih treh celicah, in izbriše vse druge kandidate iz teh celic. | da |
+| `xWing` | X-krilo | Poišče kandidata, ki je v dveh vrsticah (ali stolpcih) možen na istih dveh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
+| `swordfish` | Mečarica | Poišče kandidata, ki je v treh vrsticah (ali stolpcih) možen na istih treh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
+| `turbotFish` | Veriga ene števke | Poišče dve močni povezavi za isto števko (vrstica ali stolpec, kjer je števka mogoča v natanko dveh celicah), katerih konca se vidita. Vsaj eden od drugih dveh koncev je potem ta števka, zato jo izbriše iz celic, ki vidijo oba. Podtipa: Nebotičnik (Skyscraper; vzporedni povezavi) in Zmaj z dvema vrvicama (Two-String Kite; vrstica + stolpec, konca v istem bloku); podtip je naveden v sporočilu. Močne povezave v bloku niso vključene. | da |
+| `wWing` | W-krilo | Poišče dve celici z natanko istim parom kandidatov {a,b}, ki se med sabo ne vidita, in enoto, kjer je b mogoč samo v dveh celicah (močna povezava), od katerih ena vidi prvo, druga pa drugo celico para. Vsaj ena celica para je potem a, zato a izbriše iz celic, ki vidijo obe. V aplikaciji Oakever se tehnika imenuje »Krilo W«. | da |
+| `xyWing` | XY-krilo | Poišče pivota z dvema kandidatoma in dve krili, ki si delita skupnega kandidata, ter ga izbriše iz celic, ki vidijo obe krili. | da |
+| `uniqueRectangle` | Edinstveni pravokotnik | Prepreči smrtonosni vzorec (situacijo z dvema možnima rešitvama) tako, da iz četrte celice pravokotnika izbriše kandidata, ki bi dvoumnost povzročil. | da |
 
 ## Imena in sopomenke (odločitev 2026-09-23)
 
 Dogovorjena imena za prikaz: slovensko ime, angleško v oklepaju (`docs/uskladitev.md`,
-točka 1.3). Koda in zgornja tabela še uporabljata stara imena – popravita se ob izvedbi 1.3.
+točka 1.3). Uporabnik jih vidi od faze 4 (2026-09-25, `docs/faza4-nacrt.md`) povsod – vir
+je `imeTehnike()` v `shared/engine.js`, izvoz zbirke `**Tehnike:**` ima slovensko ime brez
+oklepaja. Ključi v `ALL_TECHNIQUES` (dnevnik `solve()`, shramba, `docs/uganke.md`) ostanejo.
 Številke so od 2026-09-24 po vrstnem redu znotraj ravni (razdelek spodaj).
 Ravni so iz točke 1.1: *lahke*, *srednje* (1–6), *napredne* (7–12), *ekspertne* (XY-Chain
 in poznejše verige, zaenkrat prazno).
@@ -44,11 +46,11 @@ ne izpisujejo (»tehnike: 1, 3, 7«), ker jih potrebuje vsaka uganka.
 | 6 | srednje | Skrita trojica (Hidden Triple) | Hidden triple | – |
 | 7 | napredne | X-krilo (X-Wing) | X-Wing | – |
 | 8 | napredne | Mečarica (Swordfish) | Swordfish | tehnika mečarice |
-| 9 | napredne | Veriga ene števke (Turbot Fish) | Turbot Fish | podtipa Skyscraper in Zmaj z dvema vrvicama (2-String Kite) |
+| 9 | napredne | Veriga ene števke (Turbot Fish) | Turbot Fish | podtipa Nebotičnik (Skyscraper) in Zmaj z dvema vrvicama (2-String Kite) |
 | 10 | napredne | W-krilo (W-Wing) | W-Wing | Krilo W (aplikacija Oakever) |
 | 11 | napredne | XY-krilo (XY-Wing, Y-Wing) | XY-Wing | – |
 | 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1 (motor pozna samo ta tip); nadpojem: smrtonosni vzorec (Deadly Pattern) |
-| – | – | Poskus in protislovje | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
+| – | – | Poskus in protislovje (Forcing Chain) | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
 
 »Presek« je skupno ime tehnik 1 in 2 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
 
@@ -156,17 +158,17 @@ tehnike«. Časi iskanja po spremembi (2026-09-24, 30 iskanj na stopnjo, Node 24
 srednja 0,81 s, težka 1,00 s, zelo težka 1,92 s (povprečje; največ 9,7 s pri zelo težki).
 
 Številke tehnik so iz `TRENING_TEHNIKE` v [shared/engine.js](../shared/engine.js) (od
-2026-09-24): **1** pointing, **2** box-line, **3** očitna para, **4** skrita para, **5** očitna
-trojica, **6** skrita trojica, **7** X-Wing, **8** Swordfish, **9** Turbot Fish, **10** W-Wing,
-**11** XY-Wing, **12** Unique Rectangle. Meritev spodaj je iz 2026-09-21 (star vrstni red
+2026-09-24): **1** izločitev izven bloka, **2** izločitev v bloku, **3** očitni par, **4** skriti
+par, **5** očitna trojica, **6** skrita trojica, **7** X-krilo, **8** mečarica, **9** veriga ene
+števke, **10** W-krilo, **11** XY-krilo, **12** edinstveni pravokotnik. Meritev spodaj je iz 2026-09-21 (star vrstni red
 motorja); obsegi 1–6 in 7–12 so isti. Enojčka (gol in skriti) sta vključena
-pri vseh stopnjah in se ne štejeta. »Osnovne« so tehnike 1–6, »napredne« 7–12; šteje se število
+pri vseh stopnjah in se ne štejeta. »Srednje« so tehnike 1–6, »napredne« 7–12; šteje se število
 **različnih** tehnik, ki jih uporabi pot iz `genRazvrsti()` v [shared/generator.js](../shared/generator.js).
 
 Prejšnja merila so imela samo zgornjo mejo (»največ ena napredna«), zato je generator pogosto
 dal uganko, ki nad enojčki zahteva eno samo tehniko: med ne-lahkimi ugankami brez napredne
-tehnike jih 61 % uporabi le eno osnovno, med ugankami z eno napredno pa jih 35 % nima ob sebi
-več kot eno osnovno. Spodnja meja to odpravi.
+tehnike jih 61 % uporabi le eno srednjo, med ugankami z eno napredno pa jih 35 % nima ob sebi
+več kot eno srednjo. Spodnja meja to odpravi.
 
 | Stopnja | Tehnike | Najmanj različnih tehnik | Delež naključnih ugank | Čas iskanja |
 |---|---|---|---|---|
@@ -191,17 +193,16 @@ Merilo iskanja mora biti **podmnožica** pokrivajočega, sicer bi ustvarjena uga
 samo pogoj generatorja (`GEN_TEZKA_NAJVEC`): uganka z eno napredno in štirimi ali več
 srednjimi je po stopnji Težka, generator pa je ne ponudi, da ustvarjena Težka ostane jasno
 pod Zelo težko. (Do 2026-09-24 je bila meja tudi v pokrivajočem merilu, tako uganko pa je
-razvrstilo pravilo »pet ali več tehnik« med Zelo težke.) Izraz »osnovne« v tem razdelku je
-isto kot »srednje« (1–6).
+razvrstilo pravilo »pet ali več tehnik« med Zelo težke.)
 
 **Meritev.** Vzorec kot pri meritvi stopenj v [uganke.md](uganke.md) (razdelek »Porazdelitev
 naključnih ugank«): semena 1–840 dajo 660 minimalnih ugank, ki jih `solve()` reši brez ugibanja
 (78,6 %). Časi so izmerjeni s pravim `ustvariUganko()` z vgrajenim merilom (Lahka 150 semen,
 Srednja 600, Težka 900, Zelo težka 600), Node 24; v brskalniku so podobni. Na istih ugankah je
 preverjeno, da vsaka ustvarjena uganka ustreza svojemu minimumu in da ji `oceniUganko()` da
-natanko težavnost svoje stopnje (279 ugank, 0 odstopanj). Porazdelitev (660 ugank, osnovne × napredne):
+natanko težavnost svoje stopnje (279 ugank, 0 odstopanj). Porazdelitev (660 ugank, srednje × napredne):
 
-| osnovne \ napredne | 0 | 1 | 2 | 3 | 4 | vsota |
+| srednje \ napredne | 0 | 1 | 2 | 3 | 4 | vsota |
 |---|---|---|---|---|---|---|
 | 0 | 358 | 16 | 3 | . | . | 377 (57,1 %) |
 | 1 | 94 | 18 | 8 | 1 | . | 121 (18,3 %) |
@@ -210,8 +211,8 @@ natanko težavnost svoje stopnje (279 ugank, 0 odstopanj). Porazdelitev (660 uga
 | 4 | 2 | 9 | 8 | 1 | . | 20 (3,0 %) |
 | ≥ 5 | . | 1 | 1 | . | . | 2 (0,3 %) |
 
-Zavrnjena različica: **Srednja z ≥ 3 osnovnimi** tehnikami. Take uganke so redke (3,2 %, 2,3 %
+Zavrnjena različica: **Srednja z ≥ 3 srednjimi** tehnikami. Take uganke so redke (3,2 %, 2,3 %
 semen), iskanje traja povprečno **5,7 s** (mediana 3,9 s) in pribl. eno iskanje od 200 obupa po
 30 s – nad mejo pribl. 5 s. Štetje tehnik iz dnevnika `solve()` namesto s poti tu ne pomaga
-(3,8 % namesto 3,2 %). Pri ≥ 3 osnovnih se v takih ugankah vedno pojavi Pointing pair/triple
-(100 %), pogosto še očitna para (76 %) in skrita para (71 %), trojice skoraj nikoli (5 %).
+(3,8 % namesto 3,2 %). Pri ≥ 3 srednjih se v takih ugankah vedno pojavi izločitev izven bloka
+(100 %), pogosto še očitni par (76 %) in skriti par (71 %), trojice skoraj nikoli (5 %).

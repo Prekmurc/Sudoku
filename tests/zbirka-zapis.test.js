@@ -24,7 +24,9 @@
 //     igra ima prednost pred zapisom v zbirki, brez nje je gumb "Igraj"; ponovno
 //     reševanje rešene uganke ("rešena … · znova v teku (12/57)").
 //   - tehnike v zapisu (zbirkaPodatkiResevanja) so po vrstnem redu tehnik
-//     (redTehnike), ne po pogostosti.
+//     (redTehnike), ne po pogostosti; izvoz "Tehnike" ima slovenska imena (vsi
+//     poskusi v eni postavki), uvoz bere nova imena in stare ključe (brez presledkov
+//     na robovih, ne glede na velike/male črke).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -49,7 +51,7 @@ const E = loadEngine(undefined, {
     'zbirkaZaSeznam', 'zbirkaVrsticaIgranja', 'PRIMERI', 'zbirkaPrimerZa', 'zbirkaProgramResil',
     'zbirkaKartica', 'zbirkaUvozi', 'zbirkaIzbrisi', 'zbirkaIzbrisiVse', 'zbirkaVprasanjeIzbrisi',
     'zbirkaVprasanjeIzbrisiVse', 'igreBeri', 'IGRA_KLJUC', 'ZBIRKA_KLJUC', 'zbirkaSirote',
-    'zbirkaSporociloIzbrisiVse', 'zbirkaPodatkiResevanja', 'redTehnike'],
+    'zbirkaSporociloIzbrisiVse', 'zbirkaPodatkiResevanja', 'redTehnike', 'imeTehnike', 'ALL_TECHNIQUES'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -754,5 +756,60 @@ test('zbirkaPodatkiResevanja(): tehnike po vrstnem redu tehnik, ne po pogostosti
     const { board, log: dnevnik } = E.solve(p.danosti.replace(/\./g, '0'));
     const red = Array.from(E.zbirkaPodatkiResevanja(board, dnevnik).tehnike, ([t]) => E.redTehnike(t));
     assert.deepEqual(red, [...red].sort((a, b) => a - b), p.ime);
+  }
+});
+
+/* ---------- tehnike v izvozu in uvozu (faza 4, del 3) ---------- */
+
+// Izvoz "**Tehnike:**" ima slovensko ime brez oklepaja (imeTehnike()), uvoz bere nova
+// imena in stare ključe; v zapisu so vedno ključi motorja.
+const ugankaIzvoz = loadPuzzles().map(p => p.danosti.replace(/\./g, '0')).find(d => !E.zbirkaPrimerZa(d));
+const vrsticaTehnik = izvoz => /^- \*\*Tehnike:\*\* (.*)$/m.exec(izvoz)[1];
+const uvoziTehnike = vrstica => E.zbirkaIzMarkdowna(
+  `### uganka\n\n- **Danosti:** \`${ugankaIzvoz}\`\n- **Tehnike:** ${vrstica}\n`).zapisi[0].tehnike;
+const kotPolje = t => Array.from(t, x => [...x]);
+
+test('izvoz tehnik: slovenska imena brez oklepaja, vsi poskusi v eni postavki', () => {
+  const tehnike = [['XY-Wing', 1], ['Gol enojček', 27], ['Poskus in protislovje (V1S1 = 5)', 1],
+    ['Hidden pair', 2], ['Poskus in protislovje (forcing chain)', 2], ['Stara tehnika', 1]];
+  const izvoz = E.zbirkaVMarkdown([{ danosti: ugankaIzvoz, tehnike }]);
+  assert.equal(vrsticaTehnik(izvoz),
+    'Očitni enojček 27, Skriti par 2, XY-krilo 1, Poskus in protislovje 3, Stara tehnika 1');
+  assert.doesNotMatch(vrsticaTehnik(izvoz), /Hidden|Wing|forcing/, 'brez angleških imen in ključev');
+});
+
+test('izvoz tehnik: nobeno ime nima vejice (uvoz loči po vejicah)', () => {
+  for (const [k] of E.ALL_TECHNIQUES) {
+    assert.doesNotMatch(E.imeTehnike(k, { anglesko: false }), /,/, k);
+  }
+});
+
+test('uvoz tehnik: nova imena in stari ključi dajo iste ključe', () => {
+  const pricakovano = [['Gol enojček', 27], ['Skriti enojček', 30], ['Pointing pair/triple', 1],
+    ['Naked pair', 2], ['Hidden triple', 1], ['XY-Wing', 1], ['Poskus in protislovje (forcing chain)', 1]];
+  const nova = 'Očitni enojček 27, Skriti enojček 30, Izločitev izven bloka 1, Očitni par 2, Skrita trojica 1, XY-krilo 1, Poskus in protislovje 1';
+  const stara = 'Skriti enojček 30, Gol enojček 27, Naked pair 2, Hidden triple 1, Pointing pair/triple 1, XY-Wing 1, Poskus in protislovje (forcing chain) 1';
+  assert.deepEqual(kotPolje(uvoziTehnike(nova)), pricakovano, 'nova imena');
+  assert.deepEqual(kotPolje(uvoziTehnike(stara)), pricakovano, 'stari ključi, urejeni po vrstnem redu tehnik');
+  // Neznano ime ostane (zbirkaOznakaTehnik() ga izpiše z imenom).
+  assert.deepEqual(kotPolje(uvoziTehnike('Očitni par 2, Stara tehnika 1')), [['Naked pair', 2], ['Stara tehnika', 1]]);
+});
+
+test('uvoz tehnik: presledki in velike/male črke ne vplivajo, podvojeni poskus se sešteje', () => {
+  assert.deepEqual(kotPolje(uvoziTehnike('  očitni   PAR 2 ,SKRITA TROJICA 1,  x-krilo 3 ')),
+    [['Naked pair', 2], ['Hidden triple', 1], ['X-Wing', 3]]);
+  assert.deepEqual(kotPolje(uvoziTehnike('naked PAIR 2, pointing pair/triple 1')),
+    [['Pointing pair/triple', 1], ['Naked pair', 2]], 'stari ključi ne glede na črke');
+  assert.deepEqual(kotPolje(uvoziTehnike(
+    'Poskus in protislovje (V1S1 = 5) 1, Poskus in protislovje (V2S3 = 1) 2, poskus in protislovje 1')),
+  [['Poskus in protislovje (forcing chain)', 4]]);
+});
+
+test('izvoz in uvoz tehnik: krožno ohrani ključe in števila', () => {
+  for (const p of loadPuzzles()) {
+    const { board, log } = E.solve(p.danosti.replace(/\./g, '0'));
+    const tehnike = E.zbirkaPodatkiResevanja(board, log).tehnike;
+    assert.deepEqual(kotPolje(uvoziTehnike(vrsticaTehnik(E.zbirkaVMarkdown([{ danosti: ugankaIzvoz, tehnike }])))),
+      kotPolje(tehnike), p.ime);
   }
 });

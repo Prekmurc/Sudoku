@@ -98,8 +98,10 @@ test('izvoz hrani imena tehnik, star izvoz po uvozu dobi nove številke', () => 
   assert.equal(zapisi.length, 1);
   assert.equal(E.zbirkaOznakaTehnik(zapisi[0]), 'tehnike: 1, 3, 6');
   const izvoz = E.zbirkaVMarkdown(zapisi);
-  // Izvoz tehnike uredi po vrstnem redu tehnik (redTehnike()), ne po pogostosti.
-  assert.match(izvoz, /\*\*Tehnike:\*\* Gol enojček 27, Skriti enojček 30, Pointing pair\/triple 1, Naked pair 2, Hidden triple 1$/m);
+  // Izvoz tehnike uredi po vrstnem redu tehnik (redTehnike()), ne po pogostosti, in
+  // zapiše slovenska imena brez oklepaja (imeTehnike()); uvoz jih prebere nazaj v ključe.
+  assert.match(izvoz, /\*\*Tehnike:\*\* Očitni enojček 27, Skriti enojček 30, Izločitev izven bloka 1, Očitni par 2, Skrita trojica 1$/m);
+  assert.equal(E.zbirkaOznakaTehnik(E.zbirkaIzMarkdowna(izvoz).zapisi[0]), 'tehnike: 1, 3, 6', 'nov izvoz po uvozu');
   assert.doesNotMatch(izvoz, /tehnike: \d/, 'v izvozu ni številk tehnik');
 });
 

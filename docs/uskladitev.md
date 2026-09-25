@@ -124,6 +124,10 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   zdaj enojčki · preseki · para · trojici · napredne (meje ravni ostanejo). Značke v
   treningu sta samo še SREDNJA (1–6) in NAPREDNA (7–12). Odprto: raven kot polje tehnike,
   `tagClass()`, izraz »osnovne« → »srednje«, poved v pomoči igre.
+- **Delno narejeno 2026-09-25** (faza 4, del 3): izraz »osnovne« → »srednje« je povsod – v
+  kodi in testih že prej (`GEN_NAJMANJ_SREDNJIH`), zdaj še v `docs/tehnike.md` in
+  `docs/uganke.md`. Raven kot polje tehnike, `tagClass()` po ravneh in poved v pomoči igre
+  gredo v fazo 5 (`docs/faza4-nacrt.md`, odgovor 5).
 - **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
   `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 
@@ -215,6 +219,18 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   pregledati jih je treba skupaj z 1.4.
 - **Obseg:** srednje (engine, reševalec, igra, trening, izvoz/uvoz, testi, ki primerjajo
   oznake in sporočila).
+- **Narejeno 2026-09-25** (faza 4, `docs/faza4-nacrt.md`; del 1 `ae48423`, del 2
+  `694ea42` in `e31c85e`, del 3). Ime za prikaz da samo `imeTehnike(kljuc, { stevilka,
+  anglesko })` iz `TEHNIKE_OPISI` (`ime` + `anglesko`); oblika s številko »4 · Skriti par
+  (Hidden Pair)«, »E1 · Očitni enojček (Naked Single)«, poskus brez številke »Poskus in
+  protislovje (Forcing Chain)«. Oznaka in naslov koraka v reševalcu ter oznaka koraka v igri
+  sta kratka (»4 · Skriti par«, celo ime v `title`), lightbox ima celo ime. `MODES.name`
+  odpade, naslove kartic v treningu vpiše `trening.js`. Seznami tehnik (povzetek v
+  reševalcu, zbirka, izvoz) so po vrstnem redu tehnik (`redTehnike()`). Izvoz `**Tehnike:**`
+  ima slovensko ime brez oklepaja (»Očitni par 2«, vsi poskusi v eni postavki), uvoz bere
+  nova imena in stare ključe (brez presledkov na robovih, ne glede na velike/male črke); v
+  shrambi, dnevniku `solve()` in `docs/uganke.md` ostanejo ključi `ALL_TECHNIQUES`. Spol
+  »par« (»Očitni par«) je popravljen v besedilih (del 2).
 
 ### 1.4 »Števka« in »številka«
 
@@ -238,6 +254,10 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   že preverja `TEHNIKE_OPISI` – razširi ga na besedila vaj v `MODES` in na sporočila korakov
   (vzorec `/številk/` v sporočilu `solve()` na ugankah iz `docs/uganke.md`).
 - **Obseg:** srednje (veliko besedil, testi, ki primerjajo sporočila korakov).
+- **Narejeno 2026-09-25** (faza 4, del 2 `694ea42`; `docs/tehnike.md` v delu 3): v
+  besedilih za uporabnika je povsod »števka«; komentarji v kodi ostanejo (odločitev).
+  Preverjata `tests/trening-tehnike.test.js` (opisi, besedila vaj, sporočila `solve()` in
+  `stepHint()`) in `tests/besedila-html.test.js` (HTML vseh treh aplikacij).
 
 ### 1.5 Stanja uganke imajo dve besedili (opažanje 1)
 
@@ -353,6 +373,10 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
 - **Delno narejeno 2026-09-24** (faza 2): gumb v seznamu zbirke reševalca je »Odpri«
   (odločitev: ne »Odpri v reševalcu«, ker je uganka že v reševalcu). Poenotenje
   »Prikaži«/»Pokaži« ostaja odprto.
+- **Narejeno 2026-09-25** (faza 4, del 2 `694ea42`): reševalec ima »Pokaži kandidate«/»Skrij
+  kandidate« in »Pokaži korake reševanja«/»Skrij korake reševanja«; »Prikaži« ni nikjer več
+  (`tests/besedila-html.test.js`). Oznaki »Namig (drži)« in »Rešitev (drži)« v treningu
+  ostaneta.
 
 ---
 
@@ -732,6 +756,7 @@ Glej 0.2 (vzrok je CSS, ne logika).
 - **Predlog:** v `TEHNIKE_OPISI` dodaj polje `povzetek` (ena poved za kartico) in ga v
   kartico vpiše `trening.js`, tako kot že številko. Ali pa kartica pokaže `razlaga`. Omembo
   Oakevra dodaj v `TEHNIKE_OPISI` (vidna tudi v igri) ali jo odstrani s kartic.
+- **Prestavljeno v fazo 6** (odločitev 2026-09-25, `docs/faza4-nacrt.md`, odgovor 5).
 - **Za fazo 6** (dodano 2026-09-25, med fazo 4 se ne spreminja):
   - opisi kartic v `trening/index.html` naj enotno uporabljajo »mogoč« ali »možen«.
     Zdaj je »mogoč/mogoča« pri Očitnem in Skritem enojčku, verigi ene števke in
@@ -760,6 +785,10 @@ Glej 0.2 (vzrok je CSS, ne logika).
   generator). HTML ju izpiše iz JS: okno »Nova uganka« opis generatorja, okno Pomoč oba
   in eno poved o razliki (»Oceni zbirko« razvršča širše kot generator). V opisih izraz
   »srednje« namesto »osnovne« (1.1) in imena tehnik po 1.3.
+- **Delno narejeno 2026-09-25** (faza 4, del 1 `ae48423`): v opisih stopenj
+  (`STOPNJE_UGANK[].opis`, `igra/index.html`) so nova imena tehnik in »srednje«. Odprto:
+  dva opisa v `shared/generator.js` (razvrščanje in generator) in izpis iz JS namesto
+  besedila v HTML.
 - **Obseg:** majhno.
 
 ### 5.3 Pomoč v igri o gumbu »Poglej«
@@ -771,6 +800,9 @@ Popravi se skupaj z 2.3.
 
 Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema s seznamom
 »Tehnike« v istem oknu (»2. Skrita para (Hidden Pair)«). Popravi se skupaj z 1.3.
+
+**Narejeno 2026-09-25** (faza 4, del 1 `ae48423`): oznaka koraka »4 · Skriti par« in seznam
+»Tehnike« »4 · Skriti par (Hidden Pair)« sta iz `imeTehnike()`.
 
 ### 5.5 Reševalec in trening nimata pomoči, besedila kažejo razvojne poti
 
@@ -801,7 +833,8 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   - `docs/tehnike.md` – stolpec »Slovensko ime« ima pri šestih tehnikah angleško ime
     (Naked pair, Hidden pair …), besedila uporabljajo »številka« (1.4). Dogovorjena imena
     in sopomenke so od 2026-09-23 v razdelku »Imena in sopomenke«; tabela in izraz
-    »osnovne« se popravita ob 1.3 in 1.1, ko se spremeni koda.
+    »osnovne« se popravita ob 1.3 in 1.1, ko se spremeni koda. **Narejeno 2026-09-25**
+    (faza 4, del 3): dogovorjena imena, »števka«, »srednje«.
 - **Predlog:** popravi ob sklopu, ki se ga tiče (1.3, 1.4, 6.8), ali v enem commitu
   »dokumentacija«.
 - **Obseg:** majhno.
@@ -917,6 +950,9 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 
 Glej 1.3 (`MODES[].name`) in 5.1 (opis na kartici v `trening/index.html`) – oboje je
 kopija podatka, ki bi moral priti iz `TEHNIKE_OPISI`.
+
+**Delno narejeno 2026-09-25** (faza 4, del 1 `ae48423`): `MODES.name` ne obstaja več, ime
+(vrstica nad vajo, naslov kartice) da `imeTehnike()`. Opis na kartici ostane za fazo 6 (5.1).
 
 ### 6.10 Nadomestna pot za Web Worker
 
@@ -1112,9 +1148,9 @@ komponente, na koncu videz in pomoč.
 | **2 – kartica zbirke** (narejeno 2026-09-24, z izvorom `primer` iz 2.5 in težavnostjo primerov iz 3; od 1.7 samo gumb »Odpri«) | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
 | **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, ročni vnos dobi pravo stopnjo; primeri niso del zbirke (odločitev spremenjena 2026-09-24, narejeno: ena zbirka, brisanje v obeh aplikacijah, dogodek `storage`) | majhno–srednje |
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
-| **4 – imena tehnik in izrazi** | 1.3, 1.4, 1.1, 5.1, 5.2, 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
-| **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3 | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
-| **6 – pomoč** | 5.3, 5.5, 5.6 | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
+| **4 – imena tehnik in izrazi** (narejeno 2026-09-25, `docs/faza4-nacrt.md`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 v fazo 6) | 1.3, 1.4, 5.2, 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
+| **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3, 1.1 (raven tehnike, barve oznak, poved v pomoči igre) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
+| **6 – pomoč** | 5.3, 5.5, 5.6, 5.1 | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
 | **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes (6.4 prinese polje »Niz« v reševalec, 2.5) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu
