@@ -133,6 +133,17 @@ koraka ne bere noben test).
 
 ### Del 2 – besedila: »števka«, spol »par«, »Pokaži«/»Skrij« (1.4, 1.3 spol, 1.7)
 
+**Narejeno 2026-09-25, commit `694ea42`.** Testi: 252 (247 + 5 novih: dva v
+`trening-tehnike.test.js` – besedila vaj ter sporočila `solve()` in `stepHint()` –,
+trije v novem `besedila-html.test.js`). Odstopanja od opisa spodaj: številke vrstic so se
+po delu 1 premaknile (mesta so bila poiskana znova); v točki 2 je ostalo samo
+`trening/trening.js` »skrito paro« (drugo je uredil del 1); testa besedil preverjata tudi
+angleška imena tehnik zunaj oklepaja (točka 5), v vajah samo polja za uporabnika (`desc`,
+`unitLabel`, `namig`, `solutionMessage`); `trening-pomoc.test.js`,
+`trening-enojcki.test.js`, `next-step.test.js` in `xy-wing.test.js` niso spremenjeni.
+Swordfish se v dnevnikih ugank iz `docs/uganke.md` ne pojavi, zato njegovega sporočila
+test ne pokrije – ročni pregled.
+
 Samo besedila za uporabnika; komentarji v kodi ostanejo (odgovor 6), tudi kjer
 omenjajo »številko« v besedilu za uporabnika.
 
