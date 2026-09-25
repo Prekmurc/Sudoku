@@ -41,6 +41,7 @@ docs/trening-v-uganki.md.
 |---|---|---|---|
 | 1 `shared/stanje.js` | **narejeno 2026-09-25** | `ba1f832` | 264 (258 + 6) |
 | 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | `6b6bf53` | 280 (264 + 16) |
+| – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
 | 3 banka vaj | ni začet | | |
 | 4 `shared/mreza.js` | ni začet | | |
 | 5 `shared/plosca.js` | ni začet | | |
