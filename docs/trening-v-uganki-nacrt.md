@@ -184,3 +184,4 @@ Iskanje naslednje vaje v ozadju, medtem ko rešuješ trenutno: to močno poveča
 Obseg preureditve igre (dela 4 in 5): predlagam polno izločitev, kot v 4.1. Lažja možnost je, da trening prevzame samo izris, vnos pa napiše sam, a to podvoji pribl. 300 vrstic vnosa iz igre.
 odigrajPotezo()/odigrajPoteze() v shared/stanje.js: potem ga naložita tudi reševalec in oceni-worker.js. Druga možnost je, da trening naloži shared/zbirka.js.
 Manjše: trening ima svoje ključe za stikala seznamov (sudoku.trening.*). Barve poudarka, ki jih nastaviš v igri, se v treningu ne uporabijo (privzete barve).
+Ko potrdiš načrt in odgovoriš na vprašanja, začnem z delom 1.
