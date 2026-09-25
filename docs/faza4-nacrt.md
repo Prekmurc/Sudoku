@@ -167,6 +167,28 @@ omenjajo »številko« v besedilu za uporabnika.
    vrvicama« (`:71`) in »… imenuje Krilo W« (`:76`) – to so imena v drugi aplikaciji,
    ne naša; njuno omembo prestavi faza 6 (5.1). Izrazi »pivot«, »krilo« (`:81`) in
    »par« (`:76`, `:86`) so že dogovorjeni. Naslovi h3 so urejeni v delu 1.
+5. **Angleška imena tehnik v drugih besedilih** (dopolnitev 5): slovensko ime s
+   pravim spolom in sklonom; v tekočem besedilu z malo začetnico (»za mečarico«).
+   - (a) `unitLabel` v `trening/generators.js`: »X-krilo za števko 5«, »Mečarica za
+     števko 5«, »Veriga ene števke: 5«, »XY-krilo: pivot in dve krili«, »W-krilo:
+     celici para in celici povezave«, »Edinstveni pravokotnik: smrtonosni vzorec«.
+   - (b) povratne informacije v `trening/trening.js`: »To še ni veljavno XY-krilo /
+     W-krilo«, »… veljavna veriga ene števke«, »… veljaven edinstveni pravokotnik«,
+     »Pravilno! (Vrstično X-krilo / Vrstična mečarica)«, »Ni pravo X-krilo / prava
+     mečarica«, »Za mečarico rabiš …«, »Vse veljavne kombinacije za X-krilo /
+     mečarico«. Ob tem še ujemanje dvojine: »Kateri dve števki tvorita skriti par« /
+     »Katere tri števke tvorijo skrito trojico«, »Išči 2 števki, ki se … pojavljata« /
+     »3 števke, ki se … pojavljajo«, »2 števki, ki sta … prisotni«.
+   - (c) sporočila motorja (`shared/engine.js`): »tvori X-krilo«, »tvori mečarico«,
+     »tvori W-krilo«; podtipa verige v obliki imen tehnik, z imenom tehnike v istem
+     oklepaju kot doslej: »tvori Nebotičnik (Skyscraper, veriga ene števke)«, »tvori
+     vzorec Zmaj z dvema vrvicama (Two-String Kite, veriga ene števke)«, splošni
+     primer »tvori verigo ene števke (Turbot Fish)«. Enako imeni podtipov v razlagi
+     `TEHNIKE_OPISI['turbot-fish']` (»Nebotičnik (Skyscraper)«, »Zmaj z dvema vrvicama
+     (Two-String Kite)«). `turbot-fish.test.js` in `w-wing.test.js` se popravita
+     skupaj z besedilom.
+   - Notranje vrednosti ostanejo (`step.variant` = `'Skyscraper'` / `'Two-String
+     Kite'`, ključi `ALL_TECHNIQUES`).
 
 **Testi:**
 - `trening-tehnike.test.js:151` (»števka« v `TEHNIKE_OPISI`) razširiti na: besedila v
@@ -320,3 +342,8 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
    slovenskimi (s pravilno slovnico, npr. »Razširjen X-Wing« → »Razširjeno X-krilo«),
    »številka« → »števka«. Opisi se sicer ne prepisujejo – to je faza 6. Seznam mest je
    v delu 2, točka 4, test v delu 2, »Testi«.
+5. **Angleška imena v besedilih treninga in motorja** (ob potrditvi dela 2): vključeni
+   so `unitLabel` (a), povratne informacije v treningu (b) in sporočila motorja (c);
+   »Veriga ene števke: 5«; podtipa »Nebotičnik (Skyscraper)« in »Zmaj z dvema
+   vrvicama (Two-String Kite)«, oba z imenom »veriga ene števke«. Podrobno v delu 2,
+   točka 5.

@@ -172,7 +172,7 @@ function hiddenSingles(b) {
             technique: 'Skriti enojček', cells: [cell], assign: [[cell, d]], eliminate: [],
             // Samo enota: enota in števka skupaj že določita celico (odgovor).
             hint: { unit },
-            message: `V ${unitNameLoc(unit)} je številka ${d} možna samo še v ${cellLabel(cell)} -> ${cellLabel(cell)} = ${d}.`
+            message: `V ${unitNameLoc(unit)} je števka ${d} možna samo še v ${cellLabel(cell)} -> ${cellLabel(cell)} = ${d}.`
           });
         }
       }
@@ -253,7 +253,7 @@ function nakedSubsets(b, size, name) {
             // ki leži tudi v istem bloku), zato je enota del identitete koraka.
             technique: name, cells: combo.slice(), unit, assign: [], eliminate: elim,
             hint: { unit },
-            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'številki' : 'številke'}) -> te številke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
+            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'števki' : 'števke'}) -> te števke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
           });
         }
       }
@@ -289,7 +289,7 @@ function hiddenSubsets(b, size, name) {
           // unit: glej opombo pri nakedSubsets.
           technique: name, cells: [...spots], unit, assign: [], eliminate: elim,
           hint: { unit },
-          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta številki' : 'so številke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
+          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta števki' : 'so števke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
         });
       }
     }
@@ -332,7 +332,7 @@ function xWing(b) {
             technique: 'X-Wing', cells: [...s1, ...s2], assign: [], eliminate: elim,
             // Števka in smer: naštete vrstice/stolpci bi takoj pokazali vzorec.
             hint: { digits: [d], lines: baseName, lineCount: 2 },
-            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} -> tvori X-Wing. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} -> tvori X-krilo. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -370,7 +370,7 @@ function swordfish(b) {
           steps.push({
             technique: 'Swordfish', cells: [...s1, ...s2, ...s3], assign: [], eliminate: elim,
             hint: { digits: [d], lines: baseName, lineCount: 3 },
-            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} -> tvori Swordfish. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} -> tvori mečarico. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -421,9 +421,9 @@ function turbotFish(b) {
             variant = 'Two-String Kite';
           }
           const patternName = {
-            'Skyscraper': 'Skyscraper (Turbot Fish)',
-            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (Two-String Kite, Turbot Fish)',
-            'Turbot Fish': 'Turbot Fish',
+            'Skyscraper': 'Nebotičnik (Skyscraper, veriga ene števke)',
+            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (Two-String Kite, veriga ene števke)',
+            'Turbot Fish': 'verigo ene števke (Turbot Fish)',
           }[variant];
           // Enota, ki povezuje B in C: prednost ima vrstica/stolpec (UNITS_OF je v
           // vrstnem redu vrstice, stolpci, bloki).
@@ -481,7 +481,7 @@ function wWing(b) {
           steps.push({
             technique: 'W-Wing', cells: [p1, p2, x, y], assign: [], eliminate: elim,
             hint: { digits },
-            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} -> tvori W-Wing in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} -> tvori W-krilo in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -733,7 +733,7 @@ const TEHNIKE_OPISI = {
   'turbot-fish': {
     ime: 'Veriga ene števke',
     anglesko: 'Turbot Fish',
-    razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Skyscraper, vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama.',
+    razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Nebotičnik (Skyscraper), vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama (Two-String Kite).',
     navodilo: 'V vaji je števka označena; izberi vse štiri celice vzorca.',
     posledica: '',
   },

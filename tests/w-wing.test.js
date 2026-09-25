@@ -84,7 +84,7 @@ test('W-Wing: par {4,7} z močno povezavo na 7', () => {
   assert.equal(steps[0].technique, 'W-Wing');
   assert.equal(steps[0].message,
     'Celici V2S1, V3S4 imata natanko kandidata 4,7 in se ne vidita. V vrstici 1 je kandidat 7 mogoč ' +
-    'samo v celicah V1S1, V1S4, pri čemer V1S1 vidi V2S1, V1S4 pa V3S4 -> tvori W-Wing in vsaj ena ' +
+    'samo v celicah V1S1, V1S4, pri čemer V1S1 vidi V2S1, V1S4 pa V3S4 -> tvori W-krilo in vsaj ena ' +
     'od celic V2S1, V3S4 je enaka 4. 4 lahko izbrišemo iz celic, ki vidijo obe: V2S4, V3S1.');
 });
 
@@ -102,12 +102,12 @@ test('W-Wing: obe vlogi števk istega para in povezava v vrstici, stolpcu ali bl
   // prvem paru v istem položaju.
   assert.equal(steps[2].message,
     'Celici V2S2, V3S5 imata natanko kandidata 3,4 in se ne vidita. V vrstici 1 je kandidat 4 mogoč ' +
-    'samo v celicah V1S3, V1S4, pri čemer V1S3 vidi V2S2, V1S4 pa V3S5 -> tvori W-Wing in vsaj ena ' +
+    'samo v celicah V1S3, V1S4, pri čemer V1S3 vidi V2S2, V1S4 pa V3S5 -> tvori W-krilo in vsaj ena ' +
     'od celic V2S2, V3S5 je enaka 3. 3 lahko izbrišemo iz celic, ki vidijo obe: V2S5.');
   // Povezava v stolpcu 9.
   assert.equal(steps[4].message,
     'Celici V2S8, V6S2 imata natanko kandidata 4,9 in se ne vidita. V stolpcu 9 je kandidat 9 mogoč ' +
-    'samo v celicah V1S9, V6S9, pri čemer V1S9 vidi V2S8, V6S9 pa V6S2 -> tvori W-Wing in vsaj ena ' +
+    'samo v celicah V1S9, V6S9, pri čemer V1S9 vidi V2S8, V6S9 pa V6S2 -> tvori W-krilo in vsaj ena ' +
     'od celic V2S8, V6S2 je enaka 4. 4 lahko izbrišemo iz celic, ki vidijo obe: V2S2.');
 });
 

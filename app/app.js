@@ -243,7 +243,7 @@ document.getElementById('openStepsBtn').addEventListener('click', () => {
   const btn = document.getElementById('openStepsBtn');
   if (showing) {
     stepsCard.style.display = 'none';
-    btn.textContent = 'Prikaži korake reševanja';
+    btn.textContent = 'Pokaži korake reševanja';
     return;
   }
   renderStepsList();
@@ -258,7 +258,7 @@ document.getElementById('openStepsBtn').addEventListener('click', () => {
 // Skrije kartico "Koraki reševanja" (ob novi uganki bi kazala stare korake).
 function skrijKorake() {
   stepsCard.style.display = 'none';
-  document.getElementById('openStepsBtn').textContent = 'Prikaži korake reševanja';
+  document.getElementById('openStepsBtn').textContent = 'Pokaži korake reševanja';
 }
 
 document.getElementById('clearBtn').addEventListener('click', () => {
@@ -266,7 +266,7 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   resultsEl.style.display = 'none';
   skrijKorake();
   document.getElementById('candSection').style.display = 'none';
-  document.getElementById('candBtn').textContent = 'Prikaži kandidate';
+  document.getElementById('candBtn').textContent = 'Pokaži kandidate';
   statusEl.textContent = '';
   statusEl.className = '';
   lastSolve = null;
@@ -281,7 +281,7 @@ function naloziDanosti(danosti, sporocilo) {
   resultsEl.style.display = 'none';
   skrijKorake();
   document.getElementById('candSection').style.display = 'none';
-  document.getElementById('candBtn').textContent = 'Prikaži kandidate';
+  document.getElementById('candBtn').textContent = 'Pokaži kandidate';
   statusEl.textContent = sporocilo;
   statusEl.className = '';
   lastSolve = null;
@@ -301,7 +301,7 @@ exampleSelect.addEventListener('change', () => {
   exampleSelect.selectedIndex = 0; // nazaj na "Primer", da gre isti primer izbrati znova
   if (!p) return;
   const danih = p.danosti.replace(/[.0]/g, '').length;
-  naloziDanosti(p.danosti, `Naložen je ${p.ime} - danih številk: ${danih}.`);
+  naloziDanosti(p.danosti, `Naložen je ${p.ime} - danih števk: ${danih}.`);
 });
 
 const candBtn = document.getElementById('candBtn');
@@ -339,7 +339,7 @@ candBtn.addEventListener('click', () => {
   const showing = candSection.style.display === 'block';
   if (showing) {
     candSection.style.display = 'none';
-    candBtn.textContent = 'Prikaži kandidate';
+    candBtn.textContent = 'Pokaži kandidate';
     return;
   }
   if (!checkConflicts()) {
@@ -349,7 +349,7 @@ candBtn.addEventListener('click', () => {
   }
   const filled = inputs.filter(inp => inp.value).length;
   if (filled === 0) {
-    statusEl.textContent = 'Najprej vnesi vsaj nekaj začetnih številk.';
+    statusEl.textContent = 'Najprej vnesi vsaj nekaj začetnih števk.';
     statusEl.className = 'err';
     return;
   }
@@ -363,12 +363,12 @@ document.getElementById('solveBtn').addEventListener('click', () => {
   resultsEl.style.display = 'none';
   const filled = inputs.filter(inp => inp.value).length;
   if (filled === 0) {
-    statusEl.textContent = 'Najprej vnesi vsaj nekaj začetnih številk.';
+    statusEl.textContent = 'Najprej vnesi vsaj nekaj začetnih števk.';
     statusEl.className = 'err';
     return;
   }
   if (!checkConflicts()) {
-    statusEl.textContent = 'Popravi rdeče označene celice - ista številka se ponavlja v isti vrstici, stolpcu ali bloku.';
+    statusEl.textContent = 'Popravi rdeče označene celice - ista števka se ponavlja v isti vrstici, stolpcu ali bloku.';
     statusEl.className = 'err';
     return;
   }
@@ -411,7 +411,7 @@ document.getElementById('solveBtn').addEventListener('click', () => {
     zbirkaPoResevanju(givens, board, log, solutionCount); // app/zbirka.js
 
     if (solutionCount === 0) {
-      statusEl.textContent = 'Uganka nima rešitve - preveri vnesene številke.';
+      statusEl.textContent = 'Uganka nima rešitve - preveri vnesene števke.';
       statusEl.className = 'err';
     } else if (solutionCount === 'unknown') {
       statusEl.textContent = 'Enoličnosti uganke ni bilo mogoče preveriti v razumnem času - tehnika Unique Rectangle zato ni bila uporabljena, prikazana rešitev morda ni edina.';

@@ -125,8 +125,8 @@ function genBoxLineCore(n, kind){
     const primaryType=kind==='pointing'?'block':(lineIsRow?'row':'col');
     const unitLabel=kind==='pointing'?`${boxLabel} → ${lineLabel}`:`${lineLabel} → ${boxLabel}`;
     const desc=kind==='pointing'
-      ? `Številka ${d}: v ${boxLoc} je mogoča samo v celicah ene vrstice ali stolpca – izberi te celice.`
-      : `Številka ${d}: v ${lineLoc} je mogoča samo v celicah enega bloka – izberi te celice.`;
+      ? `Števka ${d}: v ${boxLoc} je mogoča samo v celicah ene vrstice ali stolpca – izberi te celice.`
+      : `Števka ${d}: v ${lineLoc} je mogoča samo v celicah enega bloka – izberi te celice.`;
 
     return{
       mode:kind==='pointing'?'pointing':'box-line',
@@ -470,8 +470,8 @@ function genXWing(n){
       grid,digit,rect,elimCells,bases,crosses,baseIsRow,
       baseName,crossName,baseLabels,crossLabels,
       mode:'x-wing',
-      unitLabel:`X-Wing za številko ${digit}`,
-      desc:`Številka ${digit}: najdi pravokotnik – 4 celice, kjer se ${digit} v dveh ${baseName} pojavi na istih dveh mestih.`
+      unitLabel:`X-krilo za števko ${digit}`,
+      desc:`Števka ${digit}: najdi pravokotnik – 4 celice, kjer se ${digit} v dveh ${baseName} pojavi na istih dveh mestih.`
     };
   }
   return genXWing(n+10);
@@ -562,8 +562,8 @@ function genSwordfish(n){
       grid,digit,sfCells,elimCells,bases,crosses,baseIsRow,
       baseName,crossName,baseLabels,crossLabels,
       mode:'swordfish',
-      unitLabel:`Swordfish za številko ${digit}`,
-      desc:`Številka ${digit}: najdi 3 ${baseName}, kjer se ${digit} pojavi samo na istih 3 ${crossName}. Klikni vse celice s ${digit} v teh treh ${baseName}.`
+      unitLabel:`Mečarica za števko ${digit}`,
+      desc:`Števka ${digit}: najdi 3 ${baseName}, kjer se ${digit} pojavi samo na istih 3 ${crossName}. Klikni vse celice s ${digit} v teh treh ${baseName}.`
     };
   }
   return genSwordfish(n+10);
@@ -639,7 +639,7 @@ function genXYWing(n){
       // Korak, ki ga je generator dejansko preveril (shared/engine.js) - uporabljata
       // ga namig/rešitev v trening.js.
       solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
-      unitLabel:'XY-Wing: pivot in dve krili',
+      unitLabel:'XY-krilo: pivot in dve krili',
     };
   }
   return genXYWing(n+7);
@@ -690,7 +690,7 @@ function genUniqueRectangle(n){
       slots:slotsFromBoard(board),
       boardGrid:board.grid,boardCand:board.cand,
       solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
-      unitLabel:'Unique Rectangle: smrtonosni vzorec',
+      unitLabel:'Edinstveni pravokotnik: smrtonosni vzorec',
     };
   }
   return genUniqueRectangle(n+7);
@@ -811,7 +811,7 @@ function genTurbotFish(n){
       boardGrid:board.grid,boardCand:board.cand,
       solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
       distractor:dis,
-      unitLabel:`Turbot Fish za številko ${d}`,
+      unitLabel:`Veriga ene števke: ${d}`,
     };
   }
   return genTurbotFish(n+2);
@@ -914,7 +914,7 @@ function genWWing(n){
       solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
       distractor:{type:disType,pair:[D.P1,D.P2],link:[D.X,D.Y],elim:D.elim,extra,
         cells:extra?[...D.cells,extra]:D.cells},
-      unitLabel:'W-Wing: celici para in celici povezave',
+      unitLabel:'W-krilo: celici para in celici povezave',
     };
   }
   return genWWing(n+2);

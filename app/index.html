@@ -18,7 +18,7 @@
     <button type="button" id="libraryBtn" class="lib-open">Zbirka (0)</button>
   </div>
   <h1>Sudoku reševalec</h1>
-  <p>Vtipkaj začetne številke naravnost v mrežo (samo pojdi od celice do celice), nato pritisni "Reši". Podvojene številke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
+  <p>Vtipkaj začetne števke naravnost v mrežo (samo pojdi od celice do celice), nato pritisni "Reši". Podvojene števke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
 </header>
 
 <main>
@@ -26,7 +26,7 @@
     <div id="inputGrid"></div>
     <div class="btn-row">
       <button class="primary" id="solveBtn">Reši</button>
-      <button id="candBtn">Prikaži kandidate</button>
+      <button id="candBtn">Pokaži kandidate</button>
       <button id="clearBtn">Počisti</button>
       <select id="exampleSelect" aria-label="Naloži vgrajen primer">
         <option value="" disabled selected hidden>Primer</option>
@@ -37,7 +37,7 @@
 
   <div class="card" id="candSection" style="display:none;">
     <h2>Možni kandidati</h2>
-    <p class="cand-hint">Modra celica = tvoj vnos. Ostalo so vse številke, ki jih glede na vrstico/stolpec/blok še ni mogoče izključiti (brez naprednih tehnik - enako kot "hitri svinčnik" v aplikaciji).</p>
+    <p class="cand-hint">Modra celica = tvoj vnos. Ostalo so vse števke, ki jih glede na vrstico/stolpec/blok še ni mogoče izključiti (brez naprednih tehnik - enako kot "hitri svinčnik" v aplikaciji).</p>
     <div id="candidateGrid"></div>
   </div>
 
@@ -57,7 +57,7 @@
         <label>Opomba <input type="text" id="saveNote" maxlength="200" placeholder="neobvezno" autocomplete="off"></label>
       </div>
     </div>
-    <button class="primary" id="openStepsBtn" style="width:100%;">Prikaži korake reševanja</button>
+    <button class="primary" id="openStepsBtn" style="width:100%;">Pokaži korake reševanja</button>
   </div>
 
   <div class="card" id="stepsCard" style="display:none;">
@@ -94,7 +94,7 @@
   </div>
 </div>
 
-<footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor), tudi zbirka ugank se hrani samo v njem. Modra številka v rešeni mreži = tvoj vnos, črna = izpeljano.</footer>
+<footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor), tudi zbirka ugank se hrani samo v njem. Modra števka v rešeni mreži = tvoj vnos, črna = izpeljano.</footer>
 
 <script src="../shared/engine.js"></script>
 <script src="../shared/zbirka.js"></script>

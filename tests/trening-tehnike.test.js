@@ -15,7 +15,7 @@ const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'trening/generators.js', 'shared/zbirka.js'],
   names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
-    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike'],
+    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint'],
 });
 
 const treningHtml = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
@@ -225,5 +225,42 @@ test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
     for (const [polje, t] of Object.entries(o)) {
       assert.doesNotMatch(t, /številk/i, `${kljuc}.${polje}`);
     }
+  }
+});
+
+// Besedila, ki jih vidi uporabnik, zunaj TEHNIKE_OPISI (faza 4, del 2): izraz je
+// »števka«, tehnike imajo slovensko ime - angleško ime je lahko samo v oklepaju
+// (»Nebotičnik (Skyscraper, veriga ene števke)«).
+const ANGLESKA = [
+  ...Object.values(E.TEHNIKE_OPISI).flatMap(o => o.anglesko.split(', ')),
+  'Skyscraper', 'Two-String Kite',
+];
+function preveriBesedilo(t, kje) {
+  assert.doesNotMatch(t, /številk/i, `${kje}: »številk«`);
+  const brezOklepajev = t.replace(/\([^)]*\)/g, '');
+  for (const a of ANGLESKA) assert.ok(!brezOklepajev.includes(a), `${kje}: angleško ime »${a}« zunaj oklepaja: ${t}`);
+}
+
+test('besedila vaj v treningu (desc, unitLabel, namig, sporočilo motorja): »števka«, slovenska imena', () => {
+  for (const m of vseVaje) {
+    for (let n = 0; n < 4; n++) {
+      const ex = E.MODES[m].gen(n);
+      // Polja, ki jih vidi uporabnik (variant, mode ipd. so notranja).
+      for (const polje of ['desc', 'unitLabel', 'namig', 'solutionMessage']) {
+        if (ex[polje] !== undefined) preveriBesedilo(ex[polje], `${m} vaja ${n}.${polje}`);
+      }
+      if (ex.korak) preveriBesedilo(ex.korak.message, `${m} vaja ${n}.korak`);
+    }
+  }
+});
+
+test('sporočila solve() in stepHint() na ugankah iz docs/uganke.md: »števka«, slovenska imena', () => {
+  for (const p of loadPuzzles()) {
+    const r = E.solve(p.danosti.replace(/\./g, '0'));
+    r.log.forEach((s, i) => {
+      preveriBesedilo(s.message, `${p.ime} korak ${i + 1} (${s.technique})`);
+      const namig = E.stepHint(s);
+      if (namig) preveriBesedilo(namig, `${p.ime} namig ${i + 1} (${s.technique})`);
+    });
   }
 });
