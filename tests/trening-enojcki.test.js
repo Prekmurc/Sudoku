@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
 const { loadEngine } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['shared/generator.js', 'trening/generators.js'],
+  files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'trening/generators.js'],
   names: ['genNakedSingle', 'genHiddenSingle', 'preveriEnojcek', 'MODES', 'Math',
     'nakedSingles', 'hiddenSingles', 'solutionOf', 'boxOf', 'ENOJCEK_NAJMANJ_PRAZNIH'],
 });

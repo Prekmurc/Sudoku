@@ -930,9 +930,9 @@ function addLabels(slots,ut,ui){
 function unitLbl(ut,ui){return ut==='row'?`Vrstica ${ui}`:ut==='col'?`Stolpec ${ui}`:`Blok ${ui}`;}
 
 /* --- Enojčka (E1 Očitni enojček, E2 Skriti enojček) ---
-   Drugače kot ostale vaje (sestavljene) je vaja stanje PRAVE uganke: naključna polna
-   mreža (genPolnaMreza iz shared/generator.js), iz katere se odstranjujejo celice,
-   dokler ima uganka natanko eno rešitev, nato pa jo rešujemo SAMO z enojčki (vsakič
+   Drugače kot ostale vaje (sestavljene) je vaja stanje PRAVE uganke: minimalna uganka
+   (genMinimalnaUganka iz shared/generator.js - naključna polna mreža, iz katere se
+   odstranjujejo celice, dokler ima uganka natanko eno rešitev), nato pa jo rešujemo SAMO z enojčki (vsakič
    naključen) - samo vpisi, zato so kandidati natanko tisti, ki sledijo iz števk na
    mreži, in vaja je lahko prikazana brez kandidatov (raven lahke: brez zapisanih
    kandidatov). Med stanji na tej poti izberemo naključno ustrezno:
@@ -940,26 +940,13 @@ function unitLbl(ut,ui){return ut==='row'?`Vrstica ${ui}`:ut==='col'?`Stolpec ${
      pred koncem, ko so enojčki povsod),
    - E2: nobenega očitnega enojčka na vsej mreži in vsaj en skriti enojček - vsak
      pravilen odgovor je zato skriti enojček v celici z vsaj dvema kandidatoma
-     (hiddenSingles celic z enim kandidatom ne vrne). */
+     (hiddenSingles celic z enim kandidatom ne vrne).
+   Namig (namigEnojcka) in preverjanje (preveriEnojcek) sta v shared/vaje-uganka.js. */
 const ENOJCEK_NAJMANJ_PRAZNIH=30;
 
+// Minimalna uganka (shared/generator.js) z naključnim semenom.
 function genUgankaEnojcki(){
-  const g=genPolnaMreza(Math.random);
-  for(const c of shuffle([...Array(81).keys()])){
-    const v=g[c];g[c]=0;
-    if(countSolutions(g.join(''))!==1) g[c]=v;
-  }
-  return g.join('');
-}
-
-// Namen enote za namig: "vrstico 4" / "stolpec 7" / "blok 5" in zaimek v mestniku.
-function enotaZaNamig(unit){
-  const loc=unitNameLoc(unit),[vrsta,st]=loc.split(' ');
-  if(vrsta==='vrstici') return{tozilnik:`vrstico ${st}`,vNjej:'v njej'};
-  return{tozilnik:`${vrsta==='stolpcu'?'stolpec':'blok'} ${st}`,vNjej:'v njem'};
-}
-function celicZEnoStevko(n){
-  return n===1?'je 1 celica':n===2?'sta 2 celici':n<=4?`so ${n} celice`:`je ${n} celic`;
+  return genMinimalnaUganka(genNaklucnoSeme());
 }
 
 function genEnojcek(vrsta){
@@ -980,15 +967,7 @@ function genEnojcek(vrsta){
     if(!ustrezna.length) continue;
     const st=ustrezna[randInt(0,ustrezna.length-1)];
     const korak=st.koraki[randInt(0,st.koraki.length-1)];
-    const celica=korak.assign[0][0];
-    let namig;
-    if(gol){
-      const celic=new Set(st.koraki.map(s=>s.assign[0][0])).size;
-      namig=`V mreži ${celicZEnoStevko(celic)} z eno samo možno števko. Ena je v bloku ${boxOf(celica)+1}.`;
-    } else {
-      const e=enotaZaNamig(korak.hint.unit);
-      namig=`Poglej ${e.tozilnik}: katera števka, ki je ${e.vNjej} še ni, je mogoča samo na enem mestu?`;
-    }
+    const namig=namigEnojcka(gol,st.koraki,korak);
     return{
       mode:gol?'naked-single':'hidden-single',vrsta,
       danosti,resitev:solutionOf(danosti).join(''),
@@ -1002,35 +981,8 @@ function genEnojcek(vrsta){
 function genNakedSingle(){return genEnojcek('naked');}
 function genHiddenSingle(){return genEnojcek('hidden');}
 
-// Preverjanje odgovora pri enojčkih (vpis števke v celico). Vrne { izid, sporocilo,
-// korak }: izid 'prav' (korak te tehnike na mreži vaje), 'nevtralno' (števka je prava,
-// a je ta tehnika še ne dokaže - ne šteje se) ali 'narobe'.
-function preveriEnojcek(ex,celica,stevka){
-  const b={grid:ex.boardGrid,cand:ex.boardCand};
-  const lbl=cellLabel(celica);
-  if(b.grid[celica]!==0) return{izid:'nevtralno',sporocilo:`${lbl} je že izpolnjena – izberi prazno celico.`};
-  const gol=ex.vrsta==='naked';
-  const korak=(gol?nakedSingles:hiddenSingles)(b).find(s=>s.assign[0][0]===celica&&s.assign[0][1]===stevka);
-  if(korak) return{izid:'prav',sporocilo:korak.message,korak};
-  // Kandidati izhajajo samo iz števk na mreži: števka, ki ni kandidat, je v kaki enoti celice že vpisana.
-  if(!(b.cand[celica]&(1<<stevka))){
-    const u=UNITS_OF[celica].find(u=>u.some(c=>b.grid[c]===stevka));
-    const kje=u.find(c=>b.grid[c]===stevka);
-    return{izid:'narobe',sporocilo:`Števka ${stevka} je v ${unitNameLoc(u)} že vpisana (${cellLabel(kje)}).`};
-  }
-  if(+ex.resitev[celica]===stevka){
-    if(gol){
-      const skriti=hiddenSingles(b).some(s=>s.assign[0][0]===celica&&s.assign[0][1]===stevka);
-      return{izid:'nevtralno',sporocilo:skriti
-        ? `Števka je prava, a to je skriti enojček: v ${lbl} so mogoče še druge števke. Poišči celico, v kateri ostane ena sama.`
-        : `Števka je prava, a v ${lbl} so mogoče še druge števke – očitni enojček je še ne dokaže.`};
-    }
-    return{izid:'nevtralno',sporocilo:`Števka je prava, a skriti enojček je še ne dokaže: ${stevka} je v vrstici, stolpcu in bloku celice ${lbl} mogoča še drugje.`};
-  }
-  return{izid:'narobe',sporocilo:gol
-    ? `V ${lbl} je mogočih več števk, zato to ni očitni enojček.`
-    : `Števka ${stevka} je v vrstici, stolpcu in bloku celice ${lbl} mogoča še drugje, zato to ni skriti enojček.`};
-}
+// Preverjanje odgovora pri enojčkih: preveriEnojcek() v shared/vaje-uganka.js (skupno
+// z "Vadi v uganki").
 
 /* MODES: definicija tehnike za trening (generator, barve, št. celic za izbiro,
    posebnosti UI). Besedilo vaje (desc) je iz TEHNIKE_OPISI, ime tehnike pa da

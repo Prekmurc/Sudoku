@@ -5,7 +5,11 @@ načrtu `docs/trening-v-uganki-nacrt.md` (razdelek »Stanje po delih«; opombe t
 pred to analizo – pravilo »ne Presega tehnike« je odpadlo, imena tehnik so po fazi 4 iz
 `imeTehnike()`). **Del 1 narejen 2026-09-25:** stanje igre je v `shared/stanje.js`
 (začetne poteze `zacetnihPotez`, `igraZZacetkom()`, `zacniZnova()`), shranjevanje igre v
-`igra/shramba.js`. Tabele v tem dokumentu (npr. 1.1) opisujejo stanje pred tem.
+`igra/shramba.js`. **Del 2 narejen 2026-09-25:** iskanje stanja, vaja kot igra in
+presoja odgovora so v `shared/vaje-uganka.js` (`stanjaVUganki()`, `vajaIzStanja()`,
+`preveriVajo()`; vrstni red izidov in sporočilo pri neutemeljenem izbrisu sta v opombah
+načrta), `genMinimalnaUganka()` v `shared/generator.js`. Tabele v tem dokumentu (npr.
+1.1) opisujejo stanje pred tem.
 
 **Zamisel.** Trening dobi za vsako tehniko (E1, E2, 1–12) dva načina:
 

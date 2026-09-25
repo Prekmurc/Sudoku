@@ -283,6 +283,21 @@ function oceniUganko(danosti) {
 
 /* ---------- ustvarjanje ---------- */
 
+// Minimalna uganka iz semena brez ocene stopnje: ista zanka kot v ustvariUganko()
+// (celica ostane, če bi bilo brez nje več rešitev), vrne pa zadnjo uganko na poti -
+// vsaka danost je potrebna. Uporabljajo jo vaje "Vadi v uganki"
+// (shared/vaje-uganka.js), vaji enojčkov v treningu in tools/meri-trening-v-uganki.js.
+function genMinimalnaUganka(seme) {
+  const rnd = genPrng(seme);
+  const g = genPolnaMreza(rnd);
+  for (const c of genPremesaj([...Array(81).keys()], rnd)) {
+    const v = g[c];
+    g[c] = 0;
+    if (countSolutions(g.join('')) !== 1) g[c] = v;
+  }
+  return g.join('');
+}
+
 // Odstranjuje celice v naključnem vrstnem redu (celica ostane, če bi bilo brez nje
 // več rešitev) in vrne najboljšo ustrezno uganko na poti: najprej po prednosti,
 // nato z manj danostmi. Vrne { danosti, stopnja, seme, mere, tehnike, uporabljene,

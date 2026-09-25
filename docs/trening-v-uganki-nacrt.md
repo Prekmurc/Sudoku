@@ -1,5 +1,5 @@
 # Trening v uganki – načrt
-(2026-09-25; del 1 narejen, glej »Stanje po delih«)
+(2026-09-25; dela 1 in 2 narejena, glej »Stanje po delih«)
 
 Vrstni red: najprej faza 4
 iz docs/uskladitev.md
@@ -40,7 +40,7 @@ docs/trening-v-uganki.md.
 | Del | Stanje | Commit | Testi |
 |---|---|---|---|
 | 1 `shared/stanje.js` | **narejeno 2026-09-25** | `ba1f832` | 264 (258 + 6) |
-| 2 `shared/vaje-uganka.js` | ni začet | | |
+| 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | | 280 (264 + 16) |
 | 3 banka vaj | ni začet | | |
 | 4 `shared/mreza.js` | ni začet | | |
 | 5 `shared/plosca.js` | ni začet | | |
@@ -71,6 +71,31 @@ docs/trening-v-uganki.md.
 - Testi: 6 novih v `tests/igra-stanje.test.js` (začetne poteze so izračunane iz korakov
   `nextStep()` – funkcija `zacetekPoti()` v testu, ki jo lahko del 2 uporabi kot vzor),
   v drugih testih so spremenjeni samo nalagalni seznami.
+
+### Del 2 – narejeno
+
+- Nova `shared/vaje-uganka.js` (brez DOM-a): `stanjaVUganki(danosti, kljuc)` →
+  `{ stanja, poskus, stopnja }`, `vajaIzStanja(danosti, kljuc, stanje, stopnja)` →
+  `{ danosti, kljuc, igra, S0, KT, KV, resitev, stopnja, prejOdstranjenih }`,
+  `vajaIzUganke(danosti, kljuc, rnd)` in `preveriVajo(vaja, stanje, predlog)` →
+  `{ izid, sporocilo, korak, razveljavi }`. Vrstni red izidov in sporočila so v
+  opombah k delu 2 spodaj.
+- `stopnja` se izračuna iz tehnik na poti (`genMere()`, pri poskusu »Presega
+  tehnike«); test preveri, da je enaka `oceniTezavnost()`.
+- `preveriEnojcek()` in namig enojčkov (zdaj funkcija `namigEnojcka()`) sta preseljena
+  iz `trening/generators.js` v `shared/vaje-uganka.js`; »Spoznaj« se obnaša enako.
+- `shared/generator.js`: nova `genMinimalnaUganka(seme)`. Uporabljata jo
+  `genUgankaEnojcki()` v treningu (z `genNaklucnoSeme()`) in
+  `tools/meri-trening-v-uganki.js` (njegova kopija zanke je odstranjena).
+- **Odstop od opombe k delu 1:** trening že zdaj naloži `shared/stanje.js` in
+  `shared/vaje-uganka.js` (pred `generators.js`), ker je tam `preveriEnojcek()`. Obe
+  datoteki sta brez DOM-a in ne pišeta v shrambo.
+- Vpisi pri tehnikah 1–12 niso del odgovora (niz »Vpiši« bo v delu 6 skrit);
+  `preveriVajo()` presoja samo ročne izbrise kandidatov, ki so bili v S0.
+- Testi: nov `tests/vaje-uganka.test.js` (15 testov; semena za vsako tehniko je našel
+  program), v `tests/trening-tehnike.test.js` en nov test (sporočila `preveriVajo()`
+  za vse izide), v `trening-enojcki`, `trening-pomoc` in `trening-tehnike` so
+  spremenjeni nalagalni seznami.
 
 ## Opombe k delom (uskladitev s fazo 4 in odpadlo pravilo)
 
@@ -108,10 +133,21 @@ načrta in analize.
 - Sporočila `preveriVajo()`: imena iz `imeTehnike()`, nikoli angleško zunaj oklepaja.
   Sporočilo iz tabele 3.2 analize »To drži, a sledi iz W-Wing, ne iz Swordfish.« krši
   to pravilo, poleg tega `imeTehnike()` da imenovalnik, stavek pa rabi rodilnik.
-  Predlog brez sklanjanja (potrdi ob začetku dela 2): »To drži, a je to korak tehnike
+  Predlog brez sklanjanja, **potrjen 2026-09-25**: »To drži, a je to korak tehnike
   10 · W-krilo, ne 8 · Mečarica.«
 - Preverjanje besedil iz `tests/trening-tehnike.test.js` (brez »številk«, brez
   angleškega imena zunaj oklepaja) razširiti na sporočila `preveriVajo()`.
+- **Vrstni red izidov pri mešanih odgovorih** (odločitev 2026-09-25): velja prvi, ki
+  drži – `prazno` → `napacno` → `neutemeljeno` → `druga-tehnika` → `delno` /
+  `pravilno`. `delno` in `pravilno` se izključujeta: pravilno je, ko so vsi izbrisi iz
+  korakov KT in je vsaj en korak cel (dodatni izbrisi iz drugega koraka iste tehnike
+  niso napaka), delno, ko noben korak ni cel. Pri `neutemeljeno` in `druga-tehnika` se
+  razveljavijo vsi izbrisi zunaj KT (izbrisi iz KT ostanejo). Test z mešanimi
+  primeri je v `tests/vaje-uganka.test.js`.
+- **Sporočilo pri `neutemeljeno` ne zveni kot napaka** (odločitev 2026-09-25), saj
+  kandidat res ni prava števka: »Izbris drži, a ga v tem koraku ne utemelji nobena
+  tehnika.« (dvojina »Izbrisa držita, a ju …«, množina »Izbrisi držijo, a jih …«), nato
+  »Razveljavljeno: V3S5 (7).«
 
 ### Del 3 – banka vaj
 
@@ -130,6 +166,16 @@ načrta in analize.
 - Pomoč v igri kliče `dejanjaKoraka(k, stanje)` iz `shared/stanje.js`.
 - »Začni znova« v igri uporablja `zacniZnova()`/`lahkoZacniZnova()`. `shared/plosca.js`
   naj uporablja iste funkcije, da vaja (začetne poteze) deluje brez posebnosti.
+
+### Pred delom 6 – samostojna naloga »Postopnost E1/E2 v Spoznaj«
+
+Zapisano 2026-09-25, še ni narejeno. Samostojna naloga v svojem pogovoru, pred delom 6.
+V krogu vaj E1 in E2 v načinu »Spoznaj« naj se pomoč postopno zmanjšuje:
+
+- **E1:** vaje 1–3 imajo označeno celico (igralec izbere samo števko), vaje 4–6 imajo
+  označeno enoto, vaje 7–9 so brez oznake (cela mreža).
+- **E2:** enako – vaje 1–3 imajo označeno enoto in števko, vaje 4–6 samo enoto, vaje 7–9
+  so brez oznake (cela mreža).
 
 ### Del 6 – trening »Vadi v uganki«
 

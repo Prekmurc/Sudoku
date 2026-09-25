@@ -12,10 +12,11 @@ const path = require('node:path');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['shared/generator.js', 'trening/generators.js', 'shared/stanje.js', 'shared/zbirka.js'],
+  files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'trening/generators.js', 'shared/zbirka.js'],
   names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
-    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint'],
+    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint',
+    'genMinimalnaUganka', 'stanjaVUganki', 'vajaIzStanja', 'preveriVajo', 'stanjeIgre', 'dodajPotezo'],
 });
 
 const treningHtml = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
@@ -285,4 +286,41 @@ test('sporočila solve() in stepHint() na ugankah iz docs/uganke.md: »števka«
       if (namig) preveriBesedilo(namig, `${p.ime} namig ${i + 1} (${s.technique})`);
     });
   }
+});
+
+// Sporočila presoje v "Vadi v uganki" (preveriVajo() v shared/vaje-uganka.js) za vse
+// izide: ime tehnike iz imeTehnike() brez angleškega imena, izraz »števka«. Uganke so iz
+// semen, ki imajo stanja za vse tehnike (glej SEMENA v tests/vaje-uganka.test.js).
+test('sporočila preveriVajo(): »števka«, slovenska imena', () => {
+  const izidi = new Set();
+  for (const seme of [1, 2, 3, 18, 245]) {
+    const danosti = E.genMinimalnaUganka(seme);
+    for (const [kljuc] of E.ALL_TECHNIQUES) {
+      const r = E.stanjaVUganki(danosti, kljuc);
+      for (const s of r.stanja.slice(0, 2)) {
+        const v = E.vajaIzStanja(danosti, kljuc, s, r.stopnja);
+        const sporocila = [];
+        const presodi = (izbrisi, predlog) => {
+          const igra = JSON.parse(JSON.stringify(v.igra));
+          for (const [c, d] of izbrisi) E.dodajPotezo(igra, { tip: 'kandidat', celica: c, stevka: d, odstrani: true });
+          const p = E.preveriVajo(v, E.stanjeIgre(igra), predlog);
+          izidi.add(p.izid);
+          sporocila.push(p.sporocilo);
+        };
+        presodi([]);
+        if (ENOJCKA.includes(kljuc)) {
+          // Vsaka prazna celica z vsemi števkami: pravilno, nevtralno, napačno.
+          for (let c = 0; c < 81; c++) if (!v.S0.grid[c]) for (let d = 1; d <= 9; d++) presodi([], { celica: c, stevka: d });
+        } else {
+          // Koraki vseh tehnik (pravilno, druga tehnika), del koraka (delno), vsak
+          // kandidat posebej (napačno, neutemeljeno ...).
+          for (const k of v.KV) { presodi(k.eliminate); presodi(k.eliminate.slice(0, 1)); }
+          for (let c = 0; c < 81; c++) if (!v.S0.grid[c]) for (const d of E.bitsOf(v.S0.kandidati[c])) presodi([[c, d]]);
+        }
+        sporocila.forEach((t, i) => preveriBesedilo(t, `${kljuc} seme ${seme} sporočilo ${i}`));
+      }
+    }
+  }
+  assert.deepEqual([...izidi].sort(),
+    ['delno', 'druga-tehnika', 'napacno', 'neutemeljeno', 'nevtralno', 'pravilno', 'prazno']);
 });

@@ -6,10 +6,11 @@
 //   node tools/meri-trening-v-uganki.js [--ugank N] [--seme S] [--json pot.json]
 //
 // Postopek (za vsako seme S, S+1, ... S+N-1):
-//   1. uganka: naključna polna mreža, iz katere se v naključnem vrstnem redu odstranjujejo
-//      celice, dokler je rešitev ena (ista zanka kot v ustvariUganko() v shared/generator.js,
-//      le brez ocene stopnje na vsakem koraku - zato je hitrejša; isto seme da isto polno
-//      mrežo in isti vrstni red kot ustvariUganko(), torej zadnjo uganko na njegovi poti);
+//   1. uganka: genMinimalnaUganka(seme) iz shared/generator.js - naključna polna mreža, iz
+//      katere se v naključnem vrstnem redu odstranjujejo celice, dokler je rešitev ena (ista
+//      zanka kot v ustvariUganko(), le brez ocene stopnje na vsakem koraku - zato je
+//      hitrejša; isto seme da isto polno mrežo in isti vrstni red kot ustvariUganko(),
+//      torej zadnjo uganko na njegovi poti);
 //   2. pot: od danosti se ponavlja nextStep(b) BREZ prednosti števke (čisti vrstni red
 //      ALL_TECHNIQUES). Pot se ustavi pri rešitvi ali pri prvem poskusu s protislovjem
 //      (stanja za njim imajo kandidate, izbrisane z ugibanjem, zato za vajo niso primerna);
@@ -42,7 +43,7 @@ const fs = require('node:fs');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js'],
-  names: ['nextStep', 'applyStep', 'genPrng', 'genPremesaj', 'genPolnaMreza', 'oceniUganko',
+  names: ['nextStep', 'applyStep', 'genMinimalnaUganka', 'oceniUganko',
     'TRENING_TEHNIKE', 'TECHNIQUE_GROUPS', 'techniqueGroup'],
 });
 
@@ -68,17 +69,6 @@ const POSKUS = 'Poskus in protislovje (forcing chain)';
 const STOPNJE = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Presega tehnike'];
 
 const zdaj = () => Number(process.hrtime.bigint()) / 1e6; // ms
-
-function minimalnaUganka(seme) {
-  const rnd = E.genPrng(seme);
-  const g = E.genPolnaMreza(rnd);
-  for (const c of E.genPremesaj([...Array(81).keys()], rnd)) {
-    const v = g[c];
-    g[c] = 0;
-    if (E.countSolutions(g.join('')) !== 1) g[c] = v;
-  }
-  return g.join('');
-}
 
 // Ob prvem strogem stanju tehnike: podatki za preverjanje odgovora.
 function opisStanja(b, korak) {
@@ -141,7 +131,7 @@ const tZacetek = zdaj();
 for (let i = 0; i < N; i++) {
   const seme = SEME + i;
   const t0 = zdaj();
-  const danosti = minimalnaUganka(seme);
+  const danosti = E.genMinimalnaUganka(seme);
   const tGen = zdaj() - t0;
   const p = pot(danosti);
   const o = E.oceniUganko(danosti);

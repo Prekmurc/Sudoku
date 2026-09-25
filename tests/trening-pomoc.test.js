@@ -15,7 +15,7 @@ const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v trening/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'trening/generators.js', 'trening/trening.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'trening/generators.js', 'trening/trening.js'];
 
 // Kontekst z odprto prvo vajo tehnike; generator vaje si zapomni zadnjo vajo (`zadnja`),
 // da test pozna pravi odgovor.
