@@ -169,13 +169,20 @@ načrta in analize.
 
 ### Pred delom 6 – samostojna naloga »Postopnost E1/E2 v Spoznaj«
 
-Zapisano 2026-09-25, še ni narejeno. Samostojna naloga v svojem pogovoru, pred delom 6.
+Zapisano 2026-09-25, **narejeno 2026-09-25 (d92e673)**. Samostojna naloga v svojem pogovoru, pred delom 6.
 V krogu vaj E1 in E2 v načinu »Spoznaj« naj se pomoč postopno zmanjšuje:
 
 - **E1:** vaje 1–3 imajo označeno celico (igralec izbere samo števko), vaje 4–6 imajo
   označeno enoto, vaje 7–9 so brez oznake (cela mreža).
 - **E2:** enako – vaje 1–3 imajo označeno enoto in števko, vaje 4–6 samo enoto, vaje 7–9
   so brez oznake (cela mreža).
+- Izvedba: oznaka in navodilo v `trening/generators.js` (`stopnjaEnojcka()`,
+  `postopnostEnojcka()`), namig po stopnji v `namigEnojcka()` (`shared/vaje-uganka.js`),
+  prikaz v `trening/trening.js`. Izbira je omejena na označeno enoto (odločitev
+  2026-09-25); prazne celice, ki jih ni mogoče izbrati, so rahlo zatemnjene in brez
+  kazalca z roko (pri E1, vaje 1–3, vse razen označene celice). Pri vajah 4–6 je
+  pravilen vsak enojček te tehnike v označeni enoti. Pravilo »pomoč se ne šteje«
+  ostane.
 
 ### Del 6 – trening »Vadi v uganki«
 
