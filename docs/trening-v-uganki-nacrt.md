@@ -40,7 +40,7 @@ docs/trening-v-uganki.md.
 | Del | Stanje | Commit | Testi |
 |---|---|---|---|
 | 1 `shared/stanje.js` | **narejeno 2026-09-25** | `ba1f832` | 264 (258 + 6) |
-| 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | | 280 (264 + 16) |
+| 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | `6b6bf53` | 280 (264 + 16) |
 | 3 banka vaj | ni začet | | |
 | 4 `shared/mreza.js` | ni začet | | |
 | 5 `shared/plosca.js` | ni začet | | |
@@ -72,7 +72,7 @@ docs/trening-v-uganki.md.
   `nextStep()` – funkcija `zacetekPoti()` v testu, ki jo lahko del 2 uporabi kot vzor),
   v drugih testih so spremenjeni samo nalagalni seznami.
 
-### Del 2 – narejeno
+### Del 2 – narejeno (commit `6b6bf53`)
 
 - Nova `shared/vaje-uganka.js` (brez DOM-a): `stanjaVUganki(danosti, kljuc)` →
   `{ stanja, poskus, stopnja }`, `vajaIzStanja(danosti, kljuc, stanje, stopnja)` →
