@@ -732,6 +732,16 @@ Glej 0.2 (vzrok je CSS, ne logika).
 - **Predlog:** v `TEHNIKE_OPISI` dodaj polje `povzetek` (ena poved za kartico) in ga v
   kartico vpiše `trening.js`, tako kot že številko. Ali pa kartica pokaže `razlaga`. Omembo
   Oakevra dodaj v `TEHNIKE_OPISI` (vidna tudi v igri) ali jo odstrani s kartic.
+- **Za fazo 6** (dodano 2026-09-25, med fazo 4 se ne spreminja):
+  - opisi kartic v `trening/index.html` naj enotno uporabljajo »mogoč« ali »možen«.
+    Zdaj je »mogoč/mogoča« pri Očitnem in Skritem enojčku, verigi ene števke in
+    W-krilu (vrstice 21, 26, 71, 76), »možen« pri Izločitvi izven bloka in Izločitvi v
+    bloku (41, 46); `TEHNIKE_OPISI` in sporočila korakov uporabljajo »mogoč«;
+  - omembi Oakevra uskladi z našimi imeni: pri verigi ene števke (»Aplikacija Oakever
+    ta vzorec imenuje Skyscraper oziroma Zmaj z dvema vrvicama«, vrstica 71) z imenoma
+    podtipov »Nebotičnik (Skyscraper)« in »Zmaj z dvema vrvicama (Two-String Kite)«,
+    ki ju od faze 4 (del 2) uporabljata sporočilo koraka in razlaga v
+    `TEHNIKE_OPISI`; pri W-krilu (»… imenuje Krilo W«, vrstica 76) z imenom »W-krilo«.
 - **Obseg:** majhno.
 
 ### 5.2 Opis stopenj ugank v treh različicah
