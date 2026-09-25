@@ -1,5 +1,5 @@
 # Trening v uganki – načrt
-(2026-09-25; dela 1 in 2 narejena, glej »Stanje po delih«)
+(2026-09-25; deli 1–3 narejeni, glej »Stanje po delih«)
 
 Vrstni red: najprej faza 4
 iz docs/uskladitev.md
@@ -42,7 +42,7 @@ docs/trening-v-uganki.md.
 | 1 `shared/stanje.js` | **narejeno 2026-09-25** | `ba1f832` | 264 (258 + 6) |
 | 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | `6b6bf53` | 280 (264 + 16) |
 | – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
-| 3 banka vaj | ni začet | | |
+| 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | | 315 (309 + 6) |
 | 4 `shared/mreza.js` | ni začet | | |
 | 5 `shared/plosca.js` | ni začet | | |
 | 6 trening »Vadi v uganki« | ni začet | | |
@@ -97,6 +97,29 @@ docs/trening-v-uganki.md.
   program), v `tests/trening-tehnike.test.js` en nov test (sporočila `preveriVajo()`
   za vse izide), v `trening-enojcki`, `trening-pomoc` in `trening-tehnike` so
   spremenjeni nalagalni seznami.
+
+### Del 3 – narejeno
+
+- Nova `shared/vaje-banka.js` (brez odvisnosti, trening jo naloži v delu 6):
+  `VAJE_BANKA = [{ seme, danosti, stopnja, tehnike }]`, urejeno po semenu. Tehnike so
+  ključi `ALL_TECHNIQUES` (potrjeno), prikaz z `imeTehnike()`. Datoteke se ne ureja
+  ročno; ob spremembi motorja ali generatorja se ustvari znova z orodjem (zapisano v
+  glavi datoteke in v `CLAUDE.md`).
+- Novo orodje `tools/ustvari-banko-vaj.js [--na-tehniko 50]`: semena 1, 2, … do 5978
+  (zadnja pride Mečarica, pred njo med 3500 in 4000 semeni Skrita trojica), 242 s.
+  Odvečni zapisi so odstranjeni (od zadnjega proti prvemu, dokler ima vsaka tehnika vsaj
+  50 ugank): **220 zapisov** namesto 411, 57 KB.
+- Ugank na tehniko: E1 171, E2 219, 1 204, 2 108, 3 115, 4 91, 5–8 po 50, 9 102, 10 70,
+  11 in 12 po 50. Stopnje: Presega tehnike 112, Zelo težka 72, Težka 33, Srednja 3 –
+  redke tehnike so večinoma v težkih ugankah, vaja je vedno stanje pred prvim poskusom.
+- `shared/vaje-uganka.js`: pot je izločena v `prehodiPot()`, pogoj stanja za vajo v
+  `ustrezaVaji()`; nova `tehnikeVUganki(danosti)` z eno potjo da vse tehnike, za katere
+  ima uganka stanje vaje (`stanjaVUganki()` se obnaša enako).
+- Testi: nov `tests/vaje-banka.test.js` (5 testov, pribl. 16 s – oblika in urejenost,
+  seme → iste danosti, ena rešitev, natanko izračunane tehnike, stopnja =
+  `oceniTezavnost()`, vsaj 50 ugank na tehniko, noben zapis ni odveč), v
+  `tests/vaje-uganka.test.js` en nov test (`tehnikeVUganki()` = `stanjaVUganki()` za vse
+  tehnike, tudi pri uganki Presega tehnike).
 
 ## Opombe k delom (uskladitev s fazo 4 in odpadlo pravilo)
 
@@ -154,7 +177,7 @@ načrta in analize.
 
 - Tehnike v zapisu banke naj bodo ključi `ALL_TECHNIQUES` (kot v zbirki), ne oznake
   načina (`'naked-single'`, `'pointing'`, `'hidden-triple'` v primeru oblike spodaj);
-  prikaz z `imeTehnike()`. Predlog, potrdi ob začetku dela 3.
+  prikaz z `imeTehnike()`. **Potrjeno 2026-09-25.**
 - Brez pogoja »ne Presega tehnike«: zapis ima stopnjo, tudi »Presega tehnike«. Test
   `tests/vaje-banka.test.js`: ena rešitev, prava stopnja, natanko izračunani seznam
   tehnik, seme da iste danosti, vsaj 50 ugank na tehniko – ne »ni Presega tehnike«.
@@ -167,6 +190,31 @@ načrta in analize.
 - Pomoč v igri kliče `dejanjaKoraka(k, stanje)` iz `shared/stanje.js`.
 - »Začni znova« v igri uporablja `zacniZnova()`/`lahkoZacniZnova()`. `shared/plosca.js`
   naj uporablja iste funkcije, da vaja (začetne poteze) deluje brez posebnosti.
+
+### Po delu 4 – samostojna naloga »Prava geometrija pri tehnikah 1 in 2 v Spoznaj«
+
+Zapisano 2026-09-25, **ni začeto** (ne izvajati pred delom 4). Samostojna naloga v svojem
+pogovoru, po delu 4:
+
+- Vaji 1 · Izločitev izven bloka in 2 · Izločitev v bloku v načinu »Spoznaj« namesto
+  ločenih enot pokažeta **delno mrežo 9 × 9** (skupna mreža `shared/mreza.js` iz dela 4).
+- Na mreži sta samo obe enoti vaje na pravih mestih, ostale celice so prazne.
+- Stolpec gre navpično skozi blok, vrstica vodoravno skozi blok; presek enot je jasno
+  viden.
+- Oznake vrstic in stolpcev (V/S) so na robu mreže, ne nad celicami.
+- Tehnike 3–6 ostanejo, kot so (nabor kandidatov v eni enoti).
+
+### Po delih 4 in 5 – samostojna naloga »Pripomočki za E1/E2 v Spoznaj«
+
+Zapisano 2026-09-25, **ni začeto** (ne izvajati pred delom 5). Samostojna naloga v svojem
+pogovoru, po delih 4 in 5:
+
+- Vaji E1 in E2 v načinu »Spoznaj« dobita skupno mrežo iz `shared/` (del 4,
+  `shared/mreza.js`) namesto lastnega izrisa v `trening/trening.js`.
+- Najmanj: poudarek števk, tudi več hkrati (kot niz »Poudari« s kljukico »več hkrati« v
+  igri).
+- Po možnosti še seznami manjkajočih števk (vrstice, stolpci, bloki).
+- Kandidati ostanejo skriti (vaja je brez kandidatov, kot zdaj).
 
 ### Pred delom 6 – samostojna naloga »Postopnost E1/E2 v Spoznaj«
 

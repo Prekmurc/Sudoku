@@ -8,8 +8,10 @@ pred to analizo – pravilo »ne Presega tehnike« je odpadlo, imena tehnik so p
 `igra/shramba.js`. **Del 2 narejen 2026-09-25:** iskanje stanja, vaja kot igra in
 presoja odgovora so v `shared/vaje-uganka.js` (`stanjaVUganki()`, `vajaIzStanja()`,
 `preveriVajo()`; vrstni red izidov in sporočilo pri neutemeljenem izbrisu sta v opombah
-načrta), `genMinimalnaUganka()` v `shared/generator.js`. Tabele v tem dokumentu (npr.
-1.1) opisujejo stanje pred tem.
+načrta), `genMinimalnaUganka()` v `shared/generator.js`. **Del 3 narejen 2026-09-25:**
+banka vaj `shared/vaje-banka.js` (vsaj 50 ugank na tehniko, tehnike kot ključi
+`ALL_TECHNIQUES`, tudi uganke »Presega tehnike«), ustvari jo `tools/ustvari-banko-vaj.js`
+(namesto banke semen iz 4.1). Tabele v tem dokumentu (npr. 1.1) opisujejo stanje pred tem.
 
 **Zamisel.** Trening dobi za vsako tehniko (E1, E2, 1–12) dva načina:
 

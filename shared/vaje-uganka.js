@@ -10,6 +10,8 @@
 
    - stanjaVUganki(danosti, kljuc): stanja na poti motorja, v katerih je naslednji
      korak tehnika kljuc;
+   - tehnikeVUganki(danosti): vse tehnike, za katere ima uganka stanje vaje (ena
+     pot; banka vaj shared/vaje-banka.js, del 3);
    - vajaIzStanja(danosti, kljuc, stanje, stopnja): vaja kot igra z začetnimi
      potezami (vpisi in izbrisi poti), ki jih "Razveljavi" ne vrne;
    - vajaIzUganke(danosti, kljuc, rnd): naključno ustrezno stanje uganke kot vaja;
@@ -28,35 +30,34 @@ const jePoskus = k => !k || k.technique.startsWith(POSKUS_KLJUC);
 
 /* ---------- stanja na poti ---------- */
 
-// Pot od danosti z nextStep(b) BREZ prednosti števke (strogo: kljuc je prva tehnika
+// Stanje na poti, v katerem je naslednji korak tehnika kljuc, je primerno za vajo:
+// pri E1 in E2 samo čisto stanje (vaja je brez kandidatov, igralec ne sme potrebovati
+// izbrisov, ki jih ne vidi), pri E1 še z vsaj VAJA_E1_NAJMANJ_PRAZNIH praznimi celicami.
+function ustrezaVaji(kljuc, samiEnojcki, praznih) {
+  return !jeEnojcek(kljuc)
+    || (samiEnojcki && (kljuc !== 'Gol enojček' || praznih >= VAJA_E1_NAJMANJ_PRAZNIH));
+}
+
+// Pot od danosti z nextStep(b) BREZ prednosti števke (strogo: tehnika koraka je prva
 // po ALL_TECHNIQUES, ki v stanju kaj najde), do rešitve ali do prvega poskusa s
 // protislovjem - stanja za njim imajo kandidate, izbrisane z ugibanjem. Stanja pred
-// poskusom so veljavna (uganka je lahko "Presega tehnike").
-// Vrne { stanja, poskus, stopnja }:
-// - stanja: [{ grid, cand, praznih, cisto }] - vsa stanja, v katerih je naslednji korak
-//   kljuc; cisto = pred njim so bili na poti sami enojčki (kandidati so natanko tisti,
-//   ki jih dovolijo števke). Pri E1 in E2 so samo čista stanja (vaja je brez
-//   kandidatov, igralec ne sme potrebovati izbrisov, ki jih ne vidi), pri E1 še z
-//   vsaj VAJA_E1_NAJMANJ_PRAZNIH praznimi celicami;
+// poskusom so veljavna (uganka je lahko "Presega tehnike"). Pred vsakim korakom
+// pokliče obKoraku(k, b, samiEnojcki, praznih) - samiEnojcki = pred tem stanjem so
+// bili na poti sami enojčki (kandidati so natanko tisti, ki jih dovolijo števke).
+// Vrne { poskus, stopnja }:
 // - poskus: pot se je ustavila pri poskusu s protislovjem (ali se je zataknila);
 // - stopnja: ime stopnje uganke iz tehnik na poti ali "Presega tehnike" - samo
 //   informacija (pot je ista kot genPot() v oceniTezavnost(); ena rešitev je pogoj
 //   klicatelja, genMinimalnaUganka() jo zagotovi).
-function stanjaVUganki(danosti, kljuc) {
+function prehodiPot(danosti, obKoraku) {
   const b = new Board(danosti);
-  const stanja = [];
   const uporabljene = new Set();
   let samiEnojcki = true;
   let poskus = false;
   for (let i = 0; i < 500 && !b.isSolved(); i++) {
     const k = nextStep(b);
     if (jePoskus(k)) { poskus = true; break; }
-    if (k.technique === kljuc) {
-      const praznih = b.grid.filter(v => v === 0).length;
-      const ustreza = !jeEnojcek(kljuc)
-        || (samiEnojcki && (kljuc !== 'Gol enojček' || praznih >= VAJA_E1_NAJMANJ_PRAZNIH));
-      if (ustreza) stanja.push({ grid: b.grid.slice(), cand: b.cand.slice(), praznih, cisto: samiEnojcki });
-    }
+    obKoraku(k, b, samiEnojcki, b.grid.filter(v => v === 0).length);
     uporabljene.add(k.technique);
     if (!jeEnojcek(k.technique)) samiEnojcki = false;
     applyStep(b, k);
@@ -68,7 +69,33 @@ function stanjaVUganki(danosti, kljuc) {
     const s = STOPNJE_UGANK.find(x => x.ustreza(mere));
     stopnja = s ? s.ime : '';
   }
+  return { poskus, stopnja };
+}
+
+// Stanja uganke za vajo tehnike kljuc. Vrne { stanja, poskus, stopnja } (poskus in
+// stopnja kot pri prehodiPot()):
+// - stanja: [{ grid, cand, praznih, cisto }] - vsa stanja na poti, v katerih je
+//   naslednji korak kljuc in ki ustrezajo vaji (ustrezaVaji()); cisto = pred njim so
+//   bili na poti sami enojčki.
+function stanjaVUganki(danosti, kljuc) {
+  const stanja = [];
+  const { poskus, stopnja } = prehodiPot(danosti, (k, b, samiEnojcki, praznih) => {
+    if (k.technique === kljuc && ustrezaVaji(kljuc, samiEnojcki, praznih)) {
+      stanja.push({ grid: b.grid.slice(), cand: b.cand.slice(), praznih, cisto: samiEnojcki });
+    }
+  });
   return { stanja, poskus, stopnja };
+}
+
+// Vse tehnike, za katere ima uganka vsaj eno stanje vaje (stanjaVUganki() ni prazen),
+// z eno samo potjo - za banko vaj (tools/ustvari-banko-vaj.js, shared/vaje-banka.js).
+// Vrne { tehnike, poskus, stopnja }; tehnike so ključi po vrstnem redu ALL_TECHNIQUES.
+function tehnikeVUganki(danosti) {
+  const najdene = new Set();
+  const { poskus, stopnja } = prehodiPot(danosti, (k, b, samiEnojcki, praznih) => {
+    if (ustrezaVaji(k.technique, samiEnojcki, praznih)) najdene.add(k.technique);
+  });
+  return { tehnike: ALL_TECHNIQUES.map(([k]) => k).filter(k => najdene.has(k)), poskus, stopnja };
 }
 
 /* ---------- vaja kot igra ---------- */

@@ -12,7 +12,7 @@ const { loadEngine } = require('./load-engine.js');
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js'],
   names: ['genMinimalnaUganka', 'oceniTezavnost', 'nextStep', 'applyStep', 'nakedSingles', 'hiddenSingles',
-    'stanjaVUganki', 'vajaIzStanja', 'vajaIzUganke', 'preveriVajo', 'VAJA_E1_NAJMANJ_PRAZNIH',
+    'stanjaVUganki', 'tehnikeVUganki', 'vajaIzStanja', 'vajaIzUganke', 'preveriVajo', 'VAJA_E1_NAJMANJ_PRAZNIH',
     'stanjeIgre', 'dodajPotezo', 'lahkoRazveljavi', 'lahkoZacniZnova', 'mozneAkcije', 'imeTehnike',
     'POSKUS_KLJUC', 'elimLabel', 'solutionOf'],
 });
@@ -131,6 +131,22 @@ test('uganka ima eno rešitev, stopnja je ista kot oceniTezavnost()', () => {
       assert.equal(r.stopnja, o.tezavnost, `seme ${seme}, ${kljuc}`);
     }
   }
+});
+
+test('tehnikeVUganki(): natanko tehnike s stanji iz stanjaVUganki(), ena pot (banka vaj)', () => {
+  for (const seme of new Set([...Object.values(SEMENA), SEME_PRESEGA])) {
+    const d = uganka(seme);
+    const t = E.tehnikeVUganki(d);
+    const r = TEHNIKE.map(kljuc => [kljuc, E.stanjaVUganki(d, kljuc)]);
+    assert.deepEqual([...t.tehnike], [...r.filter(([, x]) => x.stanja.length).map(([k]) => k)], `seme ${seme}`);
+    assert.equal(t.stopnja, r[0][1].stopnja, `seme ${seme}`);
+    assert.equal(t.poskus, r[0][1].poskus, `seme ${seme}`);
+  }
+  // Presega tehnike: tehnike samo iz stanj pred prvim poskusom.
+  const p = E.tehnikeVUganki(uganka(SEME_PRESEGA));
+  assert.equal(p.poskus, true);
+  assert.equal(p.stopnja, 'Presega tehnike');
+  assert.ok(p.tehnike.includes('Pointing pair/triple'));
 });
 
 test('vaja kot igra: kandidati so natanko kandidati na poti, začetne poteze so zaklenjene', () => {
