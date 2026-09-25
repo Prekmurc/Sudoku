@@ -221,6 +221,18 @@ omenjajo »številko« v besedilu za uporabnika.
 
 ### Del 3 – izvoz, dokumentacija, »osnovne« → »srednje«
 
+**Narejeno 2026-09-25, commit `6cfdf66`.** Testi: 257 (252 + 5 novih v
+`zbirka-zapis.test.js`: izvoz z eno postavko poskusa, imena brez vejice, uvoz novih imen in
+starih ključev, presledki in velike/male črke, krožni izvoz–uvoz). Odstopanja od opisa
+spodaj: izvoz je v `zbirkaTehnikeZaIzvoz()`, uvoz v `zbirkaKljucTehnike()` (ključi se
+preslikajo sproti iz `ALL_TECHNIQUES` in `imeTehnike()`, ne iz posebne tabele kot
+`STARE_TEZAVNOSTI`); uvoz tehnike po preslikavi uredi po `redTehnike()`. `docs/uganke.md:98`
+ostane (»**Osnovno:**« tam pomeni glavno ugotovitev, ne raven). V `docs/uskladitev.md` sta
+poleg točk iz opisa posodobljeni še 1.1 (»srednje« narejeno, ostanek v fazi 5), 5.1
+(prestavljeno v fazo 6), 5.2 (samo imena tehnik – dva opisa v JS ostaneta odprta) in 5.6;
+tabela faz ima 1.1 v fazi 5 in 5.1 v fazi 6. V `docs/tehnike.md` ima vrstica poskusa ime za
+prikaz »Poskus in protislovje (Forcing Chain)«, kakršno da `imeTehnike()`.
+
 1. Izvoz `**Tehnike:**` (odgovor 2): zapiše slovensko ime brez oklepaja
    (»Skriti par 2«), uvoz bere nova imena in stare ključe (preslikava kot
    `STARE_TEZAVNOSTI`). V shrambi ostanejo ključi. Angleško ime v izvozu ne gre, ker

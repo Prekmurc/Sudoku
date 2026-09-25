@@ -124,7 +124,7 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   zdaj enojčki · preseki · para · trojici · napredne (meje ravni ostanejo). Značke v
   treningu sta samo še SREDNJA (1–6) in NAPREDNA (7–12). Odprto: raven kot polje tehnike,
   `tagClass()`, izraz »osnovne« → »srednje«, poved v pomoči igre.
-- **Delno narejeno 2026-09-25** (faza 4, del 3): izraz »osnovne« → »srednje« je povsod – v
+- **Delno narejeno 2026-09-25** (faza 4, del 3 `6cfdf66`): izraz »osnovne« → »srednje« je povsod – v
   kodi in testih že prej (`GEN_NAJMANJ_SREDNJIH`), zdaj še v `docs/tehnike.md` in
   `docs/uganke.md`. Raven kot polje tehnike, `tagClass()` po ravneh in poved v pomoči igre
   gredo v fazo 5 (`docs/faza4-nacrt.md`, odgovor 5).
@@ -220,7 +220,7 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
 - **Obseg:** srednje (engine, reševalec, igra, trening, izvoz/uvoz, testi, ki primerjajo
   oznake in sporočila).
 - **Narejeno 2026-09-25** (faza 4, `docs/faza4-nacrt.md`; del 1 `ae48423`, del 2
-  `694ea42` in `e31c85e`, del 3). Ime za prikaz da samo `imeTehnike(kljuc, { stevilka,
+  `694ea42` in `e31c85e`, del 3 `6cfdf66`). Ime za prikaz da samo `imeTehnike(kljuc, { stevilka,
   anglesko })` iz `TEHNIKE_OPISI` (`ime` + `anglesko`); oblika s številko »4 · Skriti par
   (Hidden Pair)«, »E1 · Očitni enojček (Naked Single)«, poskus brez številke »Poskus in
   protislovje (Forcing Chain)«. Oznaka in naslov koraka v reševalcu ter oznaka koraka v igri
@@ -254,7 +254,7 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   že preverja `TEHNIKE_OPISI` – razširi ga na besedila vaj v `MODES` in na sporočila korakov
   (vzorec `/številk/` v sporočilu `solve()` na ugankah iz `docs/uganke.md`).
 - **Obseg:** srednje (veliko besedil, testi, ki primerjajo sporočila korakov).
-- **Narejeno 2026-09-25** (faza 4, del 2 `694ea42`; `docs/tehnike.md` v delu 3): v
+- **Narejeno 2026-09-25** (faza 4, del 2 `694ea42`; `docs/tehnike.md` v delu 3 `6cfdf66`): v
   besedilih za uporabnika je povsod »števka«; komentarji v kodi ostanejo (odločitev).
   Preverjata `tests/trening-tehnike.test.js` (opisi, besedila vaj, sporočila `solve()` in
   `stepHint()`) in `tests/besedila-html.test.js` (HTML vseh treh aplikacij).
@@ -834,7 +834,7 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
     (Naked pair, Hidden pair …), besedila uporabljajo »številka« (1.4). Dogovorjena imena
     in sopomenke so od 2026-09-23 v razdelku »Imena in sopomenke«; tabela in izraz
     »osnovne« se popravita ob 1.3 in 1.1, ko se spremeni koda. **Narejeno 2026-09-25**
-    (faza 4, del 3): dogovorjena imena, »števka«, »srednje«.
+    (faza 4, del 3 `6cfdf66`): dogovorjena imena, »števka«, »srednje«.
 - **Predlog:** popravi ob sklopu, ki se ga tiče (1.3, 1.4, 6.8), ali v enem commitu
   »dokumentacija«.
 - **Obseg:** majhno.
