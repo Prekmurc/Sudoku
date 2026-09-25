@@ -2,8 +2,8 @@
    Izris mreže in nizov gumbov, izbira celice, vpis/odstranjevanje kandidatov,
    razveljavi/ponovi, poudarjanje števke, seznami manjkajočih števk (vrstice,
    stolpci, bloki), pomoč (Naslednji korak, Preveri), zbirka in vnos nove
-   uganke. Stanje in poteze so v ../shared/stanje.js, shranjevanje igre v
-   shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
+   uganke. Stanje in poteze so v ../shared/stanje.js, izris mreže in seznamov v
+   ../shared/mreza.js, shranjevanje igre v shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
    (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
@@ -59,22 +59,16 @@ let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob pr
 
 /* ---------- gradnja mreže in nizov ---------- */
 
-const celice = [];
-for (let i = 0; i < 81; i++) {
-  const el = document.createElement('div');
-  el.className = 'celica';
-  el.dataset.r = Math.floor(i / 9);
-  el.dataset.c = i % 9;
-  el.setAttribute('role', 'gridcell');
-  el.addEventListener('click', (e) => {
+// Mreža (izris) je skupna s treningom - ../shared/mreza.js.
+const mreza = ustvariMrezo(mrezaEl, {
+  obKliku: (i, e) => {
     if (!igra) return;
     if (vecCelic || e.ctrlKey || e.metaKey) preklopiVIzbiri(i);
     else izbrane = enaIzbrana() === i ? [] : [i]; // ponoven klik prekliče izbiro
     izrisi();
-  });
-  mrezaEl.appendChild(el);
-  celice.push(el);
-}
+  },
+});
+const celice = mreza.celice;
 
 // Edina izbrana celica ali null (tudi pri več izbranih) - vpis, brisanje vpisa,
 // vračanje kandidata in puščice delujejo samo na eni celici.
@@ -110,33 +104,17 @@ gumbiVpisi.forEach((b, i) => { b.textContent = i + 1; });
 
 /* ---------- seznami manjkajočih števk ---------- */
 
-// Kvadratek s števkami na stalnih mestih (kot kandidati v celici). Vrne
-// { el, stevke }, stevke[d - 1] = span za števko d.
-function narediPolje(el) {
-  const polje = document.createElement('div');
-  polje.className = 'seznam-polje';
-  const mreza = document.createElement('div');
-  mreza.className = 'kandidati';
-  const stevke = [];
-  for (let d = 1; d <= 9; d++) {
-    const s = document.createElement('span');
-    s.className = 'kand';
-    mreza.appendChild(s);
-    stevke.push(s);
-  }
-  polje.appendChild(mreza);
-  el.appendChild(polje);
-  return { el: polje, stevke };
-}
-
-// Trije ločeni prikazi; vsak ima 9 kvadratkov v vrstnem redu ROWS/COLS/BOXES
-// (bloki od leve proti desni, od zgoraj navzdol - kot v veliki mreži).
+// Trije ločeni prikazi (izris je v ../shared/mreza.js); stikala so igrina.
+const seznami = ustvariSezname({
+  vrstice: document.getElementById('seznamVrstic'),
+  stolpci: document.getElementById('seznamStolpcev'),
+  bloki: document.getElementById('seznamBlokov'),
+});
 const SEZNAMI = [
-  { kljuc: 'vrstice', el: document.getElementById('seznamVrstic'), stikalo: document.getElementById('stikaloVrstice'), ime: 'Vrstica', polna: 'polna' },
-  { kljuc: 'stolpci', el: document.getElementById('seznamStolpcev'), stikalo: document.getElementById('stikaloStolpci'), ime: 'Stolpec', polna: 'poln' },
-  { kljuc: 'bloki', el: document.getElementById('seznamBlokov'), stikalo: document.getElementById('stikaloBloki'), ime: 'Blok', polna: 'poln' },
+  { kljuc: 'vrstice', stikalo: document.getElementById('stikaloVrstice') },
+  { kljuc: 'stolpci', stikalo: document.getElementById('stikaloStolpci') },
+  { kljuc: 'bloki', stikalo: document.getElementById('stikaloBloki') },
 ];
-for (const s of SEZNAMI) s.polja = Array.from({ length: 9 }, () => narediPolje(s.el));
 
 // Stanje stikal si zapomni brskalnik; privzeto so vsi seznami izklopljeni.
 const SEZNAMI_KLJUC = 'sudoku.igra.seznami';
@@ -362,33 +340,14 @@ function izrisi() {
 function izrisiSezname() {
   // Seznam vrstic doda mreži 10. stolpec - celice se pomanjšajo (igra.css).
   igraLayoutEl.classList.toggle('z-vrsticami', SEZNAMI[0].stikalo.checked);
-  const m = igra ? manjkajoceVEnotah(stanje) : null;
-  for (const s of SEZNAMI) {
-    s.el.hidden = !s.stikalo.checked;
-    if (s.el.hidden) continue;
-    s.polja.forEach((p, i) => {
-      const maska = m ? m[s.kljuc][i] : 0;
-      const manjkajo = [];
-      for (let d = 1; d <= 9; d++) {
-        const el = p.stevke[d - 1];
-        el.className = 'kand';
-        el.textContent = '';
-        if (!(maska & (1 << d))) continue;
-        el.textContent = d;
-        manjkajo.push(d);
-        const b = barvaPoudarka(d);
-        if (b >= 0) el.classList.add('poud', `b${b}`);
-      }
-      p.el.title = !igra ? '' : manjkajo.length ? `${s.ime} ${i + 1}: manjkajo ${manjkajo.join(', ')}` : `${s.ime} ${i + 1} je ${s.polna}`;
-      p.el.setAttribute('aria-label', p.el.title || `${s.ime} ${i + 1}`);
-    });
-  }
+  const vidni = {};
+  for (const s of SEZNAMI) vidni[s.kljuc] = s.stikalo.checked;
+  seznami.izrisi({ maske: igra ? manjkajoceVEnotah(stanje) : null, vidni, barva: barvaPoudarka });
 }
 
-// Vidna oznaka zaklepa: mreža rešene uganke dobi razred, vrstica z razlogom pa
-// izstopajoč slog - da je jasno, zakaj nizi ne delujejo (igra.css).
+// Vidna oznaka zaklepa: mreža rešene uganke dobi razred (izrisiMrezo), vrstica z
+// razlogom pa izstopajoč slog - da je jasno, zakaj nizi ne delujejo (igra.css).
 function izrisiZaklep(ogled, opozorilo) {
-  mrezaEl.classList.toggle('zaklenjena', ogled);
   razlogNizovEl.classList.toggle('zaklenjeno', ogled && !opozorilo);
   razlogNizovEl.classList.toggle('opozorilo', !!opozorilo);
   znovaBtn.classList.toggle('primary', ogled);
@@ -401,55 +360,21 @@ function opozoriloIgre() {
   return sporocilo && sporocilo.razred === 'err' ? sporocilo.besedilo : '';
 }
 
+// Prikazan korak (tretja stopnja pomoči): celice vzorca, kandidati za izbris,
+// števke za vpis - samo še neizvedena dejanja. Sosede izbrane celice se senčijo
+// samo pri eni izbrani celici.
 function izrisiMrezo() {
-  mrezaEl.classList.toggle('prazna', !igra);
-  // Prikazan korak: celice vzorca, kandidati za izbris, števke za vpis.
   const korak = pomoc && pomoc.korak && pomoc.stopnja === 3 ? pomoc.korak : null;
-  const vzorec = new Set(korak ? korak.cells : []);
-  // Samo še neizvedena dejanja: izveden izbris v celici ni več viden, celica brez
-  // odprtih izbrisov izgubi rdečkasto podlago.
-  const odprta = korak ? dejanjaKoraka(korak, stanje).filter(a => !a.opravljeno) : [];
-  const izbris = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica * 10 + a.stevka));
-  const izbrisCelice = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica));
-  const zaVpis = new Map(odprta.filter(a => a.tip === 'vpis').map(a => [a.celica, a.stevka]));
-  // Sosede izbrane celice se senčijo samo pri eni izbrani celici.
-  const izbraneSet = new Set(izbrane);
-  const ena = enaIzbrana();
-  for (let i = 0; i < 81; i++) {
-    const el = celice[i];
-    el.innerHTML = '';
-    el.className = 'celica';
-    if (!igra) continue;
-    const v = stanje.grid[i];
-    if (v) {
-      el.textContent = v;
-      el.classList.add(igra.danosti[i] !== '0' ? 'dana' : 'vpis');
-      const b = barvaPoudarka(v);
-      if (b >= 0) el.classList.add('poud-stevka', `b${b}`);
-    } else {
-      const k = stanje.kandidati[i];
-      const mreza = document.createElement('div');
-      mreza.className = 'kandidati';
-      for (let d = 1; d <= 9; d++) {
-        const s = document.createElement('span');
-        s.className = 'kand';
-        if (k & (1 << d)) {
-          s.textContent = d;
-          const b = barvaPoudarka(d);
-          if (b >= 0) s.classList.add('poud', `b${b}`);
-          if (izbris.has(i * 10 + d)) s.classList.add('k-izbris');
-          if (zaVpis.get(i) === d) s.classList.add('k-vpis');
-        }
-        mreza.appendChild(s);
-      }
-      el.appendChild(mreza);
-    }
-    if (zaVpis.has(i)) el.classList.add('k-vpis');
-    else if (vzorec.has(i)) el.classList.add('k-vzorec');
-    else if (izbrisCelice.has(i)) el.classList.add('k-izbris');
-    if (izbraneSet.has(i)) el.classList.add('izbrana');
-    else if (ena !== null && PEERS[ena].has(i)) el.classList.add('soseda');
-  }
+  mreza.izrisi(!igra ? { prazna: true, zaklenjena: false } : {
+    zaklenjena: samoZaOgled(),
+    grid: stanje.grid,
+    danosti: igra.danosti,
+    kandidati: stanje.kandidati,
+    barva: barvaPoudarka,
+    izbrane,
+    sosede: enaIzbrana(),
+    oznake: oznakeKoraka(korak, stanje),
+  });
 }
 
 function izrisiNize() {

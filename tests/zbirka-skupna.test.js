@@ -14,7 +14,7 @@ const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html in igra/index.html.
 const RESEVALEC = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
-const IGRA = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
+const IGRA = ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
 const ZBIRKA = 'sudoku.zbirka.v1';
 
 // Uganke iz docs/uganke.md, ki niso vgrajeni primeri (tri so), četrta iz generatorja

@@ -24,7 +24,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v igra/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 const D = JSON.stringify(danosti);
 

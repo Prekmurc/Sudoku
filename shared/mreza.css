@@ -1,0 +1,177 @@
+/* shared/mreza.css — igralna mreža 9 × 9 in seznami manjkajočih števk
+   (shared/mreza.js), skupno igri (igra/) in treningu. Naloži se PRED slogi
+   aplikacije, da ima aplikacija zadnjo besedo (velikost celice --gcs, postavitev).
+   Barve palete (--line, --ink, --blue, --card, --amber-bg, --red, --red-bg,
+   --green, --green-bg) so iz :root aplikacije; tu so samo barve in mere mreže.
+   Barve poudarka lahko igralec spremeni v igri (inline slog na <html>). */
+
+:root{
+  /* poudarjena števka: podlaga v barvi poudarka s temno števko (kot Oakever) */
+  --poud:#F6C026;           /* 1. rumena, potemnjena proti jantarni, da je na beli opazna */
+  --poud-ink:#8A6400;
+  --poud-stevka:#111820;    /* kandidat in dana števka na poudarku */
+  --poud-vpis:#0B3A78;      /* vpis na poudarku: temnejša modra, da ostane berljiv */
+  /* "več hkrati": 2., 3. in 4. poudarjena števka (1. je --poud), potem se
+     barve ponovijo; -ink = obroba aktivnega gumba v nizu Poudari */
+  --poud2:#81C995;          /* zelena */
+  --poud2-ink:#1E6B3A;
+  --poud3:#FA903E;          /* oranžna */
+  --poud3-ink:#A8480A;
+  --poud4:#8AB4F8;          /* modra */
+  --poud4-ink:#1D4F9C;
+  /* mreža je bela; sivo so obarvane samo vrstica, stolpec in blok izbrane celice */
+  --peer-bg:#ECEFF3;
+  --kand-ink:#4A5561;
+  /* velikost celice mreže; nizi gumbov pod/nad mrežo imajo iste stolpce */
+  --gcs: min(calc((100vw - 36px) / 9), 56px);
+  /* razmik med mrežo in seznami manjkajočih števk; velikost polja male mreže blokov */
+  --sgap: 5px;
+  --bcs: 62px;
+}
+
+/* ---------- mreža ---------- */
+.mreza{
+  display:grid;
+  grid-template-columns: repeat(9, var(--gcs));
+  grid-template-rows: repeat(9, var(--gcs));
+  background:#fff;
+  width:max-content;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.celica{
+  width: var(--gcs);
+  height: var(--gcs);
+  border: 1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'JetBrains Mono', monospace;
+  font-size: calc(var(--gcs) * 0.52);
+  cursor:pointer;
+  position:relative;
+}
+/* danosti črne, vpisi modri */
+.celica.dana{ color:#000; font-weight:800; }
+.celica.vpis{ color: var(--blue); font-weight:700; }
+.celica.soseda{ background: var(--peer-bg); }
+.celica.izbrana{ background: var(--peer-bg); } /* kot vrstica/stolpec/blok; pred .poud-stevka: poudarek ima prednost */
+/* poudarjena števka, vpisana ali dana: cela celica v barvi poudarka, števka
+   temna (dana skoraj črna, vpis temno moder); kandidati: glej .kand.poud.
+   Barva: --pb iz razreda b1..b3 (več hkrati), sicer --poud. */
+.b1{ --pb: var(--poud2); --pb-ink: var(--poud2-ink); }
+.b2{ --pb: var(--poud3); --pb-ink: var(--poud3-ink); }
+.b3{ --pb: var(--poud4); --pb-ink: var(--poud4-ink); }
+.celica.poud-stevka{ background: var(--pb, var(--poud)); color: var(--poud-stevka); }
+.celica.vpis.poud-stevka{ color: var(--poud-vpis); }
+/* izbrana celica: tanka srednje modra obroba z belim notranjim robom - vidna
+   tudi, ko je celica sama poudarjena (modra obroba na rumeni podlagi 1. poudarka) */
+.celica.izbrana{ box-shadow: inset 0 0 0 2px #4A86D8, inset 0 0 0 3px #fff; }
+.celica[data-c="0"]{ border-left: 2px solid var(--ink); }
+.celica[data-c="3"], .celica[data-c="6"]{ border-left: 2px solid var(--ink); }
+.celica[data-c="8"]{ border-right: 2px solid var(--ink); }
+.celica[data-r="0"]{ border-top: 2px solid var(--ink); }
+.celica[data-r="3"], .celica[data-r="6"]{ border-top: 2px solid var(--ink); }
+.celica[data-r="8"]{ border-bottom: 2px solid var(--ink); }
+/* Kandidati na stalnih mestih (1 levo zgoraj ... 9 desno spodaj). minmax(0,1fr):
+   vse vrstice in stolpci so enako veliki - prazna vrstica se ne stisne, zato
+   kandidat ne zdrsne s svojega mesta. Brez notranjega roba: vsako polje je
+   natanko tretjina celice, poudarek (.kand.poud) ga zapolni do roba celice. */
+.kandidati{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  grid-template-rows:repeat(3, minmax(0, 1fr));
+  width:100%;
+  height:100%;
+}
+.kand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  line-height:1;
+  font-size: calc(var(--gcs) * 0.27);
+  font-weight:500;
+  color: var(--kand-ink);
+}
+/* poudarjen kandidat: oster kvadrat v barvi poudarka čez celo polje kandidata
+   (tretjina celice), števka temna */
+.kand.poud{
+  background: var(--pb, var(--poud));
+  color: var(--poud-stevka);
+  font-weight:700;
+}
+/* prikazan korak (Naslednji korak): celice vzorca jantarno, celice z
+   izbrisom rdečkasto, kandidat za izbris rdeč prečrtan, števka za vpis zelena
+   - kot na mini mreži v reševalcu; ima prednost pred sivino izbire */
+.celica.k-vzorec{ background: var(--amber-bg); }
+.celica.k-izbris{ background: var(--red-bg); }
+.celica.k-vpis{ background: var(--green-bg); }
+.kand.k-izbris{
+  color: var(--red);
+  font-weight:700;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.kand.k-vpis{
+  background: var(--green);
+  color:#fff;
+  font-weight:700;
+  border-radius:3px;
+  margin:0.5px;
+}
+.mreza.prazna .celica{ cursor:default; }
+/* rešena uganka: mreža je zaklenjena (samo za ogled) */
+.mreza.zaklenjena{ outline: 3px solid var(--green); outline-offset:4px; border-radius:4px; }
+.mreza.zaklenjena .celica{ cursor:default; }
+
+/* celica zunaj prikazanega dela mreže (pogled.vidne v mreza.js): prazna, ni
+   klikljiva; mesto in debele črte blokov ostanejo */
+.celica.izven{ cursor:default; background: var(--card); }
+
+/* ---------- seznami manjkajočih števk ---------- */
+/* okvir: mreža, desno od nje seznam vrstic, pod njo seznam stolpcev; razmik je
+   rob seznama (ne gap), da skrit seznam ne pusti praznega prostora */
+.mreza-okvir{
+  display:grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  width:max-content;
+}
+.mreza-okvir .mreza{ grid-column:1; grid-row:1; }
+.seznam{ display:grid; user-select:none; -webkit-user-select:none; }
+.seznam-vrstic{
+  grid-column:2; grid-row:1;
+  grid-template-rows: repeat(9, var(--gcs));
+  grid-template-columns: var(--gcs);
+  margin-left: var(--sgap);
+}
+.seznam-stolpcev{
+  grid-column:1; grid-row:2;
+  grid-template-columns: repeat(9, var(--gcs));
+  grid-template-rows: var(--gcs);
+  margin-top: var(--sgap);
+}
+/* kvadratek: siva podlaga in zaobljeni robovi, da ga ni mogoče zamenjati s
+   celico; števke na istih mestih kot kandidati (.kandidati/.kand), polna enota
+   ima prazen kvadratek */
+.seznam-polje{
+  margin:1px;
+  background: var(--card);
+  border:1px solid var(--line);
+  border-radius:4px;
+  overflow:hidden;
+  min-width:0;
+  min-height:0;
+}
+.seznam-polje .kand{ color:#3C4854; }
+.seznam-polje .kand.poud{ color: var(--poud-stevka); }
+/* mala mreža blokov: polje = blok, razporeditev kot v veliki mreži */
+.seznam-blokov{
+  grid-template-columns: repeat(3, var(--bcs));
+  grid-template-rows: repeat(3, var(--bcs));
+  width:max-content;
+  margin-top:12px;
+}
+.seznam-blokov .kand{ font-size: calc(var(--bcs) * 0.24); }

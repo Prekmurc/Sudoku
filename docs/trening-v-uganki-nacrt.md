@@ -1,5 +1,5 @@
 # Trening v uganki – načrt
-(2026-09-25; deli 1–3 narejeni, glej »Stanje po delih«)
+(2026-09-25; deli 1–4 narejeni, glej »Stanje po delih«)
 
 Vrstni red: najprej faza 4
 iz docs/uskladitev.md
@@ -43,7 +43,7 @@ docs/trening-v-uganki.md.
 | 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | `6b6bf53` | 280 (264 + 16) |
 | – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
 | 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | `33423d1` | 315 (309 + 6) |
-| 4 `shared/mreza.js` | ni začet | | |
+| 4 `shared/mreza.js` | **narejeno 2026-09-25** | | 322 (315 + 7) |
 | 5 `shared/plosca.js` | ni začet | | |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
@@ -120,6 +120,44 @@ docs/trening-v-uganki.md.
   `oceniTezavnost()`, vsaj 50 ugank na tehniko, noben zapis ni odveč), v
   `tests/vaje-uganka.test.js` en nov test (`tehnikeVUganki()` = `stanjaVUganki()` za vse
   tehnike, tudi pri uganki Presega tehnike).
+
+### Del 4 – narejeno
+
+- Nova `shared/mreza.js` (samo izris, brez stanja igre in shrambe; naloži se za
+  `engine.js` in `stanje.js`): `ustvariMrezo(el, { obKliku })` → `{ el, celice,
+  izrisi(pogled) }`, pogled = `{ prazna, zaklenjena, grid, danosti, kandidati (null =
+  brez kandidatov), barva(d), izbrane, sosede, oznake, vidne }`; `oznakeKoraka(korak,
+  stanje)` (samo še neizvedena dejanja, iz `dejanjaKoraka()`); `ustvariSezname({
+  vrstice, stolpci, bloki })` → `izrisi({ maske, vidni, barva })`.
+- **`vidne`** (za nalogo »Prava geometrija pri tehnikah 1 in 2«): celice zunaj množice so
+  prazne, imajo razred `izven` (siva podlaga `--card`, brez kazalca z roko) in se na klik
+  ne odzovejo; mesta in debele črte blokov ostanejo. Oznak V/S na robu mreže še ni –
+  pridejo z nalogo. V treningu se še ne uporablja.
+- Nova `shared/mreza.css`: pravila `.mreza`, `.celica`, `.kandidati`, `.kand`, poudarek
+  (`.b1`–`.b3`, `.poud`, `.poud-stevka`), izbira/sosede, `k-*`, `prazna`/`zaklenjena`,
+  `.mreza-okvir`, `.seznam*` – nespremenjena iz `igra/igra.css` – in `:root` s
+  spremenljivkami mreže (`--poud*`, `--peer-bg`, `--kand-ink`, privzeti `--gcs`, `--sgap`,
+  `--bcs`). Paleta (`--line`, `--ink`, `--card` …) ostane v aplikaciji. Naloži se **pred**
+  `igra.css`. **Nobeno `@media` pravilo ni preseljeno**: obe v `igra.css` (postavitev
+  `.igra-layout`/`z-vrsticami` pri ≥ 900 px in `.card` pri < 900 px) sta pravili
+  postavitve strani in ostaneta v igri; prav tako `.igra-layout.z-vrsticami{ --gcs }`,
+  `.seznami-stikala` in `--poud-line`/`--poud-gumb-ink` (niz »Poudari«). Nobeno preostalo
+  pravilo v `igra.css` ne cilja elementov mreže, zato vrstni red nalaganja prednosti ne
+  spremeni; lastne barve poudarka so inline slog na `<html>` in imajo prednost kot prej.
+- `igra/igra.js`: gradnja celic, `narediPolje()` ter notranjost `izrisiMrezo()` in
+  `izrisiSezname()` so v `shared/`; igra sestavi pogled. Klik celice, stikala seznamov
+  (`sudoku.igra.seznami`), razred `z-vrsticami` in `izrisiZaklep()` (vrstica z razlogom,
+  gumb »Začni znova«) ostanejo v igri; razred `zaklenjena` na mreži da zdaj izris mreže.
+  Globalna `celice` ostane (= `mreza.celice`), ker jo uporablja `tests/igra-ui.test.js`.
+- Novo orodje `tools/posnetek-igre.js --shrani|--primerjaj <pot.json>` (za del 5): igra v
+  nadomestnem DOM-u, scenarij samo prek dogodkov (klik, Ctrl+klik, nizi, tipkovnica,
+  kljukice, stikala, Razveljavi/Ponovi/Zbriši/Začni znova, Naslednji korak, Preveri,
+  osvežitev strani, rešitev do konca), 46 posnetkov elementov plošče in stranskih kartic;
+  datumi se ne primerjajo. Pred in po izločitvi: enako. Dodatno so bili posnetki zaslona v
+  brezglavem Edgeu (1200, 1000, 900 in 390 px, lastne barve poudarka, vsi trije seznami,
+  korak na mreži) pred in po izločitvi enaki do bajta.
+- Testi: nov `tests/mreza.test.js` (7 testov), v `igra-ui` in `zbirka-skupna` samo
+  nalagalni seznam.
 
 ## Opombe k delom (uskladitev s fazo 4 in odpadlo pravilo)
 
