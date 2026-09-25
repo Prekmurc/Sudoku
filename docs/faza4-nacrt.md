@@ -151,6 +151,22 @@ omenjajo »številko« v besedilu za uporabnika.
    `:253`, `:261`, `:276`, `:334` (»Pokaži kandidate«/»Skrij kandidate«, »Pokaži korake
    reševanja«/»Skrij korake reševanja«). »Pokaži na mreži ▾«/»Skrij mrežo ▴« ostane.
    Trening (»Namig (drži)«, »Rešitev (drži)«) in igra ostaneta.
+4. **Opisi kartic v `trening/index.html`** (dopolnitev 4): stara in angleška imena
+   tehnik → nova slovenska imena, »številka« → »števka«, s slovnico (spol, sklon).
+   Opisi se ne prepisujejo (to je faza 6), spremenijo se samo te besede:
+
+   | Vrstica | Staro | Novo |
+   |---|---|---|
+   | 36 | Najdi dve **številki**, ki se pojavljata … | Najdi dve **števki**, ki se pojavljata … |
+   | 56 | Najdi tri **številke**, ki se v enoti pojavljajo … | Najdi tri **števke**, ki se v enoti pojavljajo … |
+   | 66 | **Razširjen X-Wing**: 3 vrstice × 3 stolpci. | **Razširjeno X-krilo**: 3 vrstice × 3 stolpci. |
+   | 71 | Dve močni povezavi za isto **številko**: … | Dve močni povezavi za isto **števko**: … |
+   | 71 | … zagotovo ta **številka** – izbrišeš jo … | … zagotovo ta **števka** – izbrišeš jo … |
+
+   Ostane: »Aplikacija Oakever ta vzorec imenuje Skyscraper oziroma Zmaj z dvema
+   vrvicama« (`:71`) in »… imenuje Krilo W« (`:76`) – to so imena v drugi aplikaciji,
+   ne naša; njuno omembo prestavi faza 6 (5.1). Izrazi »pivot«, »krilo« (`:81`) in
+   »par« (`:76`, `:86`) so že dogovorjeni. Naslovi h3 so urejeni v delu 1.
 
 **Testi:**
 - `trening-tehnike.test.js:151` (»števka« v `TEHNIKE_OPISI`) razširiti na: besedila v
@@ -158,7 +174,11 @@ omenjajo »številko« v besedilu za uporabnika.
   ugankah iz `docs/uganke.md`, `stepHint()`; vzorec `/številk/i`.
 - Nov preprost test nad HTML (`app/index.html`, `trening/index.html`,
   `igra/index.html`): brez »številk« razen dovoljenih zvez (»številke tehnik«,
-  »številka poteze«) in brez »Prikaži«.
+  »številka poteze«) in brez »Prikaži«. Za `trening/index.html` še: opisi kartic
+  (`<p>` v `.menu-card`) ne vsebujejo nobenega angleškega imena iz
+  `TEHNIKE_OPISI[].anglesko` (»Skyscraper« ni med njimi, zato omemba Oakevra ostane).
+  Preveri se **samo besedilo opisov**, ne naslovov h3 – ti imajo angleško ime v
+  oklepaju (»X-krilo (X-Wing)«) in jih pokrije test iz dela 1.
 - `next-step.test.js`, `w-wing.test.js`, `xy-wing.test.js`, `turbot-fish.test.js` –
   preveriti, ali kateri primerja besedilo sporočila; po iskanju noben ne vsebuje
   spremenjenih zvez, pričakujem brez sprememb.
@@ -295,3 +315,8 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
    »Poskus in protislovje (Forcing Chain)«, enako kot druga angleška imena; kratko ime
    (oznaka koraka) »Poskus in protislovje«, vedno brez številke. Ključ motorja
    (`'Poskus in protislovje (forcing chain)'` v dnevniku `solve()`) ostane nespremenjen.
+4. **Opisi kartic v treningu** (dodatek k delu 2): v opisih kartic v
+   `trening/index.html` se stara in angleška imena tehnik zamenjajo z novimi
+   slovenskimi (s pravilno slovnico, npr. »Razširjen X-Wing« → »Razširjeno X-krilo«),
+   »številka« → »števka«. Opisi se sicer ne prepisujejo – to je faza 6. Seznam mest je
+   v delu 2, točka 4, test v delu 2, »Testi«.
