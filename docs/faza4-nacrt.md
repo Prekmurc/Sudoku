@@ -51,7 +51,8 @@ Kje se številka pokaže:
 | Pomoč → Tehnike (igra) | »4 · Skriti par (Hidden Pair)« |
 | kartica v treningu | »4 · Skriti par (Hidden Pair)« |
 | oznaka koraka (reševalec, igra »Naslednji korak«) | »4 · Skriti par«, celo ime v namigu miške (odgovora 1 in 3) |
-| naslov koraka in lightbox v reševalcu | »Korak 5 · 4 · Skriti par«, celo ime v namigu miške (odgovora 1 in 3) |
+| naslov koraka v reševalcu (nad malo mrežo) | »Korak 5 · 4 · Skriti par«, celo ime v namigu miške (odgovora 1 in 3) |
+| lightbox v reševalcu | »Korak 5 · 4 · Skriti par (Hidden Pair)« – celo ime (dopolnitev 1) |
 | vrstica nad vajo v treningu | »4 · Skriti par (Hidden Pair) · Vaja 3 / 10« |
 
 ## Razdelitev na dele
@@ -68,20 +69,25 @@ push.
      `'Skriti enojček'`) – enako kot `TRENING_TEHNIKE`.
    - Nove funkcije:
      - `imeTehnike(kljuc, { stevilka, anglesko })` – iz ključa `ALL_TECHNIQUES` (tudi
-       korak »Poskus in protislovje …«); brez številke »Skriti par (Hidden Pair)«, s
-       številko »4 · Skriti par (Hidden Pair)«, z `anglesko: false` brez oklepaja
-       (»4 · Skriti par« – oznaka koraka, odgovor 3); neznan ključ (»OBSTALO«, stara
-       tehnika) vrne nespremenjenega;
+       korak »Poskus in protislovje …«); privzeto (brez možnosti) brez številke
+       »Skriti par (Hidden Pair)« – to je naslov kartice v treningu, zato posebna
+       možnost `stevilka: false` ni potrebna; s `stevilka: true` »4 · Skriti par
+       (Hidden Pair)«, z `anglesko: false` brez oklepaja (»4 · Skriti par« – oznaka
+       koraka, odgovor 3); neznan ključ (»OBSTALO«, stara tehnika) vrne
+       nespremenjenega;
      - `redTehnike(kljuc)` – položaj v `ALL_TECHNIQUES` za urejanje seznamov; poskus za
        vsemi tehnikami, neznane na koncu.
    - `tagClass()` se ne spremeni (dobiva še vedno ključ).
-2. `app/app.js` – oznaka in naslov koraka (`:163`, `:190`, `:198`) prek
-   `imeTehnike(k, { stevilka: true, anglesko: false })`, celo ime v `title`;
-   povzetek (`:392–397`) po `redTehnike()`, oblika iz tabele zgoraj.
+2. `app/app.js` – oznaka koraka (`:163`) in naslov nad malo mrežo (`:190`) prek
+   `imeTehnike(k, { stevilka: true, anglesko: false })`, celo ime v `title`; naslov v
+   lightboxu (`:198`) s celim imenom `imeTehnike(k, { stevilka: true })` (dopolnitev 1:
+   v lightboxu je prostor, na dotik `title` ne deluje); povzetek (`:392–397`) po
+   `redTehnike()`, oblika iz tabele zgoraj.
 3. `igra/igra.js` – oznaka koraka (`:709`, kratko ime, celo v `title`), seznam v Pomoči
    (`:898–900`).
 4. `trening/`
-   - `trening.js` vpiše naslov kartice (h3) iz `imeTehnike()`, tako kot že številko;
+   - `trening.js` vpiše naslov kartice (h3, `textContent`) iz `imeTehnike(kljuc)` brez
+     možnosti, tako kot že številko (`data-stevilka`, ki jo pokaže `::before`);
      vrstica nad vajo (`:240`) iz `imeTehnike()` namesto `M.name`;
    - `generators.js` – polje `name` iz `MODES` odpade (6.9); `unitLabel` z imeni
      (»X-Wing za številko 5« → »X-krilo za števko 5« pride v delu 2);
@@ -97,9 +103,20 @@ push.
 
 **Testi:**
 - `trening-tehnike.test.js`: primerjava h3 v HTML s `TEHNIKE_OPISI.ime` se zamenja s
-  primerjavo z `imeTehnike()` (odgovor 4); `MODES.name` ne obstaja več; nov test
-  `imeTehnike()` (vsaka tehnika iz `ALL_TECHNIQUES` ima slovensko in angleško ime,
-  oblika s številko, brez oklepaja, poskus, neznan ključ) in `redTehnike()`.
+  primerjavo z `imeTehnike()` (odgovor 4, dopolnitev 2):
+  - za vsak par `[m, kljuc]` iz `[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]` (po točki 1
+    imata oba seznama ključ motorja) velja
+    `naslovi.get(m) === imeTehnike(kljuc)`; `naslovi` je obstoječa preslikava
+    `data-mode` → besedilo `<h3>` iz `trening/index.html`;
+  - ker je privzeta oblika `imeTehnike()` brez številke, ista enakost preveri tudi, da v
+    HTML-naslovu ni številke (ta je samo v `data-stevilka`); test `imeTehnike()` posebej
+    preveri, da privzeta oblika nima številke in ločila » · «;
+  - da `trening.js` naslov res vpiše, se v testu ne preveri (`querySelector()` v
+    `tests/dom-stub.js` vrne `null`) – ročni pregled.
+
+  `MODES.name` ne obstaja več; nov test `imeTehnike()` (vsaka tehnika iz
+  `ALL_TECHNIQUES` ima slovensko in angleško ime, privzeta oblika brez številke, oblika
+  s številko, brez oklepaja, poskus, neznan ključ) in `redTehnike()`.
 - `igra-ui.test.js`: oznaka koraka pri »Naslednji korak«, če jo kak test bere.
 - `zbirka-zapis.test.js`: `zbirkaPodatkiResevanja()` ureja po vrstnem redu tehnik.
 - `trening-tehnike.test.js:86–100` (izvoz): pričakovani vrstni red v izvozu (»Gol
@@ -245,7 +262,7 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
     test jo pokrije.
   - Oznaka in naslov koraka v reševalcu ter oznaka koraka v igri dobijo kratko ime s
     številko in celo ime v atributu `title` – dodatno k prvotnemu predlogu, ki je imel v
-    oznaki celo ime.
+    oznaki celo ime. Lightbox v reševalcu ima celo ime (dopolnitev 1).
   - `trening/index.html`: h3 ne ostane prazen – vpisana imena se zamenjajo z novimi
     (brez številke), `trening.js` jih ob zagonu prepiše iz `imeTehnike()`, test primerja
     oboje.
@@ -255,3 +272,14 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
   posodobitvi `docs/uskladitev.md` se tabela faz popravi še za premik 1.1 v fazo 5 in
   5.1 v fazo 6.
 - **Del 4** ne bo izveden v fazi 4.
+
+### Dopolnitvi (2026-09-25)
+
+1. **Lightbox v reševalcu** pokaže celo ime »Korak 5 · 4 · Skriti par (Hidden Pair)«.
+   Oznaka koraka in naslov nad malo mrežo ostaneta kratka, celo ime je v `title`.
+   Razlog: v lightboxu je prostor, na dotik `title` ne deluje. Vpisano v tabelo »Kje se
+   številka pokaže« in v del 1, točka 2.
+2. **Kartice v treningu:** test primerja naslov v `trening/index.html` z
+   `imeTehnike(kljuc)` brez možnosti (glej del 1, »Testi«). Možnost `stevilka: false`
+   ni potrebna, ker je oblika brez številke privzeta; test `imeTehnike()` to privzeto
+   obliko pokrije.
