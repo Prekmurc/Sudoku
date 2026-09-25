@@ -39,14 +39,14 @@ docs/trening-v-uganki.md.
 
 | Del | Stanje | Commit | Testi |
 |---|---|---|---|
-| 1 `shared/stanje.js` | **narejeno 2026-09-25** | HASH1 | 264 (258 + 6) |
+| 1 `shared/stanje.js` | **narejeno 2026-09-25** | `ba1f832` | 264 (258 + 6) |
 | 2 `shared/vaje-uganka.js` | ni začet | | |
 | 3 banka vaj | ni začet | | |
 | 4 `shared/mreza.js` | ni začet | | |
 | 5 `shared/plosca.js` | ni začet | | |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
-### Del 1 – narejeno
+### Del 1 – narejeno (commit `ba1f832`)
 
 - `igra/stanje.js` je z `git mv` preseljen v `shared/stanje.js`, shranjevanje
   (`igraZdaj`, `igraVZapis`, `igraIzZapisa`, `igrePisi`, `igraShrani`, `igraNalozi`,
