@@ -50,8 +50,8 @@ Kje se številka pokaže:
 | povzetek v reševalcu | »4 · Skriti par (Hidden Pair) – 3×« (število uporab na koncu, da se številki ne zlepita) |
 | Pomoč → Tehnike (igra) | »4 · Skriti par (Hidden Pair)« |
 | kartica v treningu | »4 · Skriti par (Hidden Pair)« |
-| oznaka koraka (reševalec, igra »Naslednji korak«) | »4 · Skriti par (Hidden Pair)« – igralec jo poveže z »tehnike: 4« (glej vprašanje 1) |
-| naslov koraka in lightbox v reševalcu | »Korak 5 · 4 · Skriti par (Hidden Pair)« (glej vprašanje 1) |
+| oznaka koraka (reševalec, igra »Naslednji korak«) | »4 · Skriti par«, celo ime v namigu miške (odgovora 1 in 3) |
+| naslov koraka in lightbox v reševalcu | »Korak 5 · 4 · Skriti par«, celo ime v namigu miške (odgovora 1 in 3) |
 | vrstica nad vajo v treningu | »4 · Skriti par (Hidden Pair) · Vaja 3 / 10« |
 
 ## Razdelitev na dele
@@ -67,22 +67,26 @@ push.
    - `TRENING_ENOJCKA` dobi kot drugi element ključ motorja (`'Gol enojček'`,
      `'Skriti enojček'`) – enako kot `TRENING_TEHNIKE`.
    - Nove funkcije:
-     - `imeTehnike(kljuc, { stevilka })` – iz ključa `ALL_TECHNIQUES` (tudi korak
-       »Poskus in protislovje …«); brez številke »Skriti par (Hidden Pair)«, s številko
-       »4 · Skriti par (Hidden Pair)«; neznan ključ (»OBSTALO«, stara tehnika) vrne
-       nespremenjenega;
+     - `imeTehnike(kljuc, { stevilka, anglesko })` – iz ključa `ALL_TECHNIQUES` (tudi
+       korak »Poskus in protislovje …«); brez številke »Skriti par (Hidden Pair)«, s
+       številko »4 · Skriti par (Hidden Pair)«, z `anglesko: false` brez oklepaja
+       (»4 · Skriti par« – oznaka koraka, odgovor 3); neznan ključ (»OBSTALO«, stara
+       tehnika) vrne nespremenjenega;
      - `redTehnike(kljuc)` – položaj v `ALL_TECHNIQUES` za urejanje seznamov; poskus za
        vsemi tehnikami, neznane na koncu.
    - `tagClass()` se ne spremeni (dobiva še vedno ključ).
-2. `app/app.js` – oznaka in naslov koraka (`:163`, `:190`, `:198`) prek `imeTehnike()`;
+2. `app/app.js` – oznaka in naslov koraka (`:163`, `:190`, `:198`) prek
+   `imeTehnike(k, { stevilka: true, anglesko: false })`, celo ime v `title`;
    povzetek (`:392–397`) po `redTehnike()`, oblika iz tabele zgoraj.
-3. `igra/igra.js` – oznaka koraka (`:709`), seznam v Pomoči (`:898–900`).
+3. `igra/igra.js` – oznaka koraka (`:709`, kratko ime, celo v `title`), seznam v Pomoči
+   (`:898–900`).
 4. `trening/`
    - `trening.js` vpiše naslov kartice (h3) iz `imeTehnike()`, tako kot že številko;
      vrstica nad vajo (`:240`) iz `imeTehnike()` namesto `M.name`;
    - `generators.js` – polje `name` iz `MODES` odpade (6.9); `unitLabel` z imeni
      (»X-Wing za številko 5« → »X-krilo za števko 5« pride v delu 2);
-   - `index.html` – h3 ostane prazen (ali z imenom kot nadomestkom, glej vprašanje 4);
+   - `index.html` – h3 ostane z imenom kot nadomestkom (odgovor 4), vpisano ime se
+     zamenja z novim (»Skriti par (Hidden Pair)«, brez številke – ta je v `::before`);
    - `trening.css:34` – ločilo » · «.
 5. `shared/zbirka.js` – `zbirkaPodatkiResevanja()` ureja `tehnike` po `redTehnike()`
    namesto po pogostosti (velja za kartico, izvoz in »Oceni zbirko«). Obstoječi zapisi
@@ -93,9 +97,9 @@ push.
 
 **Testi:**
 - `trening-tehnike.test.js`: primerjava h3 v HTML s `TEHNIKE_OPISI.ime` se zamenja s
-  primerjavo z `imeTehnike()` (vprašanje 4); `MODES.name` ne obstaja več; nov test
+  primerjavo z `imeTehnike()` (odgovor 4); `MODES.name` ne obstaja več; nov test
   `imeTehnike()` (vsaka tehnika iz `ALL_TECHNIQUES` ima slovensko in angleško ime,
-  oblika s številko, poskus, neznan ključ) in `redTehnike()`.
+  oblika s številko, brez oklepaja, poskus, neznan ključ) in `redTehnike()`.
 - `igra-ui.test.js`: oznaka koraka pri »Naslednji korak«, če jo kak test bere.
 - `zbirka-zapis.test.js`: `zbirkaPodatkiResevanja()` ureja po vrstnem redu tehnik.
 - `trening-tehnike.test.js:86–100` (izvoz): pričakovani vrstni red v izvozu (»Gol
@@ -104,8 +108,8 @@ push.
 
 ### Del 2 – besedila: »števka«, spol »par«, »Pokaži«/»Skrij« (1.4, 1.3 spol, 1.7)
 
-Samo besedila za uporabnika; komentarji v kodi ostanejo, razen kjer opisujejo besedilo
-za uporabnika.
+Samo besedila za uporabnika; komentarji v kodi ostanejo (odgovor 6), tudi kjer
+omenjajo »številko« v besedilu za uporabnika.
 
 1. »številka« → »števka« (po `grep -n "številk"`; »številka tehnike« in »številka
    poteze« ostaneta):
@@ -138,7 +142,7 @@ za uporabnika.
 
 ### Del 3 – izvoz, dokumentacija, »osnovne« → »srednje«
 
-1. Izvoz `**Tehnike:**` (glej vprašanje 2): zapiše slovensko ime brez oklepaja
+1. Izvoz `**Tehnike:**` (odgovor 2): zapiše slovensko ime brez oklepaja
    (»Skriti par 2«), uvoz bere nova imena in stare ključe (preslikava kot
    `STARE_TEZAVNOSTI`). V shrambi ostanejo ključi. Angleško ime v izvozu ne gre, ker
    »XY-krilo (XY-Wing, Y-Wing)« vsebuje vejico, po kateri uvoz loči tehnike.
@@ -152,12 +156,16 @@ za uporabnika.
    ročno, zato test ob spremembi meril takoj pokaže, da je zastarela.
 5. `CLAUDE.md` – imena tehnik v uvodu (seznam vaj v treningu), razpredelnica izrazov
    (»Očitni par«), opis `TEHNIKE_OPISI`/`imeTehnike()`; `docs/uskladitev.md` – stanje
-   1.3, 1.4, 1.7, 5.4, 6.9 in tabela faz.
+   1.3, 1.4, 1.7, 5.4, 6.9 in tabela faz (faza 4 brez 1.1 in 5.1; 1.1 v fazo 5, 5.1 v
+   fazo 6 – odgovor 5).
 
 **Testi:** `zbirka-zapis.test.js` (izvoz z novimi imeni, uvoz starih ključev in novih
 imen, krožni izvoz–uvoz), `trening-tehnike.test.js:86–100` (izvoz hrani imena).
 
-### Del 4 (neobvezen) – ostanek faze 4 po `docs/uskladitev.md`
+### Del 4 – odpade (odgovor 5)
+
+Barve oznak (1.1) gredo v fazo 5, opis kartice (5.1) v fazo 6. Spodnji opis ostane kot
+izhodišče za tisti fazi.
 
 Tabela faz v `docs/uskladitev.md` šteje v fazo 4 še 1.1, 5.1 in 5.2; naloga jih ne
 omenja. Ostane:
@@ -172,7 +180,7 @@ Datoteke: `shared/engine.js`, `app/app.css`, `igra/igra.css`, `trening/index.htm
 
 ## Datoteke po delih
 
-| Datoteka | Del 1 | Del 2 | Del 3 | Del 4 |
+| Datoteka | Del 1 | Del 2 | Del 3 | Del 4 (odpade) |
 |---|---|---|---|---|
 | `shared/engine.js` | ✓ | ✓ (sporočila) | | ✓ |
 | `shared/zbirka.js` | ✓ (vrstni red) | | ✓ (izvoz/uvoz) | |
@@ -208,3 +216,42 @@ Datoteke: `shared/engine.js`, `app/app.css`, `igra/igra.css`, `trening/index.htm
    fazo 6 (pomoč)?
 6. **Komentarji v kodi s »številka«** (pribl. 30, npr. »sidranje na številko«) – ostanejo
    (niso za uporabnika), ali jih zamenjam v delu 2, da je izraz tudi v kodi enoten?
+
+## Odgovori na odprta vprašanja (2026-09-25)
+
+1. **Številka v oznaki koraka:** da – v oznaki koraka (reševalec, igra) in v naslovu
+   koraka ter lightboxu reševalca (»Korak 5 · 4 · Skriti par«).
+2. **Izvoz `**Tehnike:**`:** samo slovensko ime (»Skriti par 2«). Uvoz bere nova imena
+   in tudi stare ključe.
+3. **Oznaka koraka:** »4 · Skriti par«, celo ime (»4 · Skriti par (Hidden Pair)«) v
+   namigu miške (`title`).
+4. **Naslov kartice v `trening/index.html`:** ostane kot nadomestek; test preveri, da
+   se ujema z `imeTehnike()`.
+5. **Del 4 odpade:** barve oznak (1.1) → faza 5, opis kartice (5.1) → faza 6.
+6. **Komentarji v kodi** s »številka« se ne menjajo.
+
+Potrjeno še:
+- **Oblika imena:** »4 · Skriti par (Hidden Pair)«, »E1 · Očitni enojček (Naked
+  Single)«.
+- **Seznami tehnik** (povzetek v reševalcu, `tehnike` v zbirki in izvozu, Pomoč, trening)
+  so po vrstnem redu tehnik (`redTehnike()`), ne po pogostosti.
+
+### Posledice za obseg delov 1–3
+
+Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
+
+- **Del 1** (odgovori 1, 3, 4):
+  - `imeTehnike()` dobi možnost `anglesko: false` (ime brez oklepaja) za oznako koraka;
+    test jo pokrije.
+  - Oznaka in naslov koraka v reševalcu ter oznaka koraka v igri dobijo kratko ime s
+    številko in celo ime v atributu `title` – dodatno k prvotnemu predlogu, ki je imel v
+    oznaki celo ime.
+  - `trening/index.html`: h3 ne ostane prazen – vpisana imena se zamenjajo z novimi
+    (brez številke), `trening.js` jih ob zagonu prepiše iz `imeTehnike()`, test primerja
+    oboje.
+- **Del 2** (odgovor 6): komentarji v kodi se ne menjajo niti tam, kjer opisujejo
+  besedilo za uporabnika – manj sprememb kot v prvotnem predlogu.
+- **Del 3** (odgovori 2 in 5): izvoz kot v predlogu (brez spremembe obsega); pri
+  posodobitvi `docs/uskladitev.md` se tabela faz popravi še za premik 1.1 v fazo 5 in
+  5.1 v fazo 6.
+- **Del 4** ne bo izveden v fazi 4.
