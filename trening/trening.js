@@ -179,8 +179,15 @@ function buildFullGridLayout(div,ex,M){
 // Prikaz za enojčka (E1, E2): cela mreža prave uganke s števkami, brez kandidatov
 // (raven lahke). Prazne celice so klikljive (izbrana je vedno ena), pod mrežo je niz
 // števk 1-9 za vpis. cellEls je indeksiran s celico (0-80).
+// Postopnost (ex.oznaka iz genEnojcek): označena enota ali celica ima podlago
+// .oznacena-enota, klikniti je mogoče samo prazne celice v njej, druge prazne celice so
+// .ni-izbire (zatemnjene, brez roke). Označena celica (E1, vaje 1-3) je izbrana vnaprej
+// in je ni mogoče odizbrati, označena števka (E2, vaje 1-3) prav tako; drugi gumbi
+// števk so takrat onemogočeni.
 function buildSingleLayout(div,ex,M){
-  const cellEls=[];
+  const cellEls=[],o=ex.oznaka;
+  const oznacena=idx=>!!o&&(o.celica!=null?idx===o.celica:o.enota.includes(idx));
+  const dovoljena=idx=>!o||(o.celica==null&&oznacena(idx));
   const g=document.createElement('div');g.className='g9';
   const corner=document.createElement('div');corner.className='g9-hdr';g.appendChild(corner);
   for(let c=0;c<9;c++){const h=document.createElement('div');h.className='g9-hdr';h.textContent='S'+(c+1);g.appendChild(h);}
@@ -190,9 +197,12 @@ function buildSingleLayout(div,ex,M){
       const idx=r*9+c,gc=document.createElement('div');
       gc.className='gc';gc.dataset.r=r;gc.dataset.c=c;
       const v=ex.boardGrid[idx];
+      if(oznacena(idx)) gc.classList.add('oznacena-enota');
       if(v){
         gc.classList.add('stevka');gc.textContent=v;
         if(ex.danosti[idx]==='0') gc.classList.add('vpis');
+      } else if(!dovoljena(idx)){
+        if(!oznacena(idx)) gc.classList.add('ni-izbire');
       } else {
         gc.classList.add('selectable');
         gc.addEventListener('click',()=>{
@@ -206,6 +216,7 @@ function buildSingleLayout(div,ex,M){
       g.appendChild(gc);cellEls[idx]=gc;
     }
   }
+  if(o&&o.celica!=null){selected=[o.celica];cellEls[o.celica].classList.add(M.selClass);}
   div.appendChild(g);
   const note=document.createElement('div');note.className='g9-note';
   note.textContent='Temne števke so dane, modre so že vpisane.';
@@ -215,7 +226,12 @@ function buildSingleLayout(div,ex,M){
   const stevkeEl=document.createElement('div');stevkeEl.className='digit-btns';
   for(let d=1;d<=9;d++){
     const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
+    if(o&&o.stevka){
+      if(d===o.stevka){pickedDigits=[d];b.classList.add('picked');}
+      else b.disabled=true;
+    }
     b.addEventListener('click',()=>{
+      if(o&&o.stevka) return;
       const bil=pickedDigits[0];
       stevkeEl.querySelectorAll('button').forEach(x=>x.classList.remove('picked'));
       if(bil===d){pickedDigits=[];return;}
@@ -765,9 +781,11 @@ function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
   if(!pickedDigits.length){fb.className='fb err';fb.textContent='Izberi števko, ki jo vpišeš.';return;}
   const celica=selected[0],stevka=pickedDigits[0];
   const r=preveriEnojcek(ex,celica,stevka);
+  // Vnaprej izbrana celica ali števka (postopnost, vaje 1-3) ostane izbrana.
+  const o=ex.oznaka||{};
   const pocisti=()=>{
-    cellEls[celica].classList.remove(M.selClass);selected=[];
-    pickedDigits=[];document.querySelectorAll('.digit-btns button').forEach(b=>b.classList.remove('picked'));
+    if(o.celica==null){cellEls[celica].classList.remove(M.selClass);selected=[];}
+    if(!o.stevka){pickedDigits=[];document.querySelectorAll('.digit-btns button').forEach(b=>b.classList.remove('picked'));}
   };
   if(r.izid==='prav'){
     stej(true);

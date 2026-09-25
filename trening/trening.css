@@ -184,6 +184,11 @@ button.peek-btn:active{background:#F0F2F5}
 .g9 .gc.stevka.vpis{color:var(--blue);font-weight:500}
 .g9 .gc.correct{color:var(--green)}
 .gc.peek-enota{background:#FFFCE8!important}
+/* Postopnost pri enojčkih (vaje 1-6): označena enota ali celica je svetlo modra, prazne
+   celice, ki jih ni mogoče izbrati, so rahlo zatemnjene in brez kazalca z roko. */
+.g9 .gc.oznacena-enota{background:#E3EEFB}
+.g9 .gc.ni-izbire{background:#E9EBEE;cursor:default}
+.digit-btns button:disabled{opacity:.35;cursor:default;border-color:var(--line);background:#fff}
 .stevke-label{font-size:14px;color:#3C4854;margin:8px 0 6px}
 
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 0}

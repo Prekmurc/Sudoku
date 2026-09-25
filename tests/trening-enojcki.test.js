@@ -12,7 +12,8 @@ const { loadEngine } = require('./load-engine.js');
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'trening/generators.js'],
   names: ['genNakedSingle', 'genHiddenSingle', 'preveriEnojcek', 'MODES', 'Math',
-    'nakedSingles', 'hiddenSingles', 'solutionOf', 'boxOf', 'ENOJCEK_NAJMANJ_PRAZNIH'],
+    'nakedSingles', 'hiddenSingles', 'solutionOf', 'boxOf', 'ENOJCEK_NAJMANJ_PRAZNIH',
+    'stopnjaEnojcka', 'UNITS_OF', 'ROWS', 'COLS', 'TEHNIKE_OPISI'],
 });
 
 // Ponovljivost: Math.random v kontekstu generatorja zamenjamo s PRNG s semenom (mulberry32).
@@ -142,4 +143,100 @@ test('vaje so raznolike in se ustvarijo hitro', () => {
   assert.deepEqual([...enote].sort(), ['blok', 'stolpec', 'vrstico']);
   console.log(`# ms na vajo: E1 ${E1.ms.toFixed(0)}, E2 ${E2.ms.toFixed(0)}`);
   assert.ok(E1.ms < 500 && E2.ms < 500, `ms na vajo: ${E1.ms.toFixed(0)} / ${E2.ms.toFixed(0)}`);
+});
+
+/* ---------- postopnost v krogu (vaje 1-3, 4-6, 7-9) ---------- */
+
+// Za vsako številko vaje 0-8 nekaj vaj obeh tehnik (isti PRNG s semenom).
+const K = 4;
+const krog = gen => Array.from({ length: 9 }, (_, n) => Array.from({ length: K }, () => gen(n)));
+const K1 = krog(E.genNakedSingle), K2 = krog(E.genHiddenSingle);
+const poStopnji = (kr, st) => kr.filter((_, n) => E.stopnjaEnojcka(n) === st).flat();
+const jeEnota = u => E.UNITS_OF[u[0]].some(x => x.length === u.length && x.every((c, i) => c === u[i]));
+const vrstaEnote = u => E.ROWS.includes(u) ? 'vrstica' : E.COLS.includes(u) ? 'stolpec' : 'blok';
+
+test('postopnost: stopnja iz številke vaje (1-3, 4-6, 7-9), brez številke cela mreža', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7, 8].map(n => E.stopnjaEnojcka(n)), [1, 1, 1, 2, 2, 2, 3, 3, 3]);
+  assert.equal(E.stopnjaEnojcka(undefined), 3);
+  for (const ex of [...E1.vaje, ...E2.vaje]) { assert.equal(ex.stopnja, 3); assert.equal(ex.oznaka, null); }
+  K1.forEach((v, n) => v.forEach(ex => assert.equal(ex.stopnja, E.stopnjaEnojcka(n))));
+  K2.forEach((v, n) => v.forEach(ex => assert.equal(ex.stopnja, E.stopnjaEnojcka(n))));
+});
+
+test('E1 vaje 1-3: označena je celica koraka (očitni enojček), izbereš samo števko', () => {
+  for (const ex of poStopnji(K1, 1)) {
+    const [[c, d]] = ex.korak.assign;
+    assert.deepEqual({ ...ex.oznaka }, { celica: c, enota: null, stevka: null });
+    assert.equal(E.popcount(ex.boardCand[c]), 1, 'v označeni celici je mogoča ena sama števka');
+    assert.equal(E.preveriEnojcek(ex, c, d).izid, 'prav');
+    const lbl = E.cellLabel(c);
+    assert.equal(ex.unitLabel, `Katera števka je edina mogoča v označeni celici ${lbl}?`);
+    assert.ok(ex.desc.startsWith(E.TEHNIKE_OPISI['naked-single'].razlaga));
+    assert.match(ex.desc, /Celica je že izbrana – izberi samo števko/);
+    assert.equal(ex.namig, `Preglej vrstico, stolpec in blok celice ${lbl}: katera števka ni v nobenem od njih?`);
+  }
+});
+
+test('E1 vaje 4-6: označena je vrstica, stolpec ali blok celice koraka', () => {
+  const vrste = new Set();
+  for (const ex of poStopnji(K1, 2)) {
+    const [[c]] = ex.korak.assign, u = ex.oznaka.enota;
+    assert.equal(ex.oznaka.celica, null); assert.equal(ex.oznaka.stevka, null);
+    assert.ok(jeEnota(u) && u.includes(c), 'enota celice koraka');
+    vrste.add(vrstaEnote(u));
+    // Namig pove, koliko celic enote ima eno samo možno števko - ne katere.
+    const celic = new Set(E.nakedSingles(deska(ex)).map(s => s.assign[0][0]).filter(x => u.includes(x))).size;
+    assert.match(ex.namig, new RegExp(`^V (vrstici|stolpcu|bloku) \\d (je|sta|so) ${celic} celic[aei]? z eno samo možno števko\\. `));
+    assert.doesNotMatch(ex.namig, /V\dS\d/);
+    assert.match(ex.unitLabel, /^V označen(i vrstici|em stolpcu|em bloku) \d poišči celico z eno samo možno števko$/);
+  }
+  assert.deepEqual([...vrste].sort(), ['blok', 'stolpec', 'vrstica']);
+});
+
+test('E2 vaje 1-3: označena sta enota in števka, v enoti je zanjo eno samo mesto', () => {
+  for (const ex of poStopnji(K2, 1)) {
+    const [[c, d]] = ex.korak.assign, u = ex.oznaka.enota;
+    assert.equal(ex.oznaka.celica, null);
+    assert.equal(ex.oznaka.stevka, d);
+    assert.equal(u, ex.korak.hint.unit);
+    const mesta = u.filter(x => ex.boardGrid[x] === 0 && (ex.boardCand[x] & (1 << d)));
+    assert.deepEqual([...mesta], [c], 'edino mesto za števko v enoti je celica koraka');
+    assert.match(ex.unitLabel, new RegExp(`^V označen(i vrstici|em stolpcu|em bloku) \\d poišči edino mesto za števko ${d}$`));
+    assert.match(ex.desc, /Števka je že izbrana – izberi samo celico/);
+    assert.match(ex.namig, new RegExp(`^Kje v (vrstici|stolpcu|bloku) \\d števka ${d} ni mogoča\\? `));
+    assert.doesNotMatch(ex.namig, /V\dS\d/);
+  }
+});
+
+test('E2 vaje 4-6: označena je samo enota koraka, namig našteje manjkajoče števke', () => {
+  for (const ex of poStopnji(K2, 2)) {
+    const u = ex.oznaka.enota;
+    assert.equal(ex.oznaka.celica, null); assert.equal(ex.oznaka.stevka, null);
+    assert.equal(u, ex.korak.hint.unit);
+    const manjka = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => !u.some(x => ex.boardGrid[x] === d));
+    assert.ok(manjka.length >= 2);
+    const nastej = manjka.length === 2 ? `${manjka[0]} in ${manjka[1]}` : `${manjka.slice(0, -1).join(', ')} in ${manjka[manjka.length - 1]}`;
+    assert.ok(ex.namig.includes(nastej + '. Za vsako preveri, na koliko praznih mestih'), ex.namig);
+    assert.doesNotMatch(ex.namig, /V\dS\d/);
+    assert.match(ex.unitLabel, /^V označen(i vrstici|em stolpcu|em bloku) \d poišči števko z enim samim mestom$/);
+  }
+});
+
+test('vaje 7-9: cela mreža brez oznake, navodilo in namig kot doslej', () => {
+  for (const ex of [...poStopnji(K1, 3), ...poStopnji(K2, 3)]) {
+    assert.equal(ex.oznaka, null);
+    assert.equal(ex.desc, undefined, 'opis iz MODES');
+    assert.match(ex.unitLabel, /^Poišči (celico z eno samo možno števko|števko z enim samim mestom v enoti)$/);
+    assert.match(ex.namig, /^(V mreži|Poglej) /);
+  }
+});
+
+test('postopnost: besedila brez »številk« in brez angleških imen', () => {
+  const angl = Object.values(E.TEHNIKE_OPISI).map(o => o.anglesko);
+  for (const ex of [...K1.flat(), ...K2.flat()]) {
+    for (const t of [ex.unitLabel, ex.desc || '', ex.namig]) {
+      assert.doesNotMatch(t, /številk/i, t);
+      for (const a of angl) assert.ok(!t.includes(a), `${a}: ${t}`);
+    }
+  }
 });

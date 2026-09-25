@@ -941,16 +941,59 @@ function unitLbl(ut,ui){return ut==='row'?`Vrstica ${ui}`:ut==='col'?`Stolpec ${
    - E2: nobenega očitnega enojčka na vsej mreži in vsaj en skriti enojček - vsak
      pravilen odgovor je zato skriti enojček v celici z vsaj dvema kandidatoma
      (hiddenSingles celic z enim kandidatom ne vrne).
-   Namig (namigEnojcka) in preverjanje (preveriEnojcek) sta v shared/vaje-uganka.js. */
+   Namig (namigEnojcka) in preverjanje (preveriEnojcek) sta v shared/vaje-uganka.js.
+   Postopnost v krogu (stopnjaEnojcka iz številke vaje): stopnja 1 (vaje 1-3) - E1 ima
+   označeno celico (izbereš samo števko), E2 enoto in števko (izbereš samo celico);
+   stopnja 2 (vaje 4-6) - označena je samo enota (E1 naključno vrstica, stolpec ali blok
+   celice koraka, E2 enota koraka); stopnja 3 (vaje 7-9) - cela mreža brez oznake.
+   Oznaka je polje `oznaka` = { celica, enota, stevka } (neoznačeno je null), navodilo
+   (unitLabel, desc) in namig sta prilagojena stopnji; izbiro omeji trening.js. */
 const ENOJCEK_NAJMANJ_PRAZNIH=30;
+
+// Stopnja postopnosti iz številke vaje (0-8); brez nje cela mreža.
+function stopnjaEnojcka(n){return n===undefined?3:n<3?1:n<6?2:3;}
+// "označeni vrstici 4" / "označenem stolpcu 7" / "označenem bloku 5"
+function oznacenaEnota(unit){
+  const loc=unitNameLoc(unit);
+  return (loc.startsWith('vrstici')?'označeni ':'označenem ')+loc;
+}
+// Oznaka, navodilo in drugi stavek opisa za stopnjo (stopnja 3: brez oznake, navodilo
+// kot doslej, opis iz MODES).
+function postopnostEnojcka(gol,stopnja,korak){
+  const [celica,stevka]=korak.assign[0];
+  const razlaga=TEHNIKE_OPISI[gol?'naked-single':'hidden-single'].razlaga;
+  if(stopnja===1&&gol) return{
+    oznaka:{celica,enota:null,stevka:null},
+    unitLabel:`Katera števka je edina mogoča v označeni celici ${cellLabel(celica)}?`,
+    desc:`${razlaga} Celica je že izbrana – izberi samo števko, ki jo vpišeš.`,
+  };
+  if(stopnja===1) return{
+    oznaka:{celica:null,enota:korak.hint.unit,stevka},
+    unitLabel:`V ${oznacenaEnota(korak.hint.unit)} poišči edino mesto za števko ${stevka}`,
+    desc:`${razlaga} Števka je že izbrana – izberi samo celico, v katero jo vpišeš.`,
+  };
+  if(stopnja===2){
+    const enota=gol?UNITS_OF[celica][randInt(0,UNITS_OF[celica].length-1)]:korak.hint.unit;
+    return{
+      oznaka:{celica:null,enota,stevka:null},
+      unitLabel:`V ${oznacenaEnota(enota)} poišči ${gol?'celico z eno samo možno števko':'števko z enim samim mestom'}`,
+      desc:`${razlaga} Izberi celico v označeni enoti in nato števko, ki jo vpišeš.`,
+    };
+  }
+  return{
+    oznaka:null,
+    unitLabel:gol?'Poišči celico z eno samo možno števko':'Poišči števko z enim samim mestom v enoti',
+    desc:undefined,
+  };
+}
 
 // Minimalna uganka (shared/generator.js) z naključnim semenom.
 function genUgankaEnojcki(){
   return genMinimalnaUganka(genNaklucnoSeme());
 }
 
-function genEnojcek(vrsta){
-  const gol=vrsta==='naked';
+function genEnojcek(vrsta,n){
+  const gol=vrsta==='naked',stopnja=stopnjaEnojcka(n);
   for(let poskus=0;poskus<100;poskus++){
     const danosti=genUgankaEnojcki();
     const b=new Board(danosti);
@@ -967,19 +1010,20 @@ function genEnojcek(vrsta){
     if(!ustrezna.length) continue;
     const st=ustrezna[randInt(0,ustrezna.length-1)];
     const korak=st.koraki[randInt(0,st.koraki.length-1)];
-    const namig=namigEnojcka(gol,st.koraki,korak);
+    const p=postopnostEnojcka(gol,stopnja,korak);
+    const namig=namigEnojcka(gol,st.koraki,korak,p.oznaka,st.grid);
     return{
       mode:gol?'naked-single':'hidden-single',vrsta,
       danosti,resitev:solutionOf(danosti).join(''),
       boardGrid:st.grid,boardCand:st.cand,
-      korak,namig,
-      unitLabel:gol?'Poišči celico z eno samo možno števko':'Poišči števko z enim samim mestom v enoti',
+      korak,namig,stopnja,oznaka:p.oznaka,
+      unitLabel:p.unitLabel,desc:p.desc,
     };
   }
   throw new Error('genEnojcek: ni ustreznega stanja');
 }
-function genNakedSingle(){return genEnojcek('naked');}
-function genHiddenSingle(){return genEnojcek('hidden');}
+function genNakedSingle(n){return genEnojcek('naked',n);}
+function genHiddenSingle(n){return genEnojcek('hidden',n);}
 
 // Preverjanje odgovora pri enojčkih: preveriEnojcek() v shared/vaje-uganka.js (skupno
 // z "Vadi v uganki").

@@ -16,7 +16,7 @@
    - preveriVajo(vaja, stanje, predlog): presoja odgovora (tabela 3.2 v
      docs/trening-v-uganki.md in vrstni red izidov v načrtu);
    - preveriEnojcek(), namigEnojcka(): presoja in namig pri enojčkih - skupni z
-     načinom "Spoznaj" (trening/generators.js). */
+     načinom "Spoznaj" (trening/generators.js; tam tudi namig po stopnji postopnosti). */
 
 const ENOJCKA_KLJUCI = ['Gol enojček', 'Skriti enojček'];
 // V vaji E1 mora biti vsaj toliko praznih celic (ne tik pred koncem, ko so očitni
@@ -244,9 +244,38 @@ function celicZEnoStevko(n) {
   return n === 1 ? 'je 1 celica' : n === 2 ? 'sta 2 celici' : n <= 4 ? `so ${n} celice` : `je ${n} celic`;
 }
 
+// Števke 1-9, ki v enoti še niso vpisane.
+function manjkajoceStevke(grid, unit) {
+  const v = new Set(unit.map(c => grid[c]));
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => !v.has(d));
+}
+function manjkaStevk(a) {
+  return a.length === 1 ? `manjka števka ${a[0]}` : a.length === 2 ? `manjkata števki ${numsLabel(a)}`
+    : a.length <= 4 ? `manjkajo števke ${numsLabel(a)}` : `manjka ${a.length} števk: ${numsLabel(a)}`;
+}
+
 // Namig pri enojčkih: `koraki` = vsi koraki tehnike v stanju, `korak` = izbrani.
-// E1: koliko celic ima eno samo možno števko in blok ene od njih; E2: samo enota.
-function namigEnojcka(gol, koraki, korak) {
+// Brez oznake (cela mreža): E1 koliko celic ima eno samo možno števko in blok ene od
+// njih, E2 samo enota. Postopnost v "Spoznaj" (trening/generators.js) poda `oznaka` =
+// { celica, enota, stevka } in `grid`: namig pove samo to, česar oznaka še ne pove.
+function namigEnojcka(gol, koraki, korak, oznaka, grid) {
+  const o = oznaka || {};
+  if (gol && o.celica != null) {
+    return `Preglej vrstico, stolpec in blok celice ${cellLabel(o.celica)}: katera števka ni v nobenem od njih?`;
+  }
+  if (gol && o.enota) {
+    const celic = new Set(koraki.map(s => s.assign[0][0]).filter(c => o.enota.includes(c))).size;
+    return `V ${unitNameLoc(o.enota)} ${celicZEnoStevko(celic)} z eno samo možno števko. Za vsako prazno celico ${enotaZaNamig(o.enota).vNjej} preglej, katere števke so že v njeni vrstici, stolpcu in bloku.`;
+  }
+  if (!gol && o.enota && o.stevka) {
+    const loc = unitNameLoc(o.enota), vrsta = loc.split(' ')[0];
+    const [izlocijo, rod] = vrsta === 'vrstici' ? ['Stolpci in bloki', 'vrstice']
+      : vrsta === 'stolpcu' ? ['Vrstice in bloki', 'stolpca'] : ['Vrstice in stolpci', 'bloka'];
+    return `Kje v ${loc} števka ${o.stevka} ni mogoča? ${izlocijo}, v katerih je ${o.stevka} že vpisana, izločijo celice ${rod} – ostane ena sama.`;
+  }
+  if (!gol && o.enota) {
+    return `V ${unitNameLoc(o.enota)} ${manjkaStevk(manjkajoceStevke(grid, o.enota))}. Za vsako preveri, na koliko praznih mestih ${enotaZaNamig(o.enota).vNjej} je mogoča.`;
+  }
   if (gol) {
     const celic = new Set(koraki.map(s => s.assign[0][0])).size;
     return `V mreži ${celicZEnoStevko(celic)} z eno samo možno števko. Ena je v bloku ${boxOf(korak.assign[0][0]) + 1}.`;
