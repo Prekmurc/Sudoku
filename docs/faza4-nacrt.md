@@ -1,5 +1,9 @@
 # Faza 4 – imena tehnik in izrazi (načrt)
 
+**Faza 4 je zaključena 2026-09-25.** Commiti: del 1 `ae48423`, del 2 `694ea42` (popravek
+`e31c85e`), del 3 `6cfdf66`, odločitve po pregledu dela 3 `9b8cdfa`. Del 4 odpade (1.1 v
+fazo 5, 5.1 in ostanek 5.2 v fazo 6). Testi: 258. Ročni pregled vseh delov je uspešen.
+
 Načrt za fazo 4 iz `docs/uskladitev.md`: 1.3 (imena tehnik), 1.4 (»števka«), 1.7
 (»Pokaži«/»Skrij«) in dodatne zahteve iz naloge 2026-09-25. Točki 5.4 in 6.9 sta
 posledica 1.3 in prideta zraven sami. Koda se v tem koraku ne spreminja.
@@ -381,6 +385,9 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
    točka 5.
 
 ### Odločitve po pregledu dela 3 (2026-09-25)
+
+**Narejeno 2026-09-25, commit `9b8cdfa`.** Testi: 258 (257 + 1 nov). Ročni pregled je
+uspešen.
 
 Ročni pregled dela 3 je uspešen (star izvoz, uvoz, nov izvoz, vrnitev). Odločitve k
 opažanjem iz povzetka dela 3:
