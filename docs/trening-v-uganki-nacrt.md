@@ -42,7 +42,7 @@ docs/trening-v-uganki.md.
 | 1 `shared/stanje.js` | **narejeno 2026-09-25** | `ba1f832` | 264 (258 + 6) |
 | 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | `6b6bf53` | 280 (264 + 16) |
 | – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
-| 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | | 315 (309 + 6) |
+| 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | `33423d1` | 315 (309 + 6) |
 | 4 `shared/mreza.js` | ni začet | | |
 | 5 `shared/plosca.js` | ni začet | | |
 | 6 trening »Vadi v uganki« | ni začet | | |
@@ -98,7 +98,7 @@ docs/trening-v-uganki.md.
   za vse izide), v `trening-enojcki`, `trening-pomoc` in `trening-tehnike` so
   spremenjeni nalagalni seznami.
 
-### Del 3 – narejeno
+### Del 3 – narejeno (commit `33423d1`)
 
 - Nova `shared/vaje-banka.js` (brez odvisnosti, trening jo naloži v delu 6):
   `VAJE_BANKA = [{ seme, danosti, stopnja, tehnike }]`, urejeno po semenu. Tehnike so
