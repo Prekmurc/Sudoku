@@ -1,33 +1,74 @@
 /* ==================== STANJE IGRE ====================
-   Brez DOM-a (testabilno v Node, glej tests/igra-stanje.test.js). Naloži se za
-   shared/engine.js (uporablja Board, PEERS, FULL, ROWS, COLS, BOXES) in
-   shared/zbirka.js (IGRA_KLJUC, odigrajPotezo/odigrajPoteze, igreBeri,
-   zbirkaKazalecZapisa - skupno z reševalcem, ki kaže stanje shranjenih iger).
+   Brez DOM-a in brez shrambe (testabilno v Node, glej tests/igra-stanje.test.js),
+   skupno igri in treningu. Naloži se za shared/engine.js (uporablja Board, PEERS,
+   FULL, ROWS, COLS, BOXES) in pred shared/zbirka.js, ki iz odigrajPoteze() šteje
+   stanje shranjenih iger. Shranjevanje igre je v igra/shramba.js - v
+   sudoku.igra.v1 piše samo igra.
 
-   Igra = { danosti, poteze, kazalec }:
+   Igra = { danosti, poteze, kazalec, znova, zacetnihPotez }:
    - danosti: 81 znakov, '0' = prazna celica,
    - poteze: zaporedje potez od začetka igre,
-   - kazalec: koliko potez je trenutno odigranih (poteze za njim so "ponovi" rep).
+   - kazalec: koliko potez je trenutno odigranih (poteze za njim so "ponovi" rep),
+   - zacetnihPotez: koliko prvih potez je del izhodišča (vaja v treningu - koraki
+     poti do stanja vaje); "Razveljavi" in "Začni znova" ne gresta pod njih, njihovih
+     vpisov in izbrisov ni mogoče vrniti. Pri igri je 0.
    Poteza je { tip: 'vpis', celica, stevka } (stevka 0 = brisanje vpisa) ali
    { tip: 'kandidat', celica, stevka, odstrani: true|false } (ročno odstrani ali vrne
    kandidata) ali { tip: 'kandidati', celice, stevka, odstrani: true } (odstrani isto
    števko iz več celic v eni potezi; celice urejene, vsaj dve). Trenutno stanje se
    vedno izračuna z odigravanjem potez od danosti. */
 
-// `znova` = igralec je pravkar kliknil "Začni znova" (kazalec 0, zgodovina pa
-// ostane za "Ponovi"). Loči namerno prazno mrežo od stanja, ko je vse
-// razveljavljeno s puščico nazaj - glej igraIzZapisa().
+// Odigra eno potezo: vpisi[c] = uporabnikova števka (0 = brez vpisa),
+// odstranjeni[c] = maska ročno odstranjenih kandidatov.
+function odigrajPotezo(vpisi, odstranjeni, p) {
+  if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
+  else if (p.tip === 'kandidati') for (const c of p.celice) odstranjeni[c] |= 1 << p.stevka;
+  else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
+  else odstranjeni[p.celica] &= ~(1 << p.stevka);
+}
+
+// Odigra prvih n potez.
+function odigrajPoteze(danosti, poteze, n) {
+  const vpisi = new Array(81).fill(0);
+  const odstranjeni = new Array(81).fill(0);
+  for (let i = 0; i < n; i++) odigrajPotezo(vpisi, odstranjeni, poteze[i]);
+  return { vpisi, odstranjeni };
+}
+
+// `znova` = igralec je pravkar kliknil "Začni znova" (kazalec na začetku, zgodovina
+// pa ostane za "Ponovi"). Loči namerno prazno mrežo od stanja, ko je vse
+// razveljavljeno s puščico nazaj - glej igraIzZapisa() v igra/shramba.js.
 function novaIgra(danosti) {
-  return { danosti, poteze: [], kazalec: 0, znova: false };
+  return { danosti, poteze: [], kazalec: 0, znova: false, zacetnihPotez: 0 };
+}
+
+function zacetnihPotez(igra) {
+  return igra.zacetnihPotez || 0;
+}
+
+// Igra, v kateri so podane poteze že odigrane in zaklenjene kot izhodišče
+// (zacetnihPotez). Vrne null, če katera od potez ni dovoljena.
+function igraZZacetkom(danosti, poteze) {
+  const igra = novaIgra(danosti);
+  let stanje = stanjeIgre(igra);
+  for (const p of poteze) {
+    if (!dodajPotezo(igra, p, stanje)) return null;
+    stanje = stanjeIgre(igra);
+  }
+  igra.zacetnihPotez = igra.kazalec;
+  return igra;
 }
 
 // Stanje po odigranih potezah igre (do kazalca):
 // - grid: danosti + vpisi (0 = prazna celica),
 // - samodejni[c]: kandidati, ki jih dovolijo danosti in vpisi (kot new Board),
 // - kandidati[c]: samodejni brez ročno odstranjenih (to vidi igralec),
-// - deska: Board s temi kandidati (za motor).
+// - deska: Board s temi kandidati (za motor),
+// - zacetni: { vpisi, odstranjeni } po začetnih potezah (zacetnihPotez) - teh
+//   vpisov ni mogoče zbrisati in teh kandidatov ne vrniti (pri igri same ničle).
 function stanjeIgre(igra) {
   const { vpisi, odstranjeni } = odigrajPoteze(igra.danosti, igra.poteze, igra.kazalec);
+  const zacetni = odigrajPoteze(igra.danosti, igra.poteze, Math.min(zacetnihPotez(igra), igra.kazalec));
   const niz = igra.danosti.split('').map((ch, c) => (ch !== '0' ? ch : String(vpisi[c]))).join('');
   const osnova = new Board(niz);
   const deska = osnova.clone();
@@ -44,23 +85,25 @@ function stanjeIgre(igra) {
     samodejni: osnova.cand,
     kandidati,
     deska,
+    zacetni,
   };
 }
 
 // Kaj je za celico v danem stanju dovoljeno (maske števk):
 // - vpis: števke, ki jih lahko vpišemo (trenutni kandidati prazne celice),
 // - odstrani: kandidati, ki jih lahko ročno odstranimo (isti kot vpis),
-// - vrni: ročno odstranjeni kandidati, ki bi jih sicer celica imela,
-// - zbrisi: ali ima celica uporabnikov vpis.
+// - vrni: ročno odstranjeni kandidati, ki bi jih sicer celica imela (razen
+//   odstranjenih v začetnih potezah),
+// - zbrisi: ali ima celica uporabnikov vpis (vpisa iz začetnih potez ne).
 function mozneAkcije(stanje, celica) {
   const prazno = { vpis: 0, odstrani: 0, vrni: 0, zbrisi: false };
   if (celica === null || celica === undefined || celica < 0 || celica > 80) return prazno;
   if (stanje.danosti[celica] !== '0') return prazno;
-  if (stanje.vpisi[celica]) return { ...prazno, zbrisi: true };
+  if (stanje.vpisi[celica]) return { ...prazno, zbrisi: !stanje.zacetni.vpisi[celica] };
   return {
     vpis: stanje.kandidati[celica],
     odstrani: stanje.kandidati[celica],
-    vrni: stanje.samodejni[celica] & stanje.odstranjeni[celica],
+    vrni: stanje.samodejni[celica] & stanje.odstranjeni[celica] & ~stanje.zacetni.odstranjeni[celica],
     zbrisi: false,
   };
 }
@@ -114,10 +157,20 @@ function dodajPotezo(igra, poteza, stanje = stanjeIgre(igra)) {
   return true;
 }
 
-function lahkoRazveljavi(igra) { return igra.kazalec > 0; }
+function lahkoRazveljavi(igra) { return igra.kazalec > zacetnihPotez(igra); }
 function lahkoPonovi(igra) { return igra.kazalec < igra.poteze.length; }
 function razveljavi(igra) { if (lahkoRazveljavi(igra)) { igra.kazalec--; igra.znova = false; } }
 function ponovi(igra) { if (lahkoPonovi(igra)) { igra.kazalec++; igra.znova = false; } }
+
+// "Začni znova": vrne na izhodišče (pri igri prazna mreža, pri vaji stanje vaje),
+// poteze ostanejo za "Ponovi". `znova` pove, da je izhodišče namerno.
+function lahkoZacniZnova(igra) { return igra.kazalec > zacetnihPotez(igra); }
+function zacniZnova(igra) {
+  if (!lahkoZacniZnova(igra)) return false;
+  igra.kazalec = zacetnihPotez(igra);
+  igra.znova = true;
+  return true;
+}
 
 // seManjka[d] (d = 1..9): kolikokrat mora biti števka d še vpisana.
 function seManjka(stanje) {
@@ -160,7 +213,8 @@ function imaNapako(danosti, vpisi, odstranjeni, resitev) {
 // zdaj, ali null, če je mreža brez napak. To je poteza tik za zadnjim stanjem
 // brez napake: od nje naprej je na mreži ves čas vsaj ena napaka, vrnitev na
 // stanje pred njo pa da najpoznejše stanje brez napake. Napake, ki jih je
-// igralec vmes že sam popravil, se ne štejejo.
+// igralec vmes že sam popravil, se ne štejejo. Začetne poteze (koraki motorja) so
+// brez napake, zato je številka vedno za njimi.
 function prvaNapaka(igra, resitev) {
   const vpisi = new Array(81).fill(0);
   const odstranjeni = new Array(81).fill(0);
@@ -172,76 +226,13 @@ function prvaNapaka(igra, resitev) {
   return zadnjeBrez === igra.kazalec ? null : zadnjeBrez + 1;
 }
 
-/* ---------- shranjevanje ---------- */
+/* ---------- dejanja koraka motorja ---------- */
 
-function igraZdaj() {
-  const d = new Date();
-  const p = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
-// Zapis za shrambo: { poteze, kazalec, znova, zacetek, nazadnje }. Kazalec pove,
-// koliko potez je odigranih (ostale so v repu za "Ponovi").
-function igraVZapis(igra, zacetek, cas) {
-  return {
-    poteze: igra.poteze.map(p => (p.celice ? { ...p, celice: [...p.celice] } : { ...p })),
-    kazalec: igra.kazalec,
-    znova: !!igra.znova,
-    zacetek: zacetek || cas,
-    nazadnje: cas,
-  };
-}
-
-// Iz shranjenega zapisa zgradi igro. Poteze odigra eno za drugo in se ustavi
-// pri prvi, ki ni dovoljena (poškodovan zapis) - vse do nje ostanejo. Koliko
-// potez je pri tem izpadlo, pove polje `izpuscenih` (0, kadar je zapis cel):
-// brez tega bi igralec napredek izgubil, ne da bi karkoli opazil. Polje ostane
-// samo v pomnilniku - igraVZapis() ga ne shrani.
-function igraIzZapisa(danosti, zapis) {
-  const igra = novaIgra(danosti);
-  const poteze = zapis && Array.isArray(zapis.poteze) ? zapis.poteze : [];
-  let stanje = stanjeIgre(igra);
-  for (const p of poteze) {
-    if (!dodajPotezo(igra, p, stanje)) break;
-    stanje = stanjeIgre(igra);
-  }
-  // Kazalec ostane tam, kjer je bil ob shranjevanju (npr. 2 od 3 po "Razveljavi").
-  // Izjema je stanje "vse razveljavljeno": prazna mreža s skrito zgodovino je
-  // videti kot izgubljen napredek, zato se vrnemo na konec zgodovine. Po "Začni
-  // znova" (zapis.znova) prazna mreža ostane - tako je igralec hotel. Pravilo je v
-  // shared/zbirka.js, ker po njem stanje shranjene igre kažeta tudi seznama zbirke.
-  igra.znova = !!(zapis && zapis.znova);
-  igra.kazalec = Math.min(zbirkaKazalecZapisa(zapis), igra.poteze.length);
-  igra.izpuscenih = poteze.length - igra.poteze.length;
-  return igra;
-}
-
-function igrePisi(s) {
-  try {
-    localStorage.setItem(IGRA_KLJUC, JSON.stringify(s));
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-// Shrani igro in jo označi kot zadnjo odprto. Vrne false, če brskalnik ne
-// dovoli shranjevanja.
-function igraShrani(igra) {
-  const s = igreBeri();
-  const prej = s.igre[igra.danosti];
-  s.igre[igra.danosti] = igraVZapis(igra, prej && prej.zacetek, igraZdaj());
-  s.zadnja = igra.danosti;
-  return igrePisi(s);
-}
-
-// Shranjena igra za dane danosti ali null.
-function igraNalozi(danosti) {
-  const zapis = igreBeri().igre[danosti];
-  return zapis ? igraIzZapisa(danosti, zapis) : null;
-}
-
-function igraZadnja() {
-  const s = igreBeri();
-  return s.zadnja && s.igre[s.zadnja] ? igraIzZapisa(s.zadnja, s.igre[s.zadnja]) : null;
+// Dejanja koraka (nextStep) s stanjem v podani mreži: izbris je izveden, ko števka
+// ni več kandidat celice (tudi zaradi vpisa), vpis, ko je v celici ta števka.
+function dejanjaKoraka(k, stanje) {
+  return [
+    ...k.assign.map(([celica, stevka]) => ({ tip: 'vpis', celica, stevka, opravljeno: stanje.grid[celica] === stevka })),
+    ...k.eliminate.map(([celica, stevka]) => ({ tip: 'izbris', celica, stevka, opravljeno: !(stanje.kandidati[celica] & (1 << stevka)) })),
+  ];
 }

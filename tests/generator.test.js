@@ -9,7 +9,7 @@ const assert = require('node:assert/strict');
 const { loadEngine, loadContext, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['shared/zbirka.js', 'shared/generator.js'],
+  files: ['shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js'],
   names: ['applyStep', 'STOPNJE_UGANK', 'STOPNJE_GENERATORJA', 'stopnjaUganke', 'ustvariUganko',
     'oceniStopnjo', 'oceniUganko', 'oceniTezavnost', 'genPot', 'genRazvrsti', 'genTehnikeSolve',
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE',
@@ -297,7 +297,7 @@ test('oceniUganko(): uganka brez natanko ene rešitve dobi Več rešitev / Brez 
 // stopnje ne oznake: težavnost je prazna ("težavnost ni določena"). Varovala z
 // uganko ni mogoče zanesljivo sprožiti, zato ga nadomestimo v ločenem kontekstu.
 test('oceniTezavnost(): nepreverjena enoličnost da prazno težavnost', () => {
-  const { run } = loadContext(['shared/engine.js', 'shared/zbirka.js', 'shared/generator.js']);
+  const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js']);
   run(`countSolutions = () => 'unknown';`);
   const o = run(`oceniTezavnost('876000004000000700000200580034010800210069000000305070000000600040076900008000040')`);
   assert.equal(o.resitve, 'unknown');

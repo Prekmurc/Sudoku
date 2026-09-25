@@ -11,7 +11,7 @@
      { tip: 'konec', ocenjenih }
      { tip: 'napaka', sporocilo } */
 
-importScripts('../shared/engine.js', '../shared/zbirka.js', '../shared/generator.js');
+importScripts('../shared/engine.js', '../shared/stanje.js', '../shared/zbirka.js', '../shared/generator.js');
 
 onmessage = (e) => {
   const seznam = (e.data && e.data.danosti) || [];

@@ -12,7 +12,7 @@ const path = require('node:path');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['shared/generator.js', 'trening/generators.js', 'shared/zbirka.js'],
+  files: ['shared/generator.js', 'trening/generators.js', 'shared/stanje.js', 'shared/zbirka.js'],
   names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
     'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint'],

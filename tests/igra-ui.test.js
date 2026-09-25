@@ -24,7 +24,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v igra/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/stanje.js', 'igra/igra.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 const D = JSON.stringify(danosti);
 
@@ -145,7 +145,7 @@ test('"Začni znova" pri rešeni uganki: vpraša, mreža je spet prazna, čas pr
 // Brez vgrajenih primerov: ti v zbirko ne pridejo (dodajVZbirko in uvoz jih
 // preskočita). Takih ugank je v docs/uganke.md poleg prve še dve.
 const jePrimer = (() => {
-  const { run } = loadContext(['shared/engine.js', 'shared/zbirka.js']);
+  const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js']);
   return d => run(`!!zbirkaPrimerZa(${JSON.stringify(d)})`);
 })();
 const druge = loadPuzzles().slice(1).map(p => p.danosti.replace(/\./g, '0')).filter(d => !jePrimer(d)).slice(0, 3);

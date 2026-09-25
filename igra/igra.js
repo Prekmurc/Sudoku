@@ -2,8 +2,9 @@
    Izris mreže in nizov gumbov, izbira celice, vpis/odstranjevanje kandidatov,
    razveljavi/ponovi, poudarjanje števke, seznami manjkajočih števk (vrstice,
    stolpci, bloki), pomoč (Naslednji korak, Preveri), zbirka in vnos nove
-   uganke. Stanje in poteze so v stanje.js, hramba zbirke v ../shared/zbirka.js,
-   korak in rešitev da motor (../shared/engine.js). */
+   uganke. Stanje in poteze so v ../shared/stanje.js, shranjevanje igre v
+   shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
+   (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
 const nizPoudariEl = document.getElementById('nizPoudari');
@@ -25,7 +26,7 @@ const vecHkratiEl = document.getElementById('vecHkrati');
 const vecCelicEl = document.getElementById('vecCelic');
 const igraLayoutEl = document.getElementById('igraLayout');
 
-let igra = null;        // { danosti, poteze, kazalec } - glej stanje.js
+let igra = null;        // { danosti, poteze, kazalec } - glej ../shared/stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
 // Izbrane celice v vrstnem redu izbire. Več celic (kljukica "več celic" ali
 // Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
@@ -305,7 +306,7 @@ function uskladiIgranje() {
 // najden, izgine - tam morda ne velja.
 function pomocPoSpremembi() {
   if (!pomoc || !pomoc.korak || !veljaIzhodisce(pomoc.izhodisce)) return null;
-  if (dejanjaKoraka(pomoc.korak).every(a => a.opravljeno)) {
+  if (dejanjaKoraka(pomoc.korak, stanje).every(a => a.opravljeno)) {
     return { besedilo: 'Korak je izveden.', razred: 'ok', znak: 'ok' };
   }
   return pomoc;
@@ -322,15 +323,6 @@ function veljaIzhodisce(izh) {
     && (izh.kazalec === 0 || igra.poteze[izh.kazalec - 1] === izh.poteza);
 }
 
-// Dejanja koraka s stanjem v trenutni mreži: izbris je izveden, ko števka ni več
-// kandidat celice (tudi zaradi vpisa), vpis, ko je v celici ta števka.
-function dejanjaKoraka(k) {
-  return [
-    ...k.assign.map(([celica, stevka]) => ({ tip: 'vpis', celica, stevka, opravljeno: stanje.grid[celica] === stevka })),
-    ...k.eliminate.map(([celica, stevka]) => ({ tip: 'izbris', celica, stevka, opravljeno: !(stanje.kandidati[celica] & (1 << stevka)) })),
-  ];
-}
-
 razveljaviBtn.addEventListener('click', () => {
   if (!igra || samoZaOgled() || !lahkoRazveljavi(igra)) return;
   razveljavi(igra);
@@ -345,13 +337,12 @@ ponoviBtn.addEventListener('click', () => {
 });
 zbrisiBtn.addEventListener('click', zbrisiVpis);
 znovaBtn.addEventListener('click', () => {
-  if (!igra || igra.kazalec === 0) return;
+  if (!igra || !lahkoZacniZnova(igra)) return;
   const vprasanje = samoZaOgled()
     ? 'Uganka je rešena. Če začneš znova, se mreža izprazni in jo lahko rešuješ še enkrat; v zbirki ostane zapisana kot rešena, s časom prve rešitve. Nadaljujem?'
     : 'Začnem znova? Vse poteze bodo razveljavljene. Z »Ponovi« jih lahko vrneš, dokler ne narediš nove poteze.';
   if (!confirm(vprasanje)) return;
-  igra.kazalec = 0;
-  igra.znova = true; // namerno prazna mreža: ob osvežitvi strani ostane prazna
+  zacniZnova(igra); // namerno prazna mreža (znova): ob osvežitvi strani ostane prazna
   sporocilo = { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' };
   osvezi();
 });
@@ -417,7 +408,7 @@ function izrisiMrezo() {
   const vzorec = new Set(korak ? korak.cells : []);
   // Samo še neizvedena dejanja: izveden izbris v celici ni več viden, celica brez
   // odprtih izbrisov izgubi rdečkasto podlago.
-  const odprta = korak ? dejanjaKoraka(korak).filter(a => !a.opravljeno) : [];
+  const odprta = korak ? dejanjaKoraka(korak, stanje).filter(a => !a.opravljeno) : [];
   const izbris = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica * 10 + a.stevka));
   const izbrisCelice = new Set(odprta.filter(a => a.tip === 'izbris').map(a => a.celica));
   const zaVpis = new Map(odprta.filter(a => a.tip === 'vpis').map(a => [a.celica, a.stevka]));
@@ -499,7 +490,7 @@ function izrisiNize() {
   zbrisiBtn.disabled = !a.zbrisi;
   razveljaviBtn.disabled = !igra || ogled || !lahkoRazveljavi(igra);
   ponoviBtn.disabled = !igra || ogled || !lahkoPonovi(igra);
-  znovaBtn.disabled = !igra || igra.kazalec === 0;
+  znovaBtn.disabled = !igra || !lahkoZacniZnova(igra);
   // Gumb pove, kaj sledi; ko je korak prikazan v celoti, počaka na potezo ali Skrij.
   const stopnja = pomoc && pomoc.korak ? pomoc.stopnja : 0;
   korakBtn.textContent = stopnja === 1 ? 'Pokaži več' : stopnja === 2 ? 'Pokaži rešitev' : 'Naslednji korak';
@@ -674,7 +665,7 @@ function izrisiRazlago(k) {
 // Tretja stopnja: seznam dejanj koraka z oznako izvedenih (pri koraku z več
 // dejanji), da je po prvem izbrisu jasno, kaj še ostane.
 function izrisiDejanja(k) {
-  const dejanja = dejanjaKoraka(k);
+  const dejanja = dejanjaKoraka(k, stanje);
   if (dejanja.length < 2) return;
   const opravljenih = dejanja.filter(a => a.opravljeno).length;
   const glava = document.createElement('p');

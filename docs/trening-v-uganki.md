@@ -1,8 +1,11 @@
 # Trening »Vadi v uganki« – analiza in meritev
 
-Stanje: **analiza, odločitve sprejete** (2026-09-24; glej 4.5). Koda aplikacij ni
-spremenjena; dodan je samo merilni skript `tools/meri-trening-v-uganki.js`. Delo se še ni
-začelo.
+Stanje: **analiza, odločitve sprejete** (2026-09-24; glej 4.5). Izvedba poteka po
+načrtu `docs/trening-v-uganki-nacrt.md` (razdelek »Stanje po delih«; opombe tam veljajo
+pred to analizo – pravilo »ne Presega tehnike« je odpadlo, imena tehnik so po fazi 4 iz
+`imeTehnike()`). **Del 1 narejen 2026-09-25:** stanje igre je v `shared/stanje.js`
+(začetne poteze `zacetnihPotez`, `igraZZacetkom()`, `zacniZnova()`), shranjevanje igre v
+`igra/shramba.js`. Tabele v tem dokumentu (npr. 1.1) opisujejo stanje pred tem.
 
 **Zamisel.** Trening dobi za vsako tehniko (E1, E2, 1–12) dva načina:
 

@@ -35,7 +35,7 @@ const { loadEngine, loadPuzzles } = require('./load-engine.js');
 // Nadomestni localStorage: shared/zbirka.js ga uporablja samo v zbirkaBeri/zbirkaPisi.
 const shramba = new Map();
 const E = loadEngine(undefined, {
-  files: ['shared/zbirka.js', 'shared/generator.js'],
+  files: ['shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js'],
   globals: {
     localStorage: {
       getItem: k => (shramba.has(k) ? shramba.get(k) : null),

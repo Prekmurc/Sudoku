@@ -13,13 +13,13 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html in igra/index.html.
-const RESEVALEC = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
-const IGRA = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/stanje.js', 'igra/igra.js'];
+const RESEVALEC = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
+const IGRA = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
 const ZBIRKA = 'sudoku.zbirka.v1';
 
 // Uganke iz docs/uganke.md, ki niso vgrajeni primeri (tri so), četrta iz generatorja
 // (seme 2, stopnja lahka - ponovljivo, natanko ena rešitev), in en primer.
-const { run: skupna } = loadContext(['shared/engine.js', 'shared/zbirka.js', 'shared/generator.js']);
+const { run: skupna } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js']);
 const [a, b, c] = loadPuzzles().map(p => p.danosti.replace(/\./g, '0'))
   .filter(d => !skupna(`!!zbirkaPrimerZa(${JSON.stringify(d)})`));
 const nova = skupna("ustvariUganko('lahka', 2).danosti");

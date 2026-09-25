@@ -1,17 +1,19 @@
 'use strict';
-// Testi stanja igre (igra/stanje.js): odigravanje potez, samodejni in ročno odstranjeni
-// kandidati, dovoljene poteze, razveljavi/ponovi, zapis za shrambo.
+// Testi stanja igre (shared/stanje.js) in shrambe igre (igra/shramba.js): odigravanje
+// potez, samodejni in ročno odstranjeni kandidati, dovoljene poteze, razveljavi/ponovi,
+// začetne poteze (izhodišče vaje), dejanja koraka, zapis za shrambo.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  // shared/zbirka.js: odigravanje potez in pravilo kazalca shranjene igre sta skupna z reševalcem.
-  files: ['shared/zbirka.js', 'igra/stanje.js'],
+  // shared/zbirka.js: pravilo kazalca shranjene igre je skupno z reševalcem.
+  files: ['shared/stanje.js', 'shared/zbirka.js', 'igra/shramba.js'],
   names: ['novaIgra', 'stanjeIgre', 'mozneAkcije', 'dodajPotezo', 'razveljavi', 'ponovi',
     'lahkoRazveljavi', 'lahkoPonovi', 'seManjka', 'manjkajoceVEnotah', 'steviloVpisanih', 'jeResena',
-    'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf', 'skupniKandidati'],
+    'igraVZapis', 'igraIzZapisa', 'prvaNapaka', 'solutionOf', 'skupniKandidati',
+    'igraZZacetkom', 'zacniZnova', 'lahkoZacniZnova', 'dejanjaKoraka', 'nextStep', 'applyStep'],
 });
 
 // Uganka, ki jo solve() reši v celoti brez ugibanja - njena rešitev je znana.
@@ -430,4 +432,170 @@ test('prvaNapaka: skupinska poteza, ki odstrani pravilni kandidat v eni od celic
   assert.equal(E.prvaNapaka(igra, resitev), 3);
   kand(igra, prava, d, false);
   assert.equal(E.prvaNapaka(igra, resitev), null, 'ko pravilni kandidat vrneš, napake ni več');
+});
+
+/* ---------- začetne poteze (izhodišče vaje v treningu) ---------- */
+
+// Stanje na poti motorja (nextStep brez prednosti števke) od danosti: prvo stanje,
+// v katerem so poleg vpisov tudi izbrisi, ki jih števke same ne dajo. Poteze so vpisi
+// poti in ti izbrisi (razlika med new Board(mreža) in kandidati na poti) - izračunane
+// iz korakov motorja, ne sestavljene na pamet.
+function zacetekPoti() {
+  const b = new E.Board(danosti);
+  for (let i = 0; i < 200; i++) {
+    E.applyStep(b, E.nextStep(b));
+    const osnova = new E.Board(b.grid.join(''));
+    const izbrisi = [];
+    for (let c = 0; c < 81; c++) {
+      if (b.grid[c] !== 0) continue;
+      for (const d of bits(osnova.cand[c] & ~b.cand[c])) izbrisi.push({ tip: 'kandidat', celica: c, stevka: d, odstrani: true });
+    }
+    if (!izbrisi.length) continue;
+    const vpisi = prve.filter(c => b.grid[c]).map(c => ({ tip: 'vpis', celica: c, stevka: b.grid[c] }));
+    assert.ok(vpisi.length && b.grid.some(v => v === 0), 'stanje z vpisi in izbrisi pred rešitvijo');
+    return { deska: b, poteze: [...vpisi, ...izbrisi], vpisi, izbrisi };
+  }
+  throw new Error('na poti ni stanja z izbrisi');
+}
+const pot = zacetekPoti();
+
+// Poteza, ki odstrani kandidata, ki ni števka rešitve, iz prazne celice z vsaj dvema
+// kandidatoma; `prava: true` odstrani pravo števko (napaka).
+function potezaOdstrani(stanje, { prava = false, razen = [] } = {}) {
+  for (const c of prve) {
+    if (stanje.grid[c] || E.popcount(stanje.kandidati[c]) < 2 || razen.includes(c)) continue;
+    const d = prava ? resitev[c] : bits(stanje.kandidati[c]).find(x => x !== resitev[c]);
+    if (stanje.kandidati[c] & (1 << d)) return { tip: 'kandidat', celica: c, stevka: d, odstrani: true };
+  }
+  throw new Error('ni celice za odstranitev');
+}
+
+test('igraZZacetkom: poteze so odigrane in zaklenjene; stanje je stanje na poti motorja', () => {
+  const igra = E.igraZZacetkom(danosti, pot.poteze);
+  assert.ok(igra);
+  assert.equal(igra.kazalec, pot.poteze.length);
+  assert.equal(igra.zacetnihPotez, pot.poteze.length);
+  const s = E.stanjeIgre(igra);
+  assert.deepEqual([...s.grid], [...pot.deska.grid]);
+  for (let c = 0; c < 81; c++) {
+    if (!pot.deska.grid[c]) assert.equal(s.kandidati[c], pot.deska.cand[c], `kandidati celice ${c}`);
+  }
+  assert.equal(E.nextStep(s.deska).technique, E.nextStep(pot.deska).technique, 'motor v stanju igre najde isti korak');
+  assert.equal(E.lahkoRazveljavi(igra), false);
+  assert.equal(E.lahkoZacniZnova(igra), false);
+  assert.equal(E.lahkoPonovi(igra), false);
+  // Nedovoljena poteza (števka, ki ni kandidat) - igre ni.
+  const c = prve.find(x => !pot.deska.grid[x]);
+  const ni = bits(E.FULL & ~pot.deska.cand[c])[0];
+  assert.equal(E.igraZZacetkom(danosti, [...pot.poteze, { tip: 'vpis', celica: c, stevka: ni }]), null);
+  // Brez začetnih potez je to nova igra.
+  assert.equal(E.igraZZacetkom(danosti, []).zacetnihPotez, 0);
+});
+
+test('začetne poteze: "Razveljavi" se ustavi pri njih, "Ponovi" in odrez repa delujeta nad njimi', () => {
+  const igra = E.igraZZacetkom(danosti, pot.poteze);
+  const z = igra.zacetnihPotez;
+  const p1 = potezaOdstrani(E.stanjeIgre(igra));
+  assert.equal(E.dodajPotezo(igra, p1), true);
+  const p2 = potezaOdstrani(E.stanjeIgre(igra), { razen: [p1.celica] });
+  assert.equal(E.dodajPotezo(igra, p2), true);
+  E.razveljavi(igra);
+  E.razveljavi(igra);
+  assert.equal(igra.kazalec, z);
+  assert.equal(E.lahkoRazveljavi(igra), false);
+  E.razveljavi(igra);
+  assert.equal(igra.kazalec, z, 'pod začetek ne gre');
+  assert.equal(E.lahkoPonovi(igra), true);
+  E.ponovi(igra);
+  assert.equal(igra.kazalec, z + 1);
+  E.razveljavi(igra);
+  assert.equal(E.dodajPotezo(igra, p2), true);
+  assert.equal(igra.poteze.length, z + 1, 'odrezan je samo rep nad začetkom');
+  assert.equal(E.lahkoPonovi(igra), false);
+});
+
+test('začetne poteze: njihovih izbrisov ni mogoče vrniti in njihovih vpisov ne zbrisati', () => {
+  const igra = E.igraZZacetkom(danosti, pot.poteze);
+  let s = E.stanjeIgre(igra);
+  for (const p of pot.izbrisi) {
+    assert.equal(E.mozneAkcije(s, p.celica).vrni & (1 << p.stevka), 0, 'kandidat, odstranjen pred vajo, ni med "vrni"');
+    assert.equal(E.dodajPotezo(igra, { ...p, odstrani: false }), false);
+  }
+  for (const p of pot.vpisi) {
+    assert.equal(E.mozneAkcije(s, p.celica).zbrisi, false, 'vpisa iz začetka ni mogoče zbrisati');
+    assert.equal(E.dodajPotezo(igra, { tip: 'vpis', celica: p.celica, stevka: 0 }), false);
+  }
+  assert.equal(igra.poteze.length, igra.zacetnihPotez);
+  // Kandidata, ki ga odstrani igralec, je mogoče vrniti.
+  const p = potezaOdstrani(s);
+  assert.equal(E.dodajPotezo(igra, p), true);
+  s = E.stanjeIgre(igra);
+  assert.notEqual(E.mozneAkcije(s, p.celica).vrni & (1 << p.stevka), 0);
+  assert.equal(E.dodajPotezo(igra, { ...p, odstrani: false }), true);
+  // Pri navadni igri je vpis mogoče zbrisati kot doslej.
+  const navadna = E.novaIgra(danosti);
+  assert.equal(E.dodajPotezo(navadna, pot.vpisi[0]), true);
+  assert.equal(E.mozneAkcije(E.stanjeIgre(navadna), pot.vpisi[0].celica).zbrisi, true);
+});
+
+test('zacniZnova: vrne na izhodišče (pri vaji stanje vaje, pri igri prazno mrežo), poteze ostanejo za "Ponovi"', () => {
+  const igra = E.igraZZacetkom(danosti, pot.poteze);
+  const zacetno = [...E.stanjeIgre(igra).kandidati];
+  assert.equal(E.zacniZnova(igra), false, 'brez potez ni česa začeti znova');
+  assert.equal(E.dodajPotezo(igra, potezaOdstrani(E.stanjeIgre(igra))), true);
+  assert.equal(E.lahkoZacniZnova(igra), true);
+  assert.equal(E.zacniZnova(igra), true);
+  assert.equal(igra.kazalec, igra.zacetnihPotez);
+  assert.equal(igra.znova, true);
+  assert.deepEqual([...E.stanjeIgre(igra).kandidati], zacetno);
+  assert.equal(E.lahkoPonovi(igra), true);
+  assert.equal(E.lahkoZacniZnova(igra), false);
+
+  const navadna = E.novaIgra(danosti);
+  assert.equal(E.dodajPotezo(navadna, pot.vpisi[0]), true);
+  assert.equal(E.zacniZnova(navadna), true);
+  assert.equal(navadna.kazalec, 0);
+  assert.equal(navadna.znova, true);
+  assert.equal(E.lahkoPonovi(navadna), true);
+});
+
+test('prvaNapaka pri začetnih potezah: številka poteze je za začetkom, vrnitev pred njo ne gre pod začetek', () => {
+  const igra = E.igraZZacetkom(danosti, pot.poteze);
+  const z = igra.zacetnihPotez;
+  assert.equal(E.prvaNapaka(igra, resitev), null, 'na poti motorja ni napake');
+  const dobra = potezaOdstrani(E.stanjeIgre(igra));
+  assert.equal(E.dodajPotezo(igra, dobra), true);
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+  assert.equal(E.dodajPotezo(igra, potezaOdstrani(E.stanjeIgre(igra), { prava: true, razen: [dobra.celica] })), true);
+  const n = E.prvaNapaka(igra, resitev);
+  assert.equal(n, z + 2);
+  igra.kazalec = n - 1; // "Vrni na stanje pred potezo N" v igri
+  assert.ok(igra.kazalec >= z);
+  assert.equal(E.prvaNapaka(igra, resitev), null);
+  // Napaka kot prva poteza igralca: vrnitev je natanko na začetek.
+  const druga = E.igraZZacetkom(danosti, pot.poteze);
+  assert.equal(E.dodajPotezo(druga, potezaOdstrani(E.stanjeIgre(druga), { prava: true })), true);
+  assert.equal(E.prvaNapaka(druga, resitev), z + 1);
+});
+
+test('dejanjaKoraka: dejanje koraka je opravljeno po ustrezni potezi, "Razveljavi" ga spet odpre', () => {
+  const igra = E.igraZZacetkom(danosti, pot.poteze);
+  let s = E.stanjeIgre(igra);
+  const k = E.nextStep(s.deska);
+  const isto = (a, x) => x.tip === a.tip && x.celica === a.celica && x.stevka === a.stevka;
+  const dejanja = E.dejanjaKoraka(k, s);
+  assert.equal(dejanja.length, k.assign.length + k.eliminate.length);
+  assert.ok(dejanja.every(a => !a.opravljeno), 'pred potezami ni opravljeno nič');
+  for (const a of dejanja) {
+    if (E.dejanjaKoraka(k, s).find(x => isto(a, x)).opravljeno) continue; // opravil ga je že vpis
+    const poteza = a.tip === 'vpis'
+      ? { tip: 'vpis', celica: a.celica, stevka: a.stevka }
+      : { tip: 'kandidat', celica: a.celica, stevka: a.stevka, odstrani: true };
+    assert.equal(E.dodajPotezo(igra, poteza), true);
+    s = E.stanjeIgre(igra);
+    assert.ok(E.dejanjaKoraka(k, s).find(x => isto(a, x)).opravljeno);
+  }
+  assert.ok(E.dejanjaKoraka(k, s).every(a => a.opravljeno), 'po vseh potezah je korak izveden');
+  E.razveljavi(igra);
+  assert.ok(E.dejanjaKoraka(k, E.stanjeIgre(igra)).some(a => !a.opravljeno), 'razveljavi odpre zadnje dejanje');
 });

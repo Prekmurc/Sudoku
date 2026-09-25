@@ -14,7 +14,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'app/app.js', 'app/zbirka.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 
 // Reševalec z eno uganko v zbirki (dodana 21. 9. 2026 ob 16:33). `vprasanja` zbere

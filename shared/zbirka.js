@@ -115,28 +115,12 @@ function zbirkaPrikazDatuma(s) {
 
 /* ---------- shranjene igre (sudoku.igra.v1) ---------- */
 
-// Igra (igra/stanje.js) shranjuje napredek vsake uganke posebej: { zadnja, igre:
+// Igra (igra/shramba.js) shranjuje napredek vsake uganke posebej: { zadnja, igre:
 // { [danosti]: { poteze, kazalec, znova, zacetek, nazadnje } } }. Piše samo igra;
-// tu je branje in odigravanje potez, ker stanje uganke (spodaj) potrebuje tudi
-// reševalec, ki igra/stanje.js ne naloži.
+// tu je branje, ker stanje uganke (spodaj) potrebuje tudi reševalec, ki
+// igra/shramba.js ne naloži. Poteze odigra odigrajPoteze() iz shared/stanje.js,
+// ki se naloži pred to datoteko.
 const IGRA_KLJUC = 'sudoku.igra.v1';
-
-// Odigra eno potezo: vpisi[c] = uporabnikova števka (0 = brez vpisa),
-// odstranjeni[c] = maska ročno odstranjenih kandidatov.
-function odigrajPotezo(vpisi, odstranjeni, p) {
-  if (p.tip === 'vpis') vpisi[p.celica] = p.stevka;
-  else if (p.tip === 'kandidati') for (const c of p.celice) odstranjeni[c] |= 1 << p.stevka;
-  else if (p.odstrani) odstranjeni[p.celica] |= 1 << p.stevka;
-  else odstranjeni[p.celica] &= ~(1 << p.stevka);
-}
-
-// Odigra prvih n potez.
-function odigrajPoteze(danosti, poteze, n) {
-  const vpisi = new Array(81).fill(0);
-  const odstranjeni = new Array(81).fill(0);
-  for (let i = 0; i < n; i++) odigrajPotezo(vpisi, odstranjeni, poteze[i]);
-  return { vpisi, odstranjeni };
-}
 
 function igreBeri() {
   try {
@@ -146,7 +130,7 @@ function igreBeri() {
   return { zadnja: null, igre: {} };
 }
 
-// Kazalec, na katerem se shranjena igra odpre (igraIzZapisa v igra/stanje.js). Ostane,
+// Kazalec, na katerem se shranjena igra odpre (igraIzZapisa v igra/shramba.js). Ostane,
 // kakor je bil shranjen (npr. 2 od 3 po "Razveljavi"), razen v stanju "vse
 // razveljavljeno" (0 ob neprazni zgodovini in brez "Začni znova"): prazna mreža s
 // skrito zgodovino je videti kot izgubljen napredek, zato se igra vrne na konec.
@@ -491,7 +475,7 @@ function zbirkaShraniIgranje(danosti, cas, izpolnjeno, napaka) {
 // Iz shranjenih iger (sudoku.igra.v1) odstrani igre teh ugank: brisanje uganke iz
 // zbirke pobriše tudi njen napredek, da ne ostane shranjena igra brez zapisa. Igre
 // vgrajenih primerov ostanejo. Edino mesto, kjer v shranjene igre piše shared/
-// (sicer jih piše samo igra/stanje.js). Vrne true, če je zapisano.
+// (sicer jih piše samo igra/shramba.js). Vrne true, če je zapisano.
 function zbirkaIzbrisiIgre(danosti) {
   const s = igreBeri();
   let spremenjeno = false;
