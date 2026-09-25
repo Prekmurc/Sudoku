@@ -230,7 +230,7 @@ test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
 
 // Besedila, ki jih vidi uporabnik, zunaj TEHNIKE_OPISI (faza 4, del 2): izraz je
 // »števka«, tehnike imajo slovensko ime - angleško ime je lahko samo v oklepaju
-// (»Nebotičnik (Skyscraper, veriga ene števke)«).
+// (»vzorec Nebotičnik (Skyscraper, veriga ene števke)«).
 const ANGLESKA = [
   ...Object.values(E.TEHNIKE_OPISI).flatMap(o => o.anglesko.split(', ')),
   'Skyscraper', 'Two-String Kite',

@@ -421,7 +421,7 @@ function turbotFish(b) {
             variant = 'Two-String Kite';
           }
           const patternName = {
-            'Skyscraper': 'Nebotičnik (Skyscraper, veriga ene števke)',
+            'Skyscraper': 'vzorec Nebotičnik (Skyscraper, veriga ene števke)',
             'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (Two-String Kite, veriga ene števke)',
             'Turbot Fish': 'verigo ene števke (Turbot Fish)',
           }[variant];

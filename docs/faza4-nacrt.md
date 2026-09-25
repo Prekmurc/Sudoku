@@ -142,7 +142,8 @@ angleška imena tehnik zunaj oklepaja (točka 5), v vajah samo polja za uporabni
 `unitLabel`, `namig`, `solutionMessage`); `trening-pomoc.test.js`,
 `trening-enojcki.test.js`, `next-step.test.js` in `xy-wing.test.js` niso spremenjeni.
 Swordfish se v dnevnikih ugank iz `docs/uganke.md` ne pojavi, zato njegovega sporočila
-test ne pokrije – ročni pregled.
+test ne pokrije – ročni pregled. Popravek iz pregleda: podtipa verige imata enako obliko,
+oba z »vzorec« (»tvori vzorec Nebotičnik (Skyscraper, veriga ene števke)«).
 
 Samo besedila za uporabnika; komentarji v kodi ostanejo (odgovor 6), tudi kjer
 omenjajo »številko« v besedilu za uporabnika.
@@ -192,7 +193,7 @@ omenjajo »številko« v besedilu za uporabnika.
      »3 števke, ki se … pojavljajo«, »2 števki, ki sta … prisotni«.
    - (c) sporočila motorja (`shared/engine.js`): »tvori X-krilo«, »tvori mečarico«,
      »tvori W-krilo«; podtipa verige v obliki imen tehnik, z imenom tehnike v istem
-     oklepaju kot doslej: »tvori Nebotičnik (Skyscraper, veriga ene števke)«, »tvori
+     oklepaju kot doslej: »tvori vzorec Nebotičnik (Skyscraper, veriga ene števke)«, »tvori
      vzorec Zmaj z dvema vrvicama (Two-String Kite, veriga ene števke)«, splošni
      primer »tvori verigo ene števke (Turbot Fish)«. Enako imeni podtipov v razlagi
      `TEHNIKE_OPISI['turbot-fish']` (»Nebotičnik (Skyscraper)«, »Zmaj z dvema vrvicama
