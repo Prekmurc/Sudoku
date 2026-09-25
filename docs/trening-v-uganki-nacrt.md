@@ -43,7 +43,7 @@ docs/trening-v-uganki.md.
 | 2 `shared/vaje-uganka.js` | **narejeno 2026-09-25** | `6b6bf53` | 280 (264 + 16) |
 | – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
 | 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | `33423d1` | 315 (309 + 6) |
-| 4 `shared/mreza.js` | **narejeno 2026-09-25** | | 322 (315 + 7) |
+| 4 `shared/mreza.js` | **narejeno 2026-09-25** | `3f6d73c` | 322 (315 + 7) |
 | 5 `shared/plosca.js` | ni začet | | |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
@@ -121,7 +121,7 @@ docs/trening-v-uganki.md.
   `tests/vaje-uganka.test.js` en nov test (`tehnikeVUganki()` = `stanjaVUganki()` za vse
   tehnike, tudi pri uganki Presega tehnike).
 
-### Del 4 – narejeno
+### Del 4 – narejeno (commit `3f6d73c`)
 
 - Nova `shared/mreza.js` (samo izris, brez stanja igre in shrambe; naloži se za
   `engine.js` in `stanje.js`): `ustvariMrezo(el, { obKliku })` → `{ el, celice,
