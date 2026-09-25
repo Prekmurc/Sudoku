@@ -31,7 +31,7 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .menu-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:10px 0;cursor:pointer;transition:box-shadow .15s,border-color .15s}
 .menu-card:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(14,122,122,.12)}
 .menu-card h3{font-family:'Source Serif 4',serif;font-size:17px;margin:0 0 4px}
-.menu-card h3[data-stevilka]::before{content:attr(data-stevilka) ". ";color:var(--pencil)}
+.menu-card h3[data-stevilka]::before{content:attr(data-stevilka) " · ";color:var(--pencil)}
 .menu-card p{font-size:13px;color:#4A5664;line-height:1.5;margin:0}
 .menu-card .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:6px}
 /* Barva značke pove raven tehnike: lahka (E1, E2), srednja (1-6) ali napredna (7-12) - docs/uskladitev.md,

@@ -73,8 +73,9 @@ push.
        »Skriti par (Hidden Pair)« – to je naslov kartice v treningu, zato posebna
        možnost `stevilka: false` ni potrebna; s `stevilka: true` »4 · Skriti par
        (Hidden Pair)«, z `anglesko: false` brez oklepaja (»4 · Skriti par« – oznaka
-       koraka, odgovor 3); neznan ključ (»OBSTALO«, stara tehnika) vrne
-       nespremenjenega;
+       koraka, odgovor 3); poskus je vedno brez številke, celo ime
+       »Poskus in protislovje (Forcing Chain)«, kratko »Poskus in protislovje«
+       (dopolnitev 3); neznan ključ (»OBSTALO«, stara tehnika) vrne nespremenjenega;
      - `redTehnike(kljuc)` – položaj v `ALL_TECHNIQUES` za urejanje seznamov; poskus za
        vsemi tehnikami, neznane na koncu.
    - `tagClass()` se ne spremeni (dobiva še vedno ključ).
@@ -273,7 +274,7 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
   5.1 v fazo 6.
 - **Del 4** ne bo izveden v fazi 4.
 
-### Dopolnitvi (2026-09-25)
+### Dopolnitve (2026-09-25)
 
 1. **Lightbox v reševalcu** pokaže celo ime »Korak 5 · 4 · Skriti par (Hidden Pair)«.
    Oznaka koraka in naslov nad malo mrežo ostaneta kratka, celo ime je v `title`.
@@ -283,3 +284,7 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
    `imeTehnike(kljuc)` brez možnosti (glej del 1, »Testi«). Možnost `stevilka: false`
    ni potrebna, ker je oblika brez številke privzeta; test `imeTehnike()` to privzeto
    obliko pokrije.
+3. **Poskus in protislovje** (ob začetku dela 1): celo ime z veliko začetnico,
+   »Poskus in protislovje (Forcing Chain)«, enako kot druga angleška imena; kratko ime
+   (oznaka koraka) »Poskus in protislovje«, vedno brez številke. Ključ motorja
+   (`'Poskus in protislovje (forcing chain)'` v dnevniku `solve()`) ostane nespremenjen.

@@ -6,7 +6,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadEngine } = require('./load-engine.js');
 
-const E = loadEngine(undefined, { files: ['trening/generators.js'], names: ['genWWing', 'MODES', 'Math', 'ALL_UNITS'] });
+const E = loadEngine(undefined, { files: ['trening/generators.js'], names: ['genWWing', 'MODES', 'Math', 'ALL_UNITS', 'imeTehnike'] });
 
 // Ponovljivost: Math.random v kontekstu generatorja zamenjamo s PRNG s semenom (mulberry32).
 let seed = 20260918;
@@ -38,7 +38,9 @@ test('vnos v MODES', () => {
   assert.equal(M.isWWing, true);
   assert.equal(M.pickN, 4);
   assert.equal(M.showCandidateCount, true);
-  assert.equal(M.name, 'W-Wing');
+  // Ime tehnike ni več v MODES (da ga imeTehnike() v shared/engine.js).
+  assert.equal(M.name, undefined);
+  assert.equal(E.imeTehnike('W-Wing'), 'W-krilo (W-Wing)');
 });
 
 test(`generator: ${N} vaj, povprečno ${msPerExercise.toFixed(1)} ms na vajo`, t => {

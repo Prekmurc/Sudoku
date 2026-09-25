@@ -82,14 +82,14 @@ const STOPNJE_UGANK = [
     kljuc: 'srednja', ime: 'Srednja', najvecjaPrednost: 1,
     ustreza: (m) => m.srednje >= 1 && m.napredne === 0 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 0 && m.ekspertne === 0 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
-    opis: 'potrebuje vsaj dve različni tehniki: očitno ali skrito paro, trojico ali presek (Pointing pair/triple, Box-line reduction)',
+    opis: 'potrebuje vsaj dve različni tehniki: izločitev izven bloka ali v bloku, očitni ali skriti par, očitno ali skrito trojico',
   },
   {
     kljuc: 'tezka', ime: 'Težka', najvecjaPrednost: 1,
     ustreza: (m) => m.napredne === 1 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 1 && m.ekspertne === 0
       && m.srednje >= GEN_NAJMANJ_SREDNJIH && m.tehNad <= GEN_TEZKA_NAJVEC,
-    opis: 'potrebuje natanko eno napredno tehniko (X-Wing, Swordfish, Turbot Fish, W-Wing, XY-Wing, Unique Rectangle) in vsaj dve srednji',
+    opis: 'potrebuje natanko eno napredno tehniko (X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) in vsaj dve srednji',
   },
   {
     kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,

@@ -15,7 +15,7 @@ const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'trening/generators.js', 'shared/zbirka.js'],
   names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
-    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike'],
+    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike'],
 });
 
 const treningHtml = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
@@ -30,6 +30,8 @@ const vseVaje = [...E.TRENING_ENOJCKA.map(([m]) => m), ...nacini];
 
 test('TRENING_ENOJCKA in TRENING_TEHNIKE se ujemata s karticami v trening/index.html in z MODES', () => {
   assert.deepEqual([...E.TRENING_ENOJCKA.map(([m]) => m)], ['naked-single', 'hidden-single']);
+  // Drugi element je ključ v ALL_TECHNIQUES, kot pri TRENING_TEHNIKE (ime da imeTehnike()).
+  assert.deepEqual([...E.TRENING_ENOJCKA.map(([, t]) => t)], ENOJCKA);
   assert.equal(new Set(vseVaje).size, vseVaje.length, 'oznaka kartice se ponovi');
   assert.deepEqual([...kartice].sort(), [...vseVaje].sort(), 'kartice v HTML');
   assert.deepEqual(Object.keys(E.MODES).sort(), [...vseVaje].sort(), 'MODES v generators.js');
@@ -96,7 +98,8 @@ test('izvoz hrani imena tehnik, star izvoz po uvozu dobi nove številke', () => 
   assert.equal(zapisi.length, 1);
   assert.equal(E.zbirkaOznakaTehnik(zapisi[0]), 'tehnike: 1, 3, 6');
   const izvoz = E.zbirkaVMarkdown(zapisi);
-  assert.match(izvoz, /\*\*Tehnike:\*\* Skriti enojček 30, Gol enojček 27, Naked pair 2/);
+  // Izvoz tehnike uredi po vrstnem redu tehnik (redTehnike()), ne po pogostosti.
+  assert.match(izvoz, /\*\*Tehnike:\*\* Gol enojček 27, Skriti enojček 30, Pointing pair\/triple 1, Naked pair 2, Hidden triple 1$/m);
   assert.doesNotMatch(izvoz, /tehnike: \d/, 'v izvozu ni številk tehnik');
 });
 
@@ -141,11 +144,79 @@ test('TEHNIKE_OPISI: vsaka tehnika iz treninga ima ime in razlago, besedili za v
   }
 });
 
-test('TEHNIKE_OPISI: ime je enako naslovu kartice v trening/index.html, MODES.desc je opisVaje()', () => {
-  for (const kljuc of vseVaje) {
-    assert.equal(E.TEHNIKE_OPISI[kljuc].ime, naslovi.get(kljuc), `${kljuc}: naslov kartice`);
-    assert.equal(E.MODES[kljuc].desc, E.opisVaje(kljuc), `${kljuc}: MODES.desc`);
+// Naslov kartice v HTML je nadomestek - trening.js ga ob zagonu prepiše z imeTehnike()
+// (tega nadomestni DOM ne preveri, querySelector() vrne null). Privzeta oblika
+// imeTehnike() je brez številke, zato enakost preveri tudi, da je številka samo v
+// data-stevilka.
+test('naslov kartice v trening/index.html je imeTehnike(), MODES.desc je opisVaje()', () => {
+  for (const [m, kljuc] of [...E.TRENING_ENOJCKA, ...E.TRENING_TEHNIKE]) {
+    assert.equal(naslovi.get(m), E.imeTehnike(kljuc), `${m}: naslov kartice`);
+    assert.equal(E.MODES[m].desc, E.opisVaje(m), `${m}: MODES.desc`);
+    assert.equal(E.MODES[m].name, undefined, `${m}: MODES.name ne obstaja več (ime da imeTehnike())`);
   }
+});
+
+/* ---------- ime tehnike za prikaz (imeTehnike, redTehnike v shared/engine.js) ---------- */
+
+test('imeTehnike(): vsaka tehnika iz ALL_TECHNIQUES ima slovensko in angleško ime', () => {
+  const vse = E.ALL_TECHNIQUES.map(([t]) => t);
+  for (const t of vse) {
+    const ime = E.imeTehnike(t);
+    assert.match(ime, /^[^()]+ \([^()]+\)$/, `${t}: "${ime}" = slovensko (angleško)`);
+    assert.notEqual(ime, t, `${t}: ime za prikaz ni ključ motorja`);
+  }
+  for (const kljuc of vseVaje) {
+    const o = E.TEHNIKE_OPISI[kljuc];
+    assert.ok(o.ime && o.anglesko, `${kljuc}: ime in anglesko`);
+    assert.doesNotMatch(o.ime, /[()]/, `${kljuc}: ime brez oklepaja`);
+  }
+  assert.equal(new Set(vse.map(t => E.imeTehnike(t, { anglesko: false }))).size, vse.length, 'slovenska imena so različna');
+});
+
+test('imeTehnike(): dogovorjene oblike (docs/faza4-nacrt.md, del 1)', () => {
+  // Privzeto brez številke in brez ločila " · " (naslov kartice v treningu).
+  assert.equal(E.imeTehnike('Hidden pair'), 'Skriti par (Hidden Pair)');
+  assert.equal(E.imeTehnike('Gol enojček'), 'Očitni enojček (Naked Single)');
+  assert.equal(E.imeTehnike('XY-Wing'), 'XY-krilo (XY-Wing, Y-Wing)');
+  for (const [t] of E.ALL_TECHNIQUES) {
+    assert.doesNotMatch(E.imeTehnike(t), /^(E?\d+)|·/, `${t}: privzeto brez številke`);
+  }
+  // S številko iz treninga.
+  assert.equal(E.imeTehnike('Hidden pair', { stevilka: true }), '4 · Skriti par (Hidden Pair)');
+  assert.equal(E.imeTehnike('Gol enojček', { stevilka: true }), 'E1 · Očitni enojček (Naked Single)');
+  assert.equal(E.imeTehnike('Skriti enojček', { stevilka: true }), 'E2 · Skriti enojček (Hidden Single)');
+  assert.equal(E.imeTehnike('Unique Rectangle', { stevilka: true }), '12 · Edinstveni pravokotnik (Unique Rectangle)');
+  for (const [m, t] of E.TRENING_TEHNIKE) {
+    assert.ok(E.imeTehnike(t, { stevilka: true }).startsWith(E.oznakaTehnike(m) + ' · '), t);
+  }
+  // Brez oklepaja (oznaka koraka; celo ime je v namigu miške).
+  assert.equal(E.imeTehnike('Hidden pair', { stevilka: true, anglesko: false }), '4 · Skriti par');
+  assert.equal(E.imeTehnike('Turbot Fish', { anglesko: false }), 'Veriga ene števke');
+  // Poskus: brez številke, angleško z veliko začetnico; ključ motorja se ne spremeni.
+  const poskus = 'Poskus in protislovje (forcing chain)';
+  assert.ok(E.solve('000800020900000600000000000604000900000720003500000000000056000080009000070000010')
+    .log.some(s => s.technique === poskus), 'ključ poskusa v dnevniku solve()');
+  assert.equal(E.imeTehnike(poskus), 'Poskus in protislovje (Forcing Chain)');
+  assert.equal(E.imeTehnike(poskus, { stevilka: true }), 'Poskus in protislovje (Forcing Chain)');
+  assert.equal(E.imeTehnike(poskus, { stevilka: true, anglesko: false }), 'Poskus in protislovje');
+  assert.equal(E.imeTehnike('Poskus in protislovje (V1S1 = 5)'), 'Poskus in protislovje (Forcing Chain)', 'star zapis');
+  // Neznan ključ ostane nespremenjen.
+  for (const t of ['OBSTALO', 'NAPAKA', 'Stara tehnika']) {
+    assert.equal(E.imeTehnike(t), t);
+    assert.equal(E.imeTehnike(t, { stevilka: true, anglesko: false }), t);
+  }
+});
+
+test('redTehnike(): vrstni red ALL_TECHNIQUES, nato poskus, nato neznane', () => {
+  const vse = E.ALL_TECHNIQUES.map(([t]) => t);
+  vse.forEach((t, i) => assert.equal(E.redTehnike(t), i, t));
+  const poskus = E.redTehnike('Poskus in protislovje (forcing chain)');
+  assert.ok(poskus > E.redTehnike(vse[vse.length - 1]), 'poskus za vsemi tehnikami');
+  assert.equal(E.redTehnike('Poskus in protislovje (V1S1 = 5)'), poskus);
+  assert.ok(E.redTehnike('Stara tehnika') > poskus, 'neznana na koncu');
+  const pomesano = ['Stara tehnika', 'X-Wing', 'Poskus in protislovje (forcing chain)', 'Naked pair', 'Gol enojček'];
+  assert.deepEqual([...pomesano].sort((a, b) => E.redTehnike(a) - E.redTehnike(b)),
+    ['Gol enojček', 'Naked pair', 'X-Wing', 'Poskus in protislovje (forcing chain)', 'Stara tehnika']);
 });
 
 test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {

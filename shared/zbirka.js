@@ -389,8 +389,16 @@ function zbirkaPisi(zbirka) {
 
 /* ---------- shranjevanje ob reševanju ---------- */
 
+// Seznam [[ime, n], ...] po vrstnem redu tehnik (redTehnike() v shared/engine.js);
+// zapisi, shranjeni prej (po pogostosti), se uredijo ob naslednjem shranjevanju in že
+// v izvozu.
+function zbirkaUrediTehnike(tehnike) {
+  return [...tehnike].sort((a, b) => redTehnike(a[0]) - redTehnike(b[0]));
+}
+
 // Podatki iz dnevnika solve(). Psevdo-koraka 'OBSTALO'/'NAPAKA' (reševalec
-// se je ustavil) nista pravi koraki, zato ju ne štejemo.
+// se je ustavil) nista pravi koraki, zato ju ne štejemo. Tehnike so po vrstnem redu
+// tehnik, ne po pogostosti.
 function zbirkaPodatkiResevanja(board, log) {
   const pravi = log.filter(s => s.technique !== 'OBSTALO' && s.technique !== 'NAPAKA');
   const stevci = {};
@@ -399,7 +407,7 @@ function zbirkaPodatkiResevanja(board, log) {
     reseno: board.grid.filter(v => v !== 0).length,
     koraki: pravi.length,
     ugibanje: pravi.filter(s => s.technique.startsWith('Poskus in protislovje')).length,
-    tehnike: Object.entries(stevci).sort((a, b) => b[1] - a[1]),
+    tehnike: zbirkaUrediTehnike(Object.entries(stevci)),
   };
 }
 
@@ -558,7 +566,7 @@ function zbirkaVMarkdown(zbirka) {
     if (!zbirkaPrazno(z.koraki)) vrstice.push(`- **Koraki:** ${z.koraki}`);
     if (!zbirkaPrazno(z.ugibanje)) vrstice.push(`- **Ugibanje:** ${z.ugibanje}`);
     if (!zbirkaPrazno(z.tehnike)) {
-      vrstice.push(`- **Tehnike:** ${z.tehnike.length ? z.tehnike.map(([t, n]) => `${t} ${n}`).join(', ') : '(brez)'}`);
+      vrstice.push(`- **Tehnike:** ${z.tehnike.length ? zbirkaUrediTehnike(z.tehnike).map(([t, n]) => `${t} ${n}`).join(', ') : '(brez)'}`);
     }
     if (z.opomba) vrstice.push(`- **Opomba:** ${z.opomba}`);
     // Zapis z "Rešeno" je nastal ob reševanju, ki se shrani le pri enolični rešitvi.

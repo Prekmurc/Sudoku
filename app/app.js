@@ -158,10 +158,17 @@ function renderStepsList() {
   const { log } = lastSolve;
   stepsEl.innerHTML = '';
   log.forEach((s, idx) => {
+    // Oznaka in naslov koraka imata kratko ime s številko ("4 · Skriti par"), celo
+    // ime je v namigu miške; lightbox ima celo ime (na dotik namiga ni).
+    const kratko = imeTehnike(s.technique, { stevilka: true, anglesko: false });
+    const celo = imeTehnike(s.technique, { stevilka: true });
     const li = document.createElement('li');
     li.innerHTML = `<input type="checkbox" class="done-check">
-                     <span class="tag ${tagClass(s.technique)}">${s.technique}</span><br>
+                     <span class="tag ${tagClass(s.technique)}"></span><br>
                      <span class="idx">${idx + 1}.</span><span class="msg"></span>`;
+    const tag = li.querySelector('.tag');
+    tag.textContent = kratko;
+    tag.title = celo;
     li.querySelector('.msg').textContent = s.message;
     const checkbox = li.querySelector('.done-check');
     checkbox.addEventListener('change', () => {
@@ -187,7 +194,8 @@ function renderStepsList() {
         if (!miniContainer.dataset.rendered) {
           const techTitle = document.createElement('div');
           techTitle.style.cssText = 'text-align:center;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;color:#3C4854;margin:0 0 8px;';
-          techTitle.textContent = `${idx + 1}. ${s.technique}`;
+          techTitle.textContent = `Korak ${idx + 1} · ${kratko}`;
+          techTitle.title = `Korak ${idx + 1} · ${celo}`;
           miniContainer.appendChild(techTitle);
           const gridDiv = document.createElement('div');
           renderGridInto(gridDiv, s, 'min(9.8vw, 42px)');
@@ -195,7 +203,7 @@ function renderStepsList() {
             openLightbox(el => {
               const lbTitle = document.createElement('div');
               lbTitle.style.cssText = 'text-align:center;font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;color:#3C4854;margin:0 0 10px;';
-              lbTitle.textContent = `${idx + 1}. ${s.technique}`;
+              lbTitle.textContent = `Korak ${idx + 1} · ${celo}`;
               el.appendChild(lbTitle);
               const lbGrid = document.createElement('div');
               renderGridInto(lbGrid, s, '52px');
@@ -391,9 +399,11 @@ document.getElementById('solveBtn').addEventListener('click', () => {
 
     const counts = {};
     log.forEach(s => { counts[s.technique] = (counts[s.technique] || 0) + 1; });
+    // Po vrstnem redu tehnik (redTehnike), ne po pogostosti; število uporab na koncu,
+    // da se ne zlepi s številko tehnike.
     summaryEl.innerHTML = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([t, n]) => `<span><b>${n}x</b> ${t}</span>`)
+      .sort((a, b) => redTehnike(a[0]) - redTehnike(b[0]))
+      .map(([t, n]) => `<span>${imeTehnike(t, { stevilka: true })} – <b>${n}×</b></span>`)
       .join('');
 
     lastSolve = { givens, grid: board.grid.slice(), log };

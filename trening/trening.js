@@ -12,13 +12,18 @@ let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 let pomocVaje=false,vajaResena=false,vajaPrav=0,vajaVseh=0,sPomocjo=0,stetoObPreveri=false;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
-// Vrstni red in oznake kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE (1-12)
-// v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3, 7").
-// Vrstni red kartic v HTML ni pomemben.
-[...TRENING_ENOJCKA,...TRENING_TEHNIKE].forEach(([m])=>{
+// Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
+// (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,
+// 7"), ime da imeTehnike(). Vrstni red kartic v HTML ni pomemben, naslov v HTML je samo
+// nadomestek (tests/trening-tehnike.test.js preveri, da je enak imeTehnike()).
+// TEHNIKA_VAJE: način vaje (data-mode) -> ključ tehnike v ALL_TECHNIQUES.
+const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
+[...TRENING_ENOJCKA,...TRENING_TEHNIKE].forEach(([m,t])=>{
   const card=menuEl.querySelector(`.menu-card[data-mode="${m}"]`);
   if(!card)return;
-  card.querySelector('h3').dataset.stevilka=oznakaTehnike(m);
+  const h3=card.querySelector('h3');
+  h3.textContent=imeTehnike(t);
+  h3.dataset.stevilka=oznakaTehnike(m);
   menuEl.appendChild(card);
 });
 
@@ -237,7 +242,7 @@ function renderExercise(){
   pomocVaje=false;vajaResena=false;vajaPrav=0;vajaVseh=0;
 
   const div=document.createElement('div');div.className='exercise';
-  div.innerHTML=`<p class="ex-label">${M.name} · Vaja ${exNum+1} / ${MAX_EX}</p><h3>${ex.unitLabel}</h3><p class="desc">${ex.desc||M.desc}</p>`;
+  div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}</p><h3>${ex.unitLabel}</h3><p class="desc">${ex.desc||M.desc}</p>`;
 
   let cellEls=[],countEls=[];
 

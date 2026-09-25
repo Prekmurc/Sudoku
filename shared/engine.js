@@ -635,10 +635,10 @@ const TRENING_TEHNIKE = [
 
 // Enojčka v treningu (raven lahke, docs/uskladitev.md 1.1): oznaki E1 in E2 namesto
 // številke, zato nista v TRENING_TEHNIKE - številke 1-12 in oznaka "tehnike: 1, 3, 7"
-// pri ugankah ostanejo brez enojčkov. Ime je že novo (1.3); motor in dnevnik
-// reševalca imata do faze imen še "Gol enojček".
+// pri ugankah ostanejo brez enojčkov. Drugi element je ključ v ALL_TECHNIQUES kot pri
+// TRENING_TEHNIKE; ime za prikaz da imeTehnike() ("Gol enojček" -> "Očitni enojček").
 const TRENING_ENOJCKA = [
-  ['naked-single', 'Očitni enojček'],
+  ['naked-single', 'Gol enojček'],
   ['hidden-single', 'Skriti enojček'],
 ];
 
@@ -651,7 +651,9 @@ function oznakaTehnike(kljuc) {
 }
 
 // Opisi tehnik - edini vir teh besedil (trening in okno "Pomoč" v igri):
-// - ime: polno ime, enako naslovu kartice v trening/index.html,
+// - ime: slovensko ime, anglesko: angleško ime (docs/uskladitev.md 1.3) - za prikaz
+//   ju sestavi imeTehnike() ("Skriti par (Hidden Pair)" = naslov kartice v
+//   trening/index.html),
 // - razlaga: kaj tehnika pove (uporabljata jo oba),
 // - navodilo: kaj naredi v vaji (samo trening),
 // - posledica: kaj iz vzorca sledi (samo igra, kjer je razlaga sama prekratka).
@@ -659,90 +661,133 @@ function oznakaTehnike(kljuc) {
 // Izraz je povsod "števka" (glej razpredelnico izrazov v CLAUDE.md).
 const TEHNIKE_OPISI = {
   'naked-single': {
-    ime: 'Očitni enojček (Naked Single)',
+    ime: 'Očitni enojček',
+    anglesko: 'Naked Single',
     razlaga: 'Poišči prazno celico, v kateri je mogoča samo še ena števka: njena vrstica, stolpec in blok skupaj že vsebujejo vseh drugih osem števk.',
     navodilo: 'Izberi celico in nato števko, ki jo vpišeš.',
     posledica: 'To števko vpišeš v celico; v igri je to celica z enim samim kandidatom.',
   },
   'hidden-single': {
-    ime: 'Skriti enojček (Hidden Single)',
+    ime: 'Skriti enojček',
+    anglesko: 'Hidden Single',
     razlaga: 'Izberi vrstico, stolpec ali blok in števko, ki je v njem še ni. Če je števka v tej enoti mogoča samo v eni celici, mora biti tam – četudi bi bile v celici sicer mogoče tudi druge števke.',
     navodilo: 'Izberi celico in nato števko, ki jo vpišeš.',
     posledica: 'To števko vpišeš v celico.',
   },
   'naked-pair': {
-    ime: 'Očitna para (Naked Pair)',
+    ime: 'Očitni par',
+    anglesko: 'Naked Pair',
     razlaga: 'Najdi 2 celici z natanko istima dvema kandidatoma.',
     navodilo: '',
     posledica: 'Ti dve števki morata zasesti prav ti dve celici, zato ju izbrišeš iz vseh drugih celic skupne enote (vrstice, stolpca ali bloka).',
   },
   'hidden-pair': {
-    ime: 'Skrita para (Hidden Pair)',
+    ime: 'Skriti par',
+    anglesko: 'Hidden Pair',
     razlaga: 'Najdi 2 celici, ki skrivata par.',
     navodilo: 'Nato izberi, kateri 2 števki tvorita par.',
     posledica: 'Par sta dve števki, ki sta v enoti mogoči samo v teh dveh celicah; ker morata biti v njiju, iz obeh celic izbrišeš vse druge kandidate.',
   },
   'pointing': {
-    ime: 'Pointing pair/triple',
+    ime: 'Izločitev izven bloka',
+    anglesko: 'Pointing Pair/Triple',
     razlaga: 'Pogledaš blok. Če je kandidat v njem mogoč samo v celicah ene vrstice (ali stolpca), ga izbrišeš iz preostanka te vrstice zunaj bloka. Smer: iz bloka v vrstico.',
     navodilo: '',
     posledica: '',
   },
   'box-line': {
-    ime: 'Box-line reduction',
+    ime: 'Izločitev v bloku',
+    anglesko: 'Box-Line Reduction',
     razlaga: 'Pogledaš vrstico (ali stolpec). Če je kandidat v njej mogoč samo v celicah enega bloka, ga izbrišeš iz preostanka tega bloka zunaj vrstice. Smer: iz vrstice v blok.',
     navodilo: '',
     posledica: '',
   },
   'naked-triple': {
-    ime: 'Očitna trojica (Naked Triple)',
+    ime: 'Očitna trojica',
+    anglesko: 'Naked Triple',
     razlaga: 'Najdi 3 celice, ki skupaj pokrijejo natanko 3 kandidate.',
     navodilo: '',
     posledica: 'Te tri števke zasedejo prav te tri celice, zato jih izbrišeš iz vseh drugih celic skupne enote. Posamezna celica ima lahko tudi samo dva od teh treh kandidatov.',
   },
   'hidden-triple': {
-    ime: 'Skrita trojica (Hidden Triple)',
+    ime: 'Skrita trojica',
+    anglesko: 'Hidden Triple',
     razlaga: 'Najdi 3 celice, ki skrivajo trojico.',
     navodilo: 'Nato izberi, katere 3 števke jo tvorijo.',
     posledica: 'Trojica so tri števke, ki so v enoti mogoče samo v teh treh celicah; iz njih izbrišeš vse druge kandidate, vsaka od celic pa ima lahko tudi samo dve od teh treh števk.',
   },
   'x-wing': {
-    ime: 'X-Wing',
+    ime: 'X-krilo',
+    anglesko: 'X-Wing',
     razlaga: 'Najdi pravokotnik – 4 celice, kjer se števka v dveh vrsticah pojavi na istih dveh mestih (ali v dveh stolpcih v istih dveh vrsticah).',
     navodilo: '',
     posledica: 'V vsaki od obeh vrstic je števka v enem od teh dveh stolpcev, zato jo iz teh dveh stolpcev izbrišeš v vseh drugih celicah.',
   },
   'swordfish': {
-    ime: 'Tehnika mečarice (Swordfish)',
+    ime: 'Mečarica',
+    anglesko: 'Swordfish',
     razlaga: 'Najdi 3 vrstice (ali stolpce), kjer se števka pojavi samo na istih 3 stolpcih (ali vrsticah).',
     navodilo: '',
     posledica: 'Števka zasede po eno celico v vsaki od teh vrstic, vse v teh treh stolpcih, zato jo iz stolpcev izbrišeš v vseh drugih celicah. Vrstica ima lahko tudi samo dve od treh mest.',
   },
   'turbot-fish': {
-    ime: 'Turbot Fish (Skyscraper, Zmaj z dvema vrvicama)',
+    ime: 'Veriga ene števke',
+    anglesko: 'Turbot Fish',
     razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Skyscraper, vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama.',
     navodilo: 'V vaji je števka označena; izberi vse štiri celice vzorca.',
     posledica: '',
   },
   'w-wing': {
-    ime: 'W-Wing (Krilo W)',
+    ime: 'W-krilo',
+    anglesko: 'W-Wing',
     razlaga: 'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.',
     navodilo: 'Izberi obe celici para in obe celici povezave (4 celice).',
     posledica: '',
   },
   'xy-wing': {
-    ime: 'XY-Wing',
+    ime: 'XY-krilo',
+    anglesko: 'XY-Wing, Y-Wing',
     razlaga: 'Poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno števko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok).',
     navodilo: 'Med prikazanimi celicami izberi pivota in obe krili (3 celice).',
     posledica: 'Če je v pivotu x, je z v krilu 2, če je y, je z v krilu 1 – z zato izbrišeš iz vseh celic, ki vidijo obe krili.',
   },
   'unique-rectangle': {
-    ime: 'Unique Rectangle',
+    ime: 'Edinstveni pravokotnik',
+    anglesko: 'Unique Rectangle',
     razlaga: 'Poišči pravokotnik štirih celic (2 vrstici × 2 stolpca, v natanko dveh blokih): trije vogali imajo natanko isti par kandidatov {x, y}, četrti pa poleg x in y še vsaj en dodaten kandidat. Ker ima uganka natanko eno rešitev, četrti vogal ne sme ostati samo na {x, y} (to bi dopuščalo dve rešitvi) – iz njega zato izbrišemo x in y.',
     navodilo: 'Izberi vse štiri celice pravokotnika.',
     posledica: '',
   },
 };
+
+// Ime tehnike za prikaz iz ključa v ALL_TECHNIQUES (tudi iz dnevnika solve() in
+// zbirke) - edini vir imen, ki jih vidi uporabnik (docs/faza4-nacrt.md, del 1):
+// - privzeto "Skriti par (Hidden Pair)" (naslov kartice v treningu),
+// - { stevilka: true } "4 · Skriti par (Hidden Pair)", "E1 · Očitni enojček (...)",
+// - { anglesko: false } brez oklepaja ("4 · Skriti par" - oznaka koraka).
+// Poskus s protislovjem (ključ se začne s "Poskus in protislovje", stari zapisi imajo
+// za njim še celico) je vedno brez številke. Neznan ključ (OBSTALO, NAPAKA, tehnika,
+// ki je ni več) vrne nespremenjenega.
+const POSKUS_KLJUC = 'Poskus in protislovje';
+function imeTehnike(kljuc, { stevilka = false, anglesko = true } = {}) {
+  if (typeof kljuc === 'string' && kljuc.startsWith(POSKUS_KLJUC)) {
+    return anglesko ? POSKUS_KLJUC + ' (Forcing Chain)' : POSKUS_KLJUC;
+  }
+  const par = [...TRENING_ENOJCKA, ...TRENING_TEHNIKE].find(([, k]) => k === kljuc);
+  if (!par) return kljuc;
+  const o = TEHNIKE_OPISI[par[0]];
+  const ime = anglesko ? `${o.ime} (${o.anglesko})` : o.ime;
+  return stevilka ? `${oznakaTehnike(par[0])} · ${ime}` : ime;
+}
+
+// Položaj tehnike za urejanje seznamov (povzetek v reševalcu, tehnike v zbirki):
+// vrstni red ALL_TECHNIQUES, za njimi poskus s protislovjem, na koncu neznane.
+function redTehnike(kljuc) {
+  const i = ALL_TECHNIQUES.findIndex(([k]) => k === kljuc);
+  if (i >= 0) return i;
+  if (typeof kljuc === 'string' && kljuc.startsWith(POSKUS_KLJUC)) return ALL_TECHNIQUES.length;
+  return ALL_TECHNIQUES.length + 1;
+}
 
 // Besedilo za vajo v treningu (razlaga + navodilo) in za okno Pomoč v igri
 // (razlaga + posledica).

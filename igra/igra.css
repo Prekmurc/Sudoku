@@ -664,7 +664,7 @@ kbd{
 /* Seznam tehnik: oznaka (E1, E2, 1..12) je izrecna, ker je <ol> ne zna izpisati. */
 .tehnike{ list-style:none; padding-left:0; }
 .tehnike li{ margin-bottom:12px; }
-.tehnike .tehnika-oznaka{ display:inline-block; min-width:26px; font-family:'JetBrains Mono', monospace; font-weight:700; color: var(--blue); }
+.tehnike .tehnika-oznaka{ display:inline-block; min-width:3em; font-family:'JetBrains Mono', monospace; font-weight:700; color: var(--blue); }
 .tehnike b{ font-family:'Source Serif 4', serif; font-size:14px; color: var(--ink); }
 .tehnike p{ margin:2px 0 0; }
 /* barve korakov v razlagi (kot na mreži) */

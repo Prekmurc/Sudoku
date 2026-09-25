@@ -1033,23 +1033,23 @@ function preveriEnojcek(ex,celica,stevka){
 }
 
 /* MODES: definicija tehnike za trening (generator, barve, št. celic za izbiro,
-   posebnosti UI). Besedilo vaje (desc) in polno ime (ime) bere iz TEHNIKE_OPISI v
-   shared/engine.js - tam so opisi tehnik na enem mestu, skupaj z okni Pomoč v igri. */
+   posebnosti UI). Besedilo vaje (desc) je iz TEHNIKE_OPISI, ime tehnike pa da
+   imeTehnike() v shared/engine.js - tam so opisi tehnik na enem mestu, skupaj z okni Pomoč v igri. */
 const MODES={
-  'naked-single':{gen:genNakedSingle,name:'Očitni enojček',selClass:'selected-slate',hlClass:'hl-slate',btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
-  'hidden-single':{gen:genHiddenSingle,name:'Skriti enojček',selClass:'selected-slate',hlClass:'hl-slate',btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
-  'pointing':{gen:genPointing,name:'Pointing pair/triple',selClass:'selected-blue',hlClass:'hl-blue',btnClass:'pri-blue',isPointing:true,pickN:3,showCandidateCount:true},
-  'box-line':{gen:genBoxLineReduction,name:'Box-line reduction',selClass:'selected-indigo',hlClass:'hl-indigo',btnClass:'pri-indigo',isBoxLine:true,pickN:3,showCandidateCount:true},
-  'naked-pair':{gen:genNakedPair,name:'Očitna para',selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,showCandidateCount:true},
-  'hidden-pair':{gen:genHiddenPair,name:'Skrita para',selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,showCandidateCount:true},
-  'naked-triple':{gen:genNakedTriple,name:'Očitna trojica',selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,showCandidateCount:true},
-  'hidden-triple':{gen:genHiddenTriple,name:'Skrita trojica',selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,showCandidateCount:true},
-  'x-wing':{gen:genXWing,name:'X-Wing',selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,showCandidateCount:false},
-  'swordfish':{gen:genSwordfish,name:'Swordfish',selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false},
-  'turbot-fish':{gen:genTurbotFish,name:'Turbot Fish',selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false},
-  'w-wing':{gen:genWWing,name:'W-Wing',selClass:'selected-olive',hlClass:'hl-olive',btnClass:'pri-olive',isWWing:true,pickN:4,showCandidateCount:true},
-  'xy-wing':{gen:genXYWing,name:'XY-Wing',selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true},
-  'unique-rectangle':{gen:genUniqueRectangle,name:'Unique Rectangle',selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true},
+  'naked-single':{gen:genNakedSingle,selClass:'selected-slate',hlClass:'hl-slate',btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
+  'hidden-single':{gen:genHiddenSingle,selClass:'selected-slate',hlClass:'hl-slate',btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
+  'pointing':{gen:genPointing,selClass:'selected-blue',hlClass:'hl-blue',btnClass:'pri-blue',isPointing:true,pickN:3,showCandidateCount:true},
+  'box-line':{gen:genBoxLineReduction,selClass:'selected-indigo',hlClass:'hl-indigo',btnClass:'pri-indigo',isBoxLine:true,pickN:3,showCandidateCount:true},
+  'naked-pair':{gen:genNakedPair,selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,showCandidateCount:true},
+  'hidden-pair':{gen:genHiddenPair,selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,showCandidateCount:true},
+  'naked-triple':{gen:genNakedTriple,selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,showCandidateCount:true},
+  'hidden-triple':{gen:genHiddenTriple,selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,showCandidateCount:true},
+  'x-wing':{gen:genXWing,selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,showCandidateCount:false},
+  'swordfish':{gen:genSwordfish,selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false},
+  'turbot-fish':{gen:genTurbotFish,selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false},
+  'w-wing':{gen:genWWing,selClass:'selected-olive',hlClass:'hl-olive',btnClass:'pri-olive',isWWing:true,pickN:4,showCandidateCount:true},
+  'xy-wing':{gen:genXYWing,selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true},
+  'unique-rectangle':{gen:genUniqueRectangle,selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true},
 };
 // Besedilo vaje (razlaga tehnike + navodilo za vajo) je v TEHNIKE_OPISI v
 // shared/engine.js; X-Wing in Swordfish ga zamenjata s svojim (z označeno števko).

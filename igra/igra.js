@@ -706,7 +706,8 @@ function izrisiPomoc() {
     const k = pomoc.korak;
     const tag = document.createElement('span');
     tag.className = `tag ${tagClass(k.technique)}`;
-    tag.textContent = k.technique;
+    tag.textContent = imeTehnike(k.technique, { stevilka: true, anglesko: false });
+    tag.title = imeTehnike(k.technique, { stevilka: true });
     pomocEl.appendChild(tag);
     if (pomoc.fokus !== null && !k.assign.concat(k.eliminate).some(([, d]) => d === pomoc.fokus)) {
       const op = document.createElement('p');
@@ -888,16 +889,16 @@ document.querySelectorAll('.dialog').forEach(el => {
 
 const navodilaDialog = document.getElementById('navodilaDialog');
 // Razdelek "Tehnike": oznake (E1, E2, 1..12), imena in razlage so v shared/engine.js
-// (TRENING_ENOJCKA + TRENING_TEHNIKE, oznakaTehnike(), TEHNIKE_OPISI), zato so iste
-// kot v treningu.
+// (TRENING_ENOJCKA + TRENING_TEHNIKE, oznakaTehnike(), imeTehnike(), TEHNIKE_OPISI),
+// zato so iste kot v treningu.
 const tehnikeSeznamEl = document.getElementById('tehnikeSeznam');
-for (const [kljuc] of [...TRENING_ENOJCKA, ...TRENING_TEHNIKE]) {
+for (const [kljuc, tehnika] of [...TRENING_ENOJCKA, ...TRENING_TEHNIKE]) {
   const li = document.createElement('li');
   const oznaka = document.createElement('span');
   oznaka.className = 'tehnika-oznaka';
-  oznaka.textContent = oznakaTehnike(kljuc);
+  oznaka.textContent = oznakaTehnike(kljuc) + ' · ';
   const ime = document.createElement('b');
-  ime.textContent = TEHNIKE_OPISI[kljuc].ime;
+  ime.textContent = imeTehnike(tehnika);
   const razlaga = document.createElement('p');
   razlaga.textContent = opisTehnike(kljuc);
   li.append(oznaka, ime, razlaga);

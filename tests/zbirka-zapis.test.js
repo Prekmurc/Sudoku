@@ -23,6 +23,8 @@
 //     podoznaka "· napaka" pri polni mreži z napako, gumb iz istega vira; shranjena
 //     igra ima prednost pred zapisom v zbirki, brez nje je gumb "Igraj"; ponovno
 //     reševanje rešene uganke ("rešena … · znova v teku (12/57)").
+//   - tehnike v zapisu (zbirkaPodatkiResevanja) so po vrstnem redu tehnik
+//     (redTehnike), ne po pogostosti.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -47,7 +49,7 @@ const E = loadEngine(undefined, {
     'zbirkaZaSeznam', 'zbirkaVrsticaIgranja', 'PRIMERI', 'zbirkaPrimerZa', 'zbirkaProgramResil',
     'zbirkaKartica', 'zbirkaUvozi', 'zbirkaIzbrisi', 'zbirkaIzbrisiVse', 'zbirkaVprasanjeIzbrisi',
     'zbirkaVprasanjeIzbrisiVse', 'igreBeri', 'IGRA_KLJUC', 'ZBIRKA_KLJUC', 'zbirkaSirote',
-    'zbirkaSporociloIzbrisiVse'],
+    'zbirkaSporociloIzbrisiVse', 'zbirkaPodatkiResevanja', 'redTehnike'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -729,4 +731,28 @@ test('zbirkaKartica(): vgrajeni primer (brez zapisa)', () => {
   assert.equal(brez.stanje.besedilo, 'nova');
   assert.equal(brez.info, `danih ${danihP}`, 'brez zapisa ni podatkov reševanja');
   assert.equal(brez.namig, '');
+});
+
+/* ---------- vrstni red tehnik v zapisu ---------- */
+
+test('zbirkaPodatkiResevanja(): tehnike po vrstnem redu tehnik, ne po pogostosti', () => {
+  // Umeten dnevnik: pogostejša tehnika je težja, poskus je prvi, OBSTALO se ne šteje.
+  const log = [
+    { technique: 'Poskus in protislovje (forcing chain)' },
+    ...Array(5).fill({ technique: 'X-Wing' }),
+    ...Array(3).fill({ technique: 'Skriti enojček' }),
+    { technique: 'Pointing pair/triple' },
+    { technique: 'Gol enojček' },
+    { technique: 'OBSTALO' },
+  ];
+  const z = E.zbirkaPodatkiResevanja({ grid: Array(81).fill(1) }, log);
+  assert.deepEqual(Array.from(z.tehnike, x => [...x]), [['Gol enojček', 1], ['Skriti enojček', 3], ['Pointing pair/triple', 1],
+    ['X-Wing', 5], ['Poskus in protislovje (forcing chain)', 1]]);
+  assert.equal(z.koraki, 11);
+  // Na pravih ugankah iz docs/uganke.md.
+  for (const p of loadPuzzles()) {
+    const { board, log: dnevnik } = E.solve(p.danosti.replace(/\./g, '0'));
+    const red = Array.from(E.zbirkaPodatkiResevanja(board, dnevnik).tehnike, ([t]) => E.redTehnike(t));
+    assert.deepEqual(red, [...red].sort((a, b) => a - b), p.ime);
+  }
 });
