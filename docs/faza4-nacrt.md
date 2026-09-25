@@ -62,6 +62,13 @@ push.
 
 ### Del 1 – imena tehnik iz enega vira (1.3, 5.4, 6.9 za ime, vrstni red seznamov)
 
+**Narejeno 2026-09-25, commit `ae48423`.** Testi: 247 (243 + 4 novi). Odstopanja od
+opisa spodaj: test vrstnega reda v `zbirkaPodatkiResevanja()` je v
+`zbirka-zapis.test.js`, `trening-wwing.test.js` preverja `imeTehnike('W-Wing')` namesto
+`MODES.name`; v `igra/igra.css` je stolpec oznake v Pomoči → Tehnike širši (`min-width:
+3em`), da so imena za »E1 · « in »10 · « poravnana; `igra-ui.test.js` ni spremenjen (oznake
+koraka ne bere noben test).
+
 1. `shared/engine.js`
    - `TEHNIKE_OPISI[k].ime` = slovensko ime brez oklepaja (»Skriti par«), novo polje
      `anglesko` (»Hidden Pair«). Imena iz tabele v `docs/uskladitev.md` 1.3.
