@@ -223,7 +223,7 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   `694ea42` in `e31c85e`, del 3 `6cfdf66`). Ime za prikaz da samo `imeTehnike(kljuc, { stevilka,
   anglesko })` iz `TEHNIKE_OPISI` (`ime` + `anglesko`); oblika s številko »4 · Skriti par
   (Hidden Pair)«, »E1 · Očitni enojček (Naked Single)«, poskus brez številke »Poskus in
-  protislovje (Forcing Chain)«. Oznaka in naslov koraka v reševalcu ter oznaka koraka v igri
+  protislovje (Trial and Error)«. Oznaka in naslov koraka v reševalcu ter oznaka koraka v igri
   sta kratka (»4 · Skriti par«, celo ime v `title`), lightbox ima celo ime. `MODES.name`
   odpade, naslove kartic v treningu vpiše `trening.js`. Seznami tehnik (povzetek v
   reševalcu, zbirka, izvoz) so po vrstnem redu tehnik (`redTehnike()`). Izvoz `**Tehnike:**`
@@ -764,7 +764,7 @@ Glej 0.2 (vzrok je CSS, ne logika).
     bloku (41, 46); `TEHNIKE_OPISI` in sporočila korakov uporabljajo »mogoč«;
   - omembi Oakevra uskladi z našimi imeni: pri verigi ene števke (»Aplikacija Oakever
     ta vzorec imenuje Skyscraper oziroma Zmaj z dvema vrvicama«, vrstica 71) z imenoma
-    podtipov »Nebotičnik (Skyscraper)« in »Zmaj z dvema vrvicama (Two-String Kite)«,
+    podtipov »Nebotičnik (Skyscraper)« in »Zmaj z dvema vrvicama (2-String Kite)«,
     ki ju od faze 4 (del 2) uporabljata sporočilo koraka in razlaga v
     `TEHNIKE_OPISI`; pri W-krilu (»… imenuje Krilo W«, vrstica 76) z imenom »W-krilo«.
 - **Obseg:** majhno.
@@ -788,7 +788,7 @@ Glej 0.2 (vzrok je CSS, ne logika).
 - **Delno narejeno 2026-09-25** (faza 4, del 1 `ae48423`): v opisih stopenj
   (`STOPNJE_UGANK[].opis`, `igra/index.html`) so nova imena tehnik in »srednje«. Odprto:
   dva opisa v `shared/generator.js` (razvrščanje in generator) in izpis iz JS namesto
-  besedila v HTML.
+  besedila v HTML. Ostanek je dodeljen fazi 6 (odločitev 2026-09-25).
 - **Obseg:** majhno.
 
 ### 5.3 Pomoč v igri o gumbu »Poglej«
@@ -1148,9 +1148,9 @@ komponente, na koncu videz in pomoč.
 | **2 – kartica zbirke** (narejeno 2026-09-24, z izvorom `primer` iz 2.5 in težavnostjo primerov iz 3; od 1.7 samo gumb »Odpri«) | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
 | **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, ročni vnos dobi pravo stopnjo; primeri niso del zbirke (odločitev spremenjena 2026-09-24, narejeno: ena zbirka, brisanje v obeh aplikacijah, dogodek `storage`) | majhno–srednje |
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
-| **4 – imena tehnik in izrazi** (narejeno 2026-09-25, `docs/faza4-nacrt.md`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 v fazo 6) | 1.3, 1.4, 5.2, 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
+| **4 – imena tehnik in izrazi** (narejeno 2026-09-25, `docs/faza4-nacrt.md`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3, 1.1 (raven tehnike, barve oznak, poved v pomoči igre) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
-| **6 – pomoč** | 5.3, 5.5, 5.6, 5.1 | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
+| **6 – pomoč** | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
 | **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes (6.4 prinese polje »Niz« v reševalec, 2.5) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu

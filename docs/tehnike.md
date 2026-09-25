@@ -14,7 +14,7 @@ Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js)
 | `hiddenTriples` | Skrita trojica | Poišče tri števke, ki so v enoti možne samo v istih treh celicah, in izbriše vse druge kandidate iz teh celic. | da |
 | `xWing` | X-krilo | Poišče kandidata, ki je v dveh vrsticah (ali stolpcih) možen na istih dveh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
 | `swordfish` | Mečarica | Poišče kandidata, ki je v treh vrsticah (ali stolpcih) možen na istih treh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
-| `turbotFish` | Veriga ene števke | Poišče dve močni povezavi za isto števko (vrstica ali stolpec, kjer je števka mogoča v natanko dveh celicah), katerih konca se vidita. Vsaj eden od drugih dveh koncev je potem ta števka, zato jo izbriše iz celic, ki vidijo oba. Podtipa: Nebotičnik (Skyscraper; vzporedni povezavi) in Zmaj z dvema vrvicama (Two-String Kite; vrstica + stolpec, konca v istem bloku); podtip je naveden v sporočilu. Močne povezave v bloku niso vključene. | da |
+| `turbotFish` | Veriga ene števke | Poišče dve močni povezavi za isto števko (vrstica ali stolpec, kjer je števka mogoča v natanko dveh celicah), katerih konca se vidita. Vsaj eden od drugih dveh koncev je potem ta števka, zato jo izbriše iz celic, ki vidijo oba. Podtipa: Nebotičnik (Skyscraper; vzporedni povezavi) in Zmaj z dvema vrvicama (2-String Kite; vrstica + stolpec, konca v istem bloku); podtip je naveden v sporočilu. Močne povezave v bloku niso vključene. | da |
 | `wWing` | W-krilo | Poišče dve celici z natanko istim parom kandidatov {a,b}, ki se med sabo ne vidita, in enoto, kjer je b mogoč samo v dveh celicah (močna povezava), od katerih ena vidi prvo, druga pa drugo celico para. Vsaj ena celica para je potem a, zato a izbriše iz celic, ki vidijo obe. V aplikaciji Oakever se tehnika imenuje »Krilo W«. | da |
 | `xyWing` | XY-krilo | Poišče pivota z dvema kandidatoma in dve krili, ki si delita skupnega kandidata, ter ga izbriše iz celic, ki vidijo obe krili. | da |
 | `uniqueRectangle` | Edinstveni pravokotnik | Prepreči smrtonosni vzorec (situacijo z dvema možnima rešitvama) tako, da iz četrte celice pravokotnika izbriše kandidata, ki bi dvoumnost povzročil. | da |
@@ -50,7 +50,7 @@ ne izpisujejo (»tehnike: 1, 3, 7«), ker jih potrebuje vsaka uganka.
 | 10 | napredne | W-krilo (W-Wing) | W-Wing | Krilo W (aplikacija Oakever) |
 | 11 | napredne | XY-krilo (XY-Wing, Y-Wing) | XY-Wing | – |
 | 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1 (motor pozna samo ta tip); nadpojem: smrtonosni vzorec (Deadly Pattern) |
-| – | – | Poskus in protislovje (Forcing Chain) | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
+| – | – | Poskus in protislovje (Trial and Error) | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
 
 »Presek« je skupno ime tehnik 1 in 2 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
 
@@ -67,6 +67,8 @@ Preostale angleške sopomenke, preverjene 2026-09-23:
   second special form of Turbot Fish«; Sudopedia ima stran »2-String Kite«, na strani
   Turbot Fish pa »This pattern is also known as 2-String Kite«. Viri pišejo »2-String«,
   izpisane oblike »Two-String Kite« v njih nisem našel, zato je v tabeli »2-String Kite«.
+  Od 2026-09-25 (faza 4) je »2-String Kite« tudi v sporočilu koraka in v razlagi tehnike
+  (`TEHNIKE_OPISI`); notranja vrednost `step.variant` ostane `'Two-String Kite'`.
 - **Y-Wing** – potrjeno. SudokuWiki opisuje isto tehniko (pivot z dvema kandidatoma in dve
   krili) pod imenom »Y-Wing« (stran Y-Wing Strategy); LiveSudoku ima naslov »XY-Wing
   (Y-Wing) Sudoku Strategy«. Sudopedia in HoDoKu uporabljata samo »XY-Wing«.
@@ -87,7 +89,9 @@ Preostale angleške sopomenke, preverjene 2026-09-23:
 
 Obe imeni sta še v kodi – funkcija `tryBifurcation` in ključ tehnike »Poskus in protislovje
 (forcing chain)« v `shared/engine.js`. Po zgornjih virih je to Trial & Error (poskus in
-napaka); preimenovanje je sprememba kode in ni del te odločitve.
+napaka); preimenovanje je sprememba kode in ni del te odločitve. Ime za prikaz je od
+2026-09-25 (faza 4) »Poskus in protislovje (Trial and Error)« (`imeTehnike()`); ključ in
+ime funkcije ostaneta.
 
 ## Vrstni red znotraj ravni (odločitev 2026-09-24)
 

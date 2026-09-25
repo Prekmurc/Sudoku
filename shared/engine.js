@@ -422,7 +422,7 @@ function turbotFish(b) {
           }
           const patternName = {
             'Skyscraper': 'vzorec Nebotičnik (Skyscraper, veriga ene števke)',
-            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (Two-String Kite, veriga ene števke)',
+            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (2-String Kite, veriga ene števke)',
             'Turbot Fish': 'verigo ene števke (Turbot Fish)',
           }[variant];
           // Enota, ki povezuje B in C: prednost ima vrstica/stolpec (UNITS_OF je v
@@ -733,7 +733,7 @@ const TEHNIKE_OPISI = {
   'turbot-fish': {
     ime: 'Veriga ene števke',
     anglesko: 'Turbot Fish',
-    razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Nebotičnik (Skyscraper), vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama (Two-String Kite).',
+    razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Nebotičnik (Skyscraper), vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama (2-String Kite).',
     navodilo: 'V vaji je števka označena; izberi vse štiri celice vzorca.',
     posledica: '',
   },
@@ -771,7 +771,7 @@ const TEHNIKE_OPISI = {
 const POSKUS_KLJUC = 'Poskus in protislovje';
 function imeTehnike(kljuc, { stevilka = false, anglesko = true } = {}) {
   if (typeof kljuc === 'string' && kljuc.startsWith(POSKUS_KLJUC)) {
-    return anglesko ? POSKUS_KLJUC + ' (Forcing Chain)' : POSKUS_KLJUC;
+    return anglesko ? POSKUS_KLJUC + ' (Trial and Error)' : POSKUS_KLJUC;
   }
   const par = [...TRENING_ENOJCKA, ...TRENING_TEHNIKE].find(([, k]) => k === kljuc);
   if (!par) return kljuc;

@@ -379,3 +379,26 @@ Spremembe so že vpisane v opise delov zgoraj; tu so zbrane.
    »Veriga ene števke: 5«; podtipa »Nebotičnik (Skyscraper)« in »Zmaj z dvema
    vrvicama (Two-String Kite)«, oba z imenom »veriga ene števke«. Podrobno v delu 2,
    točka 5.
+
+### Odločitve po pregledu dela 3 (2026-09-25)
+
+Ročni pregled dela 3 je uspešen (star izvoz, uvoz, nov izvoz, vrnitev). Odločitve k
+opažanjem iz povzetka dela 3:
+
+1. **Poskus:** velja `docs/tehnike.md` (»forcing chain« ni sopomenka, ker poskus ne sledi
+   verigi posledic). Celo ime je **»Poskus in protislovje (Trial and Error)«**, kratko
+   ostane »Poskus in protislovje«. Popravljeni so `imeTehnike()`, testi in vrstica tabele v
+   `docs/tehnike.md`. Ključ motorja `'Poskus in protislovje (forcing chain)'` in funkcija
+   `tryBifurcation` ostaneta. To nadomesti dopolnitev 3 zgoraj.
+2. **»Two-String Kite« → »2-String Kite«** (oblika iz virov, `docs/tehnike.md`) v sporočilu
+   koraka (»tvori vzorec Zmaj z dvema vrvicama (2-String Kite, veriga ene števke)«), v
+   razlagi `TEHNIKE_OPISI['turbot-fish']` in v testih. Notranja vrednost `step.variant`
+   (`'Two-String Kite'`) ostane, tako kot pri delu 2. To nadomesti ime v delu 2, točka 5c,
+   in v dopolnitvi 5.
+3. **Točka 5.2** v `docs/uskladitev.md` (ostanek: dva opisa stopenj v `shared/generator.js`
+   in izpis v HTML iz JS) je dodeljena **fazi 6**.
+
+Testi: `trening-tehnike.test.js` – nov test »angleški imeni po virih« (`TEHNIKE_OPISI` brez
+»Two-String«/»Forcing Chain«, razlaga verige z »2-String Kite«, `imeTehnike()` poskusa);
+preverjanje besedil vaj ter sporočil `solve()` in `stepHint()` zavrne opuščeni imeni tudi v
+oklepaju; `turbot-fish.test.js` – pričakovano sporočilo.

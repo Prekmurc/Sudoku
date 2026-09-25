@@ -198,10 +198,10 @@ test('imeTehnike(): dogovorjene oblike (docs/faza4-nacrt.md, del 1)', () => {
   const poskus = 'Poskus in protislovje (forcing chain)';
   assert.ok(E.solve('000800020900000600000000000604000900000720003500000000000056000080009000070000010')
     .log.some(s => s.technique === poskus), 'ključ poskusa v dnevniku solve()');
-  assert.equal(E.imeTehnike(poskus), 'Poskus in protislovje (Forcing Chain)');
-  assert.equal(E.imeTehnike(poskus, { stevilka: true }), 'Poskus in protislovje (Forcing Chain)');
+  assert.equal(E.imeTehnike(poskus), 'Poskus in protislovje (Trial and Error)');
+  assert.equal(E.imeTehnike(poskus, { stevilka: true }), 'Poskus in protislovje (Trial and Error)');
   assert.equal(E.imeTehnike(poskus, { stevilka: true, anglesko: false }), 'Poskus in protislovje');
-  assert.equal(E.imeTehnike('Poskus in protislovje (V1S1 = 5)'), 'Poskus in protislovje (Forcing Chain)', 'star zapis');
+  assert.equal(E.imeTehnike('Poskus in protislovje (V1S1 = 5)'), 'Poskus in protislovje (Trial and Error)', 'star zapis');
   // Neznan ključ ostane nespremenjen.
   for (const t of ['OBSTALO', 'NAPAKA', 'Stara tehnika']) {
     assert.equal(E.imeTehnike(t), t);
@@ -230,15 +230,35 @@ test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
   }
 });
 
+// Odločitev 2026-09-25 (docs/faza4-nacrt.md, del 3): angleški imeni po virih iz
+// docs/tehnike.md - podtip verige »2-String Kite«, poskus »Trial and Error«. Notranja
+// vrednost step.variant ostane 'Two-String Kite'.
+test('angleški imeni po virih: »2-String Kite« in »Trial and Error«', () => {
+  for (const kljuc of vseVaje) {
+    for (const [polje, t] of Object.entries(E.TEHNIKE_OPISI[kljuc])) {
+      assert.doesNotMatch(t, /Two-String|Forcing Chain/i, `${kljuc}.${polje}`);
+    }
+  }
+  assert.match(E.TEHNIKE_OPISI['turbot-fish'].razlaga, /Zmaj z dvema vrvicama \(2-String Kite\)/);
+  for (const t of ['Poskus in protislovje (forcing chain)', 'Poskus in protislovje (V1S1 = 5)']) {
+    assert.equal(E.imeTehnike(t), 'Poskus in protislovje (Trial and Error)', t);
+    assert.equal(E.imeTehnike(t, { stevilka: true, anglesko: false }), 'Poskus in protislovje', t);
+  }
+});
+
 // Besedila, ki jih vidi uporabnik, zunaj TEHNIKE_OPISI (faza 4, del 2): izraz je
 // »števka«, tehnike imajo slovensko ime - angleško ime je lahko samo v oklepaju
-// (»vzorec Nebotičnik (Skyscraper, veriga ene števke)«).
+// (»vzorec Nebotičnik (Skyscraper, veriga ene števke)«). Opuščeni angleški imeni (odločitev
+// 2026-09-25) nista nikjer, tudi v oklepaju ne: »Two-String Kite« (zdaj »2-String Kite«)
+// in »Forcing Chain« (poskus je »Trial and Error«).
 const ANGLESKA = [
   ...Object.values(E.TEHNIKE_OPISI).flatMap(o => o.anglesko.split(', ')),
-  'Skyscraper', 'Two-String Kite',
+  'Skyscraper', '2-String Kite',
 ];
+const OPUSCENA = /Two-String|Forcing Chain/i;
 function preveriBesedilo(t, kje) {
   assert.doesNotMatch(t, /številk/i, `${kje}: »številk«`);
+  assert.doesNotMatch(t, OPUSCENA, `${kje}: opuščeno angleško ime`);
   const brezOklepajev = t.replace(/\([^)]*\)/g, '');
   for (const a of ANGLESKA) assert.ok(!brezOklepajev.includes(a), `${kje}: angleško ime »${a}« zunaj oklepaja: ${t}`);
 }
