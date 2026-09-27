@@ -3,7 +3,7 @@
    razveljavi/ponovi, poudarjanje števke, seznami manjkajočih števk (vrstice,
    stolpci, bloki), pomoč (Naslednji korak, Preveri), zbirka in vnos nove
    uganke. Stanje in poteze so v ../shared/stanje.js, izris mreže in seznamov v
-   ../shared/mreza.js, izbira in poudarki v ../shared/plosca.js, shranjevanje igre v shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
+   ../shared/mreza.js, izbira, poudarki, nizi in poteze v ../shared/plosca.js, shranjevanje igre v shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
    (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
@@ -48,41 +48,50 @@ let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob pr
 
 /* ---------- gradnja mreže in nizov ---------- */
 
-// Plošča (mreža z izbiro celic in poudarki) je skupna s treningom -
-// ../shared/plosca.js. Igro in stanje ima igra; plošča ju bere prek vir().
+// Plošča (mreža z izbiro celic, poudarki, nizi, poteze, Razveljavi/Ponovi/Zbriši/
+// Začni znova) je skupna s treningom - ../shared/plosca.js. Igro in stanje ima igra;
+// plošča ju bere prek vir() in po vsaki spremembi pokliče obSpremembi().
 const plosca = ustvariPlosco({
   mreza: mrezaEl,
+  nizPoudari: nizPoudariEl,
+  nizVpisi: nizVpisiEl,
+  nizOdstrani: nizOdstraniEl,
+  razlogNizov: razlogNizovEl,
+  razveljavi: razveljaviBtn,
+  ponovi: ponoviBtn,
+  zbrisi: zbrisiBtn,
+  znova: znovaBtn,
+  stevec: stevecPotezEl,
   vecCelic: vecCelicEl,
   vecHkrati: vecHkratiEl,
   vir: () => ({ igra, stanje }),
+  obSpremembi: (vrsta) => {
+    sporocilo = vrsta === 'znova' ? { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' } : null;
+    osvezi();
+  },
   izrisi: () => izrisi(),
   samoZaOgled: () => samoZaOgled(),
   // Prikazan korak (tretja stopnja pomoči): samo še neizvedena dejanja.
   oznake: () => oznakeKoraka(pomoc && pomoc.korak && pomoc.stopnja === 3 ? pomoc.korak : null, stanje),
+  razlog: () => (samoZaOgled() ? '✓ Uganka je rešena – mreža je zaklenjena, samo za ogled. Z »Začni znova« jo lahko rešuješ še enkrat.' : null),
+  opozorilo: () => opozoriloIgre(),
+  // Rešena uganka: zapis v zbirki je že zamrznjen, zato ostane čas prve rešitve.
+  // Začni znova je namerno prazna mreža (znova): ob osvežitvi strani ostane prazna.
+  potrdiZnova: () => confirm(samoZaOgled()
+    ? 'Uganka je rešena. Če začneš znova, se mreža izprazni in jo lahko rešuješ še enkrat; v zbirki ostane zapisana kot rešena, s časom prve rešitve. Nadaljujem?'
+    : 'Začnem znova? Vse poteze bodo razveljavljene. Z »Ponovi« jih lahko vrneš, dokler ne narediš nove poteze.'),
 });
 const celice = plosca.mreza.celice;
+const gumbiVpisi = plosca.gumbi.vpisi; // gumbiVpisi in gumbiOdstrani berejo testi
+const gumbiOdstrani = plosca.gumbi.odstrani;
 const enaIzbrana = () => plosca.enaIzbrana();
 const barvaPoudarka = d => plosca.barvaPoudarka(d);
 // Zadnja izbrana poudarjena števka ali null (ima prednost pri Naslednji korak).
 const zadnjaPoudarjena = () => plosca.zadnjaPoudarjena();
-
-function narediNiz(el, obKliku) {
-  const gumbi = [];
-  for (let d = 1; d <= 9; d++) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.addEventListener('click', () => obKliku(d));
-    el.appendChild(b);
-    gumbi.push(b);
-  }
-  return gumbi;
-}
-
-const gumbiPoudari = narediNiz(nizPoudariEl, d => plosca.poudari(d));
-const gumbiVpisi = narediNiz(nizVpisiEl, d => izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d }));
-const gumbiOdstrani = narediNiz(nizOdstraniEl, d => odstraniAliVrni(d));
-
-gumbiVpisi.forEach((b, i) => { b.textContent = i + 1; });
+// Poteze gredo skozi ploščo (po njih obSpremembi zgoraj).
+const izvedi = poteza => plosca.izvedi(poteza);
+const odstraniAliVrni = d => plosca.odstraniAliVrni(d);
+const zbrisiVpis = () => plosca.zbrisiVpis();
 
 /* ---------- seznami manjkajočih števk ---------- */
 
@@ -126,33 +135,6 @@ for (const s of SEZNAMI) {
 // mreža je samo za ogled. Edina pot naprej je "Začni znova".
 function samoZaOgled() {
   return !!igra && !!stanje && jeResena(stanje);
-}
-
-function izvedi(poteza) {
-  if (!igra || samoZaOgled() || !dodajPotezo(igra, poteza, stanje)) return;
-  // Po vpisu števke se izbira celice izklopi (puščice nadaljujejo od nje).
-  if (poteza.tip === 'vpis' && poteza.stevka) plosca.nastaviIzbiro([], poteza.celica);
-  sporocilo = null;
-  osvezi();
-}
-
-// Niz "Odstrani": trenutni kandidat se odstrani, ročno odstranjen se vrne. Pri
-// več izbranih celicah se števka v eni potezi odstrani iz vseh (izbira ostane).
-function odstraniAliVrni(d) {
-  if (!igra) return;
-  if (plosca.izbrane.length > 1) {
-    izvedi({ tip: 'kandidati', celice: [...plosca.izbrane].sort((x, y) => x - y), stevka: d, odstrani: true });
-    return;
-  }
-  const celica = enaIzbrana();
-  const a = mozneAkcije(stanje, celica);
-  const bit = 1 << d;
-  if (a.odstrani & bit) izvedi({ tip: 'kandidat', celica, stevka: d, odstrani: true });
-  else if (a.vrni & bit) izvedi({ tip: 'kandidat', celica, stevka: d, odstrani: false });
-}
-
-function zbrisiVpis() {
-  izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: 0 });
 }
 
 // Po vsaki spremembi igre: novo stanje, shrani, izriši. `jePoteza` je false samo
@@ -230,35 +212,11 @@ function veljaIzhodisce(izh) {
     && (izh.kazalec === 0 || igra.poteze[izh.kazalec - 1] === izh.poteza);
 }
 
-razveljaviBtn.addEventListener('click', () => {
-  if (!igra || samoZaOgled() || !lahkoRazveljavi(igra)) return;
-  razveljavi(igra);
-  sporocilo = null;
-  osvezi();
-});
-ponoviBtn.addEventListener('click', () => {
-  if (!igra || samoZaOgled() || !lahkoPonovi(igra)) return;
-  ponovi(igra);
-  sporocilo = null;
-  osvezi();
-});
-zbrisiBtn.addEventListener('click', zbrisiVpis);
-znovaBtn.addEventListener('click', () => {
-  if (!igra || !lahkoZacniZnova(igra)) return;
-  const vprasanje = samoZaOgled()
-    ? 'Uganka je rešena. Če začneš znova, se mreža izprazni in jo lahko rešuješ še enkrat; v zbirki ostane zapisana kot rešena, s časom prve rešitve. Nadaljujem?'
-    : 'Začnem znova? Vse poteze bodo razveljavljene. Z »Ponovi« jih lahko vrneš, dokler ne narediš nove poteze.';
-  if (!confirm(vprasanje)) return;
-  zacniZnova(igra); // namerno prazna mreža (znova): ob osvežitvi strani ostane prazna
-  sporocilo = { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' };
-  osvezi();
-});
-
 /* ---------- izris ---------- */
 
 function izrisi() {
   plosca.izrisi();
-  izrisiNize();
+  izrisiPomocGumbe();
   izrisiSezname();
   izrisiStanje();
   izrisiPomoc();
@@ -274,14 +232,6 @@ function izrisiSezname() {
   seznami.izrisi({ maske: igra ? manjkajoceVEnotah(stanje) : null, vidni, barva: barvaPoudarka });
 }
 
-// Vidna oznaka zaklepa: mreža rešene uganke dobi razred (izrisiMrezo), vrstica z
-// razlogom pa izstopajoč slog - da je jasno, zakaj nizi ne delujejo (igra.css).
-function izrisiZaklep(ogled, opozorilo) {
-  razlogNizovEl.classList.toggle('zaklenjeno', ogled && !opozorilo);
-  razlogNizovEl.classList.toggle('opozorilo', !!opozorilo);
-  znovaBtn.classList.toggle('primary', ogled);
-}
-
 // Napaka (npr. shranjevanje ne deluje, obnova igre ni bila popolna) mora biti
 // vidna pri mreži, ne samo v stranski kartici "Uganka" - sicer igralec izgubi
 // napredek, ne da bi karkoli opazil.
@@ -289,76 +239,13 @@ function opozoriloIgre() {
   return sporocilo && sporocilo.razred === 'err' ? sporocilo.besedilo : '';
 }
 
-function izrisiNize() {
-  const manjka = igra ? seManjka(stanje) : new Array(10).fill(0);
-  // Pri več izbranih celicah je mogoče samo odstraniti števko, ki je kandidat v vseh.
-  const ogled = samoZaOgled();
-  const a = !igra || ogled ? mozneAkcije(null, null)
-    : plosca.izbrane.length > 1 ? { vpis: 0, odstrani: skupniKandidati(stanje, plosca.izbrane), vrni: 0, zbrisi: false }
-    : mozneAkcije(stanje, enaIzbrana());
-  for (let d = 1; d <= 9; d++) {
-    const bit = 1 << d;
-
-    const p = gumbiPoudari[d - 1];
-    const b = barvaPoudarka(d);
-    p.innerHTML = `<span>${d}</span><span class="manjka">${igra ? manjka[d] : ''}</span>`;
-    // Tudi števka, vpisana že devetkrat, se da poudariti - poudarek pokaže vse
-    // celice z njo (za hiter pregled).
-    p.disabled = !igra;
-    p.className = b >= 0 ? `aktiven b${b}` : '';
-    p.setAttribute('aria-pressed', b >= 0 ? 'true' : 'false');
-    p.title = !igra ? '' : manjka[d] === 0 ? `Poudari ${d} (vpisana devetkrat)` : `Poudari ${d} (še manjka: ${manjka[d]})`;
-
-    const v = gumbiVpisi[d - 1];
-    v.disabled = !(a.vpis & bit);
-    v.title = v.disabled ? '' : `Vpiši ${d}`;
-
-    const o = gumbiOdstrani[d - 1];
-    o.textContent = d;
-    o.classList.toggle('odstrani', !!(a.odstrani & bit));
-    o.classList.toggle('vrni', !!(a.vrni & bit));
-    o.disabled = !((a.odstrani | a.vrni) & bit);
-    o.title = (a.odstrani & bit) ? `Odstrani kandidata ${d}` : (a.vrni & bit) ? `Vrni kandidata ${d}` : '';
-    o.setAttribute('aria-label', o.title || String(d));
-  }
-  const opozorilo = opozoriloIgre();
-  razlogNizovEl.textContent = opozorilo ? `⚠ ${opozorilo}` : razlogNizov(a);
-  izrisiZaklep(ogled, opozorilo);
-  zbrisiBtn.disabled = !a.zbrisi;
-  razveljaviBtn.disabled = !igra || ogled || !lahkoRazveljavi(igra);
-  ponoviBtn.disabled = !igra || ogled || !lahkoPonovi(igra);
-  znovaBtn.disabled = !igra || !lahkoZacniZnova(igra);
-  // Gumb pove, kaj sledi; ko je korak prikazan v celoti, počaka na potezo ali Skrij.
+// Gumba pomoči. Gumb koraka pove, kaj sledi; ko je korak prikazan v celoti,
+// počaka na potezo ali Skrij.
+function izrisiPomocGumbe() {
   const stopnja = pomoc && pomoc.korak ? pomoc.stopnja : 0;
   korakBtn.textContent = stopnja === 1 ? 'Pokaži več' : stopnja === 2 ? 'Pokaži rešitev' : 'Naslednji korak';
   korakBtn.disabled = !igra || stopnja === 3;
   preveriBtn.disabled = !igra;
-  stevecPotezEl.textContent = igra ? `poteza ${igra.kazalec} / ${igra.poteze.length}` : '';
-}
-
-// Pojasnilo pod nizoma, kadar za izbrano celico ni kaj vpisati ali odstraniti.
-function razlogNizov(a) {
-  if (!igra) return '';
-  if (samoZaOgled()) return '✓ Uganka je rešena – mreža je zaklenjena, samo za ogled. Z »Začni znova« jo lahko rešuješ še enkrat.';
-  const izbrane = plosca.izbrane;
-  if (!izbrane.length) return 'Izberi celico v mreži.';
-  if (izbrane.length > 1) {
-    // Celica v izbiri je lahko polna, če je "Razveljavi"/"Ponovi" vrnil vpis.
-    const polna = izbrane.find(c => stanje.grid[c]);
-    if (polna !== undefined) return `V ${cellLabel(polna)} je vpis – odstrani jo iz izbire.`;
-    if (!a.odstrani) return 'Izbrane celice nimajo skupnega kandidata.';
-    return `Izbrane celice: ${izbrane.length} – odstrani števko, ki je kandidat v vseh.`;
-  }
-  const izbrana = izbrane[0];
-  const ime = cellLabel(izbrana);
-  const v = stanje.grid[izbrana];
-  if (igra.danosti[izbrana] !== '0') return `${ime} je dana števka (${v}) – ne spreminja se.`;
-  if (v) return `V ${ime} je tvoj vpis (${v}) – za spremembo ga najprej zbriši.`;
-  if (!a.vpis) {
-    return a.vrni ? `V ${ime} ni več kandidatov – vrni odstranjenega (↺) ali razveljavi.`
-      : `V ${ime} ni več kandidatov – razveljavi zadnje poteze.`;
-  }
-  return '';
 }
 
 function izrisiStanje() {
