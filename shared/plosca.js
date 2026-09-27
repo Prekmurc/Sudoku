@@ -276,12 +276,15 @@ function ustvariPlosco(o) {
   function obTipki(e) {
     if (!vir().igra) return false;
     const ctrl = e.ctrlKey || e.metaKey;
-    if (ctrl && !e.altKey && e.code === 'KeyZ') {
+    // Črke po napisu na tipki (e.key), ne po mestu (e.code): na QWERTZ (slovenska
+    // razporeditev) sta Z in Y zamenjana. S Shift je e.key velika črka.
+    const crka = typeof e.key === 'string' ? e.key.toLowerCase() : '';
+    if (ctrl && !e.altKey && crka === 'z') {
       e.preventDefault();
       if (e.shiftKey) ponoviPotezo(); else razveljaviPotezo();
       return true;
     }
-    if (ctrl && !e.altKey && e.code === 'KeyY') {
+    if (ctrl && !e.altKey && crka === 'y') {
       e.preventDefault();
       ponoviPotezo();
       return true;

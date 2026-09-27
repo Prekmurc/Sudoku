@@ -221,6 +221,16 @@ test('plošča: tipkovnica (števke, Numpad, Shift, puščice, Backspace/Delete,
   p.tipka({ key: 'y', code: 'KeyY', ctrlKey: true });
   assert.equal(p.run('igra.kazalec'), n);
 
+  // QWERTZ (slovenska razporeditev): tipka z napisom Z je na mestu KeyY in obratno.
+  // Velja napis (e.key), ne mesto (e.code).
+  assert.equal(p.tipka({ key: 'z', code: 'KeyY', ctrlKey: true }), true);
+  assert.equal(p.run('igra.kazalec'), n - 1, 'QWERTZ: Ctrl + tipka Z razveljavi');
+  p.tipka({ key: 'y', code: 'KeyZ', ctrlKey: true });
+  assert.equal(p.run('igra.kazalec'), n, 'QWERTZ: Ctrl + tipka Y ponovi (ne razveljavi)');
+  p.tipka({ key: 'z', code: 'KeyY', ctrlKey: true });
+  p.tipka({ key: 'Z', code: 'KeyY', ctrlKey: true, shiftKey: true });
+  assert.equal(p.run('igra.kazalec'), n, 'QWERTZ: Ctrl+Shift + tipka Z ponovi');
+
   // Pri več izbranih celicah puščice in vpis ne naredijo nič.
   p.klik(p0, { ctrlKey: true });
   const izbira = p.izbrane();
