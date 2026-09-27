@@ -1167,3 +1167,19 @@ spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne
 - v fazi 4 je jasen notranji vrstni red (1.3 + 1.4, nato 1.1); ker so imena in ravni
   določeni, faza 4 in 5 nista več odvisni od odločitev. Edino odprto vprašanje (stopnja
   uganke z ekspertno tehniko) ne zadeva nobene faze – pride z XY-Chain.
+
+## Opombe k delom
+
+### Faza 5 – videz
+
+- **Vnosna mreža reševalca se pri ozkem zaslonu preliva** (zapisano 2026-09-27, opaženo
+  pri nalogi »niz v reševalcu«, `docs/niz-resevalec-nacrt.md`; ni popravljeno).
+  Pri širini okna 375 px sega `#inputGrid` v `app/` pribl. 20 px čez desni rob kartice
+  in 4 px čez rob okna (`scrollWidth` 379 > 375, stran ima vodoravni drsnik). Obstaja že
+  od prej – enako je na kodi pred polje Niz (`tools/brskalnik.js` z `--koren` na
+  izvlečku commita `0d3a078`). Vzrok: velikost celice `--cs: min(10.2vw, 48px)` v
+  `app/app.css` ne upošteva robov – mreža je široka 9 × 10,2vw ≈ 344 px, v kartici pa je
+  prostora 375 − 2 · 16 (`main`) − 2 · 1 (obroba) − 2 · 18 (odmik kartice) = 305 px.
+  Isti `--cs` ima tudi mreža rešitve (`#solvedGrid`). Popraviti v fazi 5
+  (skupni CSS 6.8 / širina 4.2), preveriti z `node tools/brskalnik.js posnetek
+  app/index.html izhod.png --sirina 375` in pogojem `scrollWidth <= clientWidth`.
