@@ -118,3 +118,138 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
     assert.ok(ostalihTrojic < ostalih / 3, `trojic med ostalimi: ${ostalihTrojic} / ${ostalih}`);
   });
 }
+
+/* ---------- prikaz v treningu (trening/trening.js) v nadomestnem DOM-u ---------- */
+
+const { makeDom } = require('./dom-stub.js');
+const DATOTEKE_UI = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
+  'shared/vaje-banka.js', 'shared/mreza.js', 'trening/generators.js', 'trening/trening.js'];
+
+// Odprta vaja n tehnike; `zadnja` = vaja, ki jo je dal generator.
+function odpri(mode, n = 0) {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE_UI, dom.globals);
+  run(`var zadnja; { const g = MODES['${mode}'].gen; MODES['${mode}'].gen = n => (zadnja = g(n)); }`);
+  run(`mode = '${mode}'; exNum = ${n}; scoreRight = 0; scoreTotal = 0; sPomocjo = 0; updateScore(); renderExercise();`);
+  return { dom, run };
+}
+function vsi(el, out = []) {
+  for (const c of el.children || []) { out.push(c); vsi(c, out); }
+  return out;
+}
+const razredi = el => (el.className || '').split(' ');
+const gumbUI = (dom, napis) => vsi(dom.el('exerciseArea')).find(e => e.tagName === 'BUTTON' && e.textContent === napis);
+// Sporočilo pod vajo (innerHTML hrani nadomestni DOM v polju html).
+const fbUI = dom => vsi(dom.el('exerciseArea')).find(e => /^fb\b/.test(e.className));
+const rezultatUI = dom => `${dom.el('scoreRight').textContent}/${dom.el('scoreTotal').textContent}`;
+const imaPoudarek = c => vsi(c).some(s => razredi(s).includes('poud'));
+
+for (const mode of Object.keys(MODE)) {
+  test(`${mode}: prikaz - delna mreža s pravimi mesti, oznake robov, poudarjena števka, brez števila kandidatov`, () => {
+    const { dom, run } = odpri(mode);
+    const ex = JSON.parse(JSON.stringify(run('zadnja')));
+    const okvir = vsi(dom.el('exerciseArea')).find(e => razredi(e).includes('vaja-presek'));
+    assert.ok(okvir, 'okvir delne mreže');
+    assert.ok(razredi(okvir).includes('mreza-robovi'));
+    const [, zgoraj, levo, mreza] = okvir.children;
+    assert.ok(razredi(mreza).includes('delna'));
+    const celice = run('presek.mreza.celice');
+    assert.equal(celice.length, 81);
+    const vidne = new Set(ex.vidne);
+    assert.equal(celice.filter(c => razredi(c).includes('izven')).length, 66);
+    for (let i = 0; i < 81; i++) {
+      const c = celice[i];
+      assert.equal(+c.dataset.r * 9 + +c.dataset.c, i, 'celica na svojem mestu');
+      if (!vidne.has(i)) { assert.ok(razredi(c).includes('izven')); continue; }
+      if (ex.grid[i]) {
+        assert.equal(c.textContent, String(ex.grid[i]));
+        assert.ok(razredi(c).includes(ex.danosti[i] !== '0' ? 'dana' : 'vpis'), `celica ${i}: dana ali vpis`);
+      } else {
+        const kand = c.children[0].children;
+        for (let d = 1; d <= 9; d++) {
+          const s = kand[d - 1];
+          assert.equal(s.textContent, ex.kandidati[i] & (1 << d) ? String(d) : '', `kandidat ${d} v ${i}`);
+          assert.equal(razredi(s).includes('poud'), s.textContent === String(ex.digit), `poudarek ${d} v ${i}`);
+        }
+      }
+    }
+    // Oznake robov: krepka samo vrstica ali stolpec vaje.
+    const krepke = el => el.children.map((s, k) => (s.className === 'akt' ? k : -1)).filter(k => k >= 0);
+    assert.deepEqual(krepke(ex.jeVrstica ? levo : zgoraj), [ex.enotaSt]);
+    assert.deepEqual(krepke(ex.jeVrstica ? zgoraj : levo), []);
+    // Oznaka števke in brez gumba za število kandidatov.
+    assert.ok(vsi(dom.el('exerciseArea')).some(e => e.textContent === `Označena števka: ${ex.digit}`));
+    assert.ok(!gumbUI(dom, 'Pokaži število kandidatov'), 'gumba za število kandidatov ni');
+  });
+
+  test(`${mode}: izbira in preverjanje - skrite in dane celice se ne izberejo, pravilen in napačen odgovor`, () => {
+    const { dom, run } = odpri(mode);
+    const ex = JSON.parse(JSON.stringify(run('zadnja')));
+    const celice = run('presek.mreza.celice');
+    const izbrane = () => [...celice.map((c, i) => (razredi(c).includes('izbrana') ? i : -1)).filter(i => i >= 0)];
+    const skrita = [...Array(81).keys()].find(i => !ex.vidne.includes(i));
+    const dana = ex.vidne.find(i => ex.grid[i]);
+    celice[skrita].sprozi('click');
+    celice[dana].sprozi('click');
+    assert.deepEqual(izbrane(), [], 'skrita in dana celica se ne izbereta');
+    // Ena sama celica → "Izberi 2 ali 3 celice."; ponoven klik izbiro prekliče; največ tri.
+    const prazne = ex.vidne.filter(i => !ex.grid[i]);
+    celice[prazne[0]].sprozi('click');
+    assert.deepEqual(izbrane(), [prazne[0]]);
+    gumbUI(dom, 'Preveri').sprozi('click');
+    assert.equal(fbUI(dom).textContent, 'Izberi 2 ali 3 celice.');
+    celice[prazne[0]].sprozi('click');
+    assert.deepEqual(izbrane(), [], 'ponoven klik izbiro prekliče');
+    prazne.slice(0, 4).forEach(i => celice[i].sprozi('click'));
+    assert.equal(izbrane().length, Math.min(3, prazne.length), 'največ tri');
+    prazne.slice(0, 4).forEach(i => celice[i].sprozi('click'));
+    // Napačen odgovor: dve prazni celici, ki nista vzorec.
+    const napacne = prazne.filter(i => !ex.solutionCells.includes(i)).slice(0, 2);
+    assert.equal(napacne.length, 2);
+    run('selected = []; presek.izrisi()');
+    napacne.forEach(i => celice[i].sprozi('click'));
+    gumbUI(dom, 'Preveri').sprozi('click');
+    assert.ok(fbUI(dom).className.includes('err'));
+    assert.ok(fbUI(dom).html.startsWith('<b>To še ni pravi vzorec.</b>'), fbUI(dom).html);
+    assert.deepEqual(izbrane(), [], 'izbira je po napačnem odgovoru počiščena');
+    assert.equal(rezultatUI(dom), '0/1');
+    // Pravilen odgovor: celice koraka → "Pravilno!", oznake koraka, poudarek izklopljen.
+    ex.solutionCells.forEach(i => celice[i].sprozi('click'));
+    gumbUI(dom, 'Preveri').sprozi('click');
+    assert.ok(fbUI(dom).className.includes('ok'));
+    assert.equal(fbUI(dom).html, `<b>Pravilno!</b> ${ex.solutionMessage}`);
+    assert.equal(rezultatUI(dom), '1/2');
+    for (const i of ex.solutionCells) assert.ok(razredi(celice[i]).includes('k-vzorec'), `vzorec ${i}`);
+    for (const [i, d] of ex.solutionEliminate) {
+      assert.ok(razredi(celice[i]).includes('k-izbris'), `celica z izbrisom ${i}`);
+      assert.ok(razredi(celice[i].children[0].children[d - 1]).includes('k-izbris'), `izbris ${d} v ${i}`);
+    }
+    assert.ok(!celice.some(imaPoudarek), 'poudarek izklopljen');
+    // Po pravilnem odgovoru se nič več ne izbere, oznake ostanejo tudi po ogledu rešitve.
+    celice[napacne[0]].sprozi('click');
+    assert.deepEqual(izbrane(), []);
+    gumbUI(dom, 'Rešitev (drži)').sprozi('mousedown');
+    gumbUI(dom, 'Rešitev (drži)').sprozi('mouseup');
+    assert.ok(ex.solutionCells.every(i => razredi(celice[i]).includes('k-vzorec')));
+    assert.equal(rezultatUI(dom), '1/2', 'ogled po pravilnem odgovoru ne spremeni rezultata');
+  });
+
+  test(`${mode}: »Rešitev (drži)« pokaže oznake koraka samo med držanjem, namig našteje celice s števko`, () => {
+    const { dom, run } = odpri(mode);
+    const ex = JSON.parse(JSON.stringify(run('zadnja')));
+    const celice = run('presek.mreza.celice');
+    const g = gumbUI(dom, 'Rešitev (drži)');
+    g.sprozi('mousedown');
+    assert.ok(ex.solutionCells.every(i => razredi(celice[i]).includes('k-vzorec')), 'med držanjem je vzorec označen');
+    assert.ok(!celice.some(imaPoudarek), 'med držanjem ni poudarka');
+    g.sprozi('mouseup');
+    assert.ok(!celice.some(c => razredi(c).includes('k-vzorec')), 'po spustu oznak ni');
+    assert.ok(celice.some(imaPoudarek), 'poudarek je spet vklopljen');
+    const n = gumbUI(dom, 'Namig (drži)');
+    n.sprozi('mousedown');
+    const namig = vsi(dom.el('exerciseArea')).find(e => /peek-overlay/.test(e.className) && /visible/.test(e.className));
+    const polozaji = ex.solutionCells.map(i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`).join(', ');
+    assert.ok(namig && namig.html.includes(`Kandidat ${ex.digit} se v `) && namig.html.includes(polozaji), namig && namig.html);
+    n.sprozi('mouseup');
+  });
+}

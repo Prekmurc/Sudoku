@@ -10,6 +10,8 @@ let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 // ne med pravilne ne med napačne - že šteti poskusi te vaje se ob ogledu odštejejo.
 // Ogled po pravilnem odgovoru ne spremeni ničesar (vaja je končana).
 let pomocVaje=false,vajaResena=false,vajaPrav=0,vajaVseh=0,sPomocjo=0,stetoObPreveri=false;
+// Delna mreža vaj 1 in 2 (buildPresekLayout) ali null.
+let presek=null;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
 // Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
@@ -91,55 +93,41 @@ function buildLayout(div,ex,M){
   return{cellEls,countEls};
 }
 
-// Prikaz za Pointing pair/triple in Box-line reduction: primarna enota (blok
-// ali vrstica/stolpec, 9 celic) + preostanek druge enote zunaj nje (6 celic).
-// ex.slots je en plosk seznam 15 rež (najprej primarne, nato sekundarne) -
-// indeks v njem (si) je isti, kot ga uporablja makeCell/selected.
-function buildBoxLineLayout(div,ex,M){
-  const countEls=[],cellEls=[];
-  const primarySlots=[],secondarySlots=[];
-  ex.slots.forEach((slot,si)=>(slot.group==='primary'?primarySlots:secondarySlots).push([slot,si]));
-
-  const primLbl=document.createElement('div');primLbl.className='bl-section-label';primLbl.textContent=ex.primaryLabel;
-  div.appendChild(primLbl);
-
-  if(ex.primaryType==='block'){
-    const lg=document.createElement('div');lg.className='block-labels';
-    primarySlots.forEach(([slot])=>{const s=document.createElement('span');s.textContent=slot.pos;lg.appendChild(s);});
-    div.appendChild(lg);
-    const grid=document.createElement('div');grid.className='layout-block';
-    primarySlots.forEach(([slot,si])=>{const gc=makeCell(slot,si,M);grid.appendChild(gc);cellEls[si]=gc;});
-    div.appendChild(grid);
-    const bc=document.createElement('div');bc.className='block-counts';
-    primarySlots.forEach(([slot,si])=>{const s=document.createElement('span');s.textContent=slot.c?slot.c.length:'';bc.appendChild(s);countEls[si]=s;});
-    div.appendChild(bc);
-  } else {
-    const strip=document.createElement('div');strip.className=ex.primaryType==='row'?'layout-row':'layout-col';
-    primarySlots.forEach(([slot,si])=>{
-      const cw=document.createElement('div');cw.className='cw';
-      const lbl=document.createElement('div');lbl.className='clbl';lbl.textContent=slot.pos;cw.appendChild(lbl);
-      const gc=makeCell(slot,si,M);cw.appendChild(gc);cellEls[si]=gc;
-      const cnt=document.createElement('div');cnt.className='ccnt';cnt.textContent=slot.c?slot.c.length:'';cw.appendChild(cnt);countEls[si]=cnt;
-      strip.appendChild(cw);
-    });
-    div.appendChild(strip);
-  }
-
-  const secLbl=document.createElement('div');secLbl.className='bl-section-label';
-  const outsideOf=ex.primaryType==='block'?'bloka':(ex.primaryType==='row'?'vrstice':'stolpca');
-  secLbl.textContent=`${ex.secondaryLabel} (izven ${outsideOf})`;
-  div.appendChild(secLbl);
-  const rest=document.createElement('div');rest.className='layout-rest';
-  secondarySlots.forEach(([slot,si])=>{
-    const cw=document.createElement('div');cw.className='cw';
-    const lbl=document.createElement('div');lbl.className='clbl';lbl.textContent=slot.pos;cw.appendChild(lbl);
-    const gc=makeCell(slot,si,M);cw.appendChild(gc);cellEls[si]=gc;
-    const cnt=document.createElement('div');cnt.className='ccnt';cnt.textContent=slot.c?slot.c.length:'';cw.appendChild(cnt);countEls[si]=cnt;
-    rest.appendChild(cw);
+// Prikaz za 1 · Izločitev izven bloka in 2 · Izločitev v bloku: delna mreža 9 x 9 iz
+// shared/mreza.js (docs/geometrija-1-2-nacrt.md) - vidna sta samo blok in vrstica/stolpec
+// vaje na pravih mestih (pogled.vidne), oznake robov S1-S9/V1-V9 (robovi), števka vaje je
+// poudarjena kot v igri. Izbira (selected, indeksi celic 0-80) je izbira mreže; kliknejo
+// se samo prazne vidne celice, po pravilnem odgovoru nič več. Korak vaje (pravilen
+// odgovor ali "Rešitev") se pokaže z oznakami koraka kot v igri (jantarno vzorec, rdeče
+// prečrtan izbris) - poudarek je takrat izklopljen, da rumena podlaga ne prekrije izbrisa.
+function buildPresekLayout(div,ex,M){
+  const okvir=document.createElement('div');okvir.className='vaja-presek';
+  div.appendChild(okvir);
+  let korak=false;
+  const mreza=ustvariMrezo(okvir,{robovi:true,obKliku:i=>{
+    if(vajaResena||ex.grid[i]) return;
+    const ii=selected.indexOf(i);
+    if(ii>=0) selected.splice(ii,1);
+    else if(selected.length<M.pickN) selected.push(i);
+    izrisi();
+  }});
+  const oznakeKoraka=()=>({
+    vzorec:new Set(ex.solutionCells),
+    izbris:new Set(ex.solutionEliminate.map(([c,d])=>c*10+d)),
+    izbrisCelice:new Set(ex.solutionEliminate.map(([c])=>c)),
+    vpis:new Map(),
   });
-  div.appendChild(rest);
-
-  return{cellEls,countEls};
+  function izrisi(){
+    mreza.izrisi({
+      grid:ex.grid,danosti:ex.danosti,kandidati:ex.kandidati,
+      barva:d=>!korak&&d===ex.digit?0:-1,
+      izbrane:korak?[]:selected,sosede:null,
+      oznake:korak?oznakeKoraka():null,
+      vidne:ex.vidne,
+    });
+  }
+  izrisi();
+  return{mreza,izrisi,pokaziKorak(on){korak=on;izrisi();}};
 }
 
 // Prikaz za XY-Wing in Unique Rectangle: cela mreža 9x9 s kandidati, ker je pri
@@ -254,7 +242,7 @@ function renderExercise(){
     area.appendChild(d);return;
   }
   const ex=M.gen(exNum);
-  selected=[];pickedDigits=[];area.innerHTML='';
+  selected=[];pickedDigits=[];area.innerHTML='';presek=null;
   pomocVaje=false;vajaResena=false;vajaPrav=0;vajaVseh=0;
 
   const div=document.createElement('div');div.className='exercise';
@@ -302,8 +290,7 @@ function renderExercise(){
     const dlabel=document.createElement('div');dlabel.className='xw-digit-label';
     dlabel.textContent=`Označena števka: ${ex.digit}`;
     div.appendChild(dlabel);
-    const layout=buildBoxLineLayout(div,ex,M);
-    cellEls=layout.cellEls;countEls=layout.countEls;
+    presek=buildPresekLayout(div,ex,M);
   } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
     // Oznaka "Označena številka" samo pri Turbot Fish - XY-Wing in Unique Rectangle
     // nista vezani na eno samo številko.
@@ -374,11 +361,12 @@ function renderExercise(){
   // --- Namig in Rešitev gumba (prikaže se samo med držanjem) ---
   const peekRow=document.createElement('div');peekRow.className='peek-row';
 
-  // Za Pointing/Box-line: korak shared logike, ki ga je generator preveril in
-  // shranil (glej trening/generators.js) - uporabljata ga namig, rešitev in
-  // poudarjanje celic, da vedno kažeta na isti, načrtovani vzorec (na plošči
-  // lahko po naključju obstaja tudi kak drug veljaven vzorec za isto številko;
-  // preverjanje odgovora v checkPhase1 tak vzorec še vedno sprejme).
+  // Korak shared logike, ki ga je generator preveril in shranil (glej
+  // trening/generators.js) - uporabljata ga rešitev in poudarjanje celic, da vedno
+  // kažeta na isti, načrtovani vzorec. Pri XY-Wing, Unique Rectangle, Turbot Fish in
+  // W-Wing lahko na plošči po naključju obstaja tudi kak drug veljaven vzorec, ki ga
+  // preverjanje odgovora v checkPhase1 še vedno sprejme; pri 1 in 2 (vaja iz prave
+  // uganke) je odgovor en sam.
   function exDigitStep(){
     if(!ex.solutionCells) return null;
     return {cells:ex.solutionCells,eliminate:ex.solutionEliminate,message:ex.solutionMessage};
@@ -388,7 +376,7 @@ function renderExercise(){
   function buildHintText(){
     if(M.isSingle) return ex.namig;
     if(M.isPointing||M.isBoxLine){
-      const withDigit=ex.slots.filter(s=>s.group==='primary'&&s.c&&s.c.includes(ex.digit)).map(s=>s.pos);
+      const withDigit=ex.primaryCells.filter(c=>!ex.grid[c]&&(ex.kandidati[c]&(1<<ex.digit))).map(cellPos);
       const seek=M.isPointing?'eni vrstici ali stolpcu':'enem bloku';
       return `Kandidat ${ex.digit} se v ${ex.primaryLabel.toLowerCase()} pojavlja v celicah: ${withDigit.join(', ')||'(nikjer)'}. Ali vse ležijo v ${seek}?`;
     } else if(M.isXYWing){
@@ -499,7 +487,9 @@ function renderExercise(){
         // Pri skritem enojčku je bistvena enota, v kateri je števka omejena na eno mesto.
         if(ex.korak.hint&&ex.korak.hint.unit) ex.korak.hint.unit.forEach(c=>cellEls[c].classList.add('peek-enota'));
         cellEls[ex.korak.assign[0][0]].classList.add('peek-hl');
-      } else if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
+      } else if(presek){
+        presek.pokaziKorak(true);
+      } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
         const step=exDigitStep();
         if(step){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
@@ -517,6 +507,7 @@ function renderExercise(){
   }
   function peekOff(overlay){
     overlay.classList.remove('visible');
+    if(presek&&!vajaResena) presek.pokaziKorak(false);
     cellEls.forEach(c=>c.classList.remove('peek-hl','peek-elim','peek-enota'));
   }
 
@@ -555,33 +546,24 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
   }
 
   if(M.isPointing||M.isBoxLine){
-    // Jedro zaznave (pointing()/boxLineReduction()) je ista koda kot v reševalcu
-    // (shared/engine.js) - sprejme katero koli veljavno kombinacijo izbranih
-    // celic za označeno številko, ne samo tisto, ki jo je sestavil generator.
-    const techFn=M.isPointing?pointing:boxLineReduction;
-    const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
-    const selSet=new Set(selected.map(si=>ex.slots[si].idx));
-    const steps=techFn(fakeBoard).filter(s=>s.eliminate.length&&s.eliminate[0][1]===ex.digit);
-    const match=steps.find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
-    stej(!!match);
-    if(match){
-      const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
+    // Vaja je stanje prave uganke (genPresek): pri dani števki je vzorec v bloku (1) oz.
+    // v vrstici/stolpcu (2) en sam - korak motorja, ki ga je generator izbral. Motor na
+    // delni mreži se ne kliče, ker bi skrite celice štel za dane in sprejel tudi vzorce,
+    // ki jih iz prikazanega ni mogoče utemeljiti.
+    const selSet=new Set(selected);
+    const prav=selSet.size===ex.solutionCells.length&&ex.solutionCells.every(c=>selSet.has(c));
+    stej(prav);
+    if(prav){
       fb.className='fb ok';
-      fb.innerHTML=`<b>Pravilno!</b> ${match.message}`;
-      selected.forEach(si=>cellEls[si].classList.add('correct'));
-      match.eliminate.forEach(([cidx,dig])=>{
-        const si=idxToSi.get(cidx);if(si===undefined)return;
-        cellEls[si].classList.add('elimcell');
-        const cd=cellEls[si].querySelector(`.cd[data-d="${dig}"]`);
-        if(cd) cd.classList.add('elim');
-      });
+      fb.innerHTML=`<b>Pravilno!</b> ${ex.solutionMessage}`;
+      presek.pokaziKorak(true);
       checkBtn.style.display='none';nextBtn.style.display='inline-block';
     } else {
       const where=M.isPointing?'bloku':(ex.primaryType==='row'?'vrstici':'stolpcu');
       const target=M.isPointing?'eno vrstico/stolpec':'en blok';
       fb.className='fb err';
       fb.innerHTML=`<b>To še ni pravi vzorec.</b> Izberi tiste 2–3 celice, kjer je kandidat ${ex.digit} v ${where} omejen na ${target}.`;
-      selected.forEach(si=>cellEls[si].classList.remove(M.selClass));selected=[];
+      selected=[];presek.izrisi();
     }
     return;
   }

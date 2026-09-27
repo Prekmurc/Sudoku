@@ -6,9 +6,9 @@
 //   - oznaka "s pomočjo" pri sporočilu po "Preveri", v vrstici rezultata in v povzetku;
 //   - ogled po pravilnem odgovoru ne spremeni ničesar;
 //   - "Naslednja vaja" zastavico ponastavi.
-// Pokrita sta oba načina preverjanja: izbira celic (Očitna para, checkPhase1) in vpis
-// (Očitni in Skriti enojček, checkSingle - na vaji 1 in 4, torej z označeno celico ali
-// števko in z označeno enoto).
+// Pokrita sta oba načina preverjanja: izbira celic (Očitna para ter 1 in 2 na delni
+// mreži, checkPhase1) in vpis (Očitni in Skriti enojček, checkSingle - na vaji 1 in 4,
+// torej z označeno celico ali števko in z označeno enoto).
 // Na koncu je še postopnost enojčkov v krogu: oznaka, omejena izbira in zatemnjene
 // celice (vaje 1-3, 4-6), cela mreža (vaje 7-9).
 // Zagon: node --test "tests/*.test.js"
@@ -18,7 +18,8 @@ const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v trening/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'trening/generators.js', 'trening/trening.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
+  'shared/mreza.js', 'trening/generators.js', 'trening/trening.js'];
 
 // Kontekst z odprto prvo vajo tehnike; generator vaje si zapomni zadnjo vajo (`zadnja`),
 // da test pozna pravi odgovor.
@@ -77,7 +78,19 @@ function napacnoEnojcek(dom, run) {
   gumb(dom, 'Preveri').sprozi('click');
 }
 
+// Odgovori za 1 in 2 (delna mreža): celice koraka vaje ali dve prazni vidni celici zunaj njega.
+function pravilnoPresek(dom, run) {
+  run('selected = [...zadnja.solutionCells]');
+  gumb(dom, 'Preveri').sprozi('click');
+}
+function napacnoPresek(dom, run) {
+  run('selected = zadnja.vidne.filter(c => !zadnja.grid[c] && !zadnja.solutionCells.includes(c)).slice(0, 2)');
+  gumb(dom, 'Preveri').sprozi('click');
+}
+
 const PRIMERI = [
+  { tehnika: 'pointing', n: 0, pravilno: pravilnoPresek, napacno: napacnoPresek },
+  { tehnika: 'box-line', n: 0, pravilno: pravilnoPresek, napacno: napacnoPresek },
   { tehnika: 'naked-pair', n: 0, pravilno: pravilnoPar, napacno: napacnoPar },
   { tehnika: 'naked-single', n: 0, pravilno: pravilnoEnojcek, napacno: napacnoEnojcek },
   { tehnika: 'naked-single', n: 3, pravilno: pravilnoEnojcek, napacno: napacnoEnojcek },

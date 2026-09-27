@@ -59,17 +59,17 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .layout-col .cw .ccnt{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);width:16px;visibility:hidden}
 .layout-col .cw .ccnt.vis{visibility:visible}
 .layout-block{display:grid;grid-template-columns:repeat(3,var(--cs));gap:2px;justify-content:center;margin:0 auto 4px}
-.block-labels{display:grid;grid-template-columns:repeat(3,var(--cs));gap:2px;justify-content:center;margin:0 auto 2px}
-.block-labels span{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--pencil);text-align:center}
 .block-counts{display:grid;grid-template-columns:repeat(3,var(--cs));gap:2px;justify-content:center;margin:2px auto 8px}
 .block-counts span{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);text-align:center;visibility:hidden}
 .block-counts span.vis{visibility:visible}
-.layout-rest{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin:0 0 8px}
-.layout-rest .cw{display:flex;flex-direction:column;align-items:center}
-.layout-rest .cw .clbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pencil);margin-bottom:1px}
-.layout-rest .cw .ccnt{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);margin-top:1px;visibility:hidden}
-.layout-rest .cw .ccnt.vis{visibility:visible}
-.bl-section-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pencil);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 4px;text-align:center}
+
+/* 1 in 2 (Spoznaj): delna mreža iz shared/mreza.js (docs/geometrija-1-2-nacrt.md).
+   Velikost celice po istem pravilu kot --gs (mreže 9 x 9), kandidati večji kot v igri,
+   ker so celice na telefonu majhne. Izbira je kot v igri (modra obroba), le izrazitejša:
+   debelejša obroba in modrikasta podlaga, da se na majhni celici s kandidati loči. */
+.vaja-presek{--gcs:min(46px,(min(560px,100vw) - 104px)/9);margin:0 auto 12px}
+.vaja-presek .kand{font-size:calc(var(--gcs)*.34)}
+.vaja-presek .celica.izbrana{background:var(--blue-bg);box-shadow:inset 0 0 0 3px #4A86D8}
 
 .gc{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;border:2px solid #D0D5DA;border-radius:6px;background:#fff;transition:background .12s,box-shadow .12s;flex-shrink:0}
 .gc.selectable{cursor:pointer}

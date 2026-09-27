@@ -130,16 +130,17 @@
 .mreza.zaklenjena .celica{ cursor:default; }
 
 /* delna mreža (pogled.vidne v mreza.js): celica zunaj prikazanega dela je prazna
-   in ni klikljiva - siva ploskev brez tankih črt (tanke črte so v barvi ploskve),
-   debele črte blokov ostanejo, zato se vidi, kje na mreži smo. Podlaga delne mreže
-   je v isti barvi, da na stičiščih skritih celic ni belih pik; vidne celice so bele. */
+   in ni klikljiva - siva ploskev brez tankih črt, debele črte blokov ostanejo, zato
+   se vidi, kje na mreži smo. Tanke črte skrite celice imajo širino 0 (ne samo barvo
+   ploskve), sicer bi se v kotu z debelo črto stikali diagonalno in na debeli črti
+   pustili zajede. Podlaga delne mreže je v barvi ploskve, vidne celice so bele. */
 .mreza.delna{ background: var(--izven-bg); }
 :where(.mreza.delna .celica){ background:#fff; } /* brez specifičnosti: izbira, poudarek in oznake koraka imajo prednost */
-.mreza.delna .celica.izven{ cursor:default; background: var(--izven-bg); border-color: var(--izven-bg); }
-.mreza.delna .celica.izven:is([data-c="0"], [data-c="3"], [data-c="6"]){ border-left-color: var(--ink); }
-.mreza.delna .celica.izven[data-c="8"]{ border-right-color: var(--ink); }
-.mreza.delna .celica.izven:is([data-r="0"], [data-r="3"], [data-r="6"]){ border-top-color: var(--ink); }
-.mreza.delna .celica.izven[data-r="8"]{ border-bottom-color: var(--ink); }
+.mreza.delna .celica.izven{ cursor:default; background: var(--izven-bg); border:0 solid var(--ink); }
+.mreza.delna .celica.izven:is([data-c="0"], [data-c="3"], [data-c="6"]){ border-left-width:2px; }
+.mreza.delna .celica.izven[data-c="8"]{ border-right-width:2px; }
+.mreza.delna .celica.izven:is([data-r="0"], [data-r="3"], [data-r="6"]){ border-top-width:2px; }
+.mreza.delna .celica.izven[data-r="8"]{ border-bottom-width:2px; }
 
 /* oznake robov (ustvariMrezo(el, { robovi: true })): S1-S9 zgoraj, V1-V9 levo;
    vrstica ali stolpec, ki je v celoti viden (enota vaje), je krepka */
