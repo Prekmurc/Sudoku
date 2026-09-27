@@ -133,7 +133,8 @@ test('"Začni znova" pri rešeni uganki: vpraša, mreža je spet prazna, čas pr
   assert.equal(run('samoZaOgled()'), false, 'mreža je spet za reševanje');
   assert.ok(!dom.el('mreza').className.includes('zaklenjena'), 'oznaka zaklepa je odstranjena');
   assert.ok(!dom.el('razlogNizov').className.includes('zaklenjeno'));
-  assert.equal(run('gumbiVpisi.some(b => !b.disabled) || izbrane.length === 0'), true);
+  // Izbira je od dela 5 v plošči (shared/plosca.js), prej globalna `izbrane` igre.
+  assert.equal(run("gumbiVpisi.some(b => !b.disabled) || (typeof plosca !== 'undefined' ? plosca.izbrane : izbrane).length === 0"), true);
 
   assert.equal(zapis(run).igrano, cas, 'ohrani se čas prve rešitve');
   assert.equal(stanjeZapisa(run), 'rešena', 'zapis ostane zamrznjen');

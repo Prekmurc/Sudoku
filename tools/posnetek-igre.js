@@ -65,6 +65,9 @@ function posnemi(dom) {
 
 const cakaj = ms => new Promise(r => setTimeout(r, ms));
 
+// Izbrane celice na stari (globalna `izbrane` igre) in novi kodi (plošča, del 5).
+const IZBRANE = "(typeof plosca !== 'undefined' ? plosca.izbrane : izbrane)";
+
 async function scenarij() {
   const datoteke = datotekeIgre();
   const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -150,7 +153,8 @@ async function scenarij() {
   klikCelice(p2);
   klikCelice(p3);
   zapisi('več celic izbranih');
-  const skupni = run(`skupniKandidati(stanje, izbrane)`);
+  // Izbira je od dela 5 v plošči (shared/plosca.js), prej globalna `izbrane` igre.
+  const skupni = run(`skupniKandidati(stanje, ${IZBRANE})`);
   const sd = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(d => (skupni & (1 << d)) && d !== res[p2] && d !== res[p3]);
   if (sd) niz('nizOdstrani', sd);
   zapisi('odstranitev iz več celic');
