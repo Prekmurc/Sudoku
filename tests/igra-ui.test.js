@@ -185,6 +185,31 @@ test('ustvarjena uganka: takoj v zbirki, z "dodana" in brez časa reševanja', (
   assert.equal(gumb(run), 'Igraj');
 });
 
+test('okno »Nova uganka«: polje Niz našteje neveljavne znake (sporočilo skupno z reševalcem)', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  dom.klikni('novaBtn');
+  const vpisi = v => { dom.el('novaNiz').value = v; dom.el('novaNiz').sprozi('input'); };
+  const mreza = () => run("vnosi.map(inp => inp.value || '0').join('')");
+
+  vpisi(danosti.replace(/0/g, '.'));
+  assert.equal(mreza(), danosti);
+  assert.equal(dom.el('novaStatus').textContent, 'Niz je vpisan v mrežo.');
+
+  const danih = danosti.replace(/0/g, '').length;
+  vpisi(danosti.replace(/0/g, 'x'));
+  assert.equal(dom.el('novaStatus').textContent,
+    `Veljavnih znakov v nizu: ${danih} (potrebnih je 81). Neveljaven znak »x« je izpuščen – prazna celica je 0 ali pika.`);
+  assert.equal(dom.el('novaStatus').className, 'dialog-status err');
+  assert.equal(mreza(), danosti, 'mreža okna ostane');
+  assert.equal(dom.el('novaStatus').textContent, run(`zbirkaNizDanosti(${JSON.stringify(danosti.replace(/0/g, 'x'))}).sporocilo`), 'isto kot v reševalcu');
+
+  vpisi('abc');
+  assert.match(dom.el('novaStatus').textContent, /^Veljavnih znakov v nizu: 0 \(potrebnih je 81\)\. Neveljavni znaki »a«, »b« in »c« so izpuščeni/);
+  vpisi(' | ');
+  assert.equal(dom.el('novaStatus').textContent, '', 'samo presledki in ločila: brez sporočila');
+});
+
 test('ročno vnesena uganka: takoj v zbirki, z "dodana" in brez časa reševanja', async () => {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);

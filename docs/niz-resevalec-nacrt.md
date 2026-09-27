@@ -2,7 +2,7 @@
 
 Naloga: reševalec (`app/`) dobi polje »Niz« za prilepljen niz 81 znakov (`0` ali `.` = prazna celica), ki izpolni vnosno mrežo – enako kot ga ima igra v oknu »Nova uganka«. Igra se spremeni samo v enem sporočilu (naštevanje neveljavnih znakov, korak 2b), vse drugo ostane enako.
 
-Stanje: potrjeno 2026-09-27 z dopolnitvami (konflikt v danostih, naštevanje neveljavnih znakov v obeh aplikacijah v dveh korakih, orodje za brskalnik brez glave v projektu).
+Stanje: izvedeno 2026-09-27 (koraki 1, 2a in 2b). Potrjeno z dopolnitvami (konflikt v danostih, naštevanje neveljavnih znakov v obeh aplikacijah v dveh korakih, orodje za brskalnik brez glave v projektu).
 
 ## 1. Kje je zdaj branje niza
 

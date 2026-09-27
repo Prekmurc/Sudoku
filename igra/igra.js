@@ -1182,18 +1182,15 @@ function novaStatus(besedilo, napaka) {
   novaStatusEl.className = 'dialog-status' + (napaka ? ' err' : '');
 }
 
-// Branje niza je skupno z reševalcem (zbirkaNizDanosti() v ../shared/zbirka.js).
+// Branje niza in sporočila (tudi naštete neveljavne znake) so skupni z reševalcem
+// (zbirkaNizDanosti() v ../shared/zbirka.js).
 novaNizEl.addEventListener('input', () => {
   const niz = zbirkaNizDanosti(novaNizEl.value);
   if (niz.danosti) {
     niz.danosti.split('').forEach((ch, i) => { vnosi[i].value = ch === '0' ? '' : ch; });
     oznaciKonflikte();
-    novaStatus('Niz je vpisan v mrežo.');
-  } else if (niz.veljavnih) {
-    novaStatus(`Veljavnih znakov v nizu: ${niz.veljavnih} (potrebnih je 81).`, true);
-  } else {
-    novaStatus('');
   }
+  novaStatus(niz.sporocilo, niz.napaka);
 });
 
 document.getElementById('novaPocisti').addEventListener('click', () => {

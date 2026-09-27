@@ -249,14 +249,16 @@ async function zazeni({ koren = KOREN } = {}) {
       }
     },
 
-    // Posnetek vse strani (ne samo vidnega dela) v PNG.
-    async posnetek(pot) {
-      const m = await cdp.poslji('Page.getLayoutMetrics');
-      const v = m.cssContentSize || m.contentSize;
-      const r = await cdp.poslji('Page.captureScreenshot', {
-        format: 'png', captureBeyondViewport: true,
-        clip: { x: 0, y: 0, width: Math.ceil(v.width), height: Math.ceil(v.height), scale: 1 },
-      });
+    // Posnetek vse strani v PNG; z { vsaStran: false } samo vidni del - za odprta
+    // okna s fiksnim položajem (ta bi posnetek vse strani prerezal pri višini okna).
+    async posnetek(pot, { vsaStran = true } = {}) {
+      let parametri = { format: 'png' };
+      if (vsaStran) {
+        const m = await cdp.poslji('Page.getLayoutMetrics');
+        const v = m.cssContentSize || m.contentSize;
+        parametri = { ...parametri, captureBeyondViewport: true, clip: { x: 0, y: 0, width: Math.ceil(v.width), height: Math.ceil(v.height), scale: 1 } };
+      }
+      const r = await cdp.poslji('Page.captureScreenshot', parametri);
       fs.mkdirSync(path.dirname(path.resolve(pot)), { recursive: true });
       fs.writeFileSync(pot, Buffer.from(r.data, 'base64'));
     },

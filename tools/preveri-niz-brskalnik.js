@@ -110,9 +110,13 @@ async function igra(b, sirina) {
   await b.fokus('#novaNiz');
   await b.vtipkaj(kratek);
   const s = await status();
-  preveri('nepopoln niz: sporočilo o številu znakov', s === 'Veljavnih znakov v nizu: 59 (potrebnih je 81).', s);
+  preveri('nepopoln niz: sporočilo z naštetim znakom',
+    s === 'Veljavnih znakov v nizu: 59 (potrebnih je 81). Neveljaven znak »x« je izpuščen – prazna celica je 0 ali pika.', s);
+  const barva = await b.izvedi("getComputedStyle(document.getElementById('novaStatus')).color");
+  preveri('sporočilo je rdeče', barva === 'rgb(178, 58, 46)', barva); // --red v igra/igra.css
   preveri('mreža okna ostane', await b.izvedi(mreza) === danosti);
-  await b.posnetek(path.join(mapa, `igra-${sirina}-kratek.png`));
+  await b.izvedi("document.getElementById('novaStatus').scrollIntoView({ block: 'center' })");
+  await b.posnetek(path.join(mapa, `igra-${sirina}-kratek.png`), { vsaStran: false }); // okno je fiksno
 
   await b.fokus('#novaNiz');
   await b.vtipkaj(danosti);
