@@ -984,8 +984,10 @@ function genHiddenSingle(n){return genEnojcek('hidden',n);}
    posebnosti UI). Besedilo vaje (desc) je iz TEHNIKE_OPISI, ime tehnike pa da
    imeTehnike() v shared/engine.js - tam so opisi tehnik na enem mestu, skupaj z okni Pomoč v igri. */
 const MODES={
-  'naked-single':{gen:genNakedSingle,selClass:'selected-slate',hlClass:'hl-slate',btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
-  'hidden-single':{gen:genHiddenSingle,selClass:'selected-slate',hlClass:'hl-slate',btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
+  // E1 in E2: plošča iz shared/plosca.js (mreža brez kandidatov, pripomočki kot v igri) -
+  // izbira in barve so iz mreže.
+  'naked-single':{gen:genNakedSingle,btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
+  'hidden-single':{gen:genHiddenSingle,btnClass:'pri-slate',isSingle:true,pickN:1,showCandidateCount:false},
   // 1 in 2: delna mreža prave uganke (genPresek, prikaz v shared/mreza.js) - izbira in
   // barve so iz mreže, števila kandidatov ni (šteje ena števka).
   'pointing':{gen:n=>genPresek(n,'pointing'),btnClass:'pri-blue',isPointing:true,pickN:3,showCandidateCount:false},

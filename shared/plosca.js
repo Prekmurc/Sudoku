@@ -66,7 +66,8 @@ function ustvariPlosco(o) {
   // rumena, zelena, oranžna, modra (--poud, --poud2 ... v mreza.css). Brez kljukice
   // "več hkrati" je poudarjena kvečjemu ena števka (rumena).
   let poudarjene = [];
-  let vecHkrati = false;
+  // Stanje kljukice ob nastanku plošče (trening jo med vajami kroga pusti vklopljeno).
+  let vecHkrati = !!(o.vecHkrati && o.vecHkrati.checked);
   const BARV_POUDARKA = 4;
 
   /* ---------- mreža in izbira ---------- */

@@ -12,7 +12,18 @@ let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 let pomocVaje=false,vajaResena=false,vajaPrav=0,vajaVseh=0,sPomocjo=0,stetoObPreveri=false;
 // Delna mreža vaj 1 in 2 (buildPresekLayout) ali null.
 let presek=null;
+// Plošča vaje E1/E2 (buildSingleLayout) ali null; kljukica "več hkrati" ostane med vajami kroga.
+let enojcek=null,vecHkratiKrog=false;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
+
+// Barve poudarka števke so iz nastavitev igre (samo branje, shared/plosca.js) - veljajo
+// za vse mreže iz shared/mreza.js (E1, E2, 1, 2).
+const POUD_KLJUC_IGRE='sudoku.igra.poud';
+uporabiBarvePoudarka(barvePoudarkaIzNastavitev(POUD_KLJUC_IGRE));
+
+// Tipkovnica pri vajah E1/E2 (plošča): števka izbere števko za vpis, puščice premikajo
+// izbiro po celicah, ki jih je mogoče izbrati, Escape izbiro počisti.
+document.addEventListener('keydown',e=>{if(enojcek&&mode)enojcek.plosca.obTipki(e);});
 
 // Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
 // (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,
@@ -31,7 +42,7 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
 
 document.querySelectorAll('.menu-card').forEach(card=>{
   card.addEventListener('click',()=>{
-    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;
+    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;
     updateScore();menuEl.style.display='none';trainerEl.style.display='block';
     renderExercise();
   });
@@ -164,75 +175,119 @@ function buildFullGridLayout(div,ex,M){
   return{cellEls,countEls};
 }
 
-// Prikaz za enojčka (E1, E2): cela mreža prave uganke s števkami, brez kandidatov
-// (raven lahke). Prazne celice so klikljive (izbrana je vedno ena), pod mrežo je niz
-// števk 1-9 za vpis. cellEls je indeksiran s celico (0-80).
-// Postopnost (ex.oznaka iz genEnojcek): označena enota ali celica ima podlago
-// .oznacena-enota, klikniti je mogoče samo prazne celice v njej, druge prazne celice so
-// .ni-izbire (zatemnjene, brez roke). Označena celica (E1, vaje 1-3) je izbrana vnaprej
-// in je ni mogoče odizbrati, označena števka (E2, vaje 1-3) prav tako; drugi gumbi
-// števk so takrat onemogočeni.
+// Prikaz za enojčka (E1, E2): plošča iz shared/plosca.js (izris v shared/mreza.js,
+// docs/pripomocki-e1-e2-nacrt.md) na mreži prave uganke - števke brez kandidatov (raven
+// lahke), dane temne, vpisane na poti modre. Vaja je igra z vpisi poti kot začetnimi
+// potezami (igraZZacetkom), zato jih ni mogoče zbrisati ali razveljaviti. Pripomočki kot
+// v igri: niz "Poudari" s kljukico "več hkrati" (ostane med vajami kroga) in seznami
+// manjkajočih števk s stikali (ključ sudoku.trening.seznami). Sivega senčenja vrstice,
+// stolpca in bloka izbrane celice ni - zlilo bi se z zatemnjenimi celicami.
+// Postopnost (ex.oznaka iz genEnojcek): označena enota ali celica je modrikasta
+// (pogled.oznacene), izbrati je mogoče samo prazne celice v njej (spremenljiva), druge
+// prazne celice so neaktivne (zatemnjene, brez roke). Označena celica (E1, vaje 1-3) je
+// izbrana vnaprej in je ni mogoče odizbrati, označena števka (E2, vaje 1-3) prav tako;
+// drugi gumbi števk so takrat onemogočeni. Pod mrežo je niz števk 1-9 za vpis
+// (pickedDigits); tipka s števko ga izbere prek obVpisu.
+// "Rešitev (drži)" pokaže korak z oznakami koraka (enota skritega enojčka jantarno,
+// celica zeleno s števko); pravilen odgovor postane poteza vpis (števci in seznami se
+// osvežijo), mreža je nato zaklenjena (samoZaOgled, brez zelene obrobe - trening.css).
 function buildSingleLayout(div,ex,M){
-  const cellEls=[],o=ex.oznaka;
+  const o=ex.oznaka,VSE=[...Array(81).keys()];
   const oznacena=idx=>!!o&&(o.celica!=null?idx===o.celica:o.enota.includes(idx));
-  const dovoljena=idx=>!o||(o.celica==null&&oznacena(idx));
-  const g=document.createElement('div');g.className='g9';
-  const corner=document.createElement('div');corner.className='g9-hdr';g.appendChild(corner);
-  for(let c=0;c<9;c++){const h=document.createElement('div');h.className='g9-hdr';h.textContent='S'+(c+1);g.appendChild(h);}
-  for(let r=0;r<9;r++){
-    const rh=document.createElement('div');rh.className='g9-hdr';rh.textContent='V'+(r+1);g.appendChild(rh);
-    for(let c=0;c<9;c++){
-      const idx=r*9+c,gc=document.createElement('div');
-      gc.className='gc';gc.dataset.r=r;gc.dataset.c=c;
-      const v=ex.boardGrid[idx];
-      if(oznacena(idx)) gc.classList.add('oznacena-enota');
-      if(v){
-        gc.classList.add('stevka');gc.textContent=v;
-        if(ex.danosti[idx]==='0') gc.classList.add('vpis');
-      } else if(!dovoljena(idx)){
-        if(!oznacena(idx)) gc.classList.add('ni-izbire');
-      } else {
-        gc.classList.add('selectable');
-        gc.addEventListener('click',()=>{
-          if(!gc.classList.contains('selectable')) return;
-          const bil=selected[0];
-          if(bil!==undefined) cellEls[bil].classList.remove(M.selClass);
-          if(bil===idx){selected=[];return;}
-          selected=[idx];gc.classList.add(M.selClass);
-        });
-      }
-      g.appendChild(gc);cellEls[idx]=gc;
-    }
-  }
-  if(o&&o.celica!=null){selected=[o.celica];cellEls[o.celica].classList.add(M.selClass);}
-  div.appendChild(g);
-  const note=document.createElement('div');note.className='g9-note';
-  note.textContent='Temne števke so dane, modre so že vpisane.';
-  div.appendChild(note);
-  const lbl=document.createElement('p');lbl.className='stevke-label';lbl.textContent='Števka za vpis:';
+  const dovoljena=idx=>!ex.boardGrid[idx]&&(!o||(o.celica==null&&oznacena(idx)));
+  const vpisiPoti=VSE.filter(i=>ex.boardGrid[i]&&ex.danosti[i]==='0').map(i=>({tip:'vpis',celica:i,stevka:ex.boardGrid[i]}));
+  const igra=igraZZacetkom(ex.danosti,vpisiPoti);
+  if(!igra) throw new Error('buildSingleLayout: vpisi poti niso veljavne poteze');
+  let stanje=stanjeIgre(igra),prikaz=false,odgovor=null;
+  const el=(tag,cls,besedilo)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(besedilo)e.textContent=besedilo;return e;};
+  const kljukica=besedilo=>{const l=el('label'),i=el('input');i.type='checkbox';l.append(i,besedilo);return{l,i};};
+
+  const wrap=el('div','vaja-enojcek');div.appendChild(wrap);
+  const glava=el('div','poudari-glava');
+  const vh=kljukica(' več hkrati');vh.l.className='vec-hkrati';
+  vh.i.checked=vecHkratiKrog;
+  vh.i.addEventListener('change',()=>{vecHkratiKrog=vh.i.checked;});
+  glava.append(el('span','niz-oznaka','Poudari števko'),vh.l);
+  wrap.appendChild(glava);
+  const nizP=el('div','niz niz-poudari');nizP.setAttribute('role','group');nizP.setAttribute('aria-label','Poudari števko');
+  wrap.appendChild(nizP);
+  const okvir=el('div','mreza-okvir z-robovi'),mEl=el('div');
+  const seznam=(cls,opis)=>{const s=el('div','seznam '+cls);s.hidden=true;s.setAttribute('aria-label',opis);return s;};
+  const sV=seznam('seznam-vrstic','Manjkajoče števke v vrsticah'),sS=seznam('seznam-stolpcev','Manjkajoče števke v stolpcih');
+  okvir.append(mEl,sV,sS);wrap.appendChild(okvir);
+  wrap.appendChild(el('div','g9-note','Temne števke so dane, modre so že vpisane.'));
+  const stikalaEl=el('div','seznami-stikala');stikalaEl.setAttribute('role','group');stikalaEl.setAttribute('aria-label','Prikaz seznamov');
+  const kV=kljukica(' Vrstice'),kS=kljukica(' Stolpci'),kB=kljukica(' Bloki');
+  stikalaEl.append(el('span','niz-oznaka','Manjkajoče števke'),kV.l,kS.l,kB.l);
+  wrap.appendChild(stikalaEl);
+  const sB=seznam('seznam-blokov','Manjkajoče števke v blokih');wrap.appendChild(sB);
+
+  const lbl=el('p','stevke-label','Števka za vpis:');
   div.appendChild(lbl);
-  const stevkeEl=document.createElement('div');stevkeEl.className='digit-btns';
+  const stevkeEl=el('div','digit-btns'),stevke=[];
+  function izberiStevko(d){
+    if(o&&o.stevka) return;
+    const bil=pickedDigits[0];
+    stevke.forEach(x=>x.classList.remove('picked'));
+    if(bil===d){pickedDigits=[];return;}
+    pickedDigits=[d];stevke[d-1].classList.add('picked');
+  }
   for(let d=1;d<=9;d++){
-    const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
+    const b=el('button',null,String(d));b.dataset.d=d;
     if(o&&o.stevka){
       if(d===o.stevka){pickedDigits=[d];b.classList.add('picked');}
       else b.disabled=true;
     }
-    b.addEventListener('click',()=>{
-      if(o&&o.stevka) return;
-      const bil=pickedDigits[0];
-      stevkeEl.querySelectorAll('button').forEach(x=>x.classList.remove('picked'));
-      if(bil===d){pickedDigits=[];return;}
-      pickedDigits=[d];b.classList.add('picked');
-    });
-    stevkeEl.appendChild(b);
+    b.addEventListener('click',()=>izberiStevko(d));
+    stevkeEl.appendChild(b);stevke.push(b);
   }
   div.appendChild(stevkeEl);
-  return{cellEls,countEls:[],stevkeEl};
+
+  // Oznake koraka: med "Rešitev (drži)" korak vaje, po pravilnem odgovoru vpisana celica.
+  const oznake=()=>{
+    if(!prikaz&&!odgovor) return null;
+    const vpis=new Map(odgovor?[odgovor]:[]);
+    if(prikaz) ex.korak.assign.forEach(([c,d])=>vpis.set(c,d));
+    const enota=prikaz&&ex.korak.hint&&ex.korak.hint.unit||[];
+    return{vzorec:new Set(enota),izbris:new Set(),izbrisCelice:new Set(),vpis};
+  };
+  const plosca=ustvariPlosco({
+    mreza:mEl,robovi:true,kandidati:false,samoEna:true,
+    nizPoudari:nizP,vecHkrati:vh.i,
+    seznami:{vrstice:sV,stolpci:sS,bloki:sB},stikala:{vrstice:kV.i,stolpci:kS.i,bloki:kB.i},
+    postavitev:wrap,kljucSeznamov:'sudoku.trening.seznami',
+    vir:()=>({igra,stanje}),
+    samoZaOgled:()=>vajaResena,
+    spremenljiva:i=>!vajaResena&&dovoljena(i),
+    zacetnaIzbira:o&&o.celica!=null?[o.celica]:[],
+    obVpisu:(c,d)=>izberiStevko(d),
+    oznake,
+    // Po pravilnem odgovoru izbira ni več prikazana (celica je zelena).
+    pogled:()=>({
+      sosede:null,
+      oznacene:o?VSE.filter(oznacena):null,
+      neaktivne:VSE.filter(i=>!ex.boardGrid[i]&&!dovoljena(i)&&!oznacena(i)),
+      ...(vajaResena?{izbrane:[]}:{}),
+    }),
+  });
+  plosca.izrisi();
+  enojcek={
+    plosca,stevke,
+    pokazi(on){prikaz=on;plosca.izrisi();},
+    // Pravilen odgovor postane poteza vpis (števci "še manjka" in seznami se osvežijo).
+    resi(celica,stevka){
+      const prej=stanje;
+      dodajPotezo(igra,{tip:'vpis',celica,stevka},stanje);
+      stanje=stanjeIgre(igra);odgovor=[celica,stevka];
+      plosca.poSpremembi(prej);plosca.izrisi();
+    },
+  };
+  return{cellEls:[],countEls:[],stevkeEl};
 }
 
 function renderExercise(){
   const M=MODES[mode];
+  enojcek=null;
   if(exNum>=MAX_EX){
     area.innerHTML='';const d=document.createElement('div');d.className='exercise';
     const pct=scoreTotal>0?Math.round(scoreRight/scoreTotal*100):0;
@@ -484,9 +539,9 @@ function renderExercise(){
     overlay.classList.add('visible');
     if(showHL){
       if(M.isSingle){
-        // Pri skritem enojčku je bistvena enota, v kateri je števka omejena na eno mesto.
-        if(ex.korak.hint&&ex.korak.hint.unit) ex.korak.hint.unit.forEach(c=>cellEls[c].classList.add('peek-enota'));
-        cellEls[ex.korak.assign[0][0]].classList.add('peek-hl');
+        // Oznake koraka: pri skritem enojčku enota, v kateri je števka omejena na eno
+        // mesto (jantarno), in celica s števko (zeleno).
+        enojcek.pokazi(true);
       } else if(presek){
         presek.pokaziKorak(true);
       } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
@@ -508,6 +563,7 @@ function renderExercise(){
   function peekOff(overlay){
     overlay.classList.remove('visible');
     if(presek&&!vajaResena) presek.pokaziKorak(false);
+    if(enojcek) enojcek.pokazi(false);
     cellEls.forEach(c=>c.classList.remove('peek-hl','peek-elim','peek-enota'));
   }
 
@@ -755,26 +811,26 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
   }
 }
 
-// Enojčka: odgovor je vpis števke v celico. Presodi preveriEnojcek() (generators.js) s
-// koraki motorja na mreži vaje; 'nevtralno' (prava števka, a ne po tej tehniki) se ne
-// šteje - tako kot izbira dane celice pri parih.
+// Enojčka: odgovor je vpis števke v celico. Presodi preveriEnojcek() (shared/vaje-uganka.js)
+// s koraki motorja na mreži vaje; 'nevtralno' (prava števka, a ne po tej tehniki) se ne
+// šteje - tako kot izbira dane celice pri parih. Celica je izbira plošče (enojcek).
 function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
-  if(!selected.length){fb.className='fb err';fb.textContent='Izberi prazno celico.';return;}
+  const celica=enojcek.plosca.enaIzbrana();
+  if(celica===null){fb.className='fb err';fb.textContent='Izberi prazno celico.';return;}
   if(!pickedDigits.length){fb.className='fb err';fb.textContent='Izberi števko, ki jo vpišeš.';return;}
-  const celica=selected[0],stevka=pickedDigits[0];
+  const stevka=pickedDigits[0];
   const r=preveriEnojcek(ex,celica,stevka);
-  // Vnaprej izbrana celica ali števka (postopnost, vaje 1-3) ostane izbrana.
+  // Vnaprej izbrana celica ali števka (postopnost, vaje 1-3) ostane izbrana - celice
+  // pocistiIzbiro() ne odizbere, ker ni spremenljiva.
   const o=ex.oznaka||{};
   const pocisti=()=>{
-    if(o.celica==null){cellEls[celica].classList.remove(M.selClass);selected=[];}
-    if(!o.stevka){pickedDigits=[];document.querySelectorAll('.digit-btns button').forEach(b=>b.classList.remove('picked'));}
+    enojcek.plosca.pocistiIzbiro();enojcek.plosca.izrisi();
+    if(!o.stevka){pickedDigits=[];enojcek.stevke.forEach(b=>b.classList.remove('picked'));}
   };
   if(r.izid==='prav'){
     stej(true);
     fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${r.sporocilo}`;
-    const gc=cellEls[celica];
-    gc.classList.remove(M.selClass,'selectable');gc.classList.add('stevka','correct');gc.textContent=stevka;
-    cellEls.forEach(c=>c.classList.remove('selectable'));
+    enojcek.resi(celica,stevka);
     checkBtn.style.display='none';nextBtn.style.display='inline-block';
   } else if(r.izid==='nevtralno'){
     fb.className='fb err';fb.innerHTML=`<b>Še ne.</b> ${r.sporocilo}`;
