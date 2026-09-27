@@ -176,6 +176,32 @@ test('vidne: prikaz samo izbranih celic na pravih mestih, druge niso klikljive',
   assert.deepEqual([...run('klikov')], [p, zunaj]);
 });
 
+test('oznacene, neaktivne in števka za vpis v mreži brez kandidatov', () => {
+  const { run } = pripravi();
+  const [a, b, c] = prazne;
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null,
+    oznacene: [${a}, ${dana}], neaktivne: [${b}] })`);
+  const celice = run('mr.celice');
+  assert.equal(celice[a].className, 'celica oznacena');
+  assert.equal(celice[dana].className, 'celica dana oznacena', 'tudi polna celica je lahko označena');
+  assert.equal(celice[b].className, 'celica neaktivna');
+  celice[b].sprozi('click');
+  celice[a].sprozi('click');
+  assert.deepEqual([...run('klikov')], [a], 'klik neaktivne celice se ne sporoči');
+
+  // Oznaka vpisa brez kandidatov pokaže števko; s kandidati ostane kot doslej.
+  const oz = `{ vzorec: new Set([${a}]), izbris: new Set(), izbrisCelice: new Set(), vpis: new Map([[${c}, 7]]) }`;
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null, oznake: ${oz} })`);
+  assert.equal(celice[c].textContent, '7');
+  assert.equal(celice[c].className, 'celica k-vpis');
+  assert.equal(celice[a].className, 'celica k-vzorec');
+  assert.equal(celice[b].className, 'celica', 'brez neaktivne v pogledu je celica navadna');
+  celice[b].sprozi('click');
+  assert.deepEqual([...run('klikov')], [a, b]);
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, oznake: ${oz} })`);
+  assert.equal(celice[c].children.length, 1, 's kandidati so v celici kandidati, ne števka');
+});
+
 test('robovi: oznake S1-S9 in V1-V9, krepka enota iz vidne, razred delna', () => {
   const { run } = pripravi();
   run(`var ok = document.createElement('div'); var klikovR = [];

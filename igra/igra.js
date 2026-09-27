@@ -1239,9 +1239,10 @@ document.getElementById('novaBtn').addEventListener('click', () => {
 // Preizkus vseh štirih barv poudarka (--poud, --poud2, --poud3, --poud4): najprej
 // gumb 1-4 (katero barvo nastavljam), nato izbirnik barv ali hex vnos. Velja takoj
 // in si ga zapomni brskalnik (sudoku.igra.poud: { "1": "#RRGGBB", ... }, samo
-// spremenjene). "Privzeto" vrne vse štiri na vrednosti iz igra.css.
+// spremenjene). "Privzeto" vrne vse štiri na vrednosti iz igra.css. Branje zapisa
+// (barvePoudarkaIzNastavitev), POUD_SPREMENLJIVKE in normalizirajHex so v
+// shared/plosca.js - barve bere tudi trening.
 const POUD_KLJUC = 'sudoku.igra.poud';
-const POUD_SPREMENLJIVKE = ['--poud', '--poud2', '--poud3', '--poud4'];
 const poudGumbiEl = document.getElementById('poudGumbi');
 const poudBarvaEl = document.getElementById('poudBarva');
 const poudHexEl = document.getElementById('poudHex');
@@ -1251,14 +1252,6 @@ const privzetePoud = POUD_SPREMENLJIVKE.map(
 // trenutno nastavljam.
 const poudBarve = POUD_SPREMENLJIVKE.map(() => null);
 let poudMesto = 0;
-
-// '#abc', 'abc', '#aabbcc' ali 'aabbcc' -> '#AABBCC'; drugače null.
-function normalizirajHex(v) {
-  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim());
-  if (!m) return null;
-  const h = m[1].length === 3 ? m[1].replace(/./g, ch => ch + ch) : m[1];
-  return '#' + h.toUpperCase();
-}
 
 const poudGumbi = POUD_SPREMENLJIVKE.map((_, i) => {
   const b = document.createElement('button');
@@ -1333,24 +1326,7 @@ document.getElementById('poudPrivzeto').addEventListener('click', () => {
   poudShrani();
 });
 
-// Shranjeno: { "1": "#RRGGBB", ... }. Star zapis (sam hex niz) je bil barva
-// prvega poudarka - preberemo ga kot mesto 1.
-function poudPreberiShranjeno() {
-  let zapis = null;
-  try { zapis = localStorage.getItem(POUD_KLJUC); } catch (e) { return; }
-  if (!zapis) return;
-  const star = normalizirajHex(zapis);
-  if (star) { poudBarve[0] = star; return; }
-  let v = null;
-  try { v = JSON.parse(zapis); } catch (e) { return; }
-  if (!v || typeof v !== 'object') return;
-  POUD_SPREMENLJIVKE.forEach((_, i) => {
-    const barva = typeof v[i + 1] === 'string' ? normalizirajHex(v[i + 1]) : null;
-    if (barva) poudBarve[i] = barva;
-  });
-}
-
-poudPreberiShranjeno();
+barvePoudarkaIzNastavitev(POUD_KLJUC).forEach((barva, i) => { if (barva) poudBarve[i] = barva; });
 POUD_SPREMENLJIVKE.forEach((_, i) => { if (poudBarve[i]) nastaviPoud(i, poudBarve[i], false); });
 osveziPoudVnose();
 

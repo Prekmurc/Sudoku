@@ -1,24 +1,26 @@
 /* ==================== MREŽA: izris ====================
    Izris igralne mreže 9 × 9 in seznamov manjkajočih števk, skupen igri (igra/) in
-   treningu (»Vadi v uganki«, vaji 1 in 2 v »Spoznaj«). Samo izris: brez stanja igre, brez shrambe in brez
+   treningu (»Vadi v uganki«, vaje E1, E2, 1 in 2 v »Spoznaj«). Samo izris: brez stanja igre, brez shrambe in brez
    vnosa - kaj se izriše, pove aplikacija s "pogledom" ob vsakem izrisu. Slogi so v
    mreza.css (razredi .mreza, .celica, .kandidati, .kand ...). Naloži se za
    engine.js (PEERS, ROWS, COLS) in stanje.js (dejanjaKoraka). */
 
 // Zgradi 81 celic v elementu `el` (vrstni red po vrsticah, data-r/data-c za debele
-// črte blokov). `obKliku(i, e)` se pokliče ob kliku celice, ki je vidna (glej
-// pogled.vidne). Vrne { el, celice, izrisi(pogled) }.
+// črte blokov). `obKliku(i, e)` se pokliče ob kliku celice, ki je vidna in ni
+// neaktivna (glej pogled.vidne, pogled.neaktivne). Vrne { el, celice, izrisi(pogled) }.
 // `robovi: true` (trening, vaji 1 in 2): `el` postane okvir (razred mreza-robovi) z
 // oznakami S1-S9 zgoraj in V1-V9 levo, celice so v notranjem div.mreza - ta je vrnjeni
 // `el`. Oznaka vrstice ali stolpca, ki je ob pogled.vidne v celoti viden, dobi razred
-// "akt". Brez robov (igra) je `el` sama mreža, kot doslej.
+// "akt". Brez robov (igra) je `el` sama mreža, kot doslej. Okvir z robovi je lahko v
+// .mreza-okvir s seznami (mreza.css).
 //
 // pogled = {
 //   prazna      - ni odprte uganke: celice so prazne, mreža ima razred "prazna"
 //   zaklenjena  - mreža samo za ogled (razred "zaklenjena")
 //   grid        - 81 števk (0 = prazna celica)
 //   danosti     - niz 81 znakov, '0' = prazno (dana števka je temna, vpis moder)
-//   kandidati   - 81 mask kandidatov (bit d = števka d) ali null: brez kandidatov
+//   kandidati   - 81 mask kandidatov (bit d = števka d) ali null: brez kandidatov -
+//                 prazna celica z oznako vpisa (oznake.vpis) takrat pokaže števko
 //   barva(d)    - barva poudarka števke d (0..3) ali -1
 //   izbrane     - izbrane celice
 //   sosede      - celica, katere vrstica/stolpec/blok se senčijo, ali null
@@ -27,10 +29,15 @@
 //                 so prazne, imajo razred "izven" in se na klik ne odzovejo, mreža
 //                 pa razred "delna" - za prikaz dela mreže na pravih mestih (npr.
 //                 samo dveh enot vaje).
+//   oznacene    - celice z modrikasto podlago (razred "oznacena"; postopnost v
+//                 treningu - označena enota ali celica) ali null
+//   neaktivne   - celice, ki jih ni mogoče izbrati: razred "neaktivna" (zatemnjene,
+//                 brez kazalca z roko), klik se ne sporoči; ali null
 // }
 function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
   const celice = [];
   let vidne = null;
+  let neaktivne = null;
   const oznakeRoba = { vrstice: [], stolpci: [] };
   if (robovi) {
     el.classList.add('mreza-robovi');
@@ -64,6 +71,7 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
     c.setAttribute('role', 'gridcell');
     c.addEventListener('click', (e) => {
       if (vidne && !vidne.has(i)) return;
+      if (neaktivne && neaktivne.has(i)) return;
       if (obKliku) obKliku(i, e);
     });
     el.appendChild(c);
@@ -74,6 +82,8 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
     el.classList.toggle('prazna', !!p.prazna);
     el.classList.toggle('zaklenjena', !!p.zaklenjena);
     vidne = p.vidne ? new Set(p.vidne) : null;
+    neaktivne = p.neaktivne ? new Set(p.neaktivne) : null;
+    const oznacene = p.oznacene ? new Set(p.oznacene) : null;
     el.classList.toggle('delna', !!vidne);
     // Oznaka roba je krepka, kadar je vsa vrstica ali ves stolpec viden (enota vaje).
     if (robovi) for (let k = 0; k < 9; k++) {
@@ -118,7 +128,12 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
           m.appendChild(s);
         }
         c.appendChild(m);
+      } else if (o.vpis.has(i)) {
+        // Brez kandidatov (trening, enojčka): števka za vpis se pokaže v celici.
+        c.textContent = o.vpis.get(i);
       }
+      if (oznacene && oznacene.has(i)) c.classList.add('oznacena');
+      if (neaktivne && neaktivne.has(i)) c.classList.add('neaktivna');
       if (o.vpis.has(i)) c.classList.add('k-vpis');
       else if (o.vzorec.has(i)) c.classList.add('k-vzorec');
       else if (o.izbrisCelice.has(i)) c.classList.add('k-izbris');

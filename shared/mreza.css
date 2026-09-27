@@ -30,6 +30,9 @@
   /* delna mreža (pogled.vidne): skrite celice so siva ploskev; oznake robov */
   --izven-bg:#E4E8EC;
   --rob: 18px;
+  /* postopnost v treningu (pogled.oznacene, pogled.neaktivne) */
+  --oznacena-bg:#E3EEFB;
+  --neaktivna-bg:#E9EBEE;
 }
 
 /* ---------- mreža ---------- */
@@ -54,6 +57,11 @@
   cursor:pointer;
   position:relative;
 }
+/* postopnost (trening): označena enota ali celica modrikasta, prazne celice, ki jih ni
+   mogoče izbrati, zatemnjene; pred izbiro, poudarkom in oznakami koraka - te imajo
+   prednost */
+.celica.oznacena{ background: var(--oznacena-bg); }
+.celica.neaktivna{ background: var(--neaktivna-bg); cursor:default; }
 /* danosti črne, vpisi modri */
 .celica.dana{ color:#000; font-weight:800; }
 .celica.vpis{ color: var(--blue); font-weight:700; }
@@ -111,6 +119,8 @@
 .celica.k-vzorec{ background: var(--amber-bg); }
 .celica.k-izbris{ background: var(--red-bg); }
 .celica.k-vpis{ background: var(--green-bg); }
+/* števka za vpis v mreži brez kandidatov (pogled.kandidati = null) */
+.celica.k-vpis:not(.dana):not(.vpis){ color: var(--green); font-weight:700; }
 .kand.k-izbris{
   color: var(--red);
   font-weight:700;
@@ -175,6 +185,13 @@
   width:max-content;
 }
 .mreza-okvir .mreza{ grid-column:1; grid-row:1; }
+/* mreža z robovi (ustvariMrezo(el, { robovi: true })) v okvirju: okvir z robovi je
+   prvo polje, notranja mreža ostane v svojem polju okvirja z robovi; seznama sta
+   zamaknjena za rob, da ostaneta ob vrsticah in stolpcih */
+.mreza-okvir .mreza-robovi{ grid-column:1; grid-row:1; }
+.mreza-okvir .mreza-robovi .mreza{ grid-column:2; grid-row:2; }
+.mreza-okvir.z-robovi .seznam-vrstic{ margin-top: var(--rob); }
+.mreza-okvir.z-robovi .seznam-stolpcev{ margin-left: var(--rob); }
 .seznam{ display:grid; user-select:none; -webkit-user-select:none; }
 .seznam-vrstic{
   grid-column:2; grid-row:1;

@@ -1,12 +1,13 @@
 /* ==================== PLOŠČA: vnos ====================
    Igralna plošča - mreža z izbiro celic, nizi gumbov (Poudari, Vpiši, Odstrani),
    poteze z Razveljavi/Ponovi/Zbriši vpis/Začni znova in vrstica pod nizi -, skupna
-   igri (igra/) in treningu (»Vadi v uganki«). Igre ne ustvarja, ne računa njenega
+   igri (igra/) in treningu (»Vadi v uganki«, vaji E1 in E2 v »Spoznaj«). Igre ne ustvarja, ne računa njenega
    stanja in je ne shranjuje: igro in stanje (stanjeIgre) ima aplikacija in jih
    plošči da prek povratnega klica vir(); po vsaki spremembi igre plošča pokliče
    obSpremembi(vrsta) in aplikacija izračuna novo stanje, shrani in izriše. Plošča
    ima samo stanje vnosa (izbira, poudarki). Izris mreže je v mreza.js. Naloži se
-   za engine.js, stanje.js in mreza.js. */
+   za engine.js, stanje.js in mreza.js. Slogi nizov, kljukic in stikal so v
+   plosca.css. Tu je tudi branje barv poudarka iz nastavitev igre (spodaj). */
 
 // o = {
 //   mreza         - element mreže (obvezen); vsi drugi elementi so neobvezni -
@@ -29,6 +30,19 @@
 //   razlog()      - besedilo pod nizi, ki ima prednost pred privzetim, ali null
 //   opozorilo()   - rdeče opozorilo pod nizi (prednost pred vsem) ali ''
 //   potrdiZnova() - vprašanje pred "Začni znova" (false = ne začni); privzeto brez
+//   robovi        - mreža z oznakami S1-S9/V1-V9 (ustvariMrezo)
+//   kandidati     - false: mreža brez kandidatov (trening, enojčka); Shift+števka in
+//                   niz Odstrani takrat ne naredita nič (nevidnega kandidata ni mogoče
+//                   odstraniti)
+//   samoEna       - izbrana je kvečjemu ena celica (Ctrl/⌘+klik ne dodaja)
+//   spremenljiva(i) - ali igralec sme celico i izbrati ali odizbrati (privzeto vse):
+//                   klik je ne spremeni, puščice jo preskočijo, Escape in
+//                   pocistiIzbiro() jo pustita v izbiri (postopnost v treningu)
+//   zacetnaIzbira - izbrane celice ob nastanku plošče
+//   obVpisu(celica, stevka) - tipka s števko in niz Vpiši pokličeta to namesto poteze
+//                   vpis (trening: izbira števke za vpis; celica je lahko null)
+//   pogled()      - dodatna polja pogleda mreže (npr. oznacene, neaktivne, sosede),
+//                   ki imajo prednost pred polji plošče
 // }
 function ustvariPlosco(o) {
   const vir = o.vir;
@@ -39,11 +53,13 @@ function ustvariPlosco(o) {
   const potrdiZnova = o.potrdiZnova || (() => true);
   const obSpremembi = o.obSpremembi || (() => {});
   const izrisiVse = () => (o.izrisi || izrisi)();
+  const spremenljiva = o.spremenljiva || (() => true);
+  const brezKandidatov = o.kandidati === false;
 
   // Izbrane celice v vrstnem redu izbire. Več celic (kljukica "več celic" ali
   // Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
   // dokler je igralec ne počisti (Escape, izklop kljukice, navaden klik).
-  let izbrane = [];
+  let izbrane = o.zacetnaIzbira ? [...o.zacetnaIzbira] : [];
   let vecCelic = false;
   let zadnjaIzbrana = null; // celica, iz katere je bila izbira izklopljena po vpisu
   // Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
@@ -56,9 +72,10 @@ function ustvariPlosco(o) {
   /* ---------- mreža in izbira ---------- */
 
   const mreza = ustvariMrezo(o.mreza, {
+    robovi: !!o.robovi,
     obKliku: (i, e) => {
-      if (!vir().igra) return;
-      if (vecCelic || e.ctrlKey || e.metaKey) preklopiVIzbiri(i);
+      if (!vir().igra || !spremenljiva(i)) return;
+      if (!o.samoEna && (vecCelic || e.ctrlKey || e.metaKey)) preklopiVIzbiri(i);
       else izbrane = enaIzbrana() === i ? [] : [i]; // ponoven klik prekliče izbiro
       izrisiVse();
     },
@@ -77,6 +94,14 @@ function ustvariPlosco(o) {
     const { stanje } = vir();
     if (izbrane.includes(i)) izbrane = izbrane.filter(c => c !== i);
     else if (!stanje.grid[i]) izbrane = [...izbrane.filter(c => !stanje.grid[c]), i];
+  }
+
+  // Izbira brez celic, ki jih igralec ne sme odizbrati (Escape; trening po napačnem
+  // odgovoru). Vrne true, če se je izbira spremenila.
+  function pocistiIzbiro() {
+    const prej = izbrane.length;
+    izbrane = izbrane.filter(c => !spremenljiva(c));
+    return izbrane.length !== prej;
   }
 
   // Izklop kljukice "več celic" pomeni, da je izbiranje končano: izbira se počisti.
@@ -105,7 +130,7 @@ function ustvariPlosco(o) {
 
   const gumbi = {
     poudari: narediNiz(o.nizPoudari, d => poudari(d)),
-    vpisi: narediNiz(o.nizVpisi, d => izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d })),
+    vpisi: narediNiz(o.nizVpisi, d => vpisi(d)),
     odstrani: narediNiz(o.nizOdstrani, d => odstraniAliVrni(d)),
   };
   gumbi.vpisi.forEach((b, i) => { b.textContent = i + 1; });
@@ -170,6 +195,15 @@ function ustvariPlosco(o) {
 
   /* ---------- poteze ---------- */
 
+  // Vpis števke v izbrano celico (niz Vpiši, tipka) - ali povratni klic aplikacije.
+  function vpisi(d) {
+    if (o.obVpisu) {
+      if (vir().igra) o.obVpisu(enaIzbrana(), d);
+      return;
+    }
+    izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d });
+  }
+
   function izvedi(poteza) {
     const { igra, stanje } = vir();
     if (!igra || samoZaOgled() || !dodajPotezo(igra, poteza, stanje)) return;
@@ -185,7 +219,7 @@ function ustvariPlosco(o) {
   // več izbranih celicah se števka v eni potezi odstrani iz vseh (izbira ostane).
   function odstraniAliVrni(d) {
     const { igra, stanje } = vir();
-    if (!igra) return;
+    if (!igra || brezKandidatov) return;
     if (izbrane.length > 1) {
       izvedi({ tip: 'kandidati', celice: [...izbrane].sort((x, y) => x - y), stevka: d, odstrani: true });
       return;
@@ -297,13 +331,24 @@ function ustvariPlosco(o) {
       // Pri več izbranih celicah puščice ne naredijo nič (izbire ne podrejo po nesreči).
       if (izbrane.length > 1) return true;
       // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
+      // Celice, ki jih ni mogoče izbrati (spremenljiva), se preskočijo; na robu mreže
+      // ostane izbrana ista celica.
       const od = izbrane.length ? izbrane[0] : zadnjaIzbrana;
-      if (od === null) izbrane = [0];
-      else {
-        const r = Math.min(8, Math.max(0, Math.floor(od / 9) + premik[0]));
-        const c = Math.min(8, Math.max(0, od % 9 + premik[1]));
-        izbrane = [r * 9 + c];
+      let cilj = null;
+      if (od === null) {
+        cilj = [...Array(81).keys()].find(i => spremenljiva(i));
+        if (cilj === undefined) cilj = null;
+      } else {
+        let r = Math.floor(od / 9), c = od % 9;
+        for (;;) {
+          r += premik[0];
+          c += premik[1];
+          if (r < 0 || r > 8 || c < 0 || c > 8) break;
+          if (spremenljiva(r * 9 + c)) { cilj = r * 9 + c; break; }
+        }
+        if (cilj === null && spremenljiva(od)) cilj = od;
       }
+      if (cilj !== null) izbrane = [cilj];
       izrisiVse();
       return true;
     }
@@ -314,7 +359,7 @@ function ustvariPlosco(o) {
       e.preventDefault();
       const d = +m[1];
       if (e.shiftKey) odstraniAliVrni(d);
-      else izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d });
+      else vpisi(d);
       return true;
     }
     if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -322,8 +367,7 @@ function ustvariPlosco(o) {
       zbrisiVpis();
       return true;
     }
-    if (e.key === 'Escape' && izbrane.length) {
-      izbrane = [];
+    if (e.key === 'Escape' && pocistiIzbiro()) {
       izrisiVse();
       return true;
     }
@@ -345,11 +389,12 @@ function ustvariPlosco(o) {
       zaklenjena: samoZaOgled(),
       grid: stanje.grid,
       danosti: igra.danosti,
-      kandidati: stanje.kandidati,
+      kandidati: brezKandidatov ? null : stanje.kandidati,
       barva: barvaPoudarka,
       izbrane,
       sosede: enaIzbrana(),
       oznake: oznake(),
+      ...(o.pogled ? o.pogled() : {}),
     });
   }
 
@@ -458,7 +503,50 @@ function ustvariPlosco(o) {
     ponovi: ponoviPotezo,
     poSpremembi,
     ponastavi,
+    pocistiIzbiro,
     izrisi,
     obTipki,
   };
+}
+
+/* ---------- barve poudarka iz nastavitev igre ---------- */
+
+// Igra nastavi štiri barve poudarka (--poud ... --poud4) in jih shrani pod svojim
+// ključem (igra/igra.js, "Barve poudarka"); trening jih samo prebere. Zapis:
+// { "1": "#RRGGBB", ... } (samo spremenjene); star zapis - sam hex niz - je bil barva
+// prvega poudarka.
+const POUD_SPREMENLJIVKE = ['--poud', '--poud2', '--poud3', '--poud4'];
+
+// '#abc', 'abc', '#aabbcc' ali 'aabbcc' -> '#AABBCC'; drugače null.
+function normalizirajHex(v) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim());
+  if (!m) return null;
+  const h = m[1].length === 3 ? m[1].replace(/./g, ch => ch + ch) : m[1];
+  return '#' + h.toUpperCase();
+}
+
+// Štiri barve (hex ali null = privzeta iz mreza.css); brez shrambe ali pri
+// napačnem zapisu same null.
+function barvePoudarkaIzNastavitev(kljuc) {
+  const barve = POUD_SPREMENLJIVKE.map(() => null);
+  let zapis = null;
+  try { zapis = localStorage.getItem(kljuc); } catch (e) { return barve; }
+  if (!zapis) return barve;
+  const star = normalizirajHex(zapis);
+  if (star) { barve[0] = star; return barve; }
+  let v = null;
+  try { v = JSON.parse(zapis); } catch (e) { return barve; }
+  if (!v || typeof v !== 'object') return barve;
+  POUD_SPREMENLJIVKE.forEach((_, i) => {
+    if (typeof v[i + 1] === 'string') barve[i] = normalizirajHex(v[i + 1]);
+  });
+  return barve;
+}
+
+// Nastavljene barve na <html> (inline slog ima prednost pred mreza.css); null pusti
+// privzeto.
+function uporabiBarvePoudarka(barve) {
+  barve.forEach((barva, i) => {
+    if (barva) document.documentElement.style.setProperty(POUD_SPREMENLJIVKE[i], barva);
+  });
 }

@@ -8,7 +8,7 @@ Postopnost (vaje 1–3, 4–6, 7–9), namig, rešitev, štetje in pravilo »s p
 spremenijo. Izhodišče: `docs/trening-v-uganki-nacrt.md`, razdelek »Po delih 4 in 5 –
 samostojna naloga Pripomočki za E1/E2«.
 
-Stanje: **načrt, čaka potrditev** (2026-09-28). Kode nisem spreminjal.
+Stanje: **načrt potrjen 2026-09-28** (odgovori v razdelku »Odgovori«), izvedba po korakih.
 
 Posnetki zaslona so v `docs/slike/pripomocki-e1-e2/`. Predlog je posnet s prototipom v
 začasni kopiji projekta (ni v repozitoriju). Prototip uporablja pravo `shared/plosca.js`
@@ -363,6 +363,22 @@ pokaže razliko, se ustavim in razložim vzrok.
 7. **Sivo senčenje** vrstice, stolpca in bloka izbrane celice: izklopljeno – predlog (zlilo
    bi se z zatemnjenimi celicami postopnosti). Ali vklopljeno samo pri vajah 7–9, kjer
    zatemnjenih celic ni?
+
+## Odgovori (2026-09-28)
+
+Načrt potrjen.
+
+1. Obseg v `shared/`: **samo to, kar »Spoznaj« uporablja** (predlog).
+2. Barve poudarka: **iz nastavitev igre, samo branje** (predlog). To velja tudi za
+   poudarek števke pri vajah 1 in 2. Trening barve nastavi na `<html>` ob nalaganju
+   strani, zato jih dobi vsaka mreža iz `shared/mreza.js`. Scenarij v brskalniku to
+   preveri tudi pri 1 in 2.
+3. Slogi nizov: **nova `shared/plosca.css`** (predlog).
+4. Tipkovnica: **da** (predlog).
+5. Po pravilnem odgovoru **brez zelene obrobe** (predlog).
+6. Stikala: **svoj ključ `sudoku.trening.seznami`**, »več hkrati« ostane med vajami
+   kroga (predlog).
+7. Sivo senčenje izbrane celice: **izklopljeno** (predlog).
 
 ## Ročni seznam (po izvedbi, največ 5)
 

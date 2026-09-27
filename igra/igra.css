@@ -1,6 +1,7 @@
 /* igra/igra.css — stili za Sudoku igro. Skupne osnove so v ../shared/base.css,
-   mreža in seznami manjkajočih števk v ../shared/mreza.css (naložen pred to
-   datoteko), paleta barv je ista kot v app/app.css. */
+   mreža in seznami manjkajočih števk v ../shared/mreza.css, nizi gumbov, kljukici in
+   stikala seznamov v ../shared/plosca.css (oba naložena pred to datoteko), paleta
+   barv je ista kot v app/app.css. */
 
 :root{
   --paper:#FFFFFF;          /* preprosta bela podlaga (kot nov zavihek v Chromu) */
@@ -18,10 +19,8 @@
   --amber-bg:#F1E5C9;
   --purple:#7548A0;
   --purple-bg:#E7DEF0;
-  /* barve poudarka, velikost celice in barve mreže so v ../shared/mreza.css */
-  /* neizbrani gumbi v nizu Poudari - niso vezani na barve poudarka */
-  --poud-line:#6FA3DB;
-  --poud-gumb-ink:#1D4F9C;
+  /* barve poudarka, velikost celice in barve mreže so v ../shared/mreza.css,
+     barve nizov gumbov v ../shared/plosca.css */
 }
 /* seznam vrstic je 10. stolpec ob mreži - celice se pomanjšajo, da gre vse v širino */
 .igra-layout.z-vrsticami{ --gcs: min(calc((100vw - 36px - var(--sgap)) / 10), 56px); }
@@ -234,128 +233,6 @@ kbd{
   border-radius:4px;
   padding:0 4px;
   background:#fff;
-}
-
-/* ---------- stikala seznamov manjkajočih števk (seznami so v ../shared/mreza.css) ---------- */
-.seznami-stikala{ display:flex; flex-direction:column; gap:6px; }
-.seznami-stikala label{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:13.5px;
-  color: var(--ink);
-  cursor:pointer;
-  width:max-content;
-}
-.seznami-stikala input{ margin:0; accent-color: var(--blue); cursor:pointer; }
-.seznami-stikala .niz-pojasnilo{ font-size:12px; color: var(--pencil); }
-
-/* ---------- nizi gumbov (poravnani s stolpci mreže) ---------- */
-.niz-oznaka{
-  font-family:'JetBrains Mono', monospace;
-  font-size:11px;
-  letter-spacing:0.06em;
-  text-transform:uppercase;
-  color: var(--pencil);
-  margin: 12px 0 3px 2px;
-}
-.niz-oznaka:first-child{ margin-top:0; }
-/* vrstica nad nizom Poudari / Odstrani: oznaka levo, kljukica "več hkrati" /
-   "več celic" desno */
-.poudari-glava, .glava-s-kljukico{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.vec-hkrati{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  cursor:pointer;
-  text-transform:none;
-  letter-spacing:0;
-  font-family:'Inter', sans-serif;
-  font-size:12px;
-  color:#3C4854;
-}
-.vec-hkrati input{ margin:0; accent-color: var(--blue); cursor:pointer; }
-.niz-pojasnilo{ text-transform:none; letter-spacing:0; }
-.vzorec-vrni{ font-weight:700; color: var(--ink); }
-/* levo poravnani, da ostanejo pod stolpci mreže tudi, ko je desno od nje seznam vrstic */
-.niz{
-  display:grid;
-  grid-template-columns: repeat(9, var(--gcs));
-  width:max-content;
-}
-.niz button{
-  margin: 2px;
-  padding: 0;
-  font-family:'JetBrains Mono', monospace;
-  font-weight:700;
-  line-height:1;
-}
-
-/* Poudari: manjši, obrobljeni, števka + "še manjka" */
-.niz-poudari button{
-  height: calc(var(--gcs) * 0.95);
-  background:#fff;
-  border: 1.5px solid var(--poud-line);
-  color: var(--poud-gumb-ink);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-  font-size: calc(var(--gcs) * 0.34);
-  border-radius:20px;
-}
-.niz-poudari .manjka{
-  font-size: calc(var(--gcs) * 0.2);
-  font-weight:500;
-  color: var(--pencil);
-}
-/* aktivni gumb je enak poudarku v mreži (ista barva - niz je tudi legenda),
-   temna števka */
-.niz-poudari button.aktiven{ background: var(--pb, var(--poud)); border: 2px solid var(--pb-ink, var(--poud-ink)); color: var(--poud-stevka); }
-.niz-poudari button.aktiven .manjka{ color:#26374D; }
-
-/* Vpiši: modri */
-.niz-vpisi button{
-  height: calc(var(--gcs) * 1.05);
-  font-size: calc(var(--gcs) * 0.48);
-  background: var(--blue-bg);
-  border: 1.5px solid var(--blue);
-  color: var(--blue);
-}
-
-/* Odstrani: rdeča podlaga in prečrtano; ↺ = vrni ročno odstranjenega */
-.niz-odstrani button{
-  height: calc(var(--gcs) * 0.9);
-  font-size: calc(var(--gcs) * 0.4);
-  background:#fff;
-  border: 1.5px solid var(--line);
-  color: var(--ink);
-}
-.niz-odstrani button.odstrani{
-  background: var(--red-bg);
-  border-color: var(--red);
-  color: var(--red);
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-}
-.niz-odstrani button.vrni{
-  background:#fff;
-  border: 2px solid var(--ink);
-  color: var(--ink);
-}
-.niz-odstrani button.vrni::after{
-  content:'↺';
-  font-size: calc(var(--gcs) * 0.26);
-  margin-left:1px;
-  vertical-align: super;
-}
-.niz button:disabled{
-  opacity:0.22;
-  background:#fff;
-  border-color: var(--line);
-  color: var(--pencil);
-  text-decoration:none;
 }
 
 /* zakaj sta niza Vpiši/Odstrani (delno) neaktivna - prazno, ko je vse jasno */

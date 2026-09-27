@@ -22,7 +22,8 @@ const ELEMENTI = ['mreza', 'nizPoudari', 'nizVpisi', 'nizOdstrani', 'razlogNizov
 
 // Kontekst s ploščo. `samoMreza`: plošča brez vseh neobveznih elementov.
 // `kljucSeznamov`: ključ stikal v localStorage (brez: se ne shranjujejo).
-function pripravi({ samoMreza = false, kljucSeznamov = null, shramba } = {}) {
+// `pred`: koda pred nastankom plošče, `moznosti`: dodatne možnosti plošče (besedilo).
+function pripravi({ samoMreza = false, kljucSeznamov = null, shramba, pred = '', moznosti = '' } = {}) {
   const dom = makeDom(shramba);
   const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js'], dom.globals);
   const elementi = samoMreza ? 'mreza: el("mreza"),'
@@ -33,8 +34,10 @@ function pripravi({ samoMreza = false, kljucSeznamov = null, shramba } = {}) {
   run(`
     var igra = null, stanje = null, spremembe = [], zaklep = false, vprasanje = true, razlogApp = null, opozoriloApp = '';
     function el(id) { return document.getElementById(id); }
+    ${pred}
     var plosca = ustvariPlosco({
       ${elementi}
+      ${moznosti}
       vir: () => ({ igra, stanje }),
       obSpremembi: (v) => {
         spremembe.push(v);
@@ -412,4 +415,109 @@ test('plošča: seznami s stikali pod ključem aplikacije, plošča samo z mrež
   assert.equal(m.run('plosca.gumbi.vpisi.length'), 0);
   m.tipka({ key: 'z', code: 'KeyZ', ctrlKey: true });
   assert.equal(m.grid(p0), 0);
+});
+
+// Vaji enojčkov v treningu (»Spoznaj«): mreža z robovi brez kandidatov, izbira ene
+// celice, ki jo omejuje postopnost (spremenljiva, začetna izbira), vpis kot izbira
+// števke (obVpisu) in dodatna polja pogleda.
+test('plošča za enojčke: brez kandidatov, samoEna, spremenljiva, začetna izbira, obVpisu, pogled, robovi', () => {
+  // Dovoljene so prazne celice ene vrstice (kot označena enota); vrstica z vsaj tremi.
+  const vrstica = [...Array(9).keys()].find(r => prazne.filter(i => Math.floor(i / 9) === r).length >= 3);
+  const dovoljene = prazne.filter(i => Math.floor(i / 9) === vrstica);
+  const neaktivne = prazne.filter(i => !dovoljene.includes(i));
+  const pred = `var dovoljene = ${JSON.stringify(dovoljene)}, neakt = ${JSON.stringify(neaktivne)}, vpisi = [];`;
+  const moznosti = `robovi: true, kandidati: false, samoEna: true,
+    spremenljiva: i => dovoljene.includes(i),
+    obVpisu: (c, d) => vpisi.push([c, d]),
+    pogled: () => ({ sosede: null, oznacene: dovoljene, neaktivne: neakt }),`;
+  const p = pripravi({ pred, moznosti });
+  p.run(`odpri(novaIgra(${D}))`);
+  const cel = i => p.run(`plosca.mreza.celice[${i}]`);
+  const klik = (i, e = {}) => cel(i).sprozi('click', e);
+  assert.ok(p.dom.el('mreza').className.includes('mreza-robovi'), 'robovi: okvir z oznakami');
+  assert.equal(p.run('plosca.mreza.el.className'), 'mreza');
+
+  // Brez kandidatov; oznacene in neaktivne iz pogleda, brez senčenja sosed.
+  for (const i of prazne) {
+    assert.equal(cel(i).children.length, 0, `brez kandidatov ${i}`);
+    assert.equal(cel(i).className.includes('oznacena'), dovoljene.includes(i));
+    assert.equal(cel(i).className.includes('neaktivna'), neaktivne.includes(i));
+  }
+
+  // Klik: samo dovoljene, neaktivna in polna celica ne; Ctrl+klik ne dodaja (samoEna).
+  klik(neaktivne[0]);
+  klik(dana);
+  assert.deepEqual(p.izbrane(), []);
+  klik(dovoljene[0]);
+  klik(dovoljene[1], { ctrlKey: true });
+  assert.deepEqual(p.izbrane(), [dovoljene[1]]);
+  assert.equal([...Array(81).keys()].filter(i => cel(i).className.includes('soseda')).length, 0);
+
+  // Puščice preskočijo celice, ki jih ni mogoče izbrati; na koncu ostanejo.
+  klik(dovoljene[0]);
+  p.tipka({ key: 'ArrowRight', code: 'ArrowRight' });
+  assert.deepEqual(p.izbrane(), [dovoljene[1]]);
+  p.tipka({ key: 'ArrowDown', code: 'ArrowDown' });
+  assert.deepEqual(p.izbrane(), [dovoljene[1]], 'pod njo ni dovoljene celice');
+  for (let k = 0; k < 9; k++) p.tipka({ key: 'ArrowRight', code: 'ArrowRight' });
+  const zadnja = dovoljene[dovoljene.length - 1];
+  assert.deepEqual(p.izbrane(), [zadnja]);
+
+  // Števka (vrstica števk, Numpad, niz Vpiši) pokliče obVpisu - poteze ni.
+  const kazalec = p.run('igra.kazalec');
+  assert.equal(p.tipka({ key: '4', code: 'Digit4' }), true);
+  p.tipka({ key: '7', code: 'Numpad7' });
+  p.gumb('nizVpisi', 2).sprozi('click');
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(vpisi)')), [[zadnja, 4], [zadnja, 7], [zadnja, 2]]);
+  assert.equal(p.run('igra.kazalec'), kazalec);
+  assert.equal(p.grid(zadnja), 0);
+  // Shift+števka (QWERTZ: key '"', code Digit2) in niz Odstrani ne odstranita nevidnega kandidata.
+  const k0 = p.kand(zadnja);
+  p.tipka({ key: '"', code: 'Digit2', shiftKey: true });
+  for (let d = 1; d <= 9; d++) p.gumb('nizOdstrani', d).sprozi('click');
+  assert.equal(p.kand(zadnja), k0);
+  assert.equal(p.run('igra.kazalec'), kazalec);
+  assert.equal(p.run('vpisi.length'), 3, 'Shift+števka ni vpis');
+  // Escape počisti izbiro; števka brez izbrane celice sporoči celico null.
+  assert.equal(p.tipka({ key: 'Escape', code: 'Escape' }), true);
+  assert.deepEqual(p.izbrane(), []);
+  p.tipka({ key: '5', code: 'Digit5' });
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(vpisi[3])')), [null, 5]);
+
+  // Vnaprej izbrana celica, ki je ni mogoče odizbrati (E1, vaje 1-3).
+  const c = dovoljene[0];
+  const g = pripravi({ moznosti: `samoEna: true, kandidati: false, zacetnaIzbira: [${c}], spremenljiva: () => false,` });
+  g.run(`igra = novaIgra(${D}); stanje = stanjeIgre(igra); plosca.izrisi();`);
+  assert.deepEqual(g.izbrane(), [c]);
+  assert.ok(g.celica(c).className.includes('izbrana'));
+  g.klik(c);
+  assert.deepEqual(g.izbrane(), [c], 'ponoven klik je ne prekliče');
+  assert.equal(g.tipka({ key: 'Escape', code: 'Escape' }), false, 'Escape je ne počisti (tipka ni porabljena)');
+  g.tipka({ key: 'ArrowLeft', code: 'ArrowLeft' });
+  assert.deepEqual(g.izbrane(), [c]);
+  assert.equal(g.run('plosca.pocistiIzbiro()'), false);
+  assert.deepEqual(g.izbrane(), [c]);
+});
+
+test('barve poudarka iz nastavitev igre: nov in star zapis, napačen zapis, brez shrambe', () => {
+  const beri = zapis => {
+    const shramba = new Map(zapis === undefined ? [] : [['sudoku.igra.poud', zapis]]);
+    const dom = makeDom(shramba);
+    const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js'], dom.globals);
+    return { barve: [...run("barvePoudarkaIzNastavitev('sudoku.igra.poud')")], run };
+  };
+  assert.deepEqual(beri(JSON.stringify({ 1: '#ff8080', 3: 'abc', 4: 'ni barva' })).barve, ['#FF8080', null, '#AABBCC', null]);
+  assert.deepEqual(beri('#12ab34').barve, ['#12AB34', null, null, null], 'star zapis je 1. barva');
+  assert.deepEqual(beri('{napaka').barve, [null, null, null, null]);
+  assert.deepEqual(beri('42').barve, [null, null, null, null]);
+  assert.deepEqual(beri(undefined).barve, [null, null, null, null]);
+  // Shramba, ki ne dela (zasebno okno): privzete barve.
+  const b = beri(undefined);
+  b.run("localStorage.getItem = () => { throw new Error('ni shrambe'); }");
+  assert.deepEqual([...b.run("barvePoudarkaIzNastavitev('sudoku.igra.poud')")], [null, null, null, null]);
+  // uporabiBarvePoudarka nastavi samo podane barve na <html>.
+  b.run("uporabiBarvePoudarka(['#FF8080', null, '#AABBCC', null])");
+  assert.equal(b.run("document.documentElement.style.getPropertyValue('--poud')"), '#FF8080');
+  assert.equal(b.run("document.documentElement.style.getPropertyValue('--poud2')"), '');
+  assert.equal(b.run("document.documentElement.style.getPropertyValue('--poud3')"), '#AABBCC');
 });
