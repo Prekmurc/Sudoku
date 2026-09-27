@@ -1194,3 +1194,14 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   Isti `--cs` ima tudi mreža rešitve (`#solvedGrid`). Popraviti v fazi 5
   (skupni CSS 6.8 / širina 4.2), preveriti z `node tools/brskalnik.js posnetek
   app/index.html izhod.png --sirina 375` in pogojem `scrollWidth <= clientWidth`.
+- **Izbira celice je v treningu (vaji 1 in 2) izrazitejša kot v igri** (zapisano
+  2026-09-28, naloga »prava geometrija pri 1 in 2«, `docs/geometrija-1-2-nacrt.md`,
+  razdelek »Izvedba«). Obe uporabljata mrežo iz `shared/mreza.js`, a trening v
+  `trening/trening.css` (`.vaja-presek .celica.izbrana`) prepiše videz izbire:
+  modrikasta podlaga (`--blue-bg`) in 3 px modra obroba namesto sive podlage
+  (`--peer-bg`) in 2 px obrobe z belim notranjim robom iz `shared/mreza.css`. Razlog: na
+  30 px celici s kandidati je bila izbira igre komaj opazna (ročni pregled potrjen
+  2026-09-28). V igri je siva podlaga tudi barva vrstice, stolpca in bloka izbrane
+  celice, zato izbrana celica tam izstopa predvsem po obrobi. Ob fazi 5 odloči, ali
+  izbiro poenotiš in kako (npr. izrazitejša izbira tudi v igri, ali trening nazaj na
+  videz igre, ali ostane razlika zaradi manjših celic).
