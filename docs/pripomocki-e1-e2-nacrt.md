@@ -8,7 +8,8 @@ Postopnost (vaje 1–3, 4–6, 7–9), namig, rešitev, štetje in pravilo »s p
 spremenijo. Izhodišče: `docs/trening-v-uganki-nacrt.md`, razdelek »Po delih 4 in 5 –
 samostojna naloga Pripomočki za E1/E2«.
 
-Stanje: **načrt potrjen 2026-09-28** (odgovori v razdelku »Odgovori«), izvedba po korakih.
+Stanje: **narejeno 2026-09-28** (načrt potrjen, odgovori v razdelku »Odgovori«, izvedba v
+razdelku »Izvedba« na koncu).
 
 Posnetki zaslona so v `docs/slike/pripomocki-e1-e2/`. Predlog je posnet s prototipom v
 začasni kopiji projekta (ni v repozitoriju). Prototip uporablja pravo `shared/plosca.js`
@@ -399,3 +400,49 @@ Načrt potrjen.
 5. **Trening, E2 na telefonu:** drži »Rešitev«, nato spusti. Pričakovano: jantarna enota
    in zelena celica s števko se pokažeta in ob spustu izgineta. Ni avtomatsko, ker
    scenarij pošilja dogodke miške, ne dotika.
+
+Seznam je prenesen v `docs/rocni-test.md` (razdelek »Trening: pripomočki pri E1 in E2«).
+
+## Izvedba (2026-09-28)
+
+| Korak | Commit | Testi |
+|---|---|---|
+| 1 `shared/`: možnosti mreže in plošče, `plosca.css`, branje barv poudarka | `4121cc8` | 370 (367 + 3) |
+| 2 trening: E1/E2 na plošči, tipkovnica, testi | `2fcb63a` | 375 (370 + 5) |
+| 3 `tools/preveri-enojcki-brskalnik.js`, `tipka()` s `code`/`shift`/`ctrl`, dokumentacija | (ta commit) | 375 |
+
+Preverjanje po vsakem koraku:
+
+- Posnetek igre `--primerjaj tools/posnetki/igra-pred-niz.json`: »Enako: 85 posnetkov.«
+- Posnetki zaslona igre pred korakom 1 in po njem so bili enaki do bajta. Posnetih je bilo
+  15: 1200, 1000, 900 in 390 px, lastne barve poudarka, vsi trije seznami, tri
+  poudarjene števke z »več hkrati«, izbrana celica, korak pomoči na mreži. Prvi zagon je
+  pokazal razliko pri enem posnetku koraka pomoči. Vzrok je bil v scenariju, ki je trikrat
+  zaporedoma prehitro kliknil »Naslednji korak«, zato je obveljal le en klik. Ponovni zagon
+  je bil enak, prav tako oba zagona po popravku, ko scenarij po vsakem kliku počaka na
+  spremembo gumba.
+- `tools/preveri-enojcki-brskalnik.js`: vse drži. Posnetki izvedbe so v
+  `docs/slike/pripomocki-e1-e2/izvedba-*.png`. Tehnike 1–12 so pri 375 in 1200 px enake
+  izhodišču `10503c2`.
+- `tools/preveri-presek-brskalnik.js` in `tools/preveri-niz-brskalnik.js`: vse drži.
+
+![Izvedba: E1, vaja 1, 375 px, seznama vrstic in stolpcev](slike/pripomocki-e1-e2/izvedba-e1-1-375.png)
+![Izvedba: E1, vaja 7, 1200 px, pravilen odgovor](slike/pripomocki-e1-e2/izvedba-e1-7-1200-pravilno.png)
+
+Odstopanja in dopolnitve glede na načrt:
+
+- **»Več hkrati« med vajami kroga:** plošča ob nastanku prebere stanje kljukice
+  (`o.vecHkrati.checked`), sicer bi kljukica nove vaje kazala kljukico, poudarki pa bi se
+  ne seštevali. V igri je kljukica ob nalaganju izklopljena, zato se tam nič ne spremeni.
+- **Izbira po pravilnem odgovoru** se ne počisti, ampak se ne prikaže več
+  (`pogled().izbrane = []`). Celice, ki niso spremenljive (vnaprej izbrana), plošča ne
+  odizbere; mreža je takrat tako ali tako zaklenjena.
+- **Zatemnjene celice ostanejo** tudi po pravilnem odgovoru, kot doslej.
+- **Slogi:** `.g9 .gc.correct` v `trening.css` ostane. Uporablja ga tudi prikaz XY-krila in
+  edinstvenega pravokotnika. Odstranjeni so `.g9 .gc.stevka`, `.vpis`, `.peek-enota`,
+  `.oznacena-enota`, `.ni-izbire`, `.gc.selected-slate` in `.cd.hl-slate`. E1 in E2 v
+  `MODES` nimata več `selClass`/`hlClass`, kot 1 in 2.
+- **`tools/preveri-presek-brskalnik.js`** ne primerja več E1 in E2 s svojim izhodiščem
+  `7429363`, ker se namerno razlikujeta. Ju preverja novi scenarij.
+- **`tools/brskalnik.js` `tipka()`** dobi neobvezne `code`, `shift` in `ctrl`. Obstoječi klici
+  delujejo enako.

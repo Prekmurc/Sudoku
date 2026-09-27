@@ -14,6 +14,7 @@
 //   await b.fokus('#nizDanosti'); await b.vtipkaj('8....1...');  // kot tipkovnica
 //   await b.klikni('#solveBtn');                       // pravi klik miške na sredino elementa
 //   await b.tipka('Enter');                            // ena tipka
+//   await b.tipka('"', { code: 'Digit2', shift: true }); // par key/code (QWERTZ)
 //   await b.cakaj('document.getElementById("status").className === "ok"');
 //   await b.posnetek('izhod.png');                     // vsa stran
 //   b.napake                                           // napake JS in console.error v strani
@@ -225,12 +226,22 @@ async function zazeni({ koren = KOREN } = {}) {
       await cdp.poslji('Input.insertText', { text: besedilo });
     },
 
-    // Ena tipka (npr. 'Enter', 'Escape', 'Backspace', 'ArrowRight', '5').
-    async tipka(key) {
+    // Ena tipka (npr. 'Enter', 'Escape', 'Backspace', 'ArrowRight', '5'). Neobvezno
+    // `code` (fizična tipka, npr. 'Numpad5', 'KeyY'), `shift` in `ctrl` - za pare
+    // key/code slovenske razporeditve QWERTZ: Shift+2 je { key: '"', code: 'Digit2',
+    // shift: true }, Ctrl + tipka z napisom Z je { key: 'z', code: 'KeyY', ctrl: true }.
+    async tipka(key, { code, shift = false, ctrl = false } = {}) {
       const kode = { Enter: 13, Escape: 27, Backspace: 8, Tab: 9, Delete: 46, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
-      const vk = kode[key] || key.toUpperCase().charCodeAt(0);
-      const osnovno = { key, windowsVirtualKeyCode: vk, code: /^\d$/.test(key) ? `Digit${key}` : key };
-      await cdp.poslji('Input.dispatchKeyEvent', { type: key.length === 1 ? 'keyDown' : 'rawKeyDown', text: key.length === 1 ? key : undefined, ...osnovno });
+      const koda = code || (/^\d$/.test(key) ? `Digit${key}` : key);
+      let m;
+      const vk = kode[key]
+        || ((m = /^Numpad(\d)$/.exec(koda)) ? 96 + +m[1]
+          : (m = /^Digit(\d)$/.exec(koda)) ? 48 + +m[1]
+            : (m = /^Key([A-Z])$/.exec(koda)) ? m[1].charCodeAt(0)
+              : key.toUpperCase().charCodeAt(0));
+      const osnovno = { key, windowsVirtualKeyCode: vk, code: koda, modifiers: (ctrl ? 2 : 0) | (shift ? 8 : 0) };
+      const besedilo = key.length === 1 && !ctrl ? key : undefined;
+      await cdp.poslji('Input.dispatchKeyEvent', { type: besedilo ? 'keyDown' : 'rawKeyDown', text: besedilo, ...osnovno });
       await cdp.poslji('Input.dispatchKeyEvent', { type: 'keyUp', ...osnovno });
     },
 

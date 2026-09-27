@@ -65,6 +65,21 @@ Iz načrta `docs/geometrija-1-2-nacrt.md`. Logiko preverijo `tests/trening-prese
 | 2 | trening, 1200 px in telefon | 2 · Izločitev v bloku: brez branja naslova povej, katera vrstica ali stolpec in kateri blok sta v vaji. | Takoj jasno iz sive ploskve, belih celic in krepke oznake roba (npr. **S5**). Potrjeno (ročni pregled 28. 9. 2026). |
 | 3 | trening, telefon | Pri 1 in 2 drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem so celice vzorca jantarne, izbris rdeče prečrtan, poudarek števke izklopljen; ob spustu se vrne prejšnje stanje z izbiro. Potrjeno (ročni pregled 28. 9. 2026). |
 
+## Trening: pripomočki pri E1 in E2 (»Spoznaj«)
+
+Iz načrta `docs/pripomocki-e1-e2-nacrt.md`. Logiko preverijo `tests/trening-pomoc.test.js`,
+`tests/plosca.test.js`, `tests/mreza.test.js` in `tools/preveri-enojcki-brskalnik.js`
+(tudi pare QWERTZ `key`/`code`, barve iz nastavitev igre in da je izris tehnik 1–12 enak
+kot pred spremembo).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, pravi telefon | E1, vaja 7, vklopi vse tri sezname; preberi števke v kvadratkih in izberi celico s prstom. | Števke so berljive (celica pribl. 27 px), stran se ne pomika vodoravno, celico zadeneš brez zgrešenih dotikov. (nepotrjeno) |
+| 2 | trening, telefon in 1200 px | E2, vaja 4: s kljukico »več hkrati« poudari dve števki. | Barvi se jasno ločita med seboj, od modrikaste označene enote in od sivih zatemnjenih celic. (nepotrjeno) |
+| 3 | trening, slovenska tipkovnica | E1, vaja 7: tipke 1–9 (vrstica števk in številčnica), puščice, Escape; nato Shift+2 in Ctrl+Z. | Števka se izbere (gumb pod mrežo), izbira se premika po praznih celicah, Escape jo počisti; Shift+2 in Ctrl+Z ne spremenita ničesar. (nepotrjeno) |
+| 4 | igra, nato trening (lokalni strežnik) | V igri pod »Barve poudarka« nastavi 1. barvo, osveži trening in poudari števko v E1 ter odpri vajo 1. | V E1 in pri vaji 1 je poudarek v barvi iz igre. (nepotrjeno) |
+| 5 | trening, telefon | E2: drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem je enota jantarna, celica zelena s števko; ob spustu oznake izginejo. (nepotrjeno) |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
@@ -76,5 +91,7 @@ Iz načrta `docs/geometrija-1-2-nacrt.md`. Logiko preverijo `tests/trening-prese
 - **Odložišče in kontekstni meni:** brskalnik brez glave vnos besedila le posnema
   (`Input.insertText`), pravega lepljenja ne preizkusi.
 - **Dotik in zaslonska tipkovnica** (telefon): ju v brskalniku brez glave ni.
-- **Presoja uporabnosti** (postavitev polja Niz, jasnost delne mreže pri 1 in 2): ni
-  vprašanje pravilnosti.
+- **Presoja uporabnosti** (postavitev polja Niz, jasnost delne mreže pri 1 in 2,
+  ločljivost barv poudarka pri E1/E2): ni vprašanje pravilnosti.
+- **Prehod med aplikacijama** (barve poudarka, nastavljene v igri, v treningu): scenarij
+  zapis v shrambo posnema, ne nastavlja barv v igri.

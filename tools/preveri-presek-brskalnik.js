@@ -6,10 +6,13 @@
 // (skrita celica se ne izbere, pravilna izbira -> "Pravilno!" in oznake koraka), brez
 // napak JS; posnetke zaslona shrani v mapo (--mapa, privzeto začasna).
 //
-// Druge tehnike (E1, E2, 3-12) morajo ostati enake: z Math.random s semenom se vsaka
+// Druge tehnike (3-12) morajo ostati enake: z Math.random s semenom se vsaka
 // vaja izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto
 // 7429363 - zadnji commit pred spremembo prikaza) in v trenutni kodi; primerja se
-// innerHTML območja vaje in izračunani slogi vseh njegovih elementov.
+// innerHTML območja vaje in izračunani slogi vseh njegovih elementov. E1 in E2 sta od
+// naloge »Pripomočki za E1/E2« (2026-09-28) na plošči iz shared/plosca.js in se od
+// izhodišča namerno razlikujeta, zato ju tu ni - preverja ju
+// tools/preveri-enojcki-brskalnik.js (ta primerja 1-12 z izhodiščem 10503c2).
 //
 //   node tools/preveri-presek-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
 //
@@ -134,11 +137,12 @@ async function izris(b, mode, sirina) {
 }
 
 async function drugeTehnike(sirine) {
-  const vse = ['naked-single', 'hidden-single', 'naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple',
+  const vse = ['naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple',
     'x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle'];
+  const brez = ['pointing', 'box-line', 'naked-single', 'hidden-single'];
   const html = fs.readFileSync(path.join(KOREN, 'trening', 'index.html'), 'utf8');
-  const nacini = [...html.matchAll(/data-mode="([^"]+)"/g)].map(m => m[1]).filter(m => m !== 'pointing' && m !== 'box-line');
-  preveri('druge tehnike: 12 kartic', nacini.length === 12 && vse.every(m => nacini.includes(m)), nacini);
+  const nacini = [...html.matchAll(/data-mode="([^"]+)"/g)].map(m => m[1]).filter(m => !brez.includes(m));
+  preveri('druge tehnike: 10 kartic (3-12)', nacini.length === 10 && vse.every(m => nacini.includes(m)), nacini);
 
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
   const tar = path.join(star, 'izhodisce.tar');

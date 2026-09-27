@@ -46,7 +46,7 @@ docs/trening-v-uganki.md.
 | 4 `shared/mreza.js` | **narejeno 2026-09-25** | `3f6d73c` | 322 (315 + 7) |
 | 5 `shared/plosca.js` | **narejeno 2026-09-27** | `b119b32`–`4b505fe` + testi | 329 (322 + 7) |
 | – prava geometrija pri 1 in 2 v »Spoznaj« (samostojna) | **narejeno 2026-09-27** | `f505631`–`e3725d0` | 367 (346 + 21) |
-| – pripomočki za E1/E2 v »Spoznaj« (samostojna) | načrt 2026-09-28, čaka potrditev | | |
+| – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28** | `4121cc8`–`2fcb63a` + dokumentacija | 375 (367 + 8) |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
 ### Del 1 – narejeno (commit `ba1f832`)
@@ -517,8 +517,11 @@ pogovoru, po delu 4:
 
 ### Po delih 4 in 5 – samostojna naloga »Pripomočki za E1/E2 v Spoznaj«
 
-Zapisano 2026-09-25, **načrt 2026-09-28 čaka potrditev** (`docs/pripomocki-e1-e2-nacrt.md`).
-Samostojna naloga v svojem pogovoru, po delih 4 in 5:
+Zapisano 2026-09-25, **narejeno 2026-09-28** (načrt in izvedba v `docs/pripomocki-e1-e2-nacrt.md`;
+commita `4121cc8`, `2fcb63a` in dokumentacija). Za del 6 so v `shared/plosca.js` že
+`kandidati: false` in `obVpisu(celica, stevka)` (tabela »Uporaba v treningu (del 6)«);
+niz »Vpiši« s predlogom v celici pride v delu 6. Barve poudarka bere trening iz nastavitev
+igre (`barvePoudarkaIzNastavitev()`). Samostojna naloga v svojem pogovoru, po delih 4 in 5:
 
 - Vaji E1 in E2 v načinu »Spoznaj« dobita skupno mrežo iz `shared/` (del 4,
   `shared/mreza.js`) namesto lastnega izrisa v `trening/trening.js`.
