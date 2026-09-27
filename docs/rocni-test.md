@@ -61,9 +61,9 @@ Iz načrta `docs/geometrija-1-2-nacrt.md`. Logiko preverijo `tests/trening-prese
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, pravi telefon | 1 · Izločitev izven bloka: preberi kandidate v vidnih celicah in izberi dve celici s prstom. | Kandidati so berljivi (pribl. 10 px), celice (pribl. 30 px) zadeneš brez zgrešenih klikov, izbrani celici se jasno ločita od neizbranih (modrikasta podlaga, debela modra obroba). **(nepotrjeno)** |
-| 2 | trening, 1200 px in telefon | 2 · Izločitev v bloku: brez branja naslova povej, katera vrstica ali stolpec in kateri blok sta v vaji. | Takoj jasno iz sive ploskve, belih celic in krepke oznake roba (npr. **S5**). **(nepotrjeno)** |
-| 3 | trening, telefon | Pri 1 in 2 drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem so celice vzorca jantarne, izbris rdeče prečrtan, poudarek števke izklopljen; ob spustu se vrne prejšnje stanje z izbiro. **(nepotrjeno)** |
+| 1 | trening, pravi telefon | 1 · Izločitev izven bloka: preberi kandidate v vidnih celicah in izberi dve celici s prstom. | Kandidati so berljivi (pribl. 10 px), celice (pribl. 30 px) zadeneš brez zgrešenih klikov, izbrani celici se jasno ločita od neizbranih (modrikasta podlaga, debela modra obroba). Potrjeno (ročni pregled 28. 9. 2026). |
+| 2 | trening, 1200 px in telefon | 2 · Izločitev v bloku: brez branja naslova povej, katera vrstica ali stolpec in kateri blok sta v vaji. | Takoj jasno iz sive ploskve, belih celic in krepke oznake roba (npr. **S5**). Potrjeno (ročni pregled 28. 9. 2026). |
+| 3 | trening, telefon | Pri 1 in 2 drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem so celice vzorca jantarne, izbris rdeče prečrtan, poudarek števke izklopljen; ob spustu se vrne prejšnje stanje z izbiro. Potrjeno (ročni pregled 28. 9. 2026). |
 
 ## Zakaj ročno
 
