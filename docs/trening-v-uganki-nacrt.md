@@ -557,6 +557,22 @@ V krogu vaj E1 in E2 v načinu »Spoznaj« naj se pomoč postopno zmanjšuje:
 - Trening naloži `shared/stanje.js`, ne pa `igra/shramba.js`, ker v `sudoku.igra.v1` ne
   piše.
 
+### Po želji (ideje za kasneje, ni začeto)
+
+Zapisano 2026-09-27 ob ročnem pregledu dela 5. Nič od tega ni odločeno; vsaka točka je
+samostojna naloga, če jo izberem.
+
+- **Izbira celice ostane po vpisu.** Zdaj se po vpisu izbira izklopi in puščice
+  nadaljujejo od `zadnjaIzbrana` (`shared/plosca.js`).
+- **Namig se po »Razveljavi« odpre znova.** Prikazan korak pomoči v igri zdaj izgine ob
+  vrnitvi pred stanje, v katerem je bil najden (`izhodisce`).
+- **Bližnjice: `e.code` kot rezerva pri nelatiničnih razporeditvah.** Ctrl+Z/Y se bere po
+  `e.key` (napis na tipki, zaradi QWERTZ); pri razporeditvi brez latinice (npr. cirilica)
+  `e.key` ni `z`/`y`, zato bi bil `e.code` rezerva. Možna je tudi izbira SI/EN.
+- **»Nadaljuj v igri« iz treninga** (ročni test, točka 12): vajo »Vadi v uganki«
+  nadaljevati kot igro v `igra/`; velja analiza 4.4 (uganke Presega tehnike brez
+  ugibanja ni mogoče rešiti do konca).
+
 ## Načrt Claude Code
 
 Načrt: trening »Vadi v uganki«
