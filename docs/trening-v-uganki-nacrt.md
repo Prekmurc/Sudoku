@@ -1,5 +1,5 @@
 # Trening v uganki – načrt
-(2026-09-25; deli 1–4 narejeni, glej »Stanje po delih«)
+(2026-09-25; deli 1–5 narejeni, glej »Stanje po delih«)
 
 Vrstni red: najprej faza 4
 iz docs/uskladitev.md
@@ -44,7 +44,7 @@ docs/trening-v-uganki.md.
 | – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
 | 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | `33423d1` | 315 (309 + 6) |
 | 4 `shared/mreza.js` | **narejeno 2026-09-25** | `3f6d73c` | 322 (315 + 7) |
-| 5 `shared/plosca.js` | načrt 2026-09-27, čaka na potrditev (posnetek izhodišča `b1624b8`) | | |
+| 5 `shared/plosca.js` | **narejeno 2026-09-27** | `b119b32`–`4b505fe` + testi | 329 (322 + 7) |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
 ### Del 1 – narejeno (commit `ba1f832`)
@@ -159,11 +159,50 @@ docs/trening-v-uganki.md.
 - Testi: nov `tests/mreza.test.js` (7 testov), v `igra-ui` in `zbirka-skupna` samo
   nalagalni seznam.
 
-### Del 5 – načrt (2026-09-27, čaka na potrditev)
+### Del 5 – narejeno (commiti `b119b32`, `0665fda`, `9a34d45`, `fc3cd8e`, `3c97fec`, `4b505fe` in testi)
+
+Po načrtu spodaj, s tremi dopolnitvami ob potrditvi (2026-09-27):
+
+1. **Najprej orodje in test** (`b119b32`): `tests/igra-ui.test.js` (ena vrstica) in
+   `tools/posnetek-igre.js` bereta izbiro kot `plosca.izbrane`, na stari kodi `izbrane`
+   (`typeof plosca`). Na nespremenjeni igri: 322 testov, posnetek enak.
+2. **Commit po vsakem koraku**, vsakič 322 testov in `--primerjaj` »Enako«.
+3. **Pokritost posnetka** (`0665fda`): na stari kodi dodanih 28 posnetkov (skupaj 74, prvih
+   46 enakih kot prej) – Ctrl+klik izbrane celice, puščice in Shift+števka pri več
+   izbranih, navaden klik po večizbiri, celica z vpisom v izbiri po »Ponovi« (razlog »V …
+   je vpis«), vpisana celica se ne doda, gumb »Zbriši vpis«, »nimajo skupnega kandidata«,
+   pet poudarkov in prosta barva, deveti vpis izklopi poudarek in ponoven vklop, »Začni
+   znova« med reševanjem (preklic in potrditev), prva puščica brez izbire, rob mreže,
+   Numpad, Delete, Ctrl+Z, Ctrl+Shift+Z, Alt+števka, besedilno polje, Shift+števka vrne.
+   Tipkovnice pri odprtem oknu posnetek ne more preveriti (nadomestni DOM nima
+   `querySelector`) – ostane v ročnem pregledu.
+
+Koraki: 1 mreža, izbira, poudarki (`9a34d45`); 2 nizi, poteze, gumbi, vrstica pod nizi,
+števec (`fc3cd8e`); 3 seznami in stikala (`3c97fec`, ključ `sudoku.igra.seznami`
+nespremenjen); 4 tipkovnica (`4b505fe`). Po vsakem: »Enako: 74 posnetkov.«
+
+Odstopanja od načrta:
+
+- Element vrstice pod nizi je `razlogNizov` (kot id v HTML), ne `razlog` – ime `razlog` je
+  povratni klic; v načrtu sta imela isto ime.
+- Plošča vrne še `razveljavi()`/`ponovi()` (tipkovnica in trening) in `odstraniAliVrni()`;
+  začasna `nastaviIzbiro()` iz korakov 1–3 je v koraku 4 odstranjena.
+- `tests/mreza.test.js` ima tudi nalagalni seznam igre, zato je dobil `shared/plosca.js`
+  (v načrtu je bil omenjen samo za `igra-ui` in `zbirka-skupna`); igra ohrani tudi ime
+  `gumbiOdstrani` (bere ga `igra-ui`).
+- Ctrl+Z/Y v plošči pokliče isto funkcijo kot gumb (prej `gumb.click()`); pogoj v
+  funkciji je enak pogoju onemogočenega gumba.
+
+Testi: nov `tests/plosca.test.js` (7 testov, plošča brez igre); preverjeno tudi, da
+namerno pokvarjena plošča (poudarek devetega vpisa, puščice pri več celicah, potrditev
+»Začni znova«) test podre. Skupaj 329.
+
+### Del 5 – načrt (2026-09-27, potrjen z dopolnitvami zgoraj)
 
 **Izhodišče:** `node tools/posnetek-igre.js --shrani tools/posnetki/igra-pred-del5.json`
-(46 posnetkov, commit `b1624b8`; drugi zagon `--primerjaj` na nespremenjeni kodi: enako).
-Po izvedbi mora `--primerjaj` dati »Enako: 46 posnetkov.«. Datoteke CSS in markup HTML
+(46 posnetkov, commit `b1624b8`; drugi zagon `--primerjaj` na nespremenjeni kodi: enako;
+pozneje razširjen na 74, glej »Del 5 – narejeno«).
+Po izvedbi mora `--primerjaj` dati »Enako«. Datoteke CSS in markup HTML
 se ne spremenijo (samo en `<script>`), zato posnetek zadošča za logiko; videz se ne
 more spremeniti.
 
@@ -232,7 +271,7 @@ Iz `igra/igra.js`, brez spremembe logike in besedil:
 ```js
 const plosca = ustvariPlosco({
   // elementi – obvezna je samo mreža; česar ni, plošča ne ponudi
-  mreza, nizPoudari, nizVpisi, nizOdstrani, razlog,
+  mreza, nizPoudari, nizVpisi, nizOdstrani, razlogNizov,
   razveljavi, ponovi, zbrisi, znova, stevec,
   vecHkrati, vecCelic,                    // kljukici
   seznami: { vrstice, stolpci, bloki },   // elementi seznamov

@@ -14,8 +14,11 @@ banka vaj `shared/vaje-banka.js` (vsaj 50 ugank na tehniko, tehnike kot ključi
 (namesto banke semen iz 4.1). **Del 4 narejen 2026-09-25:** izris mreže in seznamov
 manjkajočih števk je v `shared/mreza.js` + `shared/mreza.css` (`ustvariMrezo()` s
 pogledom, tudi prikaz samo izbranih celic – `vidne`; `oznakeKoraka()`,
-`ustvariSezname()`), igra ga uporablja in se obnaša enako. Tabele v tem dokumentu (npr.
-1.1) opisujejo stanje pred tem.
+`ustvariSezname()`), igra ga uporablja in se obnaša enako. **Del 5 narejen 2026-09-27:**
+vnos (izbira celic, poudarki, nizi, poteze, Razveljavi/Ponovi/Zbriši/Začni znova, vrstica
+pod nizi, seznami s stikali, tipkovnica) je v `shared/plosca.js` (`ustvariPlosco()`;
+igro in stanje ima aplikacija – `vir()`, `obSpremembi()`), igra ga uporablja in se obnaša
+enako (posnetek 74 korakov). Tabele v tem dokumentu (npr. 1.1) opisujejo stanje pred tem.
 
 **Zamisel.** Trening dobi za vsako tehniko (E1, E2, 1–12) dva načina:
 
