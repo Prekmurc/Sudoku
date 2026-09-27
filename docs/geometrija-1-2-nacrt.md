@@ -7,7 +7,7 @@ so skrite. Izris gre skozi `shared/mreza.js` (možnost `vidne`), ne skozi posebn
 treningu. Izhodišče: zapis v `docs/trening-v-uganki-nacrt.md`, razdelek »Po delu 4 –
 samostojna naloga …«.
 
-Stanje: **načrt potrjen 2026-09-27** (odgovori na vprašanja so v razdelku »Odgovori«), izvedba po korakih.
+Stanje: **narejeno 2026-09-27** (načrt potrjen, odgovori v razdelku »Odgovori«, izvedba v razdelku »Izvedba«).
 
 Posnetki zaslona so v `docs/slike/geometrija-1-2/`. Predlog je posnet s prototipom, ki
 uporablja pravo `shared/mreza.js` z možnostjo `vidne` in pravi primer iz banke vaj; oznake
@@ -317,3 +317,30 @@ Vsak korak v svojem commitu s pushem.
 3. **Trening, vaji 1 in 2 na telefonu:** drži »Rešitev«, nato spusti. Pričakovano: oznake
    (jantarno in rdeče prečrtano) se pokažejo in ob spustu izginejo. Ni avtomatsko, ker
    scenarij pošilja dogodke miške, ne dotika.
+
+## Izvedba (2026-09-27)
+
+| Korak | Commit | Testi |
+|---|---|---|
+| 1 `shared/mreza.js`/`mreza.css`: `robovi`, `akt`, `delna`, videz B | `f505631` | 347 (346 + 1) |
+| 2 `genPresek()` iz banke + test generatorja | `7429363` | 351 (347 + 4) |
+| 3 prikaz v treningu, `MODES`, nalaganje, UI testi | `e3725d0` | 367 (351 + 16) |
+| 4 `tools/preveri-presek-brskalnik.js`, dokumentacija | (ta commit) | 367 |
+
+Odstopanja in dopolnitve glede na načrt:
+
+- **Izbira je izrazitejša kot v igri** (samo v treningu, `trening/trening.css`,
+  `.vaja-presek .celica.izbrana`): modrikasta podlaga (`--blue-bg`) in 3 px modra obroba
+  namesto sive podlage in 2 px obrobe. Na posnetku `predlog-2-375-izbira.png` je bila
+  izbira igre na 30 px celici s kandidati komaj opazna (odgovor 4). Igra ostane, kakor je.
+- **Skrite celice nimajo tankih črt (širina 0), ne samo barve ploskve.** Tanka črta v
+  barvi ploskve se je v kotu z debelo črto stikala diagonalno in na debeli črti puščala
+  zajede (vidne pri povečavi). Vidne celice so bele z `:where()`, da izbira, poudarek in
+  oznake koraka ohranijo prednost.
+- `genPresek()` je bil v koraku 2 samo dodan, v `MODES` vezan v koraku 3 – tako je vsak
+  commit delujoč.
+- Vaja s trojico v krogu: izbrana ob vaji 0 (`presekTrojica[mode]`, naključno mesto 1–9),
+  iskanje pribl. 0,1 s (največ 0,4 s); ostale vaje pribl. 17 ms.
+- Pravilo pomoči za 1 in 2 preverja `tests/trening-pomoc.test.js` (novi primeri).
+- Scenarij v brskalniku primerja izris vseh drugih tehnik z izhodiščem `7429363` (zadnji
+  commit pred spremembo prikaza): enak `innerHTML` in izračunani slogi pri 375 in 1200 px.

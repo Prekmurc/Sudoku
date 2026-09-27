@@ -53,6 +53,18 @@ Logiko preverijo `tests/niz-danosti.test.js`, `tests/igra-ui.test.js`, posnetek 
 | 3 | igra | »Nova uganka« → v polje niza prilepi (Ctrl+V) niz z `x` namesto pik. | Sporočilo našteje `x` (»Neveljaven znak »x« je izpuščen – prazna celica je 0 ali pika.«) in pove število veljavnih znakov (»… (potrebnih je 81).«). |
 | 4 | reševalec | Oceni postavitev: polje Niz nad mrežo, besedilo v glavi, rdeče sporočilo pri prekratkem nizu (tudi pri 375 px). | Razumljivo in ne moti ročnega vnosa v mrežo. |
 
+## Trening: tehniki 1 in 2 na delni mreži (»Spoznaj«)
+
+Iz načrta `docs/geometrija-1-2-nacrt.md`. Logiko preverijo `tests/trening-presek.test.js`,
+`tests/mreza.test.js`, `tests/trening-pomoc.test.js` in `tools/preveri-presek-brskalnik.js`
+(tudi, da je izris drugih tehnik enak kot pred spremembo).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, pravi telefon | 1 · Izločitev izven bloka: preberi kandidate v vidnih celicah in izberi dve celici s prstom. | Kandidati so berljivi (pribl. 10 px), celice (pribl. 30 px) zadeneš brez zgrešenih klikov, izbrani celici se jasno ločita od neizbranih (modrikasta podlaga, debela modra obroba). **(nepotrjeno)** |
+| 2 | trening, 1200 px in telefon | 2 · Izločitev v bloku: brez branja naslova povej, katera vrstica ali stolpec in kateri blok sta v vaji. | Takoj jasno iz sive ploskve, belih celic in krepke oznake roba (npr. **S5**). **(nepotrjeno)** |
+| 3 | trening, telefon | Pri 1 in 2 drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem so celice vzorca jantarne, izbris rdeče prečrtan, poudarek števke izklopljen; ob spustu se vrne prejšnje stanje z izbiro. **(nepotrjeno)** |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
@@ -64,4 +76,5 @@ Logiko preverijo `tests/niz-danosti.test.js`, `tests/igra-ui.test.js`, posnetek 
 - **Odložišče in kontekstni meni:** brskalnik brez glave vnos besedila le posnema
   (`Input.insertText`), pravega lepljenja ne preizkusi.
 - **Dotik in zaslonska tipkovnica** (telefon): ju v brskalniku brez glave ni.
-- **Presoja uporabnosti** (postavitev polja Niz): ni vprašanje pravilnosti.
+- **Presoja uporabnosti** (postavitev polja Niz, jasnost delne mreže pri 1 in 2): ni
+  vprašanje pravilnosti.
