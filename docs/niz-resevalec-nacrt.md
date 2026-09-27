@@ -17,13 +17,12 @@ V `shared/` ni funkcije za to. Sorodno je le v `shared/zbirka.js`: `zbirkaPrimer
 
 ## 2. Skupna koda
 
-Nova funkcija v **`shared/zbirka.js`**: `zbirkaNizDanosti(besedilo)` → `{ danosti, veljavnih, sporocilo, napaka, neveljavni }`
+Nova funkcija v **`shared/zbirka.js`**: `zbirkaNizDanosti(besedilo)` → `{ danosti, veljavnih, neveljavni, sporocilo, napaka }`
 
 - `danosti` – 81 znakov z `0` za prazno ali `null` (ni natanko 81 veljavnih znakov);
 - `veljavnih` – število znakov `0-9` in `.`;
-- `sporocilo`, `napaka` – **natanko besedili igre**: `''` / »Niz je vpisan v mrežo.« / »Veljavnih znakov v nizu: N (potrebnih je 81).« (`napaka: true`);
-- `neveljavni` – različni izpuščeni znaki, ki niso presledek, prelom vrstice ali ločilo mreže (`|`, `+`, `-`), npr. `['x', '*']`, v vrstnem redu prve pojavitve;
-- `opozoriloZnakov` – `''` ali »Neveljavni znaki x, * so izpuščeni – prazna celica je 0 ali pika.« (samo pri nepopolnem nizu; niz z 81 veljavnimi znaki je sprejet in se ne opozarja).
+- `sporocilo`, `napaka` – `''` (prazno ali samo presledki in ločila) / »Niz je vpisan v mrežo.« / »Veljavnih znakov v nizu: N (potrebnih je 81).« (`napaka: true`), pri neveljavnih znakih še »Neveljaven znak »x« je izpuščen – prazna celica je 0 ali pika.« (sklanjanje 1 / 2 / 3+ znakov, največ osem naštetih; tudi pri 0 veljavnih znakih). Niz z 81 veljavnimi znaki je sprejet brez opozorila.
+- `neveljavni` – različni izpuščeni znaki, ki niso presledek, prelom vrstice ali ločilo mreže (`|`, `+`, `-`), npr. `['x', '*']`, v vrstnem redu prve pojavitve.
 
 Pravilo branja ostane pravilo igre (izpusti vse razen `0-9` in `.`), zato igra po preureditvi dela enako.
 
@@ -45,7 +44,7 @@ Obnašanje (ob vsakem dogodku `input` – deluje za lepljenje in tipkanje, kot v
 
 Ločena vrstica `#nizStatus` je zato, da tipkanje nepopolnega niza ne prepiše glavnega statusa (npr. »Rešeno v 42 korakih.«) – dokler niz ni cel, se ne zgodi nič drugega.
 
-Naštevanje neveljavnih znakov je v **obeh** aplikacijah, v igri pa pride v ločenem koraku (2b, točka 6): najprej se igra preuredi brez spremembe obnašanja, šele nato dobi še `opozoriloZnakov` za sporočilom o številu znakov (»Veljavnih znakov v nizu: 79 (potrebnih je 81). Neveljavni znaki x, * so izpuščeni – prazna celica je 0 ali pika.«).
+Naštevanje neveljavnih znakov je v **obeh** aplikacijah, v igri pa pride v ločenem koraku (2b, točka 6): v koraku 2a igra iz `zbirkaNizDanosti()` bere samo `danosti` in `veljavnih` in obdrži svoji dosedanji besedili, v 2b pa prevzame `sporocilo`/`napaka` (»Veljavnih znakov v nizu: 79 (potrebnih je 81). Neveljaven znak »x« je izpuščen – prazna celica je 0 ali pika.«).
 
 ## 4. Obstoječa vsebina mreže in »Počisti«
 
@@ -67,7 +66,7 @@ Niz samo izpolni mrežo, nič ne preverja. Reševalec se po nizu vede **enako ko
 Preverjanje s `tools/posnetek-igre.js` v dveh korakih:
 
 1. **Izhodišče pred spremembo kode:** scenarij posnetka dobi na koncu nov blok »Nova uganka – niz« (odprtje okna, veljaven niz s `.`, veljaven niz z `0` in presledki/prelomi, prekratek, predolg, niz s črkami, niz s konfliktom, prazno polje, »Počisti«, »Začni igro« po nizu). V teh korakih se posnamejo še `novaNiz`, `novaMreza`, `novaStatus` (samo v novih korakih, zato prvih 74 posnetkov ostane primerljivih z `igra-pred-del5.json`). Posnetek na današnji kodi → `tools/posnetki/igra-pred-niz.json`. Posnetek zapiše tudi vrednost vnosnih polj (samo, kadar ni prazna, zato se starejši posnetki ne spremenijo).
-2. **Korak 2a – vse brez spremembe igre:** igra uporabi `zbirkaNizDanosti()` samo za `danosti`/`sporocilo`/`napaka`, reševalec dobi polje. `--primerjaj tools/posnetki/igra-pred-niz.json` mora dati »Enako«. Commit + push.
+2. **Korak 2a – vse brez spremembe igre:** igra uporabi `zbirkaNizDanosti()` samo za `danosti`/`veljavnih` (besedili ostaneta v igri), reševalec dobi polje. `--primerjaj tools/posnetki/igra-pred-niz.json` mora dati »Enako«. Commit + push.
 3. **Korak 2b – naštevanje še v igri** (ločen commit): `--primerjaj` mora pokazati **samo** razliko v `novaStatus` pri korakih z neveljavnimi znaki, nič drugega. Nato novo izhodišče `--shrani tools/posnetki/igra-pred-niz.json` (prepiše staro). Commit + push.
 
 ## 7. Novi testi

@@ -18,11 +18,13 @@
     <button type="button" id="libraryBtn" class="lib-open">Zbirka (0)</button>
   </div>
   <h1>Sudoku reševalec</h1>
-  <p>Vtipkaj začetne števke naravnost v mrežo (samo pojdi od celice do celice), nato pritisni "Reši". Podvojene števke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
+  <p>Vtipkaj začetne števke naravnost v mrežo (samo pojdi od celice do celice) ali prilepi niz 81 znakov v polje Niz (<code>0</code> ali <code>.</code> = prazna celica), nato pritisni "Reši". Podvojene števke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
 </header>
 
 <main>
   <div class="card">
+    <label class="prilepi">Niz <input type="text" id="nizDanosti" autocomplete="off" spellcheck="false" placeholder="npr. 8....1......6..5....." aria-describedby="nizStatus"></label>
+    <div id="nizStatus" aria-live="polite"></div>
     <div id="inputGrid"></div>
     <div class="btn-row">
       <button class="primary" id="solveBtn">Reši</button>

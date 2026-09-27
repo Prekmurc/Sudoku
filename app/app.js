@@ -263,6 +263,8 @@ function skrijKorake() {
 
 document.getElementById('clearBtn').addEventListener('click', () => {
   inputs.forEach(inp => { inp.value = ''; inp.classList.remove('conflict', 'given-style'); });
+  nizDanostiEl.value = '';
+  nizStatus('');
   resultsEl.style.display = 'none';
   skrijKorake();
   document.getElementById('candSection').style.display = 'none';
@@ -274,8 +276,12 @@ document.getElementById('clearBtn').addEventListener('click', () => {
 });
 
 // Vpiše danosti (81 znakov, '0' ali '.' = prazna celica) v vnosno mrežo in
-// skrije prejšnjo rešitev/kandidate - uporabljata jo seznam "Primer" in zbirka.
-function naloziDanosti(danosti, sporocilo) {
+// skrije prejšnjo rešitev/kandidate - uporabljajo jo seznam "Primer", zbirka in
+// polje Niz. Polje Niz se izprazni (razen ko danosti prihajajo iz njega), da v
+// njem ne ostane niz druge uganke.
+function naloziDanosti(danosti, sporocilo, { izNiza = false } = {}) {
+  if (!izNiza) nizDanostiEl.value = '';
+  nizStatus('');
   danosti.split('').forEach((ch, i) => { inputs[i].value = (ch === '0' || ch === '.') ? '' : ch; });
   checkConflicts();
   resultsEl.style.display = 'none';
@@ -286,6 +292,27 @@ function naloziDanosti(danosti, sporocilo) {
   statusEl.className = '';
   lastSolve = null;
 }
+
+// Polje Niz: 81 znakov (0 ali . = prazna celica) izpolni vso mrežo; branje in
+// sporočila so skupna z igro (zbirkaNizDanosti() v ../shared/zbirka.js). Dokler niz
+// ni cel, se mreža in glavni status ne spremenita - sporočilo je pod poljem.
+const nizDanostiEl = document.getElementById('nizDanosti');
+const nizStatusEl = document.getElementById('nizStatus');
+
+function nizStatus(besedilo, napaka) {
+  nizStatusEl.textContent = besedilo;
+  nizStatusEl.className = napaka ? 'err' : '';
+}
+
+nizDanostiEl.addEventListener('input', () => {
+  const niz = zbirkaNizDanosti(nizDanostiEl.value);
+  if (niz.danosti) {
+    const danih = niz.danosti.replace(/0/g, '').length;
+    naloziDanosti(niz.danosti, `Niz je vpisan v mrežo - danih števk: ${danih}.`, { izNiza: true });
+  } else {
+    nizStatus(niz.sporocilo, niz.napaka);
+  }
+});
 
 // Vgrajeni primeri (spustni seznam "Primer"): polje PRIMERI v ../shared/zbirka.js.
 

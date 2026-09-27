@@ -95,6 +95,45 @@ function zbirkaPrimerZa(danosti) {
   return PRIMERI.find(p => p.danosti.replace(/\./g, '0') === d) || null;
 }
 
+// Niz danosti iz polja "Niz" (igra: okno "Nova uganka"; reševalec: nad vnosno
+// mrežo). Veljavni so znaki 0-9 in '.', vse drugo se izpusti - tudi presledki,
+// prelomi vrstic in ločila mreže (|, +, -), zato se da prilepiti tudi mrežo,
+// zapisano v vrsticah. Vrne { danosti, veljavnih, neveljavni, sporocilo, napaka }:
+// `danosti` je 81 znakov z '0' za prazno celico ali null (veljavnih ni natanko 81);
+// `neveljavni` so izpuščeni znaki razen presledkov in ločil mreže (vsak enkrat, po
+// vrstnem redu pojavitve); `sporocilo` je '' (prazno polje ali samo presledki in
+// ločila), "Niz je vpisan v mrežo." ali napaka s številom veljavnih znakov in
+// naštetimi neveljavnimi.
+function zbirkaNizDanosti(besedilo) {
+  const s = String(besedilo || '');
+  const znaki = s.replace(/[^0-9.]/g, '');
+  const neveljavni = [...new Set(s.replace(/[0-9.\s|+\-]/g, ''))];
+  const veljavnih = znaki.length;
+  if (veljavnih === 81) {
+    return { danosti: znaki.replace(/\./g, '0'), veljavnih, neveljavni, sporocilo: 'Niz je vpisan v mrežo.', napaka: false };
+  }
+  if (!veljavnih && !neveljavni.length) {
+    return { danosti: null, veljavnih, neveljavni, sporocilo: '', napaka: false };
+  }
+  return {
+    danosti: null, veljavnih, neveljavni, napaka: true,
+    sporocilo: `Veljavnih znakov v nizu: ${veljavnih} (potrebnih je 81).`
+      + (neveljavni.length ? ' ' + zbirkaNeveljavniZnaki(neveljavni) : ''),
+  };
+}
+
+// "Neveljaven znak »x« je izpuščen - ..." (1, 2, 3 ali več znakov; največ 8).
+function zbirkaNeveljavniZnaki(znaki) {
+  const naj = 8;
+  const z = znaki.slice(0, naj).map(c => `»${c}«`);
+  const seznam = z.length === 1 ? z[0] : z.slice(0, -1).join(', ') + ' in ' + z[z.length - 1];
+  const vec = znaki.length > naj ? ` (in še ${znaki.length - naj})` : '';
+  const del = z.length === 1 ? `Neveljaven znak ${seznam} je izpuščen`
+    : z.length === 2 ? `Neveljavna znaka ${seznam} sta izpuščena`
+    : `Neveljavni znaki ${seznam}${vec} so izpuščeni`;
+  return `${del} – prazna celica je 0 ali pika.`;
+}
+
 /* ---------- pomožne ---------- */
 
 function zbirkaZdaj() {
