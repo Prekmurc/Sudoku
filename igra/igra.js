@@ -97,12 +97,10 @@ const plosca = ustvariPlosco({
 const celice = plosca.mreza.celice;
 const gumbiVpisi = plosca.gumbi.vpisi; // gumbiVpisi in gumbiOdstrani berejo testi
 const gumbiOdstrani = plosca.gumbi.odstrani;
-const enaIzbrana = () => plosca.enaIzbrana();
 // Zadnja izbrana poudarjena števka ali null (ima prednost pri Naslednji korak).
 const zadnjaPoudarjena = () => plosca.zadnjaPoudarjena();
-// Poteze gredo skozi ploščo (po njih obSpremembi zgoraj).
+// Poteze gredo skozi ploščo (po njih obSpremembi zgoraj); imeni uporabljajo testi.
 const izvedi = poteza => plosca.izvedi(poteza);
-const odstraniAliVrni = d => plosca.odstraniAliVrni(d);
 const zbrisiVpis = () => plosca.zbrisiVpis();
 
 /* ---------- poteze ---------- */
@@ -497,55 +495,8 @@ document.addEventListener('keydown', (e) => {
   // "več hkrati" ali izbirnik barv pa tipkovnice igre ne smeta blokirati.
   if (e.target instanceof HTMLTextAreaElement || (e.target instanceof HTMLInputElement && e.target.type === 'text')) return;
 
-  const ctrl = e.ctrlKey || e.metaKey;
-  if (ctrl && !e.altKey && e.code === 'KeyZ') {
-    e.preventDefault();
-    (e.shiftKey ? ponoviBtn : razveljaviBtn).click();
-    return;
-  }
-  if (ctrl && !e.altKey && e.code === 'KeyY') {
-    e.preventDefault();
-    ponoviBtn.click();
-    return;
-  }
-  if (ctrl || e.altKey) return;
-
-  const premik = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
-  if (premik) {
-    e.preventDefault();
-    // Pri več izbranih celicah puščice ne naredijo nič (izbire ne podrejo po nesreči).
-    const izbrane = plosca.izbrane;
-    if (izbrane.length > 1) return;
-    // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
-    const od = izbrane.length ? izbrane[0] : plosca.zadnjaIzbrana;
-    if (od === null) plosca.nastaviIzbiro([0]);
-    else {
-      const r = Math.min(8, Math.max(0, Math.floor(od / 9) + premik[0]));
-      const c = Math.min(8, Math.max(0, od % 9 + premik[1]));
-      plosca.nastaviIzbiro([r * 9 + c]);
-    }
-    izrisi();
-    return;
-  }
-
-  // Fizična tipka (e.code), da Shift+števka deluje tudi na slovenski razporeditvi.
-  const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
-  if (m) {
-    e.preventDefault();
-    const d = +m[1];
-    if (e.shiftKey) odstraniAliVrni(d);
-    else izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d });
-    return;
-  }
-  if (e.key === 'Backspace' || e.key === 'Delete') {
-    e.preventDefault();
-    zbrisiVpis();
-    return;
-  }
-  if (e.key === 'Escape' && plosca.izbrane.length) {
-    plosca.nastaviIzbiro([]);
-    izrisi();
-  }
+  // Števke, Shift+števka, puščice, Backspace/Delete, Escape, Ctrl+Z/Y - v plošči.
+  plosca.obTipki(e);
 });
 
 /* ---------- dialogi ---------- */

@@ -268,6 +268,65 @@ function ustvariPlosco(o) {
     seznami.izrisi({ maske: igra ? manjkajoceVEnotah(stanje) : null, vidni, barva: barvaPoudarka });
   }
 
+  /* ---------- tipkovnica ---------- */
+
+  // Aplikacija pokliče iz svojega poslušalca "keydown", ko tipka velja za ploščo
+  // (ni odprtega okna, ne tipka se v besedilno polje). Vrne true, če je tipko
+  // porabila.
+  function obTipki(e) {
+    if (!vir().igra) return false;
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && !e.altKey && e.code === 'KeyZ') {
+      e.preventDefault();
+      if (e.shiftKey) ponoviPotezo(); else razveljaviPotezo();
+      return true;
+    }
+    if (ctrl && !e.altKey && e.code === 'KeyY') {
+      e.preventDefault();
+      ponoviPotezo();
+      return true;
+    }
+    if (ctrl || e.altKey) return false;
+
+    const premik = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
+    if (premik) {
+      e.preventDefault();
+      // Pri več izbranih celicah puščice ne naredijo nič (izbire ne podrejo po nesreči).
+      if (izbrane.length > 1) return true;
+      // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
+      const od = izbrane.length ? izbrane[0] : zadnjaIzbrana;
+      if (od === null) izbrane = [0];
+      else {
+        const r = Math.min(8, Math.max(0, Math.floor(od / 9) + premik[0]));
+        const c = Math.min(8, Math.max(0, od % 9 + premik[1]));
+        izbrane = [r * 9 + c];
+      }
+      izrisiVse();
+      return true;
+    }
+
+    // Fizična tipka (e.code), da Shift+števka deluje tudi na slovenski razporeditvi.
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+    if (m) {
+      e.preventDefault();
+      const d = +m[1];
+      if (e.shiftKey) odstraniAliVrni(d);
+      else izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d });
+      return true;
+    }
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      zbrisiVpis();
+      return true;
+    }
+    if (e.key === 'Escape' && izbrane.length) {
+      izbrane = [];
+      izrisiVse();
+      return true;
+    }
+    return false;
+  }
+
   if (o.razveljavi) o.razveljavi.addEventListener('click', razveljaviPotezo);
   if (o.ponovi) o.ponovi.addEventListener('click', ponoviPotezo);
   if (o.zbrisi) o.zbrisi.addEventListener('click', () => zbrisiVpis());
@@ -385,9 +444,6 @@ function ustvariPlosco(o) {
     mreza,
     gumbi,
     get izbrane() { return izbrane; },
-    get zadnjaIzbrana() { return zadnjaIzbrana; },
-    // Začasno (del 5, korak 2): igra še sama premika izbiro s puščicami.
-    nastaviIzbiro(nove, zadnja = zadnjaIzbrana) { izbrane = nove; zadnjaIzbrana = zadnja; },
     enaIzbrana,
     poudari,
     barvaPoudarka,
@@ -400,5 +456,6 @@ function ustvariPlosco(o) {
     poSpremembi,
     ponastavi,
     izrisi,
+    obTipki,
   };
 }
