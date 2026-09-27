@@ -1,8 +1,8 @@
 # Niz danosti v reševalcu – načrt
 
-Naloga: reševalec (`app/`) dobi polje »Niz« za prilepljen niz 81 znakov (`0` ali `.` = prazna celica), ki izpolni vnosno mrežo – enako kot ga ima igra v oknu »Nova uganka«. Igra se ne sme spremeniti.
+Naloga: reševalec (`app/`) dobi polje »Niz« za prilepljen niz 81 znakov (`0` ali `.` = prazna celica), ki izpolni vnosno mrežo – enako kot ga ima igra v oknu »Nova uganka«. Igra se spremeni samo v enem sporočilu (naštevanje neveljavnih znakov, korak 2b), vse drugo ostane enako.
 
-Stanje: načrt, čaka na potrditev (2026-09-27).
+Stanje: potrjeno 2026-09-27 z dopolnitvami (konflikt v danostih, naštevanje neveljavnih znakov v obeh aplikacijah v dveh korakih, orodje za brskalnik brez glave v projektu).
 
 ## 1. Kje je zdaj branje niza
 
@@ -22,7 +22,8 @@ Nova funkcija v **`shared/zbirka.js`**: `zbirkaNizDanosti(besedilo)` → `{ dano
 - `danosti` – 81 znakov z `0` za prazno ali `null` (ni natanko 81 veljavnih znakov);
 - `veljavnih` – število znakov `0-9` in `.`;
 - `sporocilo`, `napaka` – **natanko besedili igre**: `''` / »Niz je vpisan v mrežo.« / »Veljavnih znakov v nizu: N (potrebnih je 81).« (`napaka: true`);
-- `neveljavni` – različni izpuščeni znaki, ki niso presledek, prelom vrstice ali ločilo mreže (`|`, `+`, `-`), npr. `['x', '*']` (za sporočilo v reševalcu, glej točko 3).
+- `neveljavni` – različni izpuščeni znaki, ki niso presledek, prelom vrstice ali ločilo mreže (`|`, `+`, `-`), npr. `['x', '*']`, v vrstnem redu prve pojavitve;
+- `opozoriloZnakov` – `''` ali »Neveljavni znaki x, * so izpuščeni – prazna celica je 0 ali pika.« (samo pri nepopolnem nizu; niz z 81 veljavnimi znaki je sprejet in se ne opozarja).
 
 Pravilo branja ostane pravilo igre (izpusti vse razen `0-9` in `.`), zato igra po preureditvi dela enako.
 
@@ -44,9 +45,7 @@ Obnašanje (ob vsakem dogodku `input` – deluje za lepljenje in tipkanje, kot v
 
 Ločena vrstica `#nizStatus` je zato, da tipkanje nepopolnega niza ne prepiše glavnega statusa (npr. »Rešeno v 42 korakih.«) – dokler niz ni cel, se ne zgodi nič drugega.
 
-Niz s ponovljeno števko v enoti: mreža se izpolni, celice se obarvajo rdeče (`checkConflicts()`), »Reši« in »Pokaži kandidate« zavrneta z obstoječim sporočilom – enako kot pri ročnem vnosu.
-
-Igra ostane pri besedilu brez dela o neveljavnih znakih (zahteva »igra nespremenjena«). **Odločitev zate:** če želiš isto dopolnitev tudi v igri, je to ena vrstica v `igra/igra.js` in posnetek bo pokazal natanko to razliko.
+Naštevanje neveljavnih znakov je v **obeh** aplikacijah, v igri pa pride v ločenem koraku (2b, točka 6): najprej se igra preuredi brez spremembe obnašanja, šele nato dobi še `opozoriloZnakov` za sporočilom o številu znakov (»Veljavnih znakov v nizu: 79 (potrebnih je 81). Neveljavni znaki x, * so izpuščeni – prazna celica je 0 ali pika.«).
 
 ## 4. Obstoječa vsebina mreže in »Počisti«
 
@@ -55,23 +54,29 @@ Igra ostane pri besedilu brez dela o neveljavnih znakih (zahteva »igra nespreme
 - »Primer« in »Odpri« (zbirka) izpraznita polje Niz in `#nizStatus`, da v polju ne ostane niz druge uganke.
 - Ročni vpis v mrežo po lepljenju polja ne spremeni (enako kot v igri).
 
-## 5. Več rešitev ali brez rešitve
+## 5. Konflikt, več rešitev ali brez rešitve
 
-Niz samo izpolni mrežo, nič ne preverja. Vse nadaljnje je obstoječa pot gumba »Reši« in ostane nespremenjeno: brez rešitve »Uganka nima rešitve – preveri vnesene števke.«, več rešitev in nepreverjena enoličnost rumeno opozorilo, v zbirko se shrani samo uganka z eno rešitvijo, vgrajeni primer se ne shrani (»Vgrajeni primer – v zbirko se ne shrani.«). Test preveri, da je izid po nizu enak kot po ročnem vnosu istih danosti.
+Niz samo izpolni mrežo, nič ne preverja. Reševalec se po nizu vede **enako kot po ročnem vnosu istih števk**.
+
+**Konflikt** (ista števka dvakrat v vrstici, stolpcu ali bloku): niz se sprejme in vpiše (»Niz je vpisan v mrežo – danih števk: N.«), `checkConflicts()` obarva obe celici rdeče (razred `conflict`), »Reši« zavrne s »Popravi rdeče označene celice - ista števka se ponavlja v isti vrstici, stolpcu ali bloku.«, »Pokaži kandidate« s »Popravi rdeče označene celice, preden prikažem kandidate.«. Ko igralec eno od celic popravi ročno, rdeča izgine kot pri ročnem vnosu. Test primerja stanje mreže (vrednosti in razrede vseh 81 celic) ter status po »Reši« in »Pokaži kandidate« po nizu in po ročnem vnosu istih števk – za konflikt v vrstici, stolpcu in bloku.
+
+**Več rešitev ali brez rešitve:** Vse nadaljnje je obstoječa pot gumba »Reši« in ostane nespremenjeno: brez rešitve »Uganka nima rešitve – preveri vnesene števke.«, več rešitev in nepreverjena enoličnost rumeno opozorilo, v zbirko se shrani samo uganka z eno rešitvijo, vgrajeni primer se ne shrani (»Vgrajeni primer – v zbirko se ne shrani.«). Test preveri, da je izid po nizu enak kot po ročnem vnosu istih danosti.
 
 ## 6. Vpliv na igro
 
-Sprememba v igri je samo preureditev poslušalca `#novaNiz`. Preverjanje s `tools/posnetek-igre.js`:
+Preverjanje s `tools/posnetek-igre.js` v dveh korakih:
 
-1. **Pred** spremembo kode: scenarij posnetka dobi na koncu nov blok »Nova uganka – niz« (odprtje okna, veljaven niz s `.`, veljaven niz z `0` in presledki/prelomi, prekratek, predolg, niz s črkami, niz s konfliktom, prazno polje, »Počisti«, »Začni igro« po nizu). V teh korakih se posnamejo še `novaNiz`, `novaMreza`, `novaStatus` (samo v novih korakih, zato prvih 74 posnetkov ostane primerljivih z `igra-pred-del5.json`). Posnetek na današnji kodi → `tools/posnetki/igra-pred-niz.json` (commit skupaj z orodjem).
-2. **Po** spremembi: `--primerjaj tools/posnetki/igra-pred-niz.json` mora dati »Enako«.
+1. **Izhodišče pred spremembo kode:** scenarij posnetka dobi na koncu nov blok »Nova uganka – niz« (odprtje okna, veljaven niz s `.`, veljaven niz z `0` in presledki/prelomi, prekratek, predolg, niz s črkami, niz s konfliktom, prazno polje, »Počisti«, »Začni igro« po nizu). V teh korakih se posnamejo še `novaNiz`, `novaMreza`, `novaStatus` (samo v novih korakih, zato prvih 74 posnetkov ostane primerljivih z `igra-pred-del5.json`). Posnetek na današnji kodi → `tools/posnetki/igra-pred-niz.json`. Posnetek zapiše tudi vrednost vnosnih polj (samo, kadar ni prazna, zato se starejši posnetki ne spremenijo).
+2. **Korak 2a – vse brez spremembe igre:** igra uporabi `zbirkaNizDanosti()` samo za `danosti`/`sporocilo`/`napaka`, reševalec dobi polje. `--primerjaj tools/posnetki/igra-pred-niz.json` mora dati »Enako«. Commit + push.
+3. **Korak 2b – naštevanje še v igri** (ločen commit): `--primerjaj` mora pokazati **samo** razliko v `novaStatus` pri korakih z neveljavnimi znaki, nič drugega. Nato novo izhodišče `--shrani tools/posnetki/igra-pred-niz.json` (prepiše staro). Commit + push.
 
 ## 7. Novi testi
 
 - `tests/niz-danosti.test.js`:
   - `zbirkaNizDanosti()`: niz s `.` in z `0` da iste danosti; presledki, prelomi vrstic in `|+-` se izpustijo brez `neveljavni`; 80 in 82 znakov; prazno; črke/`x`/`*` v `neveljavni` (vsak znak enkrat); besedila `sporocilo` so enaka dosedanjim v igri; uganke iz `docs/uganke.md` in `PRIMERI` krožno (niz → danosti).
-  - reševalec v nadomestnem DOM-u (`app/` skripte kot v `app-zbirka.test.js`, dogodek `input` na polju): veljaven niz izpolni mrežo in počisti prejšnjo rešitev; neveljaven pusti mrežo in glavni status, sporočilo v `#nizStatus`; konflikt → rdeče celice in »Reši« zavrne; »Počisti«, »Primer« in »Odpri« izpraznijo polje; po nizu z več rešitvami / brez rešitve / vgrajenim primerom »Reši« da isto kot ročni vnos (uganka z več rešitvami nastane v testu iz uganke iz `docs/uganke.md` z odstranjevanjem danosti, dokler `countSolutions()` ne vrne več kot 1; brez rešitve z dodano danostjo, ki nasprotuje rešitvi, a ne ponovi števke v enoti – oboje preveri program, ne na pamet).
+  - reševalec v nadomestnem DOM-u (`app/` skripte kot v `app-zbirka.test.js`, dogodek `input` na polju): veljaven niz izpolni mrežo in počisti prejšnjo rešitev; neveljaven pusti mrežo in glavni status, sporočilo v `#nizStatus` z naštetimi neveljavnimi znaki; konflikt v vrstici, stolpcu in bloku → isto stanje mreže in isti status po »Reši« in »Pokaži kandidate« kot po ročnem vnosu istih števk (točka 5); »Počisti«, »Primer« in »Odpri« izpraznijo polje; po nizu z več rešitvami / brez rešitve / vgrajenim primerom »Reši« da isto kot ročni vnos (uganka z več rešitvami nastane v testu iz uganke iz `docs/uganke.md` z odstranjevanjem danosti, dokler `countSolutions()` ne vrne več kot 1; brez rešitve z dodano danostjo, ki nasprotuje rešitvi, a ne ponovi števke v enoti – oboje preveri program, ne na pamet).
 - `tests/besedila-html.test.js` samodejno zajame novo besedilo v `app/index.html`.
+- Korak 2b: `tests/igra-ui.test.js` – niz s črkami v oknu »Nova uganka« da sporočilo z naštetimi znaki.
 - Obstoječi testi (`node --test "tests/*.test.js"`) morajo ostati zeleni.
 
 ## Preverjanje
@@ -80,7 +85,10 @@ Avtomatsko (naredim sam):
 
 1. Vsi testi.
 2. Posnetek igre `--primerjaj` (točka 6).
-3. Brskalnik brez glave: Edge `--headless` prek protokola DevTools (vgrajeni `WebSocket` v Node 24, brez odvisnosti; skripta v začasni mapi, ne v projektu) na `app/index.html` in `igra/index.html` prek lokalnega strežnika: vtipkan niz (`Input.insertText`) izpolni mrežo, sporočila, »Reši« po nizu, širina 375 px brez vodoravnega drsnika; posnetke zaslona pogledam sam.
+3. Brskalnik brez glave – **orodje v projektu** za to in naslednje naloge:
+   - `tools/brskalnik.js` – knjižnica in ukazna vrstica: zažene Edge `--headless` (pot poišče sama, lahko jo poda `EDGE_POT`), vgrajen statični strežnik HTTP iz korena projekta (isti izvor za `app/` in `igra/`, zato skupen `localStorage`), krmiljenje prek protokola DevTools z vgrajenim `WebSocket` v Node 24 – brez odvisnosti. Funkcije: `odpri(pot, { sirina, visina })`, `izvedi(js)`, `vtipkaj(besedilo)` (`Input.insertText`, kot tipkovnica), `klikni(izbirnik)`, `posnetek(pot.png)`, `zapri()`. Ukaz: `node tools/brskalnik.js posnetek app/index.html izhod.png [--sirina 375]`.
+   - `tools/preveri-niz-brskalnik.js` – scenarij te naloge: v reševalcu in igri vtipka niz (veljaven, prekratek, s črkami, s konfliktom), preveri mrežo in sporočila, »Reši« po nizu, širini 375 in 1200 px brez vodoravnega drsnika, posnetki zaslona v izbrano mapo (pogledam jih sam). Izhod 0/1 kot test.
+   - Ni v `tests/`, ker potrebuje nameščen Edge; opis v CLAUDE.md (»Zagon in testi« in `tools/`).
 
 Ročno (samo, česar avtomatika ne more):
 
@@ -88,13 +96,11 @@ Ročno (samo, česar avtomatika ne more):
 |---|---|---|---|---|
 | 1 | reševalec | Kopiraj niz iz `docs/uganke.md` (tudi večvrstični zapis mreže) in ga prilepi s Ctrl+V in z desnim klikom → Prilepi | mreža se izpolni, status »Niz je vpisan v mrežo – danih števk: N.« | pravo odložišče in kontekstni meni brskalnik brez glave le posnema (vnos besedila), ne preizkusi |
 | 2 | reševalec, telefon | Dolg pritisk v polje Niz → Prilepi | mreža se izpolni, zaslonska tipkovnica ne prekrije sporočila | zaslonske tipkovnice in dotika ni v brskalniku brez glave |
-| 3 | reševalec | Oceni postavitev: polje nad mrežo, besedilo v glavi, rdeče sporočilo pri prekratkem nizu | razumljivo in ne moti ročnega vnosa | presoja uporabnosti, ne pravilnosti |
+| 3 | igra | »Nova uganka« → prilepi (Ctrl+V) niz z `x` namesto pik | sporočilo našteje `x` in pove, da je prazna celica 0 ali pika | kot 1 – pravo odložišče; logiko preverijo test, posnetek in brskalnik brez glave |
+| 4 | reševalec | Oceni postavitev: polje nad mrežo, besedilo v glavi, rdeče sporočilo pri prekratkem nizu | razumljivo in ne moti ročnega vnosa | presoja uporabnosti, ne pravilnosti |
 
-## Koraki izvedbe (po potrditvi)
+## Koraki izvedbe
 
-1. Razširitev `tools/posnetek-igre.js` in izhodiščni posnetek `igra-pred-niz.json` na današnji kodi.
-2. `zbirkaNizDanosti()` v `shared/zbirka.js` + testi funkcije; igra jo uporabi; `--primerjaj` = enako.
-3. Polje v reševalcu (`app/index.html`, `app/app.js`, `app/app.css`) + testi reševalca.
-4. Brskalnik brez glave, dokumentacija (`CLAUDE.md`), povzetek.
-
-Vsak korak svoj commit + push.
+1. Razširitev `tools/posnetek-igre.js` in izhodiščni posnetek `igra-pred-niz.json` na današnji kodi. Commit + push.
+2. **2a:** `zbirkaNizDanosti()` v `shared/zbirka.js` + testi; igra jo uporabi brez spremembe obnašanja; polje v reševalcu (`app/index.html`, `app/app.js`, `app/app.css`) + testi; `tools/brskalnik.js` in `tools/preveri-niz-brskalnik.js`; CLAUDE.md. `--primerjaj` = »Enako«, vsi testi zeleni. Commit + push.
+3. **2b:** naštevanje neveljavnih znakov še v igri + test; `--primerjaj` pokaže samo to razliko; novo izhodišče; CLAUDE.md. Commit + push.

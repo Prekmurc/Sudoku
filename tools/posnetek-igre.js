@@ -49,6 +49,7 @@ function drevo(el) {
   if (el.hidden) o.skrit = true;
   if (el.disabled) o.onemogocen = true;
   if (el.checked) o.obkljukan = true;
+  if (el.value) o.vrednost = el.value; // vnosna polja (samo neprazna - starejši posnetki ostanejo enaki)
   if (el.title) o.title = el.title;
   if (Object.keys(el.attrs).length) o.atributi = { ...el.attrs };
   if (Object.keys(el.dataset).length) o.data = { ...el.dataset };
@@ -56,9 +57,13 @@ function drevo(el) {
   return o;
 }
 
-function posnemi(dom) {
+// Okno "Nova uganka" (polje Niz, vnosna mreža okna, sporočilo) - samo v posnetkih
+// tega okna, zato se prejšnji posnetki ne spremenijo.
+const ELEMENTI_NOVA = ['novaDialog', 'novaNiz', 'novaMreza', 'novaStatus'];
+
+function posnemi(dom, dodatni = []) {
   const o = {};
-  for (const id of ELEMENTI) o[id] = drevo(dom.el(id));
+  for (const id of [...ELEMENTI, ...dodatni]) o[id] = drevo(dom.el(id));
   o.cssHtml = { ...dom.document.documentElement.style.vrednosti };
   return o;
 }
@@ -362,6 +367,40 @@ async function scenarij() {
   zapisi('Shift+števka odstrani (po puščicah)');
   tipka('!', `Digit${od}`, { shiftKey: true });
   zapisi('Shift+števka vrne kandidata');
+
+  // Okno "Nova uganka": polje Niz (naloga docs/niz-resevalec-nacrt.md). Nizi so
+  // izpeljani iz uganke iz docs/uganke.md, konflikt poišče program.
+  const zapisiNovo = ime => koraki.push({ ime, posnetek: posnemi(dom, ELEMENTI_NOVA) });
+  const vpisiNiz = v => { dom.el('novaNiz').value = v; dom.el('novaNiz').sprozi('input'); };
+  const nova = loadPuzzles()[3].danosti.replace(/\./g, '0');
+  const vrstice = nova.match(/.{9}/g);
+  dom.klikni('novaBtn');
+  zapisiNovo('Nova uganka: okno odprto');
+  vpisiNiz(nova.replace(/0/g, '.'));
+  zapisiNovo('niz s pikami');
+  vpisiNiz(vrstice.map(v => `|${v.slice(0, 3)}|${v.slice(3, 6)}|${v.slice(6)}|`).join('\n+---+---+---+\n'));
+  zapisiNovo('niz z ločili in prelomi vrstic');
+  vpisiNiz(nova.slice(0, 79));
+  zapisiNovo('prekratek niz');
+  vpisiNiz(nova + '12');
+  zapisiNovo('predolg niz');
+  vpisiNiz(nova.replace(/0/g, 'x'));
+  zapisiNovo('niz z x namesto praznih celic');
+  vpisiNiz('*' + nova.slice(1, 40) + 'ab' + nova.slice(41));
+  zapisiNovo('niz z več neveljavnimi znaki');
+  // Konflikt: prva prazna celica dobi števko, ki je v njeni vrstici že dana.
+  const kc = nova.indexOf('0');
+  const kd = vrstice[Math.floor(kc / 9)].replace(/0/g, '')[0];
+  vpisiNiz(nova.slice(0, kc) + kd + nova.slice(kc + 1));
+  zapisiNovo('niz s konfliktom');
+  vpisiNiz('');
+  zapisiNovo('prazno polje');
+  dom.klikni('novaPocisti');
+  zapisiNovo('Počisti');
+  vpisiNiz(nova);
+  dom.klikni('novaZacni');
+  await cakaj(300); // enoličnost se preveri v setTimeout
+  zapisiNovo('Začni igro po nizu');
   return koraki;
 }
 
