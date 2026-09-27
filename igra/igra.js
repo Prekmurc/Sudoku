@@ -3,7 +3,7 @@
    razveljavi/ponovi, poudarjanje števke, seznami manjkajočih števk (vrstice,
    stolpci, bloki), pomoč (Naslednji korak, Preveri), zbirka in vnos nove
    uganke. Stanje in poteze so v ../shared/stanje.js, izris mreže in seznamov v
-   ../shared/mreza.js, shranjevanje igre v shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
+   ../shared/mreza.js, izbira in poudarki v ../shared/plosca.js, shranjevanje igre v shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
    (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
@@ -28,18 +28,7 @@ const igraLayoutEl = document.getElementById('igraLayout');
 
 let igra = null;        // { danosti, poteze, kazalec } - glej ../shared/stanje.js
 let stanje = null;      // stanjeIgre(igra), osveženo po vsaki spremembi
-// Izbrane celice v vrstnem redu izbire. Več celic (kljukica "več celic" ali
-// Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
-// dokler je igralec ne počisti (Escape, izklop kljukice, navaden klik).
-let izbrane = [];
-let vecCelic = false;
-let zadnjaIzbrana = null; // celica, iz katere je bila izbira izklopljena po vpisu
-// Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
-// rumena, zelena, oranžna, modra (--poud, --poud2 ... v igra.css). Brez kljukice
-// "več hkrati" je poudarjena kvečjemu ena števka (rumena).
-let poudarjene = [];
-let vecHkrati = false;
-const BARV_POUDARKA = 4;
+// Izbira celic in poudarki števk so v plošči (../shared/plosca.js).
 let sporocilo = null;   // { besedilo, razred } - enkratno sporočilo v kartici Uganka
 // Vsebina kartice Pomoč: null, { korak, fokus, stopnja, izhodisce } (prikazan korak
 // motorja; fokus = zadnja izbrana poudarjena števka ob iskanju; stopnja 1 = ime
@@ -59,30 +48,23 @@ let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob pr
 
 /* ---------- gradnja mreže in nizov ---------- */
 
-// Mreža (izris) je skupna s treningom - ../shared/mreza.js.
-const mreza = ustvariMrezo(mrezaEl, {
-  obKliku: (i, e) => {
-    if (!igra) return;
-    if (vecCelic || e.ctrlKey || e.metaKey) preklopiVIzbiri(i);
-    else izbrane = enaIzbrana() === i ? [] : [i]; // ponoven klik prekliče izbiro
-    izrisi();
-  },
+// Plošča (mreža z izbiro celic in poudarki) je skupna s treningom -
+// ../shared/plosca.js. Igro in stanje ima igra; plošča ju bere prek vir().
+const plosca = ustvariPlosco({
+  mreza: mrezaEl,
+  vecCelic: vecCelicEl,
+  vecHkrati: vecHkratiEl,
+  vir: () => ({ igra, stanje }),
+  izrisi: () => izrisi(),
+  samoZaOgled: () => samoZaOgled(),
+  // Prikazan korak (tretja stopnja pomoči): samo še neizvedena dejanja.
+  oznake: () => oznakeKoraka(pomoc && pomoc.korak && pomoc.stopnja === 3 ? pomoc.korak : null, stanje),
 });
-const celice = mreza.celice;
-
-// Edina izbrana celica ali null (tudi pri več izbranih) - vpis, brisanje vpisa,
-// vračanje kandidata in puščice delujejo samo na eni celici.
-function enaIzbrana() {
-  return izbrane.length === 1 ? izbrane[0] : null;
-}
-
-// Izbira več celic: izbrana celica se odstrani, prazna doda. Dana celica in celica
-// z vpisom nimata kandidatov, zato se ne dodata (in izpadeta iz izbire, v katero
-// se doda nova celica).
-function preklopiVIzbiri(i) {
-  if (izbrane.includes(i)) izbrane = izbrane.filter(c => c !== i);
-  else if (!stanje.grid[i]) izbrane = [...izbrane.filter(c => !stanje.grid[c]), i];
-}
+const celice = plosca.mreza.celice;
+const enaIzbrana = () => plosca.enaIzbrana();
+const barvaPoudarka = d => plosca.barvaPoudarka(d);
+// Zadnja izbrana poudarjena števka ali null (ima prednost pri Naslednji korak).
+const zadnjaPoudarjena = () => plosca.zadnjaPoudarjena();
 
 function narediNiz(el, obKliku) {
   const gumbi = [];
@@ -96,7 +78,7 @@ function narediNiz(el, obKliku) {
   return gumbi;
 }
 
-const gumbiPoudari = narediNiz(nizPoudariEl, d => poudari(d));
+const gumbiPoudari = narediNiz(nizPoudariEl, d => plosca.poudari(d));
 const gumbiVpisi = narediNiz(nizVpisiEl, d => izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d }));
 const gumbiOdstrani = narediNiz(nizOdstraniEl, d => odstraniAliVrni(d));
 
@@ -138,51 +120,6 @@ for (const s of SEZNAMI) {
   });
 }
 
-/* ---------- poudarjanje števk ---------- */
-
-// Barva poudarka števke (0..3) ali -1, če ni poudarjena.
-function barvaPoudarka(d) {
-  const p = poudarjene.find(x => x.stevka === d);
-  return p ? p.barva : -1;
-}
-
-// Zadnja izbrana poudarjena števka ali null (ima prednost pri Naslednji korak).
-function zadnjaPoudarjena() {
-  return poudarjene.length ? poudarjene[poudarjene.length - 1].stevka : null;
-}
-
-// Brez "več hkrati" nova izbira zamenja prejšnjo, ponoven klik jo prekliče.
-// Z "več hkrati" se izbire seštevajo, ponoven klik števko odstrani; nova
-// števka dobi prvo prosto barvo po vrsti, ko so zasedene vse, se barve ponovijo.
-function poudari(d) {
-  const i = poudarjene.findIndex(x => x.stevka === d);
-  if (!vecHkrati) {
-    poudarjene = i >= 0 && poudarjene.length === 1 ? [] : [{ stevka: d, barva: 0 }];
-  } else if (i >= 0) {
-    poudarjene.splice(i, 1);
-  } else {
-    const zasedene = new Set(poudarjene.map(x => x.barva));
-    let barva = [...Array(BARV_POUDARKA).keys()].find(b => !zasedene.has(b));
-    if (barva === undefined) barva = poudarjene.length % BARV_POUDARKA;
-    poudarjene.push({ stevka: d, barva });
-  }
-  izrisi();
-}
-
-// Izklop kljukice "več celic" pomeni, da je izbiranje končano: izbira se počisti.
-vecCelicEl.addEventListener('change', () => {
-  vecCelic = vecCelicEl.checked;
-  if (!vecCelic) izbrane = [];
-  izrisi();
-});
-
-// Ob izklopu ostane poudarjena samo zadnja izbrana števka (modra).
-vecHkratiEl.addEventListener('change', () => {
-  vecHkrati = vecHkratiEl.checked;
-  if (!vecHkrati && poudarjene.length) poudarjene = [{ stevka: zadnjaPoudarjena(), barva: 0 }];
-  izrisi();
-});
-
 /* ---------- poteze ---------- */
 
 // Rešena uganka (vseh 81 celic izpolnjenih in brez napake) se ne spreminja več -
@@ -194,10 +131,7 @@ function samoZaOgled() {
 function izvedi(poteza) {
   if (!igra || samoZaOgled() || !dodajPotezo(igra, poteza, stanje)) return;
   // Po vpisu števke se izbira celice izklopi (puščice nadaljujejo od nje).
-  if (poteza.tip === 'vpis' && poteza.stevka) {
-    zadnjaIzbrana = poteza.celica;
-    izbrane = [];
-  }
+  if (poteza.tip === 'vpis' && poteza.stevka) plosca.nastaviIzbiro([], poteza.celica);
   sporocilo = null;
   osvezi();
 }
@@ -206,8 +140,8 @@ function izvedi(poteza) {
 // več izbranih celicah se števka v eni potezi odstrani iz vseh (izbira ostane).
 function odstraniAliVrni(d) {
   if (!igra) return;
-  if (izbrane.length > 1) {
-    izvedi({ tip: 'kandidati', celice: [...izbrane].sort((x, y) => x - y), stevka: d, odstrani: true });
+  if (plosca.izbrane.length > 1) {
+    izvedi({ tip: 'kandidati', celice: [...plosca.izbrane].sort((x, y) => x - y), stevka: d, odstrani: true });
     return;
   }
   const celica = enaIzbrana();
@@ -225,15 +159,10 @@ function zbrisiVpis() {
 // ob odprtju uganke (zacniIgro) - takrat se čas mojega zadnjega reševanja v zbirki
 // ne premakne, ker še nisem naredil poteze.
 function osvezi(jePoteza = true) {
-  const prej = stanje && stanje.danosti === igra.danosti ? seManjka(stanje) : null;
+  const prej = stanje && stanje.danosti === igra.danosti ? stanje : null;
   stanje = stanjeIgre(igra);
   pomoc = pomocPoSpremembi();
-  // Sprememba, ki števko dokonča (deveti vpis), izklopi njen poudarek - ni več
-  // kandidatov. Poudarek, ki ga igralec vklopi pri že dokončani števki, ostane.
-  if (prej) {
-    const zdaj = seManjka(stanje);
-    poudarjene = poudarjene.filter(p => !(prej[p.stevka] > 0 && zdaj[p.stevka] === 0));
-  }
+  plosca.poSpremembi(prej); // števka, ki jo sprememba dokonča, izgubi poudarek
   // Napredek trenutne igre (sudoku.igra.v1) se shrani VEDNO in neodvisno od zapisa
   // v zbirki (sudoku.zbirka.v1) - tudi pri rešeni uganki, ki se rešuje znova.
   if (!igraShrani(igra)) {
@@ -328,7 +257,7 @@ znovaBtn.addEventListener('click', () => {
 /* ---------- izris ---------- */
 
 function izrisi() {
-  izrisiMrezo();
+  plosca.izrisi();
   izrisiNize();
   izrisiSezname();
   izrisiStanje();
@@ -360,29 +289,12 @@ function opozoriloIgre() {
   return sporocilo && sporocilo.razred === 'err' ? sporocilo.besedilo : '';
 }
 
-// Prikazan korak (tretja stopnja pomoči): celice vzorca, kandidati za izbris,
-// števke za vpis - samo še neizvedena dejanja. Sosede izbrane celice se senčijo
-// samo pri eni izbrani celici.
-function izrisiMrezo() {
-  const korak = pomoc && pomoc.korak && pomoc.stopnja === 3 ? pomoc.korak : null;
-  mreza.izrisi(!igra ? { prazna: true, zaklenjena: false } : {
-    zaklenjena: samoZaOgled(),
-    grid: stanje.grid,
-    danosti: igra.danosti,
-    kandidati: stanje.kandidati,
-    barva: barvaPoudarka,
-    izbrane,
-    sosede: enaIzbrana(),
-    oznake: oznakeKoraka(korak, stanje),
-  });
-}
-
 function izrisiNize() {
   const manjka = igra ? seManjka(stanje) : new Array(10).fill(0);
   // Pri več izbranih celicah je mogoče samo odstraniti števko, ki je kandidat v vseh.
   const ogled = samoZaOgled();
   const a = !igra || ogled ? mozneAkcije(null, null)
-    : izbrane.length > 1 ? { vpis: 0, odstrani: skupniKandidati(stanje, izbrane), vrni: 0, zbrisi: false }
+    : plosca.izbrane.length > 1 ? { vpis: 0, odstrani: skupniKandidati(stanje, plosca.izbrane), vrni: 0, zbrisi: false }
     : mozneAkcije(stanje, enaIzbrana());
   for (let d = 1; d <= 9; d++) {
     const bit = 1 << d;
@@ -428,6 +340,7 @@ function izrisiNize() {
 function razlogNizov(a) {
   if (!igra) return '';
   if (samoZaOgled()) return '✓ Uganka je rešena – mreža je zaklenjena, samo za ogled. Z »Začni znova« jo lahko rešuješ še enkrat.';
+  const izbrane = plosca.izbrane;
   if (!izbrane.length) return 'Izberi celico v mreži.';
   if (izbrane.length > 1) {
     // Celica v izbiri je lahko polna, če je "Razveljavi"/"Ponovi" vrnil vpis.
@@ -687,11 +600,9 @@ function izrisiPomoc() {
 function zacniIgro(danosti) {
   const shranjena = igraNalozi(danosti);
   igra = shranjena || novaIgra(danosti);
-  izbrane = [];
-  zadnjaIzbrana = null;
+  plosca.ponastavi();
   pomoc = null;
   sidro = null;
-  poudarjene = [];
   sporocilo = opozoriloObnove(shranjena) || opisNadaljevanja(shranjena, 'shranjeno igro');
   osvezi(false); // samo odprtje uganke ni poteza
 }
@@ -751,14 +662,15 @@ document.addEventListener('keydown', (e) => {
   if (premik) {
     e.preventDefault();
     // Pri več izbranih celicah puščice ne naredijo nič (izbire ne podrejo po nesreči).
+    const izbrane = plosca.izbrane;
     if (izbrane.length > 1) return;
     // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
-    const od = izbrane.length ? izbrane[0] : zadnjaIzbrana;
-    if (od === null) izbrane = [0];
+    const od = izbrane.length ? izbrane[0] : plosca.zadnjaIzbrana;
+    if (od === null) plosca.nastaviIzbiro([0]);
     else {
       const r = Math.min(8, Math.max(0, Math.floor(od / 9) + premik[0]));
       const c = Math.min(8, Math.max(0, od % 9 + premik[1]));
-      izbrane = [r * 9 + c];
+      plosca.nastaviIzbiro([r * 9 + c]);
     }
     izrisi();
     return;
@@ -778,8 +690,8 @@ document.addEventListener('keydown', (e) => {
     zbrisiVpis();
     return;
   }
-  if (e.key === 'Escape' && izbrane.length) {
-    izbrane = [];
+  if (e.key === 'Escape' && plosca.izbrane.length) {
+    plosca.nastaviIzbiro([]);
     izrisi();
   }
 });
@@ -896,11 +808,9 @@ function primeriOdprti() {
 function izprazniIgro() {
   igra = null;
   stanje = null;
-  izbrane = [];
-  zadnjaIzbrana = null;
+  plosca.ponastavi();
   pomoc = null;
   sidro = null;
-  poudarjene = [];
   sporocilo = null;
   izrisi();
 }
