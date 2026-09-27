@@ -502,7 +502,7 @@ načrta in analize.
 
 ### Po delu 4 – samostojna naloga »Prava geometrija pri tehnikah 1 in 2 v Spoznaj«
 
-Zapisano 2026-09-25, **ni začeto** (ne izvajati pred delom 4). Samostojna naloga v svojem
+Zapisano 2026-09-25, **načrt 2026-09-27 v `docs/geometrija-1-2-nacrt.md`, čaka na potrditev**. Samostojna naloga v svojem
 pogovoru, po delu 4:
 
 - Vaji 1 · Izločitev izven bloka in 2 · Izločitev v bloku v načinu »Spoznaj« namesto
