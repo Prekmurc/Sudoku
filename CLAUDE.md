@@ -73,7 +73,7 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 - `docs/uganke.md` – preverjene testne uganke z opisom obnašanja reševalca (razdelek »Pokritost tehnik« pove, katere tehnike so slabo pokrite; razdelek »Porazdelitev naključnih ugank« je meritev 600 naključnih ugank, na kateri slonijo merila štirih stopenj generatorja); `docs/tehnike.md` – tabela tehnik iz `ALL_TECHNIQUES`.
 - `docs/niz-resevalec-nacrt.md` – načrt naloge »niz danosti v reševalcu« (polje Niz, skupno branje v `shared/zbirka.js`, preverjanje s posnetkom igre in brskalnikom brez glave).
 - `docs/trening-v-uganki.md` – analiza in meritev za način treninga »Vadi v uganki« (skupna mreža, čas iskanja stanj po tehnikah, preverjanje odgovora, predlog in odprta vprašanja); meritev da `node tools/meri-trening-v-uganki.js [--ugank N] [--seme S] [--json pot]` (minimalne naključne uganke, pot z `nextStep()` brez prednosti števke, definiciji »strogo« in »skupina«, pribl. 60 ms na uganko skupaj z oceno stopnje).
-- `docs/rocni-test.md` – ročni pregled igre v brskalniku (česar testi, posnetek in brskalnik brez glave ne pokrijejo), iz ročnega seznama dela 5; pri vsaki točki kje, kaj in pričakovan izid.
+- `docs/rocni-test.md` – ročni pregled v brskalniku (česar testi, posnetek in brskalnik brez glave ne pokrijejo): del 5 (igralna plošča, točke 1–12) in vnos niza; pri vsaki točki kje, kaj in pričakovan izid, »(nepotrjeno)« = izid še ni potrjen.
 - `docs/naloge/` – specifikacije posameznih nalog/popravkov za to sejo (naloga na datoteko, oštevilčeno).
 - `old/` – arhiv starejših verzij treninga pred refaktoriranjem (zunaj projekta, ni v gitu).
 - `CLAUDE.md` – ta datoteka.
@@ -108,8 +108,9 @@ Opomba: `trening/generators.js` (razen vaj enojčkov, ki so stanje prave uganke 
 - Novih knjižnic in odvisnosti ne dodajaj brez vprašanja.
 - Sudoku ugank in testnih pozicij ne sestavljaj na pamet. Vsaka uganka mora biti preverjena s programom (natanko ena rešitev).
 - Besedila v uporabniškem vmesniku so v slovenščini.
+- Odgovori Darku v slovenščini.
 - Na koncu naloge napiši povzetek: spremenjene datoteke, kaj je narejeno, kaj naj ročno preverim.
-- Pri vsaki nalogi preveri avtomatsko vse, kar se da: testi (`node --test "tests/*.test.js"`), posnetek igre (`tools/posnetek-igre.js --primerjaj`) in brskalnik brez glave (`tools/brskalnik.js` ali scenarij naloge). Ročni seznam za Darka ima **največ 5 točk**; pri vsaki: kje (igra/reševalec/trening), kaj narediti, pričakovan izid in zakaj ni avtomatsko. Stalni ročni pregled igre je v `docs/rocni-test.md`.
+- Pri vsaki nalogi preveri avtomatsko vse, kar se da: testi (`node --test "tests/*.test.js"`), posnetek igre (`tools/posnetek-igre.js --primerjaj`) in brskalnik brez glave (`tools/brskalnik.js` ali scenarij naloge). Ročni seznam za Darka ima **največ 5 točk**; pri vsaki: kje (igra/reševalec/trening), kaj narediti, pričakovan izid in zakaj ni avtomatsko. Stalni ročni pregledi so v `docs/rocni-test.md`.
 - Po vsakem commitu naredi tudi `git push` (trenutna veja na `origin`). Če push ne uspe (npr. oddaljeni repozitorij ni nastavljen ali zahteva prijavo), mi pokaži napako – ne uporabljaj `--force` in ne spreminjaj nastavitev oddaljenega repozitorija brez vprašanja.
 
 ## Izrazi

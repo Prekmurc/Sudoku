@@ -569,7 +569,8 @@ samostojna naloga, če jo izberem.
 - **Bližnjice: `e.code` kot rezerva pri nelatiničnih razporeditvah.** Ctrl+Z/Y se bere po
   `e.key` (napis na tipki, zaradi QWERTZ); pri razporeditvi brez latinice (npr. cirilica)
   `e.key` ni `z`/`y`, zato bi bil `e.code` rezerva. Možna je tudi izbira SI/EN.
-- **»Nadaljuj v igri« iz treninga** (ročni test, točka 12): vajo »Vadi v uganki«
+- **»Nadaljuj v igri« iz treninga** (`docs/rocni-test.md`, del 5, točka 12 – prehod iz
+  treninga v igro, še ni preverjen; ob izvedbi se točka razširi): vajo »Vadi v uganki«
   nadaljevati kot igro v `igra/`; velja analiza 4.4 (uganke Presega tehnike brez
   ugibanja ni mogoče rešiti do konca).
 
