@@ -148,6 +148,86 @@ function genBoxLineCore(n, kind){
 function genPointing(n){return genBoxLineCore(n,'pointing');}
 function genBoxLineReduction(n){return genBoxLineCore(n,'boxline');}
 
+/* --- Vaji 1 in 2 na pravi mreži: stanje prave uganke iz banke ---
+   Uganka iz VAJE_BANKA (shared/vaje-banka.js, vsaka ima natanko eno rešitev) s tehniko
+   vaje, stanje S0 na poti motorja z vajaIzUganke() (shared/vaje-uganka.js) in naključen
+   korak tehnike v S0. Na mreži sta vidna samo blok in vrstica/stolpec koraka (15 celic
+   na pravih mestih - shared/mreza.js, pogled.vidne). Kandidati so kandidati S0, zato so
+   skladni z vidnimi števkami. Odgovor je enoličen: pri dani števki je vzorec v bloku
+   (1) oz. v vrstici/stolpcu (2) en sam - to je korak vaje (celice ex.solutionCells).
+   V krogu 9 vaj ima vsaj ena vaja vzorec s tremi celicami (ena naključna vaja v krogu,
+   izbrana ob prvi); ostale imajo trojico po resnični pogostosti (pribl. 1 od 10). */
+const PRESEK_KLJUC={pointing:'Pointing pair/triple','box-line':'Box-line reduction'};
+const PRESEK_V_KROGU=9;
+let presekTrojica={pointing:-1,'box-line':-1};
+
+// Blok in vrstica/stolpec koraka: pri 1 (Pointing) je vrstica/stolpec tista, v kateri
+// ležijo celice koraka, pri 2 (Box-line) enota koraka (hint.unit).
+function enoteKorakaPreseka(mode,korak){
+  const c0=korak.cells[0];
+  const blok=boxOf(c0);
+  let jeVrstica;
+  if(mode==='box-line') jeVrstica=korak.hint.unit[1]===korak.hint.unit[0]+1;
+  else jeVrstica=korak.cells.every(c=>Math.floor(c/9)===Math.floor(c0/9));
+  const st=jeVrstica?Math.floor(c0/9):c0%9;
+  return{blok,jeVrstica,st,enota:jeVrstica?ROWS[st]:COLS[st]};
+}
+
+function vajaPreseka(mode,v,korak){
+  const{blok,jeVrstica,st,enota}=enoteKorakaPreseka(mode,korak);
+  const d=korak.eliminate[0][1];
+  const boxLabel=`Blok ${blok+1}`;
+  const lineLabel=`${jeVrstica?'Vrstica':'Stolpec'} ${st+1}`;
+  const pointingVaja=mode==='pointing';
+  return{
+    mode,kljuc:PRESEK_KLJUC[mode],digit:d,
+    danosti:v.danosti,
+    grid:[...v.S0.grid],kandidati:[...v.S0.kandidati],
+    vidne:[...new Set([...BOXES[blok],...enota])],
+    blok,jeVrstica,enotaSt:st,
+    primaryLabel:pointingVaja?boxLabel:lineLabel,
+    secondaryLabel:pointingVaja?lineLabel:boxLabel,
+    primaryType:pointingVaja?'block':(jeVrstica?'row':'col'),
+    primaryCells:pointingVaja?BOXES[blok]:enota,
+    solutionCells:korak.cells,solutionEliminate:korak.eliminate,solutionMessage:korak.message,
+    unitLabel:pointingVaja?`${boxLabel} → ${lineLabel}`:`${lineLabel} → ${boxLabel}`,
+    desc:pointingVaja
+      ? `Števka ${d}: v bloku ${blok+1} je mogoča samo v celicah ene vrstice ali stolpca – izberi te celice.`
+      : `Števka ${d}: v ${jeVrstica?'vrstici':'stolpcu'} ${st+1} je mogoča samo v celicah enega bloka – izberi te celice.`,
+  };
+}
+
+// Vaja s tremi celicami: preišče uganke in stanja v naključnem vrstnem redu, dokler ne
+// najde koraka s tremi celicami (v banki jih je dovolj; če jih ni, null).
+function presekTrojicaIzBanke(mode,uganke){
+  const kljuc=PRESEK_KLJUC[mode];
+  for(const z of shuffle([...uganke])){
+    const{stanja,stopnja}=stanjaVUganki(z.danosti,kljuc);
+    for(const st of shuffle([...stanja])){
+      const v=vajaIzStanja(z.danosti,kljuc,st,stopnja);
+      const trojice=v?v.KT.filter(k=>k.cells.length===3):[];
+      if(trojice.length) return vajaPreseka(mode,v,trojice[randInt(0,trojice.length-1)]);
+    }
+  }
+  return null;
+}
+
+// n = številka vaje v krogu (0-8), mode = 'pointing' ali 'box-line'.
+function genPresek(n,mode){
+  const kljuc=PRESEK_KLJUC[mode];
+  const uganke=VAJE_BANKA.filter(z=>z.tehnike.includes(kljuc));
+  if(n%PRESEK_V_KROGU===0) presekTrojica[mode]=randInt(0,PRESEK_V_KROGU-1);
+  if(n%PRESEK_V_KROGU===presekTrojica[mode]){
+    const ex=presekTrojicaIzBanke(mode,uganke);
+    if(ex) return ex;
+  }
+  for(;;){
+    const z=uganke[randInt(0,uganke.length-1)];
+    const v=vajaIzUganke(z.danosti,kljuc,Math.random);
+    if(v&&v.KT.length) return vajaPreseka(mode,v,v.KT[randInt(0,v.KT.length-1)]);
+  }
+}
+
 /* --- Sporočilo motorja za vaje v eni enoti (očitna/skrita para in trojica) ---
    Vaja prikaže samo 9 celic ene enote, zato iz nje sestavimo 81-celično desko (kot
    pri Pointing/XY-Wing: vse ostale celice so "dane") in poiščemo korak prave tehnike
