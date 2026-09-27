@@ -15,6 +15,10 @@
 //   razlogNizov   - vrstica s pojasnilom pod nizi
 //   razveljavi, ponovi, zbrisi, znova - gumbi; stevec - "poteza k / n"
 //   vecCelic, vecHkrati - kljukici "več celic" in "več hkrati"
+//   seznami       - { vrstice, stolpci, bloki }: elementi seznamov manjkajočih števk
+//   stikala       - { vrstice, stolpci, bloki }: kljukice seznamov
+//   postavitev    - element, ki dobi razred "z-vrsticami", ko je seznam vrstic viden
+//   kljucSeznamov - ključ v localStorage za stanje stikal (brez: ne shranjuje se)
 //   vir()         - { igra, stanje }: igra ali null, stanje = stanjeIgre(igra)
 //   obSpremembi(vrsta) - igra je spremenjena ('poteza', 'razveljavi', 'ponovi',
 //                   'znova'): aplikacija izračuna stanje, pokliče poSpremembi(),
@@ -220,6 +224,50 @@ function ustvariPlosco(o) {
     obSpremembi('znova');
   }
 
+  /* ---------- seznami manjkajočih števk ---------- */
+
+  // Trije ločeni prikazi (izris je v mreza.js) s stikali. Stanje stikal si zapomni
+  // brskalnik pod ključem aplikacije (brez ključa samo do osvežitve); privzeto so
+  // vsi seznami izklopljeni.
+  const seznami = o.seznami ? ustvariSezname(o.seznami) : null;
+  const SEZNAMI = ['vrstice', 'stolpci', 'bloki']
+    .map(kljuc => ({ kljuc, stikalo: o.stikala && o.stikala[kljuc] }))
+    .filter(s => s.stikalo);
+
+  function seznamiBeri() {
+    if (!o.kljucSeznamov) return {};
+    try {
+      const v = JSON.parse(localStorage.getItem(o.kljucSeznamov) || '{}');
+      return v && typeof v === 'object' ? v : {};
+    } catch (e) { return {}; }
+  }
+  function seznamiPisi() {
+    if (!o.kljucSeznamov) return;
+    const v = {};
+    for (const s of SEZNAMI) v[s.kljuc] = s.stikalo.checked;
+    try { localStorage.setItem(o.kljucSeznamov, JSON.stringify(v)); } catch (e) { /* velja do osvežitve */ }
+  }
+  const shranjeniSeznami = seznamiBeri();
+  for (const s of SEZNAMI) {
+    s.stikalo.checked = shranjeniSeznami[s.kljuc] === true;
+    s.stikalo.addEventListener('change', () => {
+      seznamiPisi();
+      izrisiSezname();
+    });
+  }
+
+  // Vidni so samo vklopljeni, polna enota ima prazen kvadratek, poudarjena števka
+  // je obarvana enako kot v mreži.
+  function izrisiSezname() {
+    const vidni = { vrstice: false, stolpci: false, bloki: false };
+    for (const s of SEZNAMI) vidni[s.kljuc] = s.stikalo.checked;
+    // Seznam vrstic doda mreži 10. stolpec - celice se pomanjšajo (slogi aplikacije).
+    if (o.postavitev) o.postavitev.classList.toggle('z-vrsticami', vidni.vrstice);
+    if (!seznami) return;
+    const { igra, stanje } = vir();
+    seznami.izrisi({ maske: igra ? manjkajoceVEnotah(stanje) : null, vidni, barva: barvaPoudarka });
+  }
+
   if (o.razveljavi) o.razveljavi.addEventListener('click', razveljaviPotezo);
   if (o.ponovi) o.ponovi.addEventListener('click', ponoviPotezo);
   if (o.zbrisi) o.zbrisi.addEventListener('click', () => zbrisiVpis());
@@ -330,6 +378,7 @@ function ustvariPlosco(o) {
   function izrisi() {
     izrisiMrezo();
     izrisiNize();
+    izrisiSezname();
   }
 
   return {

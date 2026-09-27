@@ -1,10 +1,10 @@
 /* ==================== IGRA: UI ====================
-   Izris mreže in nizov gumbov, izbira celice, vpis/odstranjevanje kandidatov,
-   razveljavi/ponovi, poudarjanje števke, seznami manjkajočih števk (vrstice,
-   stolpci, bloki), pomoč (Naslednji korak, Preveri), zbirka in vnos nove
-   uganke. Stanje in poteze so v ../shared/stanje.js, izris mreže in seznamov v
-   ../shared/mreza.js, izbira, poudarki, nizi in poteze v ../shared/plosca.js, shranjevanje igre v shramba.js, hramba zbirke v ../shared/zbirka.js, korak in rešitev da motor
-   (../shared/engine.js). */
+   Igra, njeno shranjevanje, pomoč (Naslednji korak, Preveri), kartica Uganka,
+   zbirka in vnos nove uganke. Stanje in poteze so v ../shared/stanje.js, izris
+   mreže in seznamov v ../shared/mreza.js, vnos (izbira celice, poudarki, nizi,
+   poteze, Razveljavi/Ponovi/Zbriši/Začni znova, stikala seznamov) v
+   ../shared/plosca.js, shranjevanje igre v shramba.js, hramba zbirke v
+   ../shared/zbirka.js, korak in rešitev da motor (../shared/engine.js). */
 
 const mrezaEl = document.getElementById('mreza');
 const nizPoudariEl = document.getElementById('nizPoudari');
@@ -49,8 +49,9 @@ let resitevIgre = null; // { danosti, resitev } - solutionOf(), izračunan ob pr
 /* ---------- gradnja mreže in nizov ---------- */
 
 // Plošča (mreža z izbiro celic, poudarki, nizi, poteze, Razveljavi/Ponovi/Zbriši/
-// Začni znova) je skupna s treningom - ../shared/plosca.js. Igro in stanje ima igra;
-// plošča ju bere prek vir() in po vsaki spremembi pokliče obSpremembi().
+// Začni znova, seznami manjkajočih števk s stikali) je skupna s treningom -
+// ../shared/plosca.js. Igro in stanje ima igra; plošča ju bere prek vir() in po
+// vsaki spremembi pokliče obSpremembi().
 const plosca = ustvariPlosco({
   mreza: mrezaEl,
   nizPoudari: nizPoudariEl,
@@ -64,6 +65,18 @@ const plosca = ustvariPlosco({
   stevec: stevecPotezEl,
   vecCelic: vecCelicEl,
   vecHkrati: vecHkratiEl,
+  seznami: {
+    vrstice: document.getElementById('seznamVrstic'),
+    stolpci: document.getElementById('seznamStolpcev'),
+    bloki: document.getElementById('seznamBlokov'),
+  },
+  stikala: {
+    vrstice: document.getElementById('stikaloVrstice'),
+    stolpci: document.getElementById('stikaloStolpci'),
+    bloki: document.getElementById('stikaloBloki'),
+  },
+  postavitev: igraLayoutEl,
+  kljucSeznamov: 'sudoku.igra.seznami', // ključ si delijo aplikacije - ne spreminjaj
   vir: () => ({ igra, stanje }),
   obSpremembi: (vrsta) => {
     sporocilo = vrsta === 'znova' ? { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' } : null;
@@ -85,49 +98,12 @@ const celice = plosca.mreza.celice;
 const gumbiVpisi = plosca.gumbi.vpisi; // gumbiVpisi in gumbiOdstrani berejo testi
 const gumbiOdstrani = plosca.gumbi.odstrani;
 const enaIzbrana = () => plosca.enaIzbrana();
-const barvaPoudarka = d => plosca.barvaPoudarka(d);
 // Zadnja izbrana poudarjena števka ali null (ima prednost pri Naslednji korak).
 const zadnjaPoudarjena = () => plosca.zadnjaPoudarjena();
 // Poteze gredo skozi ploščo (po njih obSpremembi zgoraj).
 const izvedi = poteza => plosca.izvedi(poteza);
 const odstraniAliVrni = d => plosca.odstraniAliVrni(d);
 const zbrisiVpis = () => plosca.zbrisiVpis();
-
-/* ---------- seznami manjkajočih števk ---------- */
-
-// Trije ločeni prikazi (izris je v ../shared/mreza.js); stikala so igrina.
-const seznami = ustvariSezname({
-  vrstice: document.getElementById('seznamVrstic'),
-  stolpci: document.getElementById('seznamStolpcev'),
-  bloki: document.getElementById('seznamBlokov'),
-});
-const SEZNAMI = [
-  { kljuc: 'vrstice', stikalo: document.getElementById('stikaloVrstice') },
-  { kljuc: 'stolpci', stikalo: document.getElementById('stikaloStolpci') },
-  { kljuc: 'bloki', stikalo: document.getElementById('stikaloBloki') },
-];
-
-// Stanje stikal si zapomni brskalnik; privzeto so vsi seznami izklopljeni.
-const SEZNAMI_KLJUC = 'sudoku.igra.seznami';
-function seznamiBeri() {
-  try {
-    const v = JSON.parse(localStorage.getItem(SEZNAMI_KLJUC) || '{}');
-    return v && typeof v === 'object' ? v : {};
-  } catch (e) { return {}; }
-}
-function seznamiPisi() {
-  const v = {};
-  for (const s of SEZNAMI) v[s.kljuc] = s.stikalo.checked;
-  try { localStorage.setItem(SEZNAMI_KLJUC, JSON.stringify(v)); } catch (e) { /* velja do osvežitve */ }
-}
-const shranjeniSeznami = seznamiBeri();
-for (const s of SEZNAMI) {
-  s.stikalo.checked = shranjeniSeznami[s.kljuc] === true;
-  s.stikalo.addEventListener('change', () => {
-    seznamiPisi();
-    izrisiSezname();
-  });
-}
 
 /* ---------- poteze ---------- */
 
@@ -217,19 +193,8 @@ function veljaIzhodisce(izh) {
 function izrisi() {
   plosca.izrisi();
   izrisiPomocGumbe();
-  izrisiSezname();
   izrisiStanje();
   izrisiPomoc();
-}
-
-// Seznami manjkajočih števk: vidni so samo vklopljeni, polna enota ima prazen
-// kvadratek, poudarjena števka je obarvana enako kot v mreži.
-function izrisiSezname() {
-  // Seznam vrstic doda mreži 10. stolpec - celice se pomanjšajo (igra.css).
-  igraLayoutEl.classList.toggle('z-vrsticami', SEZNAMI[0].stikalo.checked);
-  const vidni = {};
-  for (const s of SEZNAMI) vidni[s.kljuc] = s.stikalo.checked;
-  seznami.izrisi({ maske: igra ? manjkajoceVEnotah(stanje) : null, vidni, barva: barvaPoudarka });
 }
 
 // Napaka (npr. shranjevanje ne deluje, obnova igre ni bila popolna) mora biti
