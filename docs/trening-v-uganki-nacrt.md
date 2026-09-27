@@ -44,7 +44,7 @@ docs/trening-v-uganki.md.
 | – postopnost E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-25** | `d92e673` | 309 (280 + 29) |
 | 3 banka vaj (`shared/vaje-banka.js`) | **narejeno 2026-09-25** | `33423d1` | 315 (309 + 6) |
 | 4 `shared/mreza.js` | **narejeno 2026-09-25** | `3f6d73c` | 322 (315 + 7) |
-| 5 `shared/plosca.js` | ni začet | | |
+| 5 `shared/plosca.js` | načrt 2026-09-27, čaka na potrditev (posnetek izhodišča `b1624b8`) | | |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
 ### Del 1 – narejeno (commit `ba1f832`)
@@ -158,6 +158,236 @@ docs/trening-v-uganki.md.
   korak na mreži) pred in po izločitvi enaki do bajta.
 - Testi: nov `tests/mreza.test.js` (7 testov), v `igra-ui` in `zbirka-skupna` samo
   nalagalni seznam.
+
+### Del 5 – načrt (2026-09-27, čaka na potrditev)
+
+**Izhodišče:** `node tools/posnetek-igre.js --shrani tools/posnetki/igra-pred-del5.json`
+(46 posnetkov, commit `b1624b8`; drugi zagon `--primerjaj` na nespremenjeni kodi: enako).
+Po izvedbi mora `--primerjaj` dati »Enako: 46 posnetkov.«. Datoteke CSS in markup HTML
+se ne spremenijo (samo en `<script>`), zato posnetek zadošča za logiko; videz se ne
+more spremeniti.
+
+**Odločitev o lastništvu:** igro (`igra`) in njeno stanje (`stanje = stanjeIgre(igra)`)
+ima še naprej **aplikacija**. Plošča ju bere prek povratnega klica `vir()` in igro
+spreminja samo s funkcijami iz `shared/stanje.js`, nato pokliče `obSpremembi(vrsta)` –
+aplikacija izračuna novo stanje, shrani (igra) in izriše. Razlog: igro v `igra.js`
+nastavlja veliko mest (odprtje, obnova ob zagonu, izpraznitev ob brisanju, »Vrni na
+stanje pred potezo«), testi berejo `igra` in `stanje` neposredno, trening pa ima igro v
+`vaja.igra` in je ne shranjuje. Plošča ima svoje samo stanje **vnosa**: izbiro celic in
+poudarke.
+
+#### 1. Kaj se premakne v `shared/plosca.js`
+
+Iz `igra/igra.js`, brez spremembe logike in besedil:
+
+- mreža s klikom: `ustvariMrezo()` z `obKliku` (izbira ene celice, ponoven klik
+  prekliče, več celic s kljukico »več celic« ali Ctrl/⌘+klik – `preklopiVIzbiri()`),
+  `enaIzbrana()`, spremenljivke `izbrane`, `zadnjaIzbrana`, `vecCelic` in poslušalec
+  kljukice »več celic« (izklop počisti izbiro);
+- poudarjanje: `poudarjene`, `vecHkrati`, `BARV_POUDARKA`, `poudari()`,
+  `barvaPoudarka()`, `zadnjaPoudarjena()`, poslušalec kljukice »več hkrati« in pravilo
+  »poteza, ki števko dokonča, izklopi njen poudarek« (zdaj v `osvezi()`);
+- nizi: `narediNiz()`, `gumbiPoudari`/`gumbiVpisi`/`gumbiOdstrani` in njihov izris
+  (napisi, `title`, `aria-*`, števci »še manjka«, onemogočenost) iz `izrisiNize()`;
+- poteze: `izvedi()` (po vpisu se izbira izklopi, puščice nadaljujejo od
+  `zadnjaIzbrana`), `odstraniAliVrni()` (ena celica: odstrani/vrni; več celic: poteza
+  `kandidati`), `zbrisiVpis()`, gumbi Razveljavi/Ponovi/Zbriši vpis/Začni znova (z
+  `zacniZnova()`/`lahkoZacniZnova()`, kot zahteva opomba k delom 4 in 5) in števec
+  »poteza k / n«;
+- vrstica pod nizi: `razlogNizov()` (»Izberi celico v mreži.«, več celic, dana števka,
+  tvoj vpis, ni kandidatov) in razreda `zaklenjeno`/`opozorilo` ter `primary` na gumbu
+  »Začni znova« (`izrisiZaklep()`);
+- seznami manjkajočih števk s stikali: `ustvariSezname()`, stikala z branjem in pisanjem
+  v `localStorage` (ključ poda aplikacija), razred `z-vrsticami` na elementu postavitve,
+  `izrisiSezname()`;
+- tipkovnica igre: števke (fizična tipka `e.code`, tudi Numpad), Shift+števka, Backspace/
+  Delete, puščice (pri več izbranih nič, sicer od izbrane ali `zadnjaIzbrana`, prva
+  puščica brez izbire izbere V1S1), Escape (počisti izbiro), Ctrl/⌘+Z, Ctrl/⌘+Shift+Z,
+  Ctrl/⌘+Y. Namesto `razveljaviBtn.click()` plošča pokliče isto funkcijo, kot jo sproži
+  gumb; pogoj v funkciji je isti kot pogoj za onemogočen gumb, zato je učinek enak.
+
+#### 2. Kaj ostane v igri in zakaj
+
+- **Igra in stanje** (`igra`, `stanje`), odprtje (`zacniIgro`), obnova ob zagonu,
+  izpraznitev (`izprazniIgro`), `osvezi()` s shranjevanjem (`igraShrani`,
+  `shraniIgranje`) – to je življenjski cikel igre in shramba `sudoku.igra.v1`, ki ju
+  trening nima.
+- **`samoZaOgled()`** (= `jeResena(stanje)`) – pravilo igre; plošča dobi samo odgovor.
+  Trening bo imel svoj zaklep (po pravilnem odgovoru).
+- **Besedila igre**: razlog zaklepa (»✓ Uganka je rešena – mreža je zaklenjena …«),
+  opozorilo shranjevanja/obnove, vprašanji pred »Začni znova« in sporočilo po njem,
+  status in kartica »Uganka«.
+- **Pomoč** (Naslednji korak, Preveri, Vrni na stanje pred potezo, sidro, izhodišče
+  koraka) in stanje gumbov `korakBtn`/`preveriBtn` – je pomoč igre; trening ima svojo
+  (namig/rešitev vaje). Oznake prikazanega koraka plošča dobi prek `oznake()`.
+- **Poslušalec `keydown`** ostane v igri, ker odloča o stvareh, ki niso plošča: odprt
+  dialog (Escape ga zapre), tipkanje v besedilno polje, ni odprte uganke. Nato
+  pokliče `plosca.obTipki(e)`. Trening bo tipkovnico priklopil samo, ko je vaja
+  prikazana.
+- Zbirka, dialogi, nova uganka, ocena zbirke, nastavljanje barv poudarka (spremenljivke
+  CSS na `<html>`) – niso del plošče.
+
+#### 3. Vmesnik `shared/plosca.js`
+
+```js
+const plosca = ustvariPlosco({
+  // elementi – obvezna je samo mreža; česar ni, plošča ne ponudi
+  mreza, nizPoudari, nizVpisi, nizOdstrani, razlog,
+  razveljavi, ponovi, zbrisi, znova, stevec,
+  vecHkrati, vecCelic,                    // kljukici
+  seznami: { vrstice, stolpci, bloki },   // elementi seznamov
+  stikala: { vrstice, stolpci, bloki },   // kljukice seznamov
+  postavitev,                             // element, ki dobi razred z-vrsticami
+  kljucSeznamov,                          // 'sudoku.igra.seznami'; brez = stikala se ne shranjujejo
+  // povezava z aplikacijo
+  vir: () => ({ igra, stanje }),          // igra ali null; stanje = stanjeIgre(igra)
+  obSpremembi: (vrsta) => {},             // igra je spremenjena: 'poteza' | 'razveljavi' | 'ponovi' | 'znova'
+  izrisi: () => {},                       // celoten izris aplikacije (privzeto plosca.izrisi)
+  samoZaOgled: () => false,               // mreža zaklenjena, poteze ne delajo
+  oznake: () => null,                     // oznake koraka za mrežo (oznakeKoraka)
+  razlog: () => null,                     // besedilo pod nizi, ki ima prednost pred privzetim
+  opozorilo: () => '',                    // rdeče opozorilo pod nizi (⚠ …)
+  potrdiZnova: () => true,                // vprašanje pred »Začni znova« (igra: confirm)
+});
+```
+
+Vrne:
+
+| Član | Pomen |
+|---|---|
+| `mreza` | `{ el, celice, izrisi }` iz `ustvariMrezo()` (igra ohrani `celice` za teste) |
+| `gumbi` | `{ poudari, vpisi, odstrani }` – po 9 gumbov (igra ohrani `gumbiVpisi` za teste) |
+| `izbrane` (getter), `enaIzbrana()` | izbira |
+| `zadnjaPoudarjena()`, `barvaPoudarka(d)` | poudarki (Naslednji korak da prednost zadnji) |
+| `izvedi(poteza)`, `odstraniAliVrni(d)`, `zbrisiVpis()` | poteze (igra ohrani imeni `izvedi`, `zbrisiVpis`) |
+| `poSpremembi(prej)` | pokliče aplikacija po izračunu novega stanja; `prej` = stanje pred spremembo iste uganke ali `null` – dokončana števka izgubi poudarek |
+| `ponastavi()` | nova uganka ali prazna mreža: izbira, `zadnjaIzbrana`, poudarki (kljukici ostaneta) |
+| `izrisi()` | mreža, nizi, seznami, vrstica pod nizi, gumbi Razveljavi/Ponovi/Zbriši/Začni znova, števec |
+| `obTipki(e)` | obdela tipko; vrne `true`, če jo je porabila |
+
+Tok ob potezi (enak kot zdaj): klik gumba → `izvedi()` → `dodajPotezo()` → izbira po
+vpisu → `obSpremembi('poteza')` → igra: `sporocilo = null; osvezi()` → novo stanje,
+`plosca.poSpremembi(prej)`, shranjevanje, `izrisi()` igre, ta pa pokliče
+`plosca.izrisi()` in nariše še pomoč, status in kartico. Sprememba izbire, poudarka ali
+kljukice pokliče `izrisi()` aplikacije (kot zdaj celoten izris), stikalo seznama pa samo
+izris seznamov (kot zdaj).
+
+Spremembe za teste in orodje (**pričakovanja ostanejo enaka**, spremeni se samo dostop):
+`izbrane` ni več globalna spremenljivka igre, zato `tests/igra-ui.test.js` (ena vrstica)
+in `tools/posnetek-igre.js` (en izraz) bereta `plosca.izbrane`; `DATOTEKE` v
+`igra-ui` in `IGRA` v `zbirka-skupna` dobita `shared/plosca.js`. Imena `igra`, `stanje`,
+`celice`, `gumbiVpisi`, `izvedi`, `zbrisiVpis`, `samoZaOgled`, `zadnjaPoudarjena`,
+`resitev`, `osvezi`, `pomoc` v igri ostanejo.
+
+#### 4. Povezava s `shared/stanje.js` in `shared/mreza.js`
+
+- `stanje.js`: plošča kliče `mozneAkcije()`, `skupniKandidati()`, `dodajPotezo()`,
+  `lahkoRazveljavi()`/`razveljavi()`, `lahkoPonovi()`/`ponovi()`,
+  `lahkoZacniZnova()`/`zacniZnova()`, `seManjka()` in `manjkajoceVEnotah()`. Stanja ne
+  računa (`stanjeIgre()` pokliče aplikacija v `obSpremembi`), igre ne ustvarja in ne
+  shranjuje. Ker vse te funkcije že upoštevajo `zacetnihPotez`, vaja z začetnimi potezami
+  deluje brez posebnosti.
+- `mreza.js`: plošča pokliče `ustvariMrezo()` in `ustvariSezname()` in sestavi pogled
+  (`grid`, `danosti`, `kandidati`, `barva`, `izbrane`, `sosede`, `zaklenjena` iz
+  `samoZaOgled()`, `oznake` iz `oznake()`); brez igre `{ prazna: true }`.
+  `oznakeKoraka()` ostane v `mreza.js`, kliče ga aplikacija.
+- Vrstni red nalaganja: `engine.js` → `stanje.js` → `mreza.js` → **`plosca.js`** → …
+  (`cellLabel` iz motorja za besedila razloga). Plošča nima globalnih spremenljivk
+  razen funkcije `ustvariPlosco` (tovarna) in ne piše v `localStorage` razen ključa
+  stikal, ki ga poda aplikacija.
+
+#### 5. Uporaba v treningu (del 6) – preverjeno, ne izvedeno
+
+| Potreba dela 6 | V vmesniku |
+|---|---|
+| lastni elementi strani treninga | vsi elementi so parametri, neobvezni se izpustijo ✓ |
+| vaja = igra z začetnimi potezami, brez shranjevanja | `vir()` vrne `vaja.igra`; shranjevanje je v `obSpremembi` aplikacije ✓ |
+| »Razveljavi«/»Začni znova« ne gresta pod začetne poteze, `vrni` jih ne ponudi | iz `stanje.js` ✓ (test plošče z `igraZZacetkom()`) |
+| zaklep po pravilnem odgovoru, oznake koraka na mreži | `samoZaOgled()`, `oznake()` ✓ |
+| »V tej vaji samo odstranjuješ kandidate.« | `razlog()` ✓ |
+| »Poskusi znova« brez vprašanja | gumb `znova` brez `potrdiZnova` ✓ |
+| svoja stikala seznamov (`sudoku.trening.*`) | `kljucSeznamov` ✓ |
+| tipkovnica samo med vajo | aplikacija kliče `obTipki(e)` ✓ |
+| 1–12: niz »Vpiši« skrit in vpis s tipkovnico onemogočen | **dodatek v delu 6**: možnost npr. `vpis: false` (element `nizVpisi` se samo izpusti, tipka pa bi še vpisovala) |
+| E1/E2: brez kandidatov, brez niza »Odstrani«, vpis je predlog, vseh 9 števk omogočenih | **dodatek v delu 6**: `kandidati: false` (pogled s `kandidati: null`) in povratni klic za vpis (npr. `obVpisu(celica, stevka)`), ki potezo nadomesti s predlogom |
+| »Pokaži prečrtane« (razred `precrtan`) | **del 6**, v `mreza.js` |
+| barve poudarka iz nastavitev igre (samo branje) | **del 6**: branje `sudoku.igra.poud` v `shared/` (zdaj v `igra.js`) |
+
+Dodatki so majhne možnosti, ki ne spremenijo obstoječih; zdaj jih ne dodajam, ker jih
+nič ne bi uporabljalo in ne bi bili preverjeni.
+
+#### 6. Vrstni red korakov (igra ves čas deluje)
+
+Po vsakem koraku: vsi testi (322) in `node tools/posnetek-igre.js --primerjaj
+tools/posnetki/igra-pred-del5.json` → »Enako: 46 posnetkov.«
+
+1. `shared/plosca.js` z mrežo, izbiro in poudarki; `igra/index.html` in nalagalna
+   seznama testov jo naložita; igra jo uporablja za klik, izbiro, kljukici in poudarek
+   (nizi, poteze, seznami in tipkovnica še v igri, bere `plosca.izbrane`).
+2. Nizi, poteze, Razveljavi/Ponovi/Zbriši/Začni znova, vrstica pod nizi, števec;
+   `izrisiNize()` v igri se skrči na `korakBtn`/`preveriBtn`.
+3. Seznami in stikala (`kljucSeznamov: 'sudoku.igra.seznami'`, `postavitev:
+   igraLayout`).
+4. Tipkovnica: igra obdrži dialog/besedilno polje/brez igre in pokliče `obTipki(e)`.
+5. Nov `tests/plosca.test.js`, `CLAUDE.md` (nova vrstica za `shared/plosca.js`, opis
+   `igra.js` in testov), stanje dela v tem načrtu in v `docs/trening-v-uganki.md`.
+   En commit + push na koncu (kot pri delu 4).
+
+Če posnetek po katerem koraku pokaže razliko, se ustavim, poiščem vzrok in ga razložim,
+preden nadaljujem.
+
+#### 7. Novi testi – `tests/plosca.test.js`
+
+Plošča sama (brez `igra/igra.js`) v nadomestnem DOM-u, na uganki iz `docs/uganke.md`,
+`vir()` in `obSpremembi()` kot v najmanjši aplikaciji:
+
+1. **Izbira:** klik izbere, ponoven klik prekliče, Ctrl+klik in kljukica »več celic«
+   dodajata/odstranjujeta prazne celice (dana in vpisana se ne dodata), izklop kljukice
+   počisti; brez igre klik ne naredi nič.
+2. **Nizi in poteze:** vpis (poteza, `obSpremembi('poteza')`, izbira izklopljena),
+   odstrani/vrni kandidata, odstranitev iz več celic kot ena poteza `kandidati`,
+   onemogočenost gumbov po `mozneAkcije()`/`skupniKandidati()`, besedila vrstice pod
+   nizi (vsi primeri iz `razlogNizov()`), števec potez.
+3. **Tipkovnica:** števka, Shift+števka (po `e.code`), Numpad, Backspace/Delete,
+   puščice (od `zadnjaIzbrana`, rob mreže, pri več izbranih nič), Escape, Ctrl+Z,
+   Ctrl+Shift+Z, Ctrl+Y; vrnjena vrednost `obTipki()`.
+4. **Poudarki:** ena števka, »več hkrati« z barvami po vrsti in ponovitvijo po štirih,
+   izklop ohrani zadnjo, `poSpremembi()` izklopi poudarek dokončane števke, ročno
+   vklopljen poudarek dokončane števke ostane.
+5. **Zaklep:** `samoZaOgled()` – poteze in Razveljavi/Ponovi ne delajo, nizi
+   onemogočeni, `razlog()` ima prednost, razreda `zaklenjeno`/`opozorilo`, »Začni znova«
+   `primary`; `potrdiZnova()` false ne spremeni ničesar.
+6. **Začetne poteze** (`igraZZacetkom()` iz korakov `nextStep()`, kot v
+   `igra-stanje.test.js`): »Razveljavi« se ustavi pri njih, »Začni znova« vrne na S0,
+   niz »Odstrani« ne ponudi vrnitve kandidatov, odstranjenih v njih.
+7. **Seznami in neobvezni elementi:** stikala se shranijo pod podanim ključem (brez
+   ključa ne), razred `z-vrsticami`; plošča samo z mrežo (brez nizov, gumbov, seznamov)
+   deluje za klik, tipkovnico in izris.
+
+Pričakovano: 329 testov (322 + 7).
+
+#### 8. Ročni pregled igre po izvedbi
+
+Posnetek ne vidi CSS in ne pokrije vsega, zato v brskalniku (lokalni strežnik):
+
+1. Klik celice, ponoven klik, klik dane celice; sivo senčenje vrstice/stolpca/bloka.
+2. Vpis z nizom in s tipkovnico (vrstica števk in Numpad); po vpisu puščice nadaljujejo
+   od te celice; prva puščica brez izbire izbere V1S1; puščice na robu mreže.
+3. Shift+števka odstrani in vrne kandidata (slovenska razporeditev); Backspace in Delete
+   zbrišeta vpis.
+4. »Več celic« in Ctrl+klik: odstranitev skupnega kandidata iz vseh, Razveljavi vrne vse
+   naenkrat; Escape in izklop kljukice počistita izbiro; puščice pri več izbranih ne
+   naredijo nič.
+5. Ctrl+Z, Ctrl+Shift+Z, Ctrl+Y; Razveljavi/Ponovi, števec potez.
+6. Poudarek: ena števka, »več hkrati« s petimi števkami (barve se ponovijo), izklop;
+   deveti vpis števke izklopi njen poudarek, ponoven vklop pokaže vseh devet mest.
+7. Seznami: vsa tri stikala, osvežitev strani ohrani stikala, seznam vrstic zmanjša
+   celice (tudi na ozkem zaslonu).
+8. Rešena uganka: zelena obroba, zaklep vrstice pod nizi, »Začni znova« poudarjen in z
+   vprašanjem; po »Začni znova« je mreža prazna, »Ponovi« vrne poteze.
+9. Tipkovnica pri odprtem oknu (Zbirka, Pomoč, Nova uganka) ne spreminja mreže, Escape
+   okno zapre; tipkanje v hex polje barve poudarka ne vpisuje v mrežo.
+10. Naslednji korak (vse tri stopnje) in Preveri z »Vrni na stanje pred potezo«.
 
 ## Opombe k delom (uskladitev s fazo 4 in odpadlo pravilo)
 
