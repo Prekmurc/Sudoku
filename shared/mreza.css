@@ -27,6 +27,9 @@
   /* razmik med mrežo in seznami manjkajočih števk; velikost polja male mreže blokov */
   --sgap: 5px;
   --bcs: 62px;
+  /* delna mreža (pogled.vidne): skrite celice so siva ploskev; oznake robov */
+  --izven-bg:#E4E8EC;
+  --rob: 18px;
 }
 
 /* ---------- mreža ---------- */
@@ -126,9 +129,40 @@
 .mreza.zaklenjena{ outline: 3px solid var(--green); outline-offset:4px; border-radius:4px; }
 .mreza.zaklenjena .celica{ cursor:default; }
 
-/* celica zunaj prikazanega dela mreže (pogled.vidne v mreza.js): prazna, ni
-   klikljiva; mesto in debele črte blokov ostanejo */
-.celica.izven{ cursor:default; background: var(--card); }
+/* delna mreža (pogled.vidne v mreza.js): celica zunaj prikazanega dela je prazna
+   in ni klikljiva - siva ploskev brez tankih črt (tanke črte so v barvi ploskve),
+   debele črte blokov ostanejo, zato se vidi, kje na mreži smo. Podlaga delne mreže
+   je v isti barvi, da na stičiščih skritih celic ni belih pik; vidne celice so bele. */
+.mreza.delna{ background: var(--izven-bg); }
+:where(.mreza.delna .celica){ background:#fff; } /* brez specifičnosti: izbira, poudarek in oznake koraka imajo prednost */
+.mreza.delna .celica.izven{ cursor:default; background: var(--izven-bg); border-color: var(--izven-bg); }
+.mreza.delna .celica.izven:is([data-c="0"], [data-c="3"], [data-c="6"]){ border-left-color: var(--ink); }
+.mreza.delna .celica.izven[data-c="8"]{ border-right-color: var(--ink); }
+.mreza.delna .celica.izven:is([data-r="0"], [data-r="3"], [data-r="6"]){ border-top-color: var(--ink); }
+.mreza.delna .celica.izven[data-r="8"]{ border-bottom-color: var(--ink); }
+
+/* oznake robov (ustvariMrezo(el, { robovi: true })): S1-S9 zgoraj, V1-V9 levo;
+   vrstica ali stolpec, ki je v celoti viden (enota vaje), je krepka */
+.mreza-robovi{
+  display:grid;
+  grid-template-columns: var(--rob) auto;
+  grid-template-rows: var(--rob) auto;
+  width:max-content;
+}
+.mreza-robovi .rob-s{ grid-column:2; grid-row:1; display:grid; grid-template-columns: repeat(9, var(--gcs)); }
+.mreza-robovi .rob-v{ grid-column:1; grid-row:2; display:grid; grid-template-rows: repeat(9, var(--gcs)); }
+.mreza-robovi .mreza{ grid-column:2; grid-row:2; }
+.rob-s span, .rob-v span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px;
+  color: var(--kand-ink);
+  user-select:none;
+  -webkit-user-select:none;
+}
+.rob-s span.akt, .rob-v span.akt{ color: var(--ink); font-weight:700; }
 
 /* ---------- seznami manjkajočih števk ---------- */
 /* okvir: mreža, desno od nje seznam vrstic, pod njo seznam stolpcev; razmik je

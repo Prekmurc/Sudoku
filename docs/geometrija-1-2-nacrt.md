@@ -7,7 +7,7 @@ so skrite. Izris gre skozi `shared/mreza.js` (možnost `vidne`), ne skozi posebn
 treningu. Izhodišče: zapis v `docs/trening-v-uganki-nacrt.md`, razdelek »Po delu 4 –
 samostojna naloga …«.
 
-Stanje: **načrt, čaka na potrditev** (2026-09-27). Koda še ni spremenjena.
+Stanje: **načrt potrjen 2026-09-27** (odgovori na vprašanja so v razdelku »Odgovori«), izvedba po korakih.
 
 Posnetki zaslona so v `docs/slike/geometrija-1-2/`. Predlog je posnet s prototipom, ki
 uporablja pravo `shared/mreza.js` z možnostjo `vidne` in pravi primer iz banke vaj; oznake
@@ -294,11 +294,22 @@ Vsak korak v svojem commitu s pushem.
 5. **Trojice:** pustiti resnično pogostost (pribl. 1 od 10) – predlog; ali vsaka tretja
    vaja v krogu s tremi celicami, kadar obstaja?
 
+## Odgovori (2026-09-27)
+
+1. Videz skritih celic: **B**.
+2. Poudarek števke vaje: **da**.
+3. Gumb »Pokaži število kandidatov« pri 1 in 2 **odpade** (`showCandidateCount: false`).
+4. Izbira in pravilen odgovor **kot v igri**: da. Na posnetku `predlog-2-375-izbira.png` je
+   izbira precej neopazna – ročna točka 1 preveri, da se na telefonu izbrani celici jasno
+   ločita od neizbranih.
+5. Trojice: **v krogu 9 vaj vsaj ena vaja s tremi celicami**, kadar obstaja; ostale po
+   resnični pogostosti. Test to preveri.
+
 ## Ročni seznam (po izvedbi)
 
 1. **Trening, pravi telefon, vaja 1:** preberi kandidate in izberi dve celici s prstom.
    Pričakovano: kandidati berljivi (pribl. 10 px), celice (pribl. 30 px) zadeneš brez
-   zgrešenih klikov. Ni avtomatsko, ker brskalnik brez glave ne oceni berljivosti in
+   zgrešenih klikov, izbrani celici se jasno ločita od neizbranih. Ni avtomatsko, ker brskalnik brez glave ne oceni berljivosti in
    dotika.
 2. **Trening, vaja 2 (1200 px in telefon):** brez branja naslova povej, katera vrstica
    ali stolpec in kateri blok sta v vaji. Pričakovano: takoj jasno iz sive ploskve in

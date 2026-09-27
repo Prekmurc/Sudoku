@@ -1,13 +1,17 @@
 /* ==================== MREŽA: izris ====================
    Izris igralne mreže 9 × 9 in seznamov manjkajočih števk, skupen igri (igra/) in
-   treningu (»Vadi v uganki«). Samo izris: brez stanja igre, brez shrambe in brez
+   treningu (»Vadi v uganki«, vaji 1 in 2 v »Spoznaj«). Samo izris: brez stanja igre, brez shrambe in brez
    vnosa - kaj se izriše, pove aplikacija s "pogledom" ob vsakem izrisu. Slogi so v
    mreza.css (razredi .mreza, .celica, .kandidati, .kand ...). Naloži se za
-   engine.js (PEERS) in stanje.js (dejanjaKoraka). */
+   engine.js (PEERS, ROWS, COLS) in stanje.js (dejanjaKoraka). */
 
 // Zgradi 81 celic v elementu `el` (vrstni red po vrsticah, data-r/data-c za debele
 // črte blokov). `obKliku(i, e)` se pokliče ob kliku celice, ki je vidna (glej
 // pogled.vidne). Vrne { el, celice, izrisi(pogled) }.
+// `robovi: true` (trening, vaji 1 in 2): `el` postane okvir (razred mreza-robovi) z
+// oznakami S1-S9 zgoraj in V1-V9 levo, celice so v notranjem div.mreza - ta je vrnjeni
+// `el`. Oznaka vrstice ali stolpca, ki je ob pogled.vidne v celoti viden, dobi razred
+// "akt". Brez robov (igra) je `el` sama mreža, kot doslej.
 //
 // pogled = {
 //   prazna      - ni odprte uganke: celice so prazne, mreža ima razred "prazna"
@@ -20,12 +24,38 @@
 //   sosede      - celica, katere vrstica/stolpec/blok se senčijo, ali null
 //   oznake      - oznake koraka (oznakeKoraka) ali null
 //   vidne       - celice, ki se prikažejo (Set ali seznam), ali null = vse. Ostale
-//                 so prazne, imajo razred "izven" in se na klik ne odzovejo - za
-//                 prikaz dela mreže na pravih mestih (npr. samo dveh enot vaje).
+//                 so prazne, imajo razred "izven" in se na klik ne odzovejo, mreža
+//                 pa razred "delna" - za prikaz dela mreže na pravih mestih (npr.
+//                 samo dveh enot vaje).
 // }
-function ustvariMrezo(el, { obKliku } = {}) {
+function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
   const celice = [];
   let vidne = null;
+  const oznakeRoba = { vrstice: [], stolpci: [] };
+  if (robovi) {
+    el.classList.add('mreza-robovi');
+    el.appendChild(document.createElement('div'));
+    const zgoraj = document.createElement('div');
+    zgoraj.className = 'rob-s';
+    const levo = document.createElement('div');
+    levo.className = 'rob-v';
+    for (let k = 0; k < 9; k++) {
+      const s = document.createElement('span');
+      s.textContent = `S${k + 1}`;
+      zgoraj.appendChild(s);
+      oznakeRoba.stolpci.push(s);
+      const v = document.createElement('span');
+      v.textContent = `V${k + 1}`;
+      levo.appendChild(v);
+      oznakeRoba.vrstice.push(v);
+    }
+    const notranja = document.createElement('div');
+    notranja.className = 'mreza';
+    el.appendChild(zgoraj);
+    el.appendChild(levo);
+    el.appendChild(notranja);
+    el = notranja;
+  }
   for (let i = 0; i < 81; i++) {
     const c = document.createElement('div');
     c.className = 'celica';
@@ -44,6 +74,14 @@ function ustvariMrezo(el, { obKliku } = {}) {
     el.classList.toggle('prazna', !!p.prazna);
     el.classList.toggle('zaklenjena', !!p.zaklenjena);
     vidne = p.vidne ? new Set(p.vidne) : null;
+    el.classList.toggle('delna', !!vidne);
+    // Oznaka roba je krepka, kadar je vsa vrstica ali ves stolpec viden (enota vaje).
+    if (robovi) for (let k = 0; k < 9; k++) {
+      const vsaVrstica = !!vidne && !p.prazna && ROWS[k].every(c => vidne.has(c));
+      const vesStolpec = !!vidne && !p.prazna && COLS[k].every(c => vidne.has(c));
+      oznakeRoba.vrstice[k].className = vsaVrstica ? 'akt' : '';
+      oznakeRoba.stolpci[k].className = vesStolpec ? 'akt' : '';
+    }
     const o = p.oznake || { vzorec: new Set(), izbris: new Set(), izbrisCelice: new Set(), vpis: new Map() };
     const izbrane = new Set(p.izbrane || []);
     const sosede = p.sosede === undefined ? null : p.sosede;

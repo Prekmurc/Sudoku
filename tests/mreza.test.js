@@ -176,6 +176,47 @@ test('vidne: prikaz samo izbranih celic na pravih mestih, druge niso klikljive',
   assert.deepEqual([...run('klikov')], [p, zunaj]);
 });
 
+test('robovi: oznake S1-S9 in V1-V9, krepka enota iz vidne, razred delna', () => {
+  const { run } = pripravi();
+  run(`var ok = document.createElement('div'); var klikovR = [];
+    var mr2 = ustvariMrezo(ok, { obKliku: i => klikovR.push(i), robovi: true });`);
+  // Okvir: kot, oznake stolpcev, oznake vrstic, notranja mreža z 81 celicami.
+  assert.equal(run('ok.className'), 'mreza-robovi');
+  assert.equal(run('ok.children.length'), 4);
+  const [, zgoraj, levo, notranja] = run('ok.children');
+  assert.equal(zgoraj.className, 'rob-s');
+  assert.equal(levo.className, 'rob-v');
+  assert.equal(notranja.className, 'mreza');
+  assert.equal(run('mr2.el === ok.children[3]'), true, 'vrnjeni el je notranja mreža');
+  assert.deepEqual(zgoraj.children.map(s => s.textContent), [1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => `S${k}`));
+  assert.deepEqual(levo.children.map(s => s.textContent), [1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => `V${k}`));
+  assert.equal(notranja.children.length, 81);
+  run('mr2.celice[40].sprozi("click")');
+  assert.deepEqual([...run('klikovR')], [40]);
+
+  const krepke = el => el.children.map((s, k) => (s.className === 'akt' ? k : -1)).filter(k => k >= 0);
+  const izrisi = v => run(`mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, vidne: ${JSON.stringify(v)} })`);
+  // Blok 5 in vrstica 5 (vaja z vrstico): krepka je samo vrstica 5, noben stolpec.
+  izrisi(run('[...new Set([...ROWS[4], ...BOXES[4]])]'));
+  assert.deepEqual(krepke(levo), [4]);
+  assert.deepEqual(krepke(zgoraj), []);
+  assert.ok(notranja.className.split(' ').includes('delna'));
+  // Blok 1 in stolpec 3: krepak samo stolpec 3.
+  izrisi(run('[...new Set([...COLS[2], ...BOXES[0]])]'));
+  assert.deepEqual(krepke(levo), []);
+  assert.deepEqual(krepke(zgoraj), [2]);
+  // Brez vidne: nobena oznaka ni krepka, mreža ni delna.
+  run('mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati })');
+  assert.deepEqual(krepke(levo), []);
+  assert.deepEqual(krepke(zgoraj), []);
+  assert.ok(!notranja.className.split(' ').includes('delna'));
+
+  // Brez robov (igra) ostane el sama mreža in ne dobi razreda delna.
+  run('mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati })');
+  assert.equal(run('el.children.length'), 81);
+  assert.equal(run('el.className'), '');
+});
+
 test('seznami manjkajočih števk: števke, opis, poudarek, skriti seznam', () => {
   const { run } = pripravi();
   run(`var sez = { vrstice: document.createElement('div'), stolpci: document.createElement('div'), bloki: document.createElement('div') };
