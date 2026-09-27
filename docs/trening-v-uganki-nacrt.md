@@ -430,6 +430,8 @@ Posnetek ne vidi CSS in ne pokrije vsega, zato v brskalniku (lokalni strežnik):
 
 ## Opombe k delom (uskladitev s fazo 4 in odpadlo pravilo)
 
+Tu so opombe k nalogam treninga (deli načrta in samostojne naloge); opombe k fazam aplikacij so v `docs/uskladitev.md`, razdelek »Opombe k delom«.
+
 Načrt in analiza `docs/trening-v-uganki.md` sta nastala pred fazo 4. Razdelek 0 spodaj
 opisuje pravilo »ne Presega tehnike«, ki je odpadlo. Te opombe veljajo pred besedilom
 načrta in analize.

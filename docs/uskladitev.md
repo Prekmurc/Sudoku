@@ -538,7 +538,7 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   | `docs/uganke.md` | `.` | |
   | `tools/ustvari-uganko.js` (izpis) | `.` | `tools/analiziraj-zbirko.js` bere oboje |
   | igra, polje »Niz« (»Nova uganka«) | sprejme `0` in `.` | druge znake (presledke, nove vrstice) izpusti |
-  | reševalec, vnos | – | **polja za niz ni**, samo mreža 81 polj; niza tudi ni mogoče kopirati |
+  | reševalec, vnos | od `a348672` sprejme `0` in `.` (polje »Niz«, kot v igri) | ob analizi **polja za niz ni bilo**, samo mreža 81 polj; niza še vedno ni mogoče kopirati iz mreže |
 
   **Predlog:** ne povsod enako, ampak dve plasti z eno pretvorbo:
   - **zunanja oblika** (vse, kar človek vidi, vnaša ali shrani v datoteko): pika. Sem
@@ -551,21 +551,27 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   - pretvorba na enem mestu v `shared/`: `danostiIzNiza(niz)` (sprejme `.` in `0`,
     izpusti presledke in nove vrstice, vrne 81 znakov z `0` ali `null`) in
     `danostiZaPrikaz(danosti)` (`0` → `.`). Uporabijo jih polje »Niz« v igri, uvoz,
-    `PRIMERI` (`igra/igra.js:56`) in orodja namesto svojih pretvorb;
-  - reševalec dobi polje »Niz« kot igra (skupaj s 6.4, skupna vnosna mreža).
+    `PRIMERI` (`igra/igra.js:56`) in orodja namesto svojih pretvorb. **Delno narejeno:**
+    branje niza za polje »Niz« je `zbirkaNizDanosti()` v `shared/zbirka.js` (igra in
+    reševalec); `danostiZaPrikaz()` ter prehod uvoza, `PRIMERI` in orodij na skupno
+    pretvorbo še niso;
+  - reševalec dobi polje »Niz« kot igra – **narejeno 2026-09-27** (`a348672`, dokončano v
+    `7e04cb4`; `docs/niz-resevalec-nacrt.md`), **ločeno od 6.4**: polje samo izpolni
+    obstoječo vnosno mrežo reševalca. **Skupna vnosna mreža (6.4) še ni narejena** –
+    reševalec in igra imata še vsak svojo mrežo 81 polj in svoje preverjanje konfliktov.
 
   Dopolnitev primerov za vse stopnje in tehnike je **ločena naloga** (glej 3); nove
   uganke samo z orodji v `tools/` (`ustvari-uganko.js`, `analiziraj-zbirko.js`), ne
   sestavljene na pamet.
-- **Obseg:** majhno (izvor `primer`), majhno (pretvorba in `PRIMERI`), polje »Niz« v
-  reševalcu srednje (s 6.4).
+- **Obseg:** majhno (izvor `primer`), majhno (pretvorba in `PRIMERI`); polje »Niz« v
+  reševalcu je narejeno brez 6.4, skupna vnosna mreža ostane srednja naloga (glej 6.4).
 - **Izvor `primer` narejen 2026-09-24** (skupaj s fazo 2): reševalec shrani rešen primer z
   izvorom `primer` in težavnostjo iz `PRIMERI` (3); `zbirkaBeri()` stare zapise primerov
   (`rocno` ali `''`) popravi v `primer` s težavnostjo primera; igra primer pokaže samo pod
   »Vgrajeni primeri« (»Tvoja zbirka«, števec na gumbu »Zbirka« in »Oceni zbirko« so brez
   primerov), sama ga v zbirko ne doda; reševalec ga kaže v seznamu z imenom primera (tam ga
-  lahko izbrišeš). Odprto: pretvorba danosti (pika navzven, `danostiIzNiza()`) in polje »Niz«
-  v reševalcu.
+  lahko izbrišeš). Odprto: pretvorba danosti (pika navzven, `danostiIzNiza()`); polje »Niz«
+  v reševalcu je narejeno 2026-09-27 (`a348672`, `7e04cb4`).
 - **Nadomeščeno isti dan** z odločitvijo »primeri niso del zbirke« (zgoraj): izvor
   `primer`, popravek v `zbirkaBeri()` in `mojaZbirka()` so odstranjeni.
 
@@ -904,6 +910,9 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   `konfliktneCelice(danosti)` (brez DOM-a, za zbirko in obe mreži). CSS vnosne mreže v
   `shared/`.
 - **Obseg:** srednje.
+- **Stanje (2026-09-27): še ni narejeno.** Polje »Niz« v reševalcu (2.5) je narejeno
+  posebej (`a348672`, `7e04cb4`) in od te točke ni odvisno; skupno je samo branje niza
+  (`zbirkaNizDanosti()`), mreži 81 polj in preverjanje konfliktov sta še podvojena.
 
 ### 6.5 Gumba »Izvozi« in »Uvozi«
 
@@ -1151,7 +1160,7 @@ komponente, na koncu videz in pomoč.
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3, 1.1 (raven tehnike, barve oznak, poved v pomoči igre) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
 | **6 – pomoč** | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
-| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes (6.4 prinese polje »Niz« v reševalec, 2.5) | majhno–srednje |
+| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu
 spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne spremeni.
@@ -1169,6 +1178,8 @@ spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne
   uganke z ekspertno tehniko) ne zadeva nobene faze – pride z XY-Chain.
 
 ## Opombe k delom
+
+Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalogam treninga so v `docs/trening-v-uganki-nacrt.md`, razdelek »Opombe k delom«.
 
 ### Faza 5 – videz
 
