@@ -249,6 +249,119 @@ async function scenarij() {
   kljukica('stikaloStolpci', false);
   kljukica('stikaloBloki', false);
   zapisi('seznami izklopljeni');
+
+  // Dodatni posnetki pred delom 5 (vnos v shared/plosca.js): večizbira, nizi,
+  // Začni znova med reševanjem in tipkovnica. Mreža je tu prazna (po Začni znova).
+  const kand = i => run(`stanje.kandidati[${i}]`);
+  const STEVKE = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  tipka('Escape', 'Escape'); // izbira iz posnetka rešene uganke
+  klikCelice(p0, { ctrlKey: true });
+  klikCelice(p1, { ctrlKey: true });
+  klikCelice(p2, { ctrlKey: true });
+  klikCelice(p1, { ctrlKey: true });
+  zapisi('Ctrl+klik izbrane celice jo odstrani');
+  tipka('ArrowRight', 'ArrowRight');
+  zapisi('puščica pri več izbranih');
+  const sk = STEVKE.find(d => (kand(p0) & kand(p2) & (1 << d)) && d !== res[p0] && d !== res[p2]);
+  if (sk) tipka('!', `Digit${sk}`, { shiftKey: true });
+  zapisi('Shift+števka pri več celicah');
+  klikCelice(p3);
+  zapisi('navaden klik počisti večizbiro');
+  niz('nizVpisi', res[p3]);
+  dom.klikni('razveljaviBtn');
+  klikCelice(p0, { ctrlKey: true });
+  klikCelice(p3, { ctrlKey: true });
+  dom.klikni('ponoviBtn');
+  zapisi('Ponovi: celica z vpisom v izbiri');
+  tipka('Escape', 'Escape');
+  klikCelice(p0, { ctrlKey: true });
+  klikCelice(p3, { ctrlKey: true });
+  zapisi('celica z vpisom se ne doda');
+  klikCelice(p3);
+  dom.klikni('zbrisiBtn');
+  zapisi('gumb Zbriši vpis');
+  tipka('Escape', 'Escape');
+  // Dve prazni celici brez skupnega kandidata, narejeni s pravilnimi potezami: v p0
+  // ostane samo prava števka, iz druge prazne celice v isti vrstici se ta odstrani.
+  const par = [p0, prazne.find(i => i !== p0 && Math.floor(i / 9) === Math.floor(p0 / 9) && !run(`stanje.grid[${i}]`))];
+  klikCelice(par[0]);
+  for (const d of STEVKE) if (d !== res[par[0]] && (kand(par[0]) & (1 << d))) niz('nizOdstrani', d);
+  klikCelice(par[1]);
+  if (kand(par[1]) & (1 << res[par[0]])) niz('nizOdstrani', res[par[0]]);
+  tipka('Escape', 'Escape');
+  klikCelice(par[0], { ctrlKey: true });
+  klikCelice(par[1], { ctrlKey: true });
+  zapisi('izbrane celice brez skupnega kandidata');
+  tipka('Escape', 'Escape');
+
+  kljukica('vecHkrati', true);
+  for (const d of [1, 2, 3, 4, 5]) niz('nizPoudari', d);
+  zapisi('več hkrati: pet števk, barve se ponovijo');
+  niz('nizPoudari', 2);
+  zapisi('več hkrati: ena števka odstranjena');
+  niz('nizPoudari', 6);
+  zapisi('več hkrati: nova števka dobi prosto barvo');
+  kljukica('vecHkrati', false);
+  niz('nizPoudari', 6);
+  // Števka z najmanj manjkajočimi: poudari jo in dopolni do devetega vpisa.
+  const manjka = run('seManjka(stanje)');
+  const dd = STEVKE.filter(d => manjka[d] > 0).sort((a, b) => manjka[a] - manjka[b] || a - b)[0];
+  niz('nizPoudari', dd);
+  zapisi('poudarek števke pred dokončanjem');
+  for (const i of prazne) {
+    if (res[i] !== dd || run(`stanje.grid[${i}]`)) continue;
+    klikCelice(i);
+    niz('nizVpisi', dd);
+  }
+  zapisi('deveti vpis izklopi poudarek');
+  niz('nizPoudari', dd);
+  zapisi('poudarek dokončane števke');
+  niz('nizPoudari', dd);
+
+  dom.potrdi(false);
+  dom.klikni('znovaBtn');
+  zapisi('Začni znova med reševanjem - preklic');
+  dom.potrdi(true);
+  dom.klikni('znovaBtn');
+  zapisi('Začni znova med reševanjem');
+
+  // Tipkovnica po osvežitvi (brez zadnje izbrane celice).
+  dom = makeDom(dom.shramba);
+  ({ run } = loadContext(datoteke, dom.globals));
+  zapisi('osvežitev po Začni znova');
+  tipka('ArrowUp', 'ArrowUp');
+  zapisi('prva puščica brez izbire');
+  tipka('ArrowLeft', 'ArrowLeft');
+  tipka('ArrowUp', 'ArrowUp');
+  zapisi('puščici na robu mreže');
+  tipka('Escape', 'Escape'); // p0 je lahko ravno izbrana V1S1 - klik bi izbiro preklical
+  klikCelice(p0);
+  tipka(String(res[p0]), `Numpad${res[p0]}`);
+  zapisi('vpis s številčnico');
+  klikCelice(p0);
+  tipka('Delete', 'Delete');
+  zapisi('Delete zbriše vpis');
+  tipka('z', 'KeyZ', { ctrlKey: true });
+  zapisi('Ctrl+Z po Delete');
+  tipka('Z', 'KeyZ', { ctrlKey: true, shiftKey: true });
+  zapisi('Ctrl+Shift+Z');
+  klikCelice(p1);
+  tipka(String(res[p1]), `Digit${res[p1]}`, { altKey: true });
+  zapisi('Alt+števka ne naredi nič');
+  const polje = dom.document.createElement('input');
+  polje.type = 'text';
+  tipka(String(res[p1]), `Digit${res[p1]}`, { target: polje });
+  zapisi('tipka v besedilnem polju ne vpisuje');
+  tipka('ArrowLeft', 'ArrowLeft');
+  tipka('ArrowUp', 'ArrowUp');
+  zapisi('puščici levo in gor');
+  const c1 = run(`${IZBRANE}[0]`);
+  const od = STEVKE.find(d => (kand(c1) & (1 << d)) && d !== res[c1]);
+  tipka('!', `Digit${od}`, { shiftKey: true });
+  zapisi('Shift+števka odstrani (po puščicah)');
+  tipka('!', `Digit${od}`, { shiftKey: true });
+  zapisi('Shift+števka vrne kandidata');
   return koraki;
 }
 
