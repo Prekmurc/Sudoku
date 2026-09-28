@@ -33,6 +33,9 @@
 //                 treningu - označena enota ali celica) ali null
 //   neaktivne   - celice, ki jih ni mogoče izbrati: razred "neaktivna" (zatemnjene,
 //                 brez kazalca z roko), klik se ne sporoči; ali null
+//   zasencene   - celice s šrafuro (razred "zasencena"; senčenje, kamor poudarjena
+//                 števka ne more - plošča, kljukica "senči") ali null; na celicah z
+//                 oznakami koraka se ne riše (oznake imajo prednost)
 // }
 function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
   const celice = [];
@@ -84,6 +87,7 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
     vidne = p.vidne ? new Set(p.vidne) : null;
     neaktivne = p.neaktivne ? new Set(p.neaktivne) : null;
     const oznacene = p.oznacene ? new Set(p.oznacene) : null;
+    const zasencene = p.zasencene ? new Set(p.zasencene) : null;
     el.classList.toggle('delna', !!vidne);
     // Oznaka roba je krepka, kadar je vsa vrstica ali ves stolpec viden (enota vaje).
     if (robovi) for (let k = 0; k < 9; k++) {
@@ -137,6 +141,9 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
       if (o.vpis.has(i)) c.classList.add('k-vpis');
       else if (o.vzorec.has(i)) c.classList.add('k-vzorec');
       else if (o.izbrisCelice.has(i)) c.classList.add('k-izbris');
+      if (zasencene && zasencene.has(i) && !o.vpis.has(i) && !o.vzorec.has(i) && !o.izbrisCelice.has(i)) {
+        c.classList.add('zasencena');
+      }
       if (izbrane.has(i)) c.classList.add('izbrana');
       else if (sosede !== null && PEERS[sosede].has(i)) c.classList.add('soseda');
     }

@@ -10,7 +10,7 @@ samostojna naloga Pripomočki za E1/E2«.
 
 Stanje: **narejeno 2026-09-28** (načrt potrjen, odgovori v razdelku »Odgovori«, izvedba v
 razdelku »Izvedba«). **Dopolnitev** (poudarek po pravilnem odgovoru, senčenje): načrt
-2026-09-28, čaka potrditev – razdelek »Dopolnitev« na koncu.
+potrjen 2026-09-28 (odgovori v D5a), izvedba po korakih – razdelek »Dopolnitev« na koncu.
 
 Posnetki zaslona so v `docs/slike/pripomocki-e1-e2/`. Predlog je posnet s prototipom v
 začasni kopiji projekta (ni v repozitoriju). Prototip uporablja pravo `shared/plosca.js`
@@ -594,6 +594,18 @@ pushem.
 5. **Ime in obstojnost kljukice:** »senči«, ostane med vajami kroga, ne shranjuje se –
    predlog; drugo ime (npr. »kam ne more«)?
 6. **»Vadi v uganki«:** E1/E2 enako, pri 1–12 brez stikala, igra ne – predlog?
+
+### D5a. Odgovori (2026-09-28)
+
+Dopolnitev potrjena. Ročni pregled 1–5 izvedbe je opravljen, vse v redu (razen opažanja
+D1), v `docs/rocni-test.md` označeno kot potrjeno.
+
+1. Poudarek po pravilnem odgovoru: **poudarek z zelenim okvirjem** (predlog).
+2. Videz senčenja: **šrafura A** (predlog).
+3. »Več hkrati«: **senčenje samo ob eni števki** (predlog).
+4. Pomoč: **E2 da, E1 ne** (predlog).
+5. Ime kljukice: **»senči«**, ostane med vajami kroga, ne shranjuje se (predlog).
+6. »Vadi v uganki«: **kot predlog** (E1/E2 enako, pri 1–12 brez stikala, igra ne).
 
 ### D6. Ročni seznam (po izvedbi, največ 5)
 

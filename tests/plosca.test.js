@@ -499,6 +499,52 @@ test('plošča za enojčke: brez kandidatov, samoEna, spremenljiva, začetna izb
   assert.deepEqual(g.izbrane(), [c]);
 });
 
+// Senčenje (kljukica "senči"): primerjava z neodvisnim izračunom iz niza danosti.
+test('plošča: senčenje celic, kamor poudarjena števka ne more (samo ob eni števki)', () => {
+  const vidi = (i, j) => Math.floor(i / 9) === Math.floor(j / 9) || i % 9 === j % 9
+    || (Math.floor(i / 27) === Math.floor(j / 27) && Math.floor((i % 9) / 3) === Math.floor((j % 9) / 3));
+  const pricakovano = d => [...Array(81).keys()].filter(i => {
+    const v = +danosti[i];
+    if (v === d) return false;
+    return v !== 0 || [...Array(81).keys()].some(j => +danosti[j] === d && vidi(i, j));
+  });
+  const p = pripravi({ moznosti: `senci: el('kSenci'),` });
+  const zasencene = () => [...Array(81).keys()].filter(i => p.celica(i).className.includes('zasencena'));
+  p.run(`odpri(novaIgra(${D}))`);
+  const d = +danosti[dana];
+  p.gumb('nizPoudari', d).sprozi('click');
+  assert.deepEqual(zasencene(), [], 'brez kljukice ni senčenja');
+  assert.equal(p.run('plosca.sencenjeVidno()'), false);
+  p.kljukica('kSenci', true);
+  assert.deepEqual(zasencene(), pricakovano(d));
+  assert.equal(p.run('plosca.sencenjeVidno()'), true);
+  // Druga števka zamenja poudarek - senčenje sledi.
+  const e = STEVKE.find(x => x !== d);
+  p.gumb('nizPoudari', e).sprozi('click');
+  assert.deepEqual(zasencene(), pricakovano(e));
+  // Več hkrati z dvema števkama: ni senčenja; ob izklopu ostane zadnja.
+  p.kljukica('vecHkrati', true);
+  p.gumb('nizPoudari', d).sprozi('click');
+  assert.deepEqual(zasencene(), []);
+  assert.equal(p.run('plosca.sencenjeVidno()'), false);
+  p.kljukica('vecHkrati', false);
+  assert.deepEqual(zasencene(), pricakovano(d));
+  // Brez poudarka ni senčenja; izklop kljukice ga odstrani.
+  p.gumb('nizPoudari', d).sprozi('click');
+  assert.deepEqual(zasencene(), []);
+  p.gumb('nizPoudari', d).sprozi('click');
+  p.kljukica('kSenci', false);
+  assert.deepEqual(zasencene(), []);
+  // Vpis: nova celica s števko d razširi senčenje.
+  p.kljukica('kSenci', true);
+  const c = prazne.find(i => (p.kand(i) & (1 << d)) && resitev[i] === d);
+  p.klik(c);
+  p.gumb('nizVpisi', d).sprozi('click');
+  const zdaj = zasencene();
+  assert.ok(!zdaj.includes(c));
+  for (const j of prazne) if (j !== c && vidi(j, c)) assert.ok(zdaj.includes(j), `soseda ${j} vpisa`);
+});
+
 test('barve poudarka iz nastavitev igre: nov in star zapis, napačen zapis, brez shrambe', () => {
   const beri = zapis => {
     const shramba = new Map(zapis === undefined ? [] : [['sudoku.igra.poud', zapis]]);

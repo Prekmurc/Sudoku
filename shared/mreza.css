@@ -119,6 +119,16 @@
 .celica.k-vzorec{ background: var(--amber-bg); }
 .celica.k-izbris{ background: var(--red-bg); }
 .celica.k-vpis{ background: var(--green-bg); }
+/* senčenje (pogled.zasencene): celice, kamor poudarjena števka ne more, so šrafirane -
+   poševne polprosojne črte čez celico (::after), ki se seštejejo s podlago (označena
+   enota, zatemnjena celica, izbira), zato ostanejo stanja ločljiva */
+.celica.zasencena::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background: repeating-linear-gradient(135deg, rgba(36,48,61,.28) 0 1.5px, transparent 1.5px 5px);
+}
 /* števka za vpis v mreži brez kandidatov (pogled.kandidati = null) */
 .celica.k-vpis:not(.dana):not(.vpis){ color: var(--green); font-weight:700; }
 .kand.k-izbris{

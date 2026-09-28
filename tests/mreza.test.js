@@ -200,6 +200,16 @@ test('oznacene, neaktivne in števka za vpis v mreži brez kandidatov', () => {
   assert.deepEqual([...run('klikov')], [a, b]);
   run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, oznake: ${oz} })`);
   assert.equal(celice[c].children.length, 1, 's kandidati so v celici kandidati, ne števka');
+
+  // Senčenje: razred zasencena, ne na celicah z oznakami koraka; brez polja ga ni.
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null, oznake: ${oz},
+    zasencene: [${a}, ${b}, ${c}, ${dana}] })`);
+  assert.ok(celice[b].className.includes('zasencena'));
+  assert.ok(celice[dana].className.includes('zasencena'), 'tudi polna celica');
+  assert.ok(!celice[a].className.includes('zasencena'), 'celica vzorca ne');
+  assert.ok(!celice[c].className.includes('zasencena'), 'celica vpisa ne');
+  run('mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null })');
+  assert.equal(celice.filter(x => x.className.includes('zasencena')).length, 0);
 });
 
 test('robovi: oznake S1-S9 in V1-V9, krepka enota iz vidne, razred delna', () => {

@@ -43,6 +43,9 @@
 //                   vpis (trening: izbira števke za vpis; celica je lahko null)
 //   pogled()      - dodatna polja pogleda mreže (npr. oznacene, neaktivne, sosede),
 //                   ki imajo prednost pred polji plošče
+//   senci         - kljukica "senči": ob eni poudarjeni števki so zasenčene celice,
+//                   kamor ne more (pogled.zasencene; sencenjeVidno() pove, ali je
+//                   senčenje prikazano)
 // }
 function ustvariPlosco(o) {
   const vir = o.vir;
@@ -175,6 +178,26 @@ function ustvariPlosco(o) {
       izrisiVse();
     });
   }
+
+  // Senčenje (kljukica "senči"): ob natanko eni poudarjeni števki d so zasenčene celice,
+  // kamor d ne more - polne celice (razen tistih z d) ter vrstica, stolpec in blok vsake
+  // celice z d. Upošteva samo vpisane števke (ne kandidatov). Pri več poudarjenih
+  // števkah ni senčenja (senčenje je eno, barve poudarkov so različne).
+  function sencenjeVidno() {
+    return !!(o.senci && o.senci.checked && vir().igra && poudarjene.length === 1);
+  }
+  function zasencene() {
+    if (!sencenjeVidno()) return null;
+    const { stanje } = vir();
+    const d = poudarjene[0].stevka;
+    const z = new Set();
+    for (let i = 0; i < 81; i++) {
+      if (stanje.grid[i] && stanje.grid[i] !== d) z.add(i);
+      if (stanje.grid[i] === d) for (const p of PEERS[i]) if (stanje.grid[p] !== d) z.add(p);
+    }
+    return z;
+  }
+  if (o.senci) o.senci.addEventListener('change', () => izrisiVse());
 
   // Aplikacija pokliče po izračunu novega stanja; `prej` je stanje pred spremembo
   // iste uganke ali null. Sprememba, ki števko dokonča (deveti vpis), izklopi njen
@@ -395,6 +418,7 @@ function ustvariPlosco(o) {
       izbrane,
       sosede: enaIzbrana(),
       oznake: oznake(),
+      zasencene: zasencene(),
       ...(o.pogled ? o.pogled() : {}),
     });
   }
@@ -505,6 +529,7 @@ function ustvariPlosco(o) {
     poSpremembi,
     ponastavi,
     pocistiIzbiro,
+    sencenjeVidno,
     izrisi,
     obTipki,
   };

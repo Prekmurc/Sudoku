@@ -74,11 +74,15 @@ kot pred spremembo).
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, pravi telefon | E1, vaja 7, vklopi vse tri sezname; preberi števke v kvadratkih in izberi celico s prstom. | Števke so berljive (celica pribl. 27 px), stran se ne pomika vodoravno, celico zadeneš brez zgrešenih dotikov. (nepotrjeno) |
-| 2 | trening, telefon in 1200 px | E2, vaja 4: s kljukico »več hkrati« poudari dve števki. | Barvi se jasno ločita med seboj, od modrikaste označene enote in od sivih zatemnjenih celic. (nepotrjeno) |
-| 3 | trening, slovenska tipkovnica | E1, vaja 7: tipke 1–9 (vrstica števk in številčnica), puščice, Escape; nato Shift+2 in Ctrl+Z. | Števka se izbere (gumb pod mrežo), izbira se premika po praznih celicah, Escape jo počisti; Shift+2 in Ctrl+Z ne spremenita ničesar. (nepotrjeno) |
-| 4 | igra, nato trening (lokalni strežnik) | V igri pod »Barve poudarka« nastavi 1. barvo, osveži trening in poudari števko v E1 ter odpri vajo 1. | V E1 in pri vaji 1 je poudarek v barvi iz igre. (nepotrjeno) |
-| 5 | trening, telefon | E2: drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem je enota jantarna, celica zelena s števko; ob spustu oznake izginejo. (nepotrjeno) |
+| 1 | trening, pravi telefon | E1, vaja 7, vklopi vse tri sezname; preberi števke v kvadratkih in izberi celico s prstom. | Števke so berljive (celica pribl. 27 px), stran se ne pomika vodoravno, celico zadeneš brez zgrešenih dotikov. Potrjeno (ročni pregled 28. 9. 2026). |
+| 2 | trening, telefon in 1200 px | E2, vaja 4: s kljukico »več hkrati« poudari dve števki. | Barvi se jasno ločita med seboj, od modrikaste označene enote in od sivih zatemnjenih celic. Potrjeno (ročni pregled 28. 9. 2026). |
+| 3 | trening, slovenska tipkovnica | E1, vaja 7: tipke 1–9 (vrstica števk in številčnica), puščice, Escape; nato Shift+2 in Ctrl+Z. | Števka se izbere (gumb pod mrežo), izbira se premika po praznih celicah, Escape jo počisti; Shift+2 in Ctrl+Z ne spremenita ničesar. Potrjeno (ročni pregled 28. 9. 2026). |
+| 4 | igra, nato trening (lokalni strežnik) | V igri pod »Barve poudarka« nastavi 1. barvo, osveži trening in poudari števko v E1 ter odpri vajo 1. | V E1 in pri vaji 1 je poudarek v barvi iz igre. Potrjeno (ročni pregled 28. 9. 2026). |
+| 5 | trening, telefon | E2: drži »Rešitev (drži)« s prstom, nato spusti. | Med držanjem je enota jantarna, celica zelena s števko; ob spustu oznake izginejo. Potrjeno (ročni pregled 28. 9. 2026). |
+
+Opažanje ob pregledu: po pravilnem odgovoru je zelena oznaka prekrila poudarek nove
+števke – popravek D1 in novo stikalo »senči« (D2) sta v `docs/pripomocki-e1-e2-nacrt.md`,
+razdelek »Dopolnitev«.
 
 ## Zakaj ročno
 
