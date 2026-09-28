@@ -143,7 +143,7 @@ test('1-12: mreža s kandidati S0, vpisi poti, prej odstranjeni in "pokaži pre�
     for (const d of bits(S0.odstr[c])) assert.equal(celice(dom)[c].children[0].children[d - 1].className, 'kand precrtan');
   }
   // Kljukica ostane med vajami kroga.
-  gumb(dom, 'Naslednja vaja →').sprozi('click');
+  run('exNum++; renderExercise()'); // naslednja vaja kroga
   izprazni();
   const info2 = poRazredu(dom, 'vaja-info')[0];
   if (run('vadi.v.prejOdstranjenih')) {
@@ -207,4 +207,164 @@ test('"Spoznaj" iz istega konteksta ostane sestavljena vaja', () => {
   assert.equal(run('vadi'), null);
   assert.match(dom.el('exerciseArea').children[0].innerHTML, /<p class="ex-label">3 · Očitni par \(Naked Pair\) · Vaja 1 \/ 9<\/p>/);
   assert.equal(poRazredu(dom, 'vaja-uganka').length, 0);
+});
+
+/* ---------- 6b: odgovor pri 1-12 ---------- */
+
+// Vaja tehnike iz banke, ki izpolni pogoj (izraz nad `v`), na zaslonu. Iskanje po banki
+// po vrsti (brez naključja) - vaja je stanje prave uganke, izbrisi v testu so iz korakov
+// motorja (KT, KV) in števk rešitve.
+function vajaZ(tehnika, pogoj) {
+  const t = zacni(tehnika);
+  t.izprazni();
+  t.run(`{ const kljuc = TEHNIKA_VAJE[mode]; let najdena = null;
+    for (const z of VAJE_BANKA.filter(z => z.tehnike.includes(kljuc))) {
+      const { stanja, stopnja } = stanjaVUganki(z.danosti, kljuc);
+      for (const st of stanja) { const v = vajaIzStanja(z.danosti, kljuc, st, stopnja); if (v && (${pogoj})) { najdena = v; break; } }
+      if (najdena) { najdena.izvor = { vrsta: 'banka', seme: z.seme }; break; }
+    }
+    izrisiVadi(najdena); }`);
+  return t;
+}
+// Izbrisi iz S0: KT[0] (korak tehnike), neutemeljen (kandidat, ki ni števka rešitve in ga ne
+// izbriše noben korak), druge tehnike (izbris koraka iz KV zunaj vseh korakov KT).
+const IZBRISI = `(() => {
+  const k = e => e[0] * 10 + e[1], vKT = new Set(v.KT.flatMap(s => s.eliminate.map(k))), vKV = new Set(v.KV.flatMap(s => s.eliminate.map(k)));
+  let neut = null;
+  for (let c = 0; c < 81 && !neut; c++) if (!v.S0.grid[c]) for (let d = 1; d <= 9 && !neut; d++)
+    if ((v.S0.kandidati[c] & (1 << d)) && d !== v.resitev[c] && !vKV.has(c * 10 + d)) neut = [c, d];
+  const druga = v.KV.flatMap(s => s.eliminate).find(e => !vKT.has(k(e))) || null;
+  let prava = null;
+  for (let c = 0; c < 81 && !prava; c++) if (!v.S0.grid[c] && (v.S0.kandidati[c] & (1 << v.resitev[c]))) prava = [c, v.resitev[c]];
+  return { korak: v.KT[0].eliminate, neut, druga, prava };
+})()`;
+const izbrisiVaje = run => iz(run, `((v) => ${IZBRISI})(vadi.v)`);
+
+const izberi = (dom, run, c) => {
+  if (run('vadi.plosca.enaIzbrana()') !== c) celice(dom)[c].sprozi('click');
+  assert.equal(run('vadi.plosca.enaIzbrana()'), c, `izbrana ${c}`);
+};
+const odstrani = (dom, run, [c, d]) => {
+  izberi(dom, run, c);
+  poRazredu(dom, 'niz-odstrani')[0].children[d - 1].sprozi('click');
+  assert.equal(run(`vadi.stanje.kandidati[${c}] & ${1 << d}`), 0, `odstranjen ${d} iz ${c}`);
+};
+const jeKand = (run, [c, d]) => !!run(`vadi.stanje.kandidati[${c}] & ${1 << d}`);
+const fb = dom => poRazredu(dom, 'fb')[0];
+const rezultat = dom => `${dom.el('scoreRight').textContent}/${dom.el('scoreTotal').textContent}`;
+
+test('1-12: šest izidov "Preveri", samodejna razveljavitev, "Poskusi znova", pravilno z zaklepom', () => {
+  const { dom, run } = vajaZ('hidden-pair', `v.KT[0].eliminate.length >= 2 && (${IZBRISI}).neut && (${IZBRISI}).druga`);
+  const I = izbrisiVaje(run);
+  const N = run('vadi.v.igra.zacetnihPotez');
+  const preveriBtn = () => gumb(dom, 'Preveri');
+  // Niza "Vpiši" ni, niz "Odstrani" je.
+  assert.equal(poRazredu(dom, 'niz-vpisi').length, 0);
+  assert.equal(poRazredu(dom, 'niz-odstrani')[0].children.length, 9);
+
+  // prazno
+  preveriBtn().sprozi('click');
+  assert.equal(fb(dom).className, 'fb info');
+  assert.equal(fb(dom).innerHTML, 'Odstrani kandidate, ki jih tehnika izloči.');
+  assert.equal(preveriBtn().disabled, true, 'Preveri onemogočen do spremembe');
+  assert.equal(rezultat(dom), '0/0');
+
+  // delno: en izbris koraka
+  odstrani(dom, run, I.korak[0]);
+  assert.equal(preveriBtn().disabled, false);
+  assert.equal(fb(dom).className, 'fb', 'sporočilo po spremembi izgine');
+  preveriBtn().sprozi('click');
+  assert.match(fb(dom).innerHTML, /^<b>Še ne\.<\/b> Prav, a to še ni ves korak – manjka/);
+  assert.equal(rezultat(dom), '0/0');
+
+  // neutemeljeno: izbris se samodejno vrne kot poteza "vrni", izbris koraka ostane
+  odstrani(dom, run, I.neut);
+  const kaz = run('vadi.v.igra.kazalec');
+  preveriBtn().sprozi('click');
+  assert.equal(fb(dom).className, 'fb info');
+  assert.equal(fb(dom).innerHTML,
+    `Izbris drži, a ga v tem koraku ne utemelji nobena tehnika. Razveljavljeno: ${run(`cellLabel(${I.neut[0]})`)} (${I.neut[1]}).`);
+  assert.ok(jeKand(run, I.neut), 'neutemeljen izbris vrnjen');
+  assert.ok(!jeKand(run, I.korak[0]), 'izbris koraka ostane');
+  assert.equal(run('vadi.v.igra.kazalec'), kaz + 1, 'vrnitev je ena poteza');
+  assert.equal(preveriBtn().disabled, true);
+  assert.equal(rezultat(dom), '0/0');
+
+  // druga tehnika
+  odstrani(dom, run, I.druga);
+  preveriBtn().sprozi('click');
+  assert.match(fb(dom).innerHTML, /^To drži, a je to korak tehnike .+, ne 4 · Skriti par\. Razveljavljeno: /);
+  assert.ok(jeKand(run, I.druga));
+  assert.equal(rezultat(dom), '0/0');
+
+  // napačno: prava števka celice; "Poskusi znova" vrne na začetek vaje
+  odstrani(dom, run, I.prava);
+  preveriBtn().sprozi('click');
+  assert.equal(fb(dom).className, 'fb err');
+  assert.match(fb(dom).innerHTML, /^<b>Ni pravilno\.<\/b> Števka \d je v V\dS\d prava – tega kandidata ne smeš odstraniti\. $/);
+  assert.equal(rezultat(dom), '0/1');
+  preveriBtn().sprozi('click');
+  assert.equal(rezultat(dom), '0/1', 'isti odgovor se ne šteje dvakrat');
+  const znova = fb(dom).children.find(e => e.textContent === 'Poskusi znova');
+  znova.sprozi('click');
+  assert.equal(run('vadi.v.igra.kazalec'), N);
+  assert.ok(jeKand(run, I.prava) && jeKand(run, I.korak[0]));
+  assert.equal(preveriBtn().disabled, false);
+  assert.equal(fb(dom).className, 'fb');
+  assert.ok(run(`lahkoPonovi(vadi.v.igra)`), 'poteze ostanejo v "Ponovi"');
+
+  // pravilno: vsi izbrisi koraka
+  for (const e of I.korak) if (jeKand(run, e)) odstrani(dom, run, e);
+  preveriBtn().sprozi('click');
+  assert.equal(fb(dom).className, 'fb ok');
+  assert.equal(fb(dom).innerHTML, `<b>Pravilno!</b> ${run('vadi.v.KT[0].message')}`);
+  assert.equal(rezultat(dom), '1/2');
+  assert.equal(run('vajaResena'), true);
+  assert.equal(poRazredu(dom, 'akcije')[0].hidden, true, 'Razveljavi/Ponovi/Začni znova skriti');
+  assert.equal(preveriBtn().style.display, 'none');
+  assert.equal(gumb(dom, 'Naslednja vaja →').style.display, 'inline-block');
+  assert.equal(poRazredu(dom, 'niz-razlog')[0].textContent, 'Vaja je rešena – nadaljuj z »Naslednja vaja«.');
+  // Oznake: vzorec koraka, izbrisi rdeče prečrtani; izbire ni več.
+  const cs = celice(dom);
+  for (const c of run('vadi.v.KT[0].cells')) assert.ok(cs[c].classList.contains('k-vzorec'));
+  for (const [c, d] of I.korak) assert.equal(cs[c].children[0].children[d - 1].className, 'kand precrtan k-izbris');
+  const prazna = iz(run, 'vadi.stanje.grid').findIndex((x, c) => !x && c !== run('vadi.plosca.enaIzbrana()'));
+  const prej = iz(run, 'vadi.plosca.izbrane');
+  cs[prazna].sprozi('click');
+  assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), prej, 'klik po pravilnem odgovoru izbire ne spremeni');
+  assert.equal(celice(dom).filter(e => e.classList.contains('izbrana')).length, 0, 'izbira ni prikazana');
+  const kaz2 = run('vadi.v.igra.kazalec');
+  dom.tipka({ key: '!', code: 'Digit1', shiftKey: true, preventDefault() {} });
+  dom.tipka({ key: 'z', code: 'KeyY', ctrlKey: true, preventDefault() {} });
+  assert.equal(run('vadi.v.igra.kazalec'), kaz2, 'po pravilnem odgovoru tipke ne spremenijo igre');
+});
+
+test('1-12: tipkovnica (pari QWERTZ), razlog pri vpisu iz prejšnjih korakov, besedila', () => {
+  const { dom, run } = vajaZ('naked-pair', 'v.S0.grid.some((x, c) => x && v.danosti[c] === "0")');
+  const S0 = iz(run, 'vadi.v.S0');
+  // Shift+števka na slovenski razporeditvi: e.key je znak, e.code fizična tipka.
+  const QWERTZ = { 1: '!', 2: '"', 3: '#', 4: '$', 5: '%', 6: '&', 7: '/', 8: '(', 9: ')' };
+  const c = S0.grid.findIndex((x, i) => !x && bits(S0.kandidati[i]).length >= 2);
+  const d = bits(S0.kandidati[c])[0];
+  izberi(dom, run, c);
+  const t = e => dom.tipka({ preventDefault() {}, ...e });
+  t({ key: String(d), code: `Digit${d}` });
+  t({ key: 'Backspace', code: 'Backspace' });
+  assert.equal(run('vadi.v.igra.kazalec'), run('vadi.v.igra.zacetnihPotez'), 'števka brez Shift in Backspace ne naredita nič');
+  t({ key: QWERTZ[d], code: `Digit${d}`, shiftKey: true });
+  assert.ok(!jeKand(run, [c, d]), 'Shift+števka (QWERTZ) odstrani');
+  t({ key: 'z', code: 'KeyY', ctrlKey: true });
+  assert.ok(jeKand(run, [c, d]), 'Ctrl+Z (QWERTZ) razveljavi');
+  t({ key: 'y', code: 'KeyZ', ctrlKey: true });
+  assert.ok(!jeKand(run, [c, d]), 'Ctrl+Y (QWERTZ) ponovi');
+  // Vpis iz prejšnjih korakov: razlog pove, da se ne spreminja.
+  const danosti = run('vadi.v.danosti');
+  const vp = S0.grid.findIndex((x, i) => x && danosti[i] === '0');
+  izberi(dom, run, vp);
+  assert.equal(poRazredu(dom, 'niz-razlog')[0].textContent,
+    `V ${run(`cellLabel(${vp})`)} je vpis iz prejšnjih korakov (${S0.grid[vp]}) – ne spreminja se.`);
+  // Besedila zaslona brez "številk", "Prikaži" in angleških imen zunaj oklepaja.
+  const besedila = vsi(dom.el('exerciseArea')).map(e => `${e.lastna || ''} ${e.title || ''} ${e.html || ''}`).join(' ');
+  assert.doesNotMatch(besedila, /številk|Prikaži/i);
+  assert.doesNotMatch(besedila.replace(/\([^)]*\)/g, ''), /Naked|Hidden|Pair|Wing|Swordfish|Rectangle|Turbot|Pointing|Box-line/);
 });

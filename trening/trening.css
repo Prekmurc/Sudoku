@@ -106,6 +106,15 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .vaja-info{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:13px;color:#4A5664;margin:0 0 10px}
 .vaja-info .vec-hkrati{font-size:13px;white-space:nowrap}
 .vadi-isce{font-size:14px;color:var(--pencil);margin:12px 0}
+/* vrstica z razlogom pod nizom Odstrani (kot v igri), Razveljavi/Ponovi/Začni znova */
+.vaja-uganka .niz-razlog{font-size:12.5px;color:#3C4854;line-height:1.4;min-height:18px;margin:4px 2px 0 var(--rob)}
+.vaja-uganka .niz-razlog.zaklenjeno{font-weight:600;color:var(--green);background:#F1F8F3;border:1px solid var(--green);border-radius:8px;padding:6px 10px}
+.vaja-uganka .akcije{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px var(--rob)}
+.vaja-uganka .akcije button{font-family:'Inter',sans-serif;font-size:13px;padding:7px 11px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.vaja-uganka .akcije button:disabled{color:#B8C0C8;cursor:default}
+/* izid, ki se ne šteje (delno, druga tehnika, neutemeljeno, prazno) */
+.fb.info{display:block;background:var(--blue-bg);border:1px solid #B5CBE6;color:#1D3F6B}
+.fb .sm-btn{margin-left:4px}
 
 .gc{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;border:2px solid #D0D5DA;border-radius:6px;background:#fff;transition:background .12s,box-shadow .12s;flex-shrink:0}
 .gc.selectable{cursor:pointer}

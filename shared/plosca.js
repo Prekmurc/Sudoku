@@ -39,6 +39,9 @@
 //                   klik je ne spremeni, puščice jo preskočijo, Escape in
 //                   pocistiIzbiro() jo pustita v izbiri (postopnost v treningu)
 //   zacetnaIzbira - izbrane celice ob nastanku plošče
+//   vpis          - false: vpisov ni (trening »Vadi v uganki«, 1-12 - odgovor so samo
+//                   izbrisi kandidatov): tipka s števko brez Shift in Backspace/Delete
+//                   ne naredita nič (obTipki vrne false); niza Vpiši aplikacija ne poda
 //   obVpisu(celica, stevka) - tipka s števko in niz Vpiši pokličeta to namesto poteze
 //                   vpis (trening: izbira števke za vpis; celica je lahko null)
 //   pogled()      - dodatna polja pogleda mreže (npr. oznacene, neaktivne, sosede),
@@ -58,6 +61,7 @@ function ustvariPlosco(o) {
   const izrisiVse = () => (o.izrisi || izrisi)();
   const spremenljiva = o.spremenljiva || (() => true);
   const brezKandidatov = o.kandidati === false;
+  const brezVpisa = o.vpis === false;
 
   // Izbrane celice v vrstnem redu izbire. Več celic (kljukica "več celic" ali
   // Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
@@ -379,6 +383,7 @@ function ustvariPlosco(o) {
 
     // Fizična tipka (e.code), da Shift+števka deluje tudi na slovenski razporeditvi.
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+    if (m && !e.shiftKey && brezVpisa) return false;
     if (m) {
       e.preventDefault();
       const d = +m[1];
@@ -386,7 +391,7 @@ function ustvariPlosco(o) {
       else vpisi(d);
       return true;
     }
-    if (e.key === 'Backspace' || e.key === 'Delete') {
+    if ((e.key === 'Backspace' || e.key === 'Delete') && !brezVpisa) {
       e.preventDefault();
       zbrisiVpis();
       return true;
@@ -499,6 +504,8 @@ function ustvariPlosco(o) {
     const ime = cellLabel(izbrana);
     const v = stanje.grid[izbrana];
     if (igra.danosti[izbrana] !== '0') return `${ime} je dana števka (${v}) – ne spreminja se.`;
+    // Vpisa iz začetnih potez (vaja v treningu - prejšnji koraki) ni mogoče zbrisati.
+    if (v && stanje.zacetni.vpisi[izbrana]) return `V ${ime} je vpis iz prejšnjih korakov (${v}) – ne spreminja se.`;
     if (v) return `V ${ime} je tvoj vpis (${v}) – za spremembo ga najprej zbriši.`;
     if (!a.vpis) {
       return a.vrni ? `V ${ime} ni več kandidatov – vrni odstranjenega (↺) ali razveljavi.`

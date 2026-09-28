@@ -85,9 +85,13 @@ function renderVadi(){
   najdiVajo(kljuc,v=>{if(nacin==='uganka'&&exNum===n) izrisiVadi(v);});
 }
 
+// Vaja na zaslonu. 1-12: odgovor so izbrisi kandidatov S0 (niz Odstrani, več celic,
+// Shift+števka), presodi ga preveriVajo() ob "Preveri"; E1/E2 (do 6d): samo ogled.
 function izrisiVadi(v){
-  const kljuc=v.kljuc,enoj=jeEnojcek(kljuc);
+  const kljuc=v.kljuc,enoj=jeEnojcek(kljuc),M=MODES[mode];
   let stanje=v.S0;
+  // Po pravilnem odgovoru: korak odgovora (oznake na mreži, izbrisi rdeče prečrtani).
+  let odgovor=null;
   area.innerHTML='';
   const div=vEl('div','exercise');
   div.appendChild(vadiOznaka(kljuc));
@@ -113,7 +117,8 @@ function izrisiVadi(v){
   }
   div.appendChild(info);
 
-  // Plošča: niz Poudari, mreža z robovi in seznami, stikala seznamov.
+  // Plošča: niz Poudari, mreža z robovi in seznami, pri 1-12 niz Odstrani, vrstica z
+  // razlogom in Razveljavi/Ponovi/Začni znova, stikala seznamov.
   const wrap=vEl('div','vaja-uganka');div.appendChild(wrap);
   const glava=vEl('div','poudari-glava');
   const vh=vKljukica(' več hkrati');vh.l.className='vec-hkrati';
@@ -129,36 +134,115 @@ function izrisiVadi(v){
   const sV=seznam('seznam-vrstic','Manjkajoče števke v vrsticah'),sS=seznam('seznam-stolpcev','Manjkajoče števke v stolpcih');
   okvir.append(mEl,sV,sS);wrap.appendChild(okvir);
   wrap.appendChild(vEl('div','g9-note','Temne števke so dane, modre so vpisane na poti do te vaje.'));
+  let nizO=null,vc=null,razlogEl=null,akcije=null,raz=null,pon=null,zn=null;
+  if(!enoj){
+    const g=vEl('div','niz-oznaka glava-s-kljukico');
+    const o=vEl('span');o.append('Odstrani kandidata ');
+    const poj=vEl('span','niz-pojasnilo','· ');poj.append(vEl('span','vzorec-vrni','↺'),' = vrni');
+    o.appendChild(poj);
+    vc=vKljukica(' več celic');vc.l.className='vec-hkrati';
+    vc.l.title='Izberi več celic in odstrani isto števko iz vseh (na računalniku tudi Ctrl+klik)';
+    g.append(o,vc.l);wrap.appendChild(g);
+    nizO=vEl('div','niz niz-odstrani');nizO.setAttribute('role','group');nizO.setAttribute('aria-label','Odstrani kandidata');
+    wrap.appendChild(nizO);
+    razlogEl=vEl('div','niz-razlog');razlogEl.setAttribute('aria-live','polite');wrap.appendChild(razlogEl);
+    akcije=vEl('div','akcije');
+    raz=vEl('button',null,'↶ Razveljavi');raz.type='button';raz.title='Razveljavi (Ctrl+Z)';
+    pon=vEl('button',null,'↷ Ponovi');pon.type='button';pon.title='Ponovi (Ctrl+Y)';
+    zn=vEl('button',null,'↺ Začni znova');zn.type='button';zn.title='Vrni na začetek vaje (poteze ostanejo v »Ponovi«)';
+    akcije.append(raz,pon,zn);wrap.appendChild(akcije);
+  }
   const stikalaEl=vEl('div','seznami-stikala');stikalaEl.setAttribute('role','group');stikalaEl.setAttribute('aria-label','Prikaz seznamov');
   const kV=vKljukica(' Vrstice'),kS=vKljukica(' Stolpci'),kB=vKljukica(' Bloki');
   stikalaEl.append(vEl('span','niz-oznaka','Manjkajoče števke'),kV.l,kS.l,kB.l);
   wrap.appendChild(stikalaEl);
   const sB=seznam('seznam-blokov','Manjkajoče števke v blokih');wrap.appendChild(sB);
 
+  const btnRow=vEl('div','btn-row');
+  const checkBtn=vEl('button','pri '+M.btnClass,'Preveri');
+  const nextBtn=vEl('button','pri pri-green',exNum<MAX_EX-1?'Naslednja vaja →':'Končaj');
+  nextBtn.addEventListener('click',()=>{exNum++;renderExercise();});
+  btnRow.append(checkBtn,nextBtn);div.appendChild(btnRow);
+  const fb=vEl('div','fb');div.appendChild(fb);
+
+  // Novo stanje igre po igralčevi spremembi ali "Poskusi znova": "Preveri" je spet na
+  // voljo, staro sporočilo izgine.
+  function poSpremembi(){
+    const prej=stanje;stanje=stanjeIgre(v.igra);plosca.poSpremembi(prej);
+    checkBtn.disabled=false;fb.className='fb';fb.innerHTML='';
+    plosca.izrisi();
+  }
+  // Maske izbrisov koraka po celicah (prečrtani po pravilnem odgovoru).
+  const maskeKoraka=k=>{const m=new Array(81).fill(0);for(const[c,d]of k.eliminate)m[c]|=1<<d;return m;};
   const plosca=ustvariPlosco({
-    mreza:mEl,robovi:true,kandidati:!enoj,samoEna:enoj,
-    nizPoudari:nizP,vecHkrati:vh.i,
+    mreza:mEl,robovi:true,kandidati:!enoj,samoEna:enoj,vpis:enoj?undefined:false,
+    nizPoudari:nizP,vecHkrati:vh.i,nizOdstrani:nizO,vecCelic:vc&&vc.i,
+    razlogNizov:razlogEl,razveljavi:raz,ponovi:pon,znova:zn,
     seznami:{vrstice:sV,stolpci:sS,bloki:sB},stikala:{vrstice:kV.i,stolpci:kS.i,bloki:kB.i},
     postavitev:wrap,kljucSeznamov:'sudoku.trening.seznami',
     vir:()=>({igra:v.igra,stanje}),
-    obSpremembi:()=>{const prej=stanje;stanje=stanjeIgre(v.igra);plosca.poSpremembi(prej);plosca.izrisi();},
-    // E1/E2: brez kandidatov, izbrati je mogoče samo prazne celice, brez senčenja sosed.
-    spremenljiva:enoj?(i=>!stanje.grid[i]):undefined,
-    pogled:()=>({
-      ...(enoj?{sosede:null}:{}),
-      precrtani:precrtaniKrog&&pk?stanje.zacetni.odstranjeni:null,
-    }),
+    obSpremembi:poSpremembi,
+    samoZaOgled:()=>vajaResena,
+    razlog:()=>vajaResena?'Vaja je rešena – nadaljuj z »Naslednja vaja«.':null,
+    oznake:()=>odgovor?{vzorec:new Set(odgovor.cells),izbris:new Set(odgovor.eliminate.map(([c,d])=>c*10+d)),izbrisCelice:new Set(),vpis:new Map()}:null,
+    // E1/E2: brez kandidatov, izbrati je mogoče samo prazne celice. Po pravilnem odgovoru
+    // izbire ni več.
+    spremenljiva:enoj?(i=>!stanje.grid[i]):(()=>!vajaResena),
+    pogled:()=>{
+      const p=enoj?{sosede:null}:{};
+      if(vajaResena){p.izbrane=[];p.sosede=null;}
+      const prej=precrtaniKrog&&pk?stanje.zacetni.odstranjeni:null,korak=odgovor?maskeKoraka(odgovor):null;
+      p.precrtani=prej&&korak?prej.map((m,i)=>m|korak[i]):prej||korak;
+      return p;
+    },
   });
   if(pk) pk.i.addEventListener('change',()=>{precrtaniKrog=pk.i.checked;plosca.izrisi();});
+
+  if(enoj){
+    // Do dela 6d: vajo E1/E2 je mogoče samo preskočiti.
+    checkBtn.style.display='none';nextBtn.style.display='inline-block';
+  }
+
+  // "Poskusi znova" (po napačnem odgovoru): kot "Začni znova" - kazalec na začetek vaje,
+  // poteze ostanejo v "Ponovi".
+  function naZacetek(){
+    if(!lahkoZacniZnova(v.igra)) return;
+    zacniZnova(v.igra);
+    poSpremembi();
+  }
+  // Samodejna razveljavitev (neutemeljeno, druga-tehnika): vsak izbris zunaj koraka
+  // tehnike se vrne kot svoja poteza "vrni" - to ni igralčeva sprememba, zato "Preveri"
+  // ostane onemogočen in sporočilo ostane.
+  function vrniIzbrise(izbrisi){
+    for(const[c,d]of izbrisi){
+      if(dodajPotezo(v.igra,{tip:'kandidat',celica:c,stevka:d,odstrani:false},stanje)) stanje=stanjeIgre(v.igra);
+    }
+    plosca.izrisi();
+  }
+  // Presoja odgovora (vrstni red izidov v preveriVajo()); po vsaki oceni je "Preveri"
+  // onemogočen do naslednje igralčeve spremembe - isti odgovor se ne šteje dvakrat.
+  function preveriVadi(){
+    const r=preveriVajo(v,stanje);
+    checkBtn.disabled=true;
+    if(r.izid==='pravilno'){
+      stej(true);odgovor=r.korak;
+      fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${r.korak.message}`;
+      akcije.hidden=true;checkBtn.style.display='none';nextBtn.style.display='inline-block';
+      plosca.izrisi();
+    }else if(r.izid==='napacno'){
+      stej(false);
+      fb.className='fb err';fb.innerHTML=`<b>Ni pravilno.</b> ${r.sporocilo} `;
+      const znova=vEl('button','sm-btn','Poskusi znova');znova.type='button';
+      znova.addEventListener('click',naZacetek);
+      fb.appendChild(znova);
+    }else{
+      if(r.razveljavi.length) vrniIzbrise(r.razveljavi);
+      fb.className='fb info';fb.innerHTML=r.izid==='delno'?`<b>Še ne.</b> ${r.sporocilo}`:r.sporocilo;
+    }
+  }
+  checkBtn.addEventListener('click',()=>preveri(preveriVadi,fb));
+
   plosca.izrisi();
-
-  // Do dela 6b: vajo je mogoče samo preskočiti.
-  const btnRow=vEl('div','btn-row');
-  const nextBtn=vEl('button','pri pri-green',exNum<MAX_EX-1?'Naslednja vaja →':'Končaj');
-  nextBtn.style.display='inline-block';
-  nextBtn.addEventListener('click',()=>{exNum++;renderExercise();});
-  btnRow.appendChild(nextBtn);div.appendChild(btnRow);
-
   area.appendChild(div);
   vadi={v,plosca,get stanje(){return stanje;}};
 }

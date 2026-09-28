@@ -25,7 +25,8 @@ uporabiBarvePoudarka(barvePoudarkaIzNastavitev(POUD_KLJUC_IGRE));
 
 // Tipkovnica pri vajah E1/E2 (plošča): števka izbere števko za vpis, puščice premikajo
 // izbiro po celicah, ki jih je mogoče izbrati, Escape izbiro počisti.
-document.addEventListener('keydown',e=>{if(enojcek&&mode)enojcek.plosca.obTipki(e);});
+// Pri »Vadi v uganki« tipke obdela plošča vaje (1-12: Shift+števka, puščice, Escape, Ctrl+Z/Y).
+document.addEventListener('keydown',e=>{if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode&&!jeEnojcek(vadi.v.kljuc))vadi.plosca.obTipki(e);});
 
 // Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
 // (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,

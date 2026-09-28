@@ -363,6 +363,7 @@ test('plošča: vaja z začetnimi potezami - Razveljavi in Začni znova ne grest
   const vpis = poteze.find(x => x.tip === 'vpis');
   p.klik(vpis.celica);
   assert.equal(p.dom.el('zbrisi').disabled, true);
+  assert.equal(p.razlog(), `V ${p.run(`cellLabel(${vpis.celica})`)} je vpis iz prejšnjih korakov (${vpis.stevka}) – ne spreminja se.`);
   p.tipka({ key: 'Delete', code: 'Delete' });
   assert.equal(p.grid(vpis.celica), vpis.stevka);
 
@@ -380,6 +381,33 @@ test('plošča: vaja z začetnimi potezami - Razveljavi in Začni znova ne grest
   p.dom.el('znova').sprozi('click');
   assert.equal(p.run('igra.kazalec'), N, 'Začni znova vrne na stanje vaje');
   assert.ok(p.kand(c) & (1 << d));
+});
+
+test('plošča brez vpisa (vpis: false): števka in Backspace ne naredita nič, Shift+števka odstrani', () => {
+  const p = pripravi({ moznosti: 'vpis: false,' });
+  p.run(`odpri(novaIgra(${D}))`);
+  const c = prazne[0];
+  p.klik(c);
+  for (const code of [`Digit${resitev[c]}`, `Numpad${resitev[c]}`]) {
+    assert.equal(p.tipka({ key: String(resitev[c]), code }), false, `${code} ni porabljena`);
+    assert.equal(p.grid(c), 0, `${code} ne vpiše`);
+  }
+  // Vpis z nizom (ki ga aplikacija pri vpis: false ne pokaže) je še vedno poteza - tu samo
+  // za pripravo celice z vpisom.
+  p.gumb('nizVpisi', resitev[c]).sprozi('click');
+  assert.equal(p.grid(c), resitev[c]);
+  p.klik(c);
+  assert.equal(p.tipka({ key: 'Backspace', code: 'Backspace' }), false);
+  assert.equal(p.tipka({ key: 'Delete', code: 'Delete' }), false);
+  assert.equal(p.grid(c), resitev[c], 'Backspace/Delete ne zbrišeta');
+  // Shift+števka odstrani kandidata - tudi par QWERTZ (key '!', code 'Digit1').
+  const c2 = prazne.find(i => !p.grid(i) && (p.kand(i) & 2));
+  p.klik(c2);
+  assert.equal(p.tipka({ key: '!', code: 'Digit1', shiftKey: true }), true);
+  assert.equal(p.kand(c2) & 2, 0);
+  // Ctrl+Z (QWERTZ: tipka Z ima code KeyY) razveljavi.
+  p.tipka({ key: 'z', code: 'KeyY', ctrlKey: true });
+  assert.ok(p.kand(c2) & 2);
 });
 
 test('plošča: seznami s stikali pod ključem aplikacije, plošča samo z mrežo', () => {

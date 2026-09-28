@@ -368,8 +368,8 @@ en sam, po 6d.
 
 | Korak | Stanje | Commit | Testi |
 |---|---|---|---|
-| 6a izbira načina, iskanje, zaslon za ogled | **narejeno 2026-09-28** | (ta commit) | 390 (379 + 11) |
-| 6b odgovor pri 1–12 | | | |
+| 6a izbira načina, iskanje, zaslon za ogled | **narejeno 2026-09-28** | `c22fe78` | 390 (379 + 11) |
+| 6b odgovor pri 1–12 | **narejeno 2026-09-28** | (ta commit) | 393 (390 + 3) |
 | 6c pomoč pri 1–12 | | | |
 | 6d E1/E2, ročni pregled | | | |
 
@@ -398,3 +398,25 @@ en sam, po 6d.
   »Poudari števko« 101,09 → 101,64 px). **Vzrok ni koda:** ista stran da v zaporednih
   odprtjih obe širini – pisava latin-ext (za »š«) se naloži šele po kliku. Scenarij zdaj
   pred primerjavo počaka na `document.fonts.status === "loaded"`; nato enako.
+
+### 6b
+
+- `trening/v-uganki.js`: pri 1–12 niz »Odstrani« z »več celic«, vrstica z razlogom,
+  Razveljavi/Ponovi/Začni znova, »Preveri« s šestimi izidi po točki 4 (sporočila iz
+  `preveriVajo()`), samodejna vrnitev izbrisov zunaj KT (ena poteza na izbris – odgovor 4),
+  »Poskusi znova« v sporočilu napačnega odgovora, »Preveri« onemogočen do naslednje
+  igralčeve spremembe (odgovor 3), po pravilnem odgovoru zaklep, skrita vrstica gumbov,
+  vzorec in rdeče prečrtani izbrisi koraka (odgovor 5). Staro sporočilo ob spremembi
+  izgine. E1/E2 ostaneta do 6d samo za ogled.
+- `trening/trening.js`: poslušalec `keydown` pokliče ploščo vaje (samo 1–12).
+- `shared/plosca.js`: `vpis: false`; vrstica pod nizi pri vpisu iz začetnih potez »V V3S5 je
+  vpis iz prejšnjih korakov (7) – ne spreminja se.« (igra začetnih potez nima – enako).
+- `trening/trening.css`: vrstica z razlogom, gumbi Razveljavi/Ponovi/Začni znova, `fb info`.
+  Pojasnilo ob nizu je »↺ = vrni« (»vrni odstranjenega« se pri 375 px prelomi).
+- Testi: `tests/trening-uganka-ui.test.js` (+2: šest izidov, tipkovnica QWERTZ in besedila),
+  `tests/plosca.test.js` (+1 `vpis: false`, razlog pri začetnem vpisu v obstoječem testu).
+- Preverjanje: 393 testov; posnetek igre »Enako: 85 posnetkov.«;
+  `tools/preveri-vadi-brskalnik.js` »Vse drži« (dopolnjen z odgovorom pri 4 s pravimi
+  kliki in tipkami QWERTZ; »Spoznaj« vseh 14 tehnik enak kot `5b9ae6f`).
+
+![6b: pravilen odgovor, 375 px](slike/vadi-v-uganki/izvedba-6b-pravilno-375.png)

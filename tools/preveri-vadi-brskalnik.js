@@ -139,6 +139,59 @@ async function enojcek(b, mode, sirina) {
   await b.posnetek(path.join(mapa, `${mode}-${sirina}.png`));
 }
 
+// 1-12: odgovor s pravimi kliki (celica + niz "Odstrani") in tipkami (pari QWERTZ):
+// napačen odgovor, "Poskusi znova", pravilen odgovor z zaklepom in oznakami koraka.
+const celicaSel = c => `.vaja-uganka .celica[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"]`;
+async function odstraniKlik(b, [c, d]) {
+  if ((await b.izvedi('vadi.plosca.enaIzbrana()')) !== c) await b.klikni(celicaSel(c));
+  await b.klikni(`.vaja-uganka .niz-odstrani button:nth-child(${d})`);
+}
+const gumbSel = napis => `[...document.querySelectorAll('#exerciseArea button')].find(g => g.textContent === ${JSON.stringify(napis)})`;
+async function klikniGumb(b, napis) {
+  await b.izvedi(`(${gumbSel(napis)}).setAttribute('data-klik', '1'); true`);
+  await b.klikni('#exerciseArea button[data-klik="1"]');
+  await b.izvedi(`document.querySelectorAll('[data-klik]').forEach(e => e.removeAttribute('data-klik')); true`);
+}
+async function odgovor1do12(b, sirina) {
+  console.log(`hidden-pair, odgovor, ${sirina} px`);
+  await vadi(b, 'hidden-pair', sirina, { banka: true, seme: 11 });
+  const I = await b.izvedi(`(() => { const v = vadi.v; let prava = null;
+    for (let c = 0; c < 81 && !prava; c++) if (!v.S0.grid[c] && (v.S0.kandidati[c] & (1 << v.resitev[c]))) prava = [c, v.resitev[c]];
+    return { korak: v.KT[0].eliminate, prava }; })()`);
+  // Napačen odgovor s tipko Shift+števka (par QWERTZ), "Poskusi znova".
+  const QWERTZ = { 1: '!', 2: '"', 3: '#', 4: '$', 5: '%', 6: '&', 7: '/', 8: '(', 9: ')' };
+  await b.klikni(celicaSel(I.prava[0]));
+  await b.tipka(QWERTZ[I.prava[1]], { code: `Digit${I.prava[1]}`, shift: true });
+  preveri('Shift+števka (QWERTZ) odstrani kandidata', (await b.izvedi(`vadi.stanje.kandidati[${I.prava[0]}] & ${1 << I.prava[1]}`)) === 0);
+  await klikniGumb(b, 'Preveri');
+  preveri('napačen odgovor', (await b.izvedi(`document.querySelector('.fb').className`)) === 'fb err');
+  await klikniGumb(b, 'Poskusi znova');
+  preveri('"Poskusi znova" vrne na začetek vaje', (await b.izvedi('vadi.v.igra.kazalec === vadi.v.igra.zacetnihPotez')) === true);
+  // Ctrl+Z na QWERTZ (tipka Z: key 'z', code 'KeyY') po izbrisu.
+  await odstraniKlik(b, I.korak[0]);
+  await b.tipka('z', { code: 'KeyY', ctrl: true });
+  preveri('Ctrl+Z (QWERTZ) razveljavi izbris', (await b.izvedi(`!!(vadi.stanje.kandidati[${I.korak[0][0]}] & ${1 << I.korak[0][1]})`)) === true);
+  // Pravilen odgovor s pravimi kliki.
+  for (const e of I.korak) {
+    if (await b.izvedi(`!!(vadi.stanje.kandidati[${e[0]}] & ${1 << e[1]})`)) await odstraniKlik(b, e);
+  }
+  await klikniGumb(b, 'Preveri');
+  const p = await b.izvedi(`(() => {
+    const fb = document.querySelector('.fb'), [c, d] = vadi.v.KT[0].eliminate[0];
+    const k = vadi.plosca.mreza.celice[c].querySelectorAll('.kand')[d - 1];
+    return { fb: fb.className, akcije: document.querySelector('.vaja-uganka .akcije').getBoundingClientRect().height,
+      kIzbris: k.className, barva: getComputedStyle(k).color, crta: getComputedStyle(k).textDecorationLine,
+      vzorec: vadi.v.KT[0].cells.every(x => vadi.plosca.mreza.celice[x].classList.contains('k-vzorec')),
+      obroba: getComputedStyle(document.querySelector('.vaja-uganka .mreza')).outlineStyle, sirina: document.documentElement.scrollWidth };
+  })()`);
+  preveri('pravilen odgovor', p.fb === 'fb ok', p.fb);
+  preveri('Razveljavi/Ponovi/Začni znova skriti', p.akcije === 0, p.akcije);
+  preveri('izbrisi koraka rdeče prečrtani', p.kIzbris === 'kand precrtan k-izbris' && p.barva === 'rgb(176, 46, 46)' && p.crta === 'line-through', p);
+  preveri('vzorec koraka jantarno, brez zelene obrobe', p.vzorec && p.obroba === 'none', p);
+  preveri('brez drsnika', p.sirina === sirina, p.sirina);
+  await b.posnetek(path.join(mapa, `hidden-pair-pravilno-${sirina}.png`));
+}
+
 async function banka(b) {
   console.log('Banka ob preseženi meji');
   await vadi(b, 'swordfish', 375, { banka: true });
@@ -200,6 +253,7 @@ async function main() {
     for (const sirina of [375, 1200]) {
       for (const mode of ['hidden-pair', 'swordfish', 'unique-rectangle']) await vaja1do12(b, mode, sirina);
       for (const mode of ENOJCKA) await enojcek(b, mode, sirina);
+      await odgovor1do12(b, sirina);
     }
     await banka(b);
   } finally {
