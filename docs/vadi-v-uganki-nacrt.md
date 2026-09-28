@@ -638,3 +638,183 @@ pregled: obstoječih 5 točk (`docs/rocni-test.md`) se dopolni, največ 5.
 
 ![7b: E1, vaja 1, 375 px](slike/vadi-v-uganki/izvedba-7b-e1-vaja1-375.png)
 ![7b: 4 · Skriti par, vaja 1, 375 px](slike/vadi-v-uganki/izvedba-7b-skriti-par-375.png)
+
+## 16. Izbira uganke po stopnji in ravni tehnike (načrt, 2026-09-29)
+
+**Kode še nisem spreminjal.** Meritev je bila narejena na 30 000 minimalnih ugankah
+(semena 1–30 000, `genMinimalnaUganka()` + `tehnikeVUganki()`, 37,6 ms na uganko v Node).
+Skripti sta v začasni mapi, ne v repozitoriju.
+
+**Zahteva (ročni pregled):** uganka za vajo naj upošteva stopnjo (`docs/uskladitev.md`,
+razdelek 7) in raven tehnike:
+
+1. uganka iste stopnje, kot je raven tehnike;
+2. sicer višja rešljiva stopnja;
+3. »Presega tehnike« samo v skrajnem primeru.
+
+Pravilo mora izhajati iz ravni v kodi, ne iz seznama tehnik.
+
+### 16.1 Raven tehnike → osnovna stopnja (iz kode)
+
+Uganka, ki na poti motorja uporabi tehniko T, ima stopnjo **vsaj** tisto, ki jo da
+množica {T} sama. Nižja ni mogoča, ker je T med uporabljenimi. Zato je **osnovna stopnja**
+tehnike:
+
+```js
+stopnjaTehnike(kljuc) = STOPNJE_UGANK.find(s => s.ustreza(genMere(new Set([kljuc])))).ime
+```
+
+Uporablja samo ravni `GEN_LAHKE` … `GEN_EKSPERTNE` in `STOPNJE_UGANK` iz
+`shared/generator.js`. Nova tehnika zato dobi pravilo sama, ko jo dodamo v raven:
+XY-veriga v `GEN_EKSPERTNE` dobi Ekstrem, BUG+1 pa dobi stopnjo ravni, v katero pride.
+Vrstni red stopenj (»višja«) je vrstni red `STOPNJE_UGANK`, na koncu je »Presega
+tehnike«.
+
+| Tehnika | Raven (`GEN_*`) | Osnovna stopnja | Nato |
+|---|---|---|---|
+| E1, E2 | lahka | Lahka | Srednja, Težka, Zelo težka |
+| 1–6 | srednja | Srednja | Težka, Zelo težka |
+| 7–12 | napredna | Težka (natanko ena napredna) | Zelo težka |
+| (13 XY-veriga, pozneje) | ekspertna | Ekstrem | – |
+| vse | | | Presega tehnike (skrajni primer) |
+
+### 16.2 Meritev: uganke s stanjem tehnike po stopnji (30 000 ugank)
+
+Stopnje vseh ugank: Lahka 12 410, Srednja 5641, Težka 3026, Zelo težka 1842, Presega
+tehnike 7081.
+
+| Tehnika | Lahka | Srednja | Težka | Zelo težka | Presega |
+|---|---:|---:|---:|---:|---:|
+| E1 Očitni enojček | **12 391** | 4425 | 2538 | 1527 | 5102 |
+| E2 Skriti enojček | **12 125** | 5627 | 3020 | 1841 | 7056 |
+| 1 Izločitev izven bloka | – | **5346** | 2401 | 1619 | 6484 |
+| 2 Izločitev v bloku | – | **1712** | 1274 | 962 | 3684 |
+| 3 Očitni par | – | **1542** | 1416 | 964 | 2719 |
+| 4 Skriti par | – | **608** | 862 | 648 | 2355 |
+| 5 Očitna trojica | – | **86** | 214 | 186 | 625 |
+| 6 Skrita trojica | – | **24** | 68 | 51 | 221 |
+| 7 X-krilo | – | – | **42** | 675 | 603 |
+| 8 Mečarica | – | – | **8** | 162 | 117 |
+| 9 Veriga ene števke | – | – | **1812** | 1413 | 2883 |
+| 10 W-krilo | – | – | **728** | 1189 | 1356 |
+| 11 XY-krilo | – | – | **334** | 652 | 797 |
+| 12 Edinstveni pravokotnik | – | – | **102** | 196 | 422 |
+
+Krepko je osnovna stopnja. X-krilo in mečarica sta skoraj vedno v uganki, ki potrebuje še
+eno napredno tehniko (Zelo težka), zato sta v Težki redka.
+
+**Sproti v 1 s** (v brskalniku 23,5 ms na uganko, torej 42 ugank; na telefonu predpostavka
+3× počasneje, torej 14 ugank). Ocena `1 − (1 − p)^n`:
+
+| Tehnika | uganka osnovne stopnje (p) | v 1 s namizni | telefon | rešljiva (ne Presega) v 1 s namizni / telefon |
+|---|---:|---:|---:|---|
+| E1, E2 | 40–41 % | 100 % | 100 % | 100 / 100 % |
+| 1 | 17,8 % | 100 % | 94 % | 100 / 100 % |
+| 2, 3, 9 | 5–6 % | 89–93 % | 52–58 % | 99 / 80–86 % |
+| 4 Skriti par | 2,0 % | 58 % | 25 % | 95 / 64 % |
+| 10 W-krilo | 2,4 % | 64 % | 29 % | 94 / 60 % |
+| 11 XY-krilo | 1,1 % | 38 % | 15 % | 75 / 37 % |
+| 12 Edinstveni pravokotnik | 0,34 % | 13 % | 5 % | 34 / 13 % |
+| 5 Očitna trojica | 0,29 % | 11 % | 4 % | 50 / 20 % |
+| 7 X-krilo | 0,14 % | 6 % | 2 % | 64 / 29 % |
+| 6 Skrita trojica | 0,08 % | 3 % | 1 % | 18 / 7 % |
+| 8 Mečarica | 0,03 % | 1 % | 0,4 % | 21 / 8 % |
+
+Pri 4–8, 11 in 12 bo uganka osnovne stopnje večinoma iz banke.
+
+**Banka zdaj** (220 zapisov, semena 1–5978) osnovne stopnje skoraj nima. Zapisi so
+večinoma Zelo težka ali Presega tehnike (112). Uganke osnovne stopnje po tehnikah: E1, E2,
+X-krilo, Skriti par 0; 1, 2, W-krilo 3; mečarica 4; 9, 12 8; XY-krilo 10.
+
+### 16.3 Banko je treba ustvariti znova (samo z orodjem)
+
+Novo pravilo orodja `tools/ustvari-banko-vaj.js`: uganka ostane, če ima tehniko, ki še
+nima 50 ugank **osnovne stopnje** ali 50 **rešljivih** ugank (ne »Presega tehnike«).
+Odvečni zapisi se odstranijo po istem pravilu, od zadnjega proti prvemu. Nova je **meja
+semen**: redke kombinacije (mečarica v Težki uganki: 8 v 30 000 ugankah) do 50 ne pridejo
+v razumnem času, zato orodje vzame, kar najde do meje, in izpiše, koliko jih je.
+
+Simulacija pravila na izmerjenih ugankah:
+
+| Meja semen | Zapisov | Presega | Osnovne stopnje pod 50 | Čas orodja (ocena) |
+|---|---:|---:|---|---|
+| zdaj (5978) | 220 | 112 | skoraj vse | 4 min |
+| 10 000 | 442 | 0 | 5: 24, 6: 7, 7: 12, 8: 5, 12: 30 | 6 min |
+| 20 000 | 458 | 0 | 6: 15, 7: 29, 8: 7 | 13 min |
+| 30 000 | 463 | 0 | 6: 24, 7: 42, 8: 8 | 19 min |
+| (ocena) 40 000 | pribl. 465 | 0 | 6: pribl. 32, 8: pribl. 10 | 25 min |
+
+- Vse tehnike imajo vsaj 50 rešljivih ugank. Presega tehnike v banki ni več.
+- Banka zraste s 220 na pribl. 460 zapisov (57 → pribl. 120 KB). Test
+  `tests/vaje-banka.test.js` bo trajal pribl. 35 s namesto 16 s.
+- **Predlog: meja 30 000 semen** (19 min, enkratno). Mečarica ima 8 ugank osnovne stopnje,
+  skrita trojica 24, X-krilo 42; za 10 ugank mečarice bi bilo treba pribl. 37 500 semen.
+- Test banke se spremeni skupaj s pravilom (ne ročni popravek): vsaj 50 rešljivih na
+  tehniko, brez »Presega tehnike«, vsaj ena uganka osnovne stopnje na tehniko, noben zapis
+  ni odveč po novem pravilu. Glava banke našteje uganke osnovne stopnje po tehnikah.
+
+### 16.4 Izbira vaje
+
+V `shared/vaje-uganka.js` (brez DOM-a, testabilno) pride `stopnjaTehnike(kljuc)`,
+`rangUganke(stopnja, kljuc)` in izbira iz banke. Rang je razlika med stopnjo uganke in
+osnovno stopnjo: 0 = osnovna, 1, 2 … = višje, »Presega tehnike« je zadnja.
+
+- **Sproti (do 1 s):** takoj se vzame samo uganka ranga 0. Najboljša rešljiva uganka
+  višjega ranga se zapomni.
+- **Po meji:** najnižji rang iz banke in zapomnjena uganka iz sprotnega iskanja se
+  primerjata. Vzame se nižji rang, pri enakem rangu sprotna (raznolikost).
+- **Banka:** med zapisi s tehniko se vzame najnižji rang, v njem zapis, ki v tej seji še ni
+  bil uporabljen. Ko zapisov tega ranga zmanjka, sta dve možnosti (vprašanje 2):
+  - **(a) predlog:** vzame se neuporabljen zapis naslednjega ranga (npr. mečarica: 8
+    Težkih, nato Zelo težke); ko zmanjka vseh, se začne znova pri rangu 0;
+  - **(b)** znova pri rangu 0 (ponovitve iste uganke že po 8 vajah).
+- »Presega tehnike« pride samo, če tehnika nima nobene rešljive uganke ne v banki ne
+  sproti. Po novi banki se to ne more zgoditi, razen pri novi tehniki pred ponovnim
+  ustvarjanjem banke.
+
+### 16.5 Kje še velja
+
+- **»Spoznaj« 1 in 2** (`genPresek()`) jemljeta uganke iz banke. Predlog: ista izbira
+  (osnovna stopnja Srednja, nato višje), da je razlaga enotna. Tako se vaje 1 in 2 v
+  »Spoznaj« spremenijo, ker so iz drugih ugank:
+  - primerjavi »Spoznaj« z izhodiščem v `preveri-enojcki-brskalnik.js` (1–12) in
+    `preveri-vadi-brskalnik.js` (14 tehnik) za 1 in 2 ne bosta več enaki;
+  - obnašanje in videz vaje se ne spremenita, preverita ju `tests/trening-presek.test.js`
+    in `preveri-presek-brskalnik.js`;
+  - primerjava dobi novo izhodišče za 1 in 2 (commit po spremembi), druge tehnike ostanejo
+    enake kot `5b9ae6f`.
+- **»Spoznaj« E1 in E2** (`genEnojcek()`) banke ne uporabljata. Stanje je na poti samih
+  enojčkov iz naključne minimalne uganke, stopnja ni izračunana. Predlog: ne spreminjam.
+- **Igra in reševalec:** banke ne uporabljata, ne spremenita se.
+
+### 16.6 Oznaka stopnje nad vajo
+
+Ostane »Uganka: Težka«. Pri »Presega tehnike« (skrajni primer) je kratko pojasnilo:
+»Uganka: Presega tehnike – za to vajo ni pomembno«, v `title` pa »Uganke brez ugibanja ni
+mogoče rešiti do konca; vaja je korak pred mestom, kjer bi bilo treba ugibati.«
+
+### 16.7 Koraki izvedbe in preverjanje
+
+1. **8a** – `shared/vaje-uganka.js`: `stopnjaTehnike()`, `rangUganke()`, izbira iz banke
+   (brez DOM-a) s testi v `tests/vaje-uganka.test.js`. Za vse tehnike iz `ALL_TECHNIQUES`
+   se preveri, da je osnovna stopnja ime iz `STOPNJE_UGANK` in da uganka s tehniko nikoli
+   nima nižje stopnje (na ugankah iz semen v testu). Za ekspertno raven je test na merah,
+   kot v `generator.test.js`.
+2. **8b** – orodje z novim pravilom in mejo semen, nova `shared/vaje-banka.js` (z orodjem,
+   pribl. 19 min), test banke po novem pravilu.
+3. **8c** – trening: sprotno iskanje z rangom, izbira iz banke v »Vadi v uganki« in v
+   `genPresek()`, oznaka pri Presega tehnike. Testi v nadomestnem DOM-u, scenarij v
+   brskalniku (novo izhodišče za 1 in 2), posnetek igre »Enako«, `CLAUDE.md`, ta načrt.
+
+Vsak korak s commitom in pushem. Ročni pregled: točke v `docs/rocni-test.md` se dopolnijo
+(največ 5).
+
+### 16.8 Vprašanja
+
+1. **Meja semen za banko:** 30 000 (predlog: 463 zapisov, 19 min, mečarica 8 ugank osnovne
+   stopnje) – ali 40 000 (pribl. 10 mečaric, 25 min) ali manj?
+2. **Ko zmanjka neuporabljenih zapisov osnovne stopnje:** (a) naslednja stopnja, nato znova
+   (predlog) ali (b) ponovitev osnovne stopnje?
+3. **»Spoznaj« 1 in 2:** ista izbira po stopnji (predlog) – ali ostaneta, kot sta?
+4. **Oznaka pri Presega tehnike:** »– za to vajo ni pomembno« s pojasnilom v `title`
+   (predlog)?
