@@ -315,7 +315,7 @@ for (const t of ['naked-single', 'hidden-single']) {
     poudari(run, b).sprozi('click');
     assert.ok(cs.every((c, i) => ima(c, 'poud-stevka') === (grid[i] === b)));
     // "Več hkrati": obe števki, vsaka s svojo barvo; kljukica ostane za naslednjo vajo kroga.
-    const [vh, kV, kS, kB] = vsi(dom.el('exerciseArea')).filter(e => e.tagName === 'INPUT');
+    const [, vh, kV, kS, kB] = vsi(dom.el('exerciseArea')).filter(e => e.tagName === 'INPUT');
     vh.checked = true; vh.sprozi('change');
     poudari(run, a).sprozi('click');
     const iA = grid.indexOf(a), iB = grid.indexOf(b);
@@ -335,7 +335,7 @@ for (const t of ['naked-single', 'hidden-single']) {
 
     // Naslednja vaja kroga: stikala in "več hkrati" ostanejo, poudarki ne.
     run('exNum++; renderExercise()');
-    const [vh2, kV2, kS2, kB2] = vsi(dom.el('exerciseArea')).filter(e => e.tagName === 'INPUT');
+    const [, vh2, kV2, kS2, kB2] = vsi(dom.el('exerciseArea')).filter(e => e.tagName === 'INPUT');
     assert.deepEqual([vh2.checked, kV2.checked, kS2.checked, kB2.checked], [true, true, false, true]);
     assert.ok(celice(dom).every(c => !ima(c, 'poud-stevka')));
     const g2 = iz(run, 'zadnja.boardGrid'), [x, y] = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => g2.includes(d));
@@ -432,4 +432,74 @@ test('enojčka: "Rešitev (drži)" z oznakami koraka, pravilen odgovor postane p
   assert.ok(celice(dom).every(x => !ima(x, 'izbrana')));
   tipka(dom, { key: 'z', code: 'KeyZ', ctrlKey: true });
   assert.equal(run('enojcek.plosca.mreza.celice[' + c + '].textContent'), String(d));
+});
+
+/* ---------- senčenje in poudarek po pravilnem odgovoru (dopolnitev D1, D2) ---------- */
+
+// Kljukici v glavi niza Poudari: [senči, več hkrati].
+const kljukiciGlave = dom => vsi(dom.el('exerciseArea')).filter(e => e.tagName === 'INPUT').slice(0, 2);
+const vklopi = (el, v = true) => { el.checked = v; el.sprozi('change'); };
+const zasencenih = dom => celice(dom).filter(c => ima(c, 'zasencena')).length;
+
+test('E2: senčenje, prikazano pred odgovorom, je pomoč (sama kljukica ali dve števki ne)', () => {
+  const { dom, run } = zacni('hidden-single', 3);
+  const [senci, vecH] = kljukiciGlave(dom);
+  const d = run('zadnja.korak.assign[0][1]'), e = d === 1 ? 2 : 1;
+  napacnoEnojcek(dom, run);
+  assert.equal(rezultat(dom), '0/1');
+  vklopi(senci);
+  assert.equal(pomoc(dom), '', 'sama kljukica ni pomoč');
+  vklopi(senci, false);
+  vklopi(vecH);
+  poudari(run, d).sprozi('click');
+  poudari(run, e).sprozi('click');
+  vklopi(senci);
+  assert.equal(zasencenih(dom), 0, 'dve števki: ni senčenja');
+  assert.equal(pomoc(dom), '', 'dve števki niso pomoč');
+  poudari(run, e).sprozi('click');
+  assert.ok(zasencenih(dom) > 0);
+  assert.equal(pomoc(dom), ' · s pomočjo: 1');
+  assert.equal(rezultat(dom), '0/0', 'že šteti poskus se odšteje');
+  pravilnoEnojcek(dom, run);
+  assert.match(fb(dom).innerHTML, /Pravilno!/);
+  assert.ok(imaOznako(dom));
+  assert.equal(rezultat(dom), '0/0');
+  // Kljukica ostane med vajami kroga; nova vaja je brez pomoči, dokler se senčenje ne pokaže.
+  gumb(dom, 'Naslednja vaja →').sprozi('click');
+  assert.equal(kljukiciGlave(dom)[0].checked, true);
+  assert.equal(zasencenih(dom), 0, 'brez poudarka ni senčenja');
+  pravilnoEnojcek(dom, run);
+  assert.equal(rezultat(dom), '1/1');
+});
+
+test('E1: senčenje ni pomoč; po pravilnem odgovoru nič ne spremeni', () => {
+  const { dom, run } = zacni('naked-single', 6);
+  const [senci] = kljukiciGlave(dom);
+  const [c, d] = run('zadnja.korak.assign[0]');
+  vklopi(senci);
+  poudari(run, d).sprozi('click');
+  const cs = celice(dom), grid = iz(run, 'zadnja.boardGrid');
+  assert.ok(zasencenih(dom) > 0);
+  assert.ok(!ima(cs[c], 'zasencena'), 'celica odgovora je mesto, kamor števka še lahko');
+  for (let i = 0; i < 81; i++) if (grid[i] && grid[i] !== d) assert.ok(ima(cs[i], 'zasencena'), `polna celica ${i}`);
+  assert.equal(pomoc(dom), '');
+  pravilnoEnojcek(dom, run);
+  assert.equal(rezultat(dom), '1/1');
+  // Poudarek pred zeleno: celica odgovora ima poudarek in oznako vpisa (zelen okvir v CSS).
+  assert.ok(ima(cs[c], 'poud-stevka') && ima(cs[c], 'k-vpis') && !ima(cs[c], 'zasencena'));
+  poudari(run, d).sprozi('click');
+  poudari(run, d).sprozi('click');
+  assert.equal(rezultat(dom), '1/1');
+  assert.equal(pomoc(dom), '');
+});
+
+test('E2: senčenje po pravilnem odgovoru ni pomoč', () => {
+  const { dom, run } = zacni('hidden-single', 6);
+  const [senci] = kljukiciGlave(dom);
+  pravilnoEnojcek(dom, run);
+  vklopi(senci);
+  poudari(run, run('zadnja.korak.assign[0][1]')).sprozi('click');
+  assert.ok(zasencenih(dom) > 0);
+  assert.equal(rezultat(dom), '1/1');
+  assert.equal(pomoc(dom), '');
 });

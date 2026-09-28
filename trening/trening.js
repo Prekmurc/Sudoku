@@ -12,8 +12,9 @@ let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 let pomocVaje=false,vajaResena=false,vajaPrav=0,vajaVseh=0,sPomocjo=0,stetoObPreveri=false;
 // Delna mreža vaj 1 in 2 (buildPresekLayout) ali null.
 let presek=null;
-// Plošča vaje E1/E2 (buildSingleLayout) ali null; kljukica "več hkrati" ostane med vajami kroga.
-let enojcek=null,vecHkratiKrog=false;
+// Plošča vaje E1/E2 (buildSingleLayout) ali null; kljukici "več hkrati" in "senči" ostaneta
+// med vajami kroga.
+let enojcek=null,vecHkratiKrog=false,senciKrog=false;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
 // Barve poudarka števke so iz nastavitev igre (samo branje, shared/plosca.js) - veljajo
@@ -42,7 +43,7 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
 
 document.querySelectorAll('.menu-card').forEach(card=>{
   card.addEventListener('click',()=>{
-    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;
+    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;
     updateScore();menuEl.style.display='none';trainerEl.style.display='block';
     renderExercise();
   });
@@ -207,7 +208,16 @@ function buildSingleLayout(div,ex,M){
   const vh=kljukica(' več hkrati');vh.l.className='vec-hkrati';
   vh.i.checked=vecHkratiKrog;
   vh.i.addEventListener('change',()=>{vecHkratiKrog=vh.i.checked;});
-  glava.append(el('span','niz-oznaka','Poudari števko'),vh.l);
+  // "Senči": ob eni poudarjeni števki zasenči celice, kamor ne more (plošča). Pri E2 to
+  // pokaže edino mesto v enoti, zato je vaja s prikazanim senčenjem vaja s pomočjo.
+  const skriti=ex.mode==='hidden-single';
+  const sc=kljukica(' senči');sc.l.className='vec-hkrati';
+  sc.l.title='Zasenči celice, kamor poudarjena števka ne more (samo ob eni poudarjeni števki).'
+    +(skriti?' Pri skritem enojčku se vaja s senčenjem šteje kot vaja s pomočjo.':'');
+  sc.i.checked=senciKrog;
+  sc.i.addEventListener('change',()=>{senciKrog=sc.i.checked;});
+  const kljukice=el('span','kljukice');kljukice.append(sc.l,vh.l);
+  glava.append(el('span','niz-oznaka','Poudari števko'),kljukice);
   wrap.appendChild(glava);
   const nizP=el('div','niz niz-poudari');nizP.setAttribute('role','group');nizP.setAttribute('aria-label','Poudari števko');
   wrap.appendChild(nizP);
@@ -253,7 +263,7 @@ function buildSingleLayout(div,ex,M){
   };
   const plosca=ustvariPlosco({
     mreza:mEl,robovi:true,kandidati:false,samoEna:true,
-    nizPoudari:nizP,vecHkrati:vh.i,
+    nizPoudari:nizP,vecHkrati:vh.i,senci:sc.i,
     seznami:{vrstice:sV,stolpci:sS,bloki:sB},stikala:{vrstice:kV.i,stolpci:kS.i,bloki:kB.i},
     postavitev:wrap,kljucSeznamov:'sudoku.trening.seznami',
     vir:()=>({igra,stanje}),
@@ -262,6 +272,8 @@ function buildSingleLayout(div,ex,M){
     zacetnaIzbira:o&&o.celica!=null?[o.celica]:[],
     obVpisu:(c,d)=>izberiStevko(d),
     oznake,
+    // Senčenje pri E2 pred pravilnim odgovorom je pomoč (kot namig).
+    izrisi:()=>{plosca.izrisi();if(skriti&&plosca.sencenjeVidno())oznaciPomoc();},
     // Po pravilnem odgovoru izbira ni več prikazana (celica je zelena).
     pogled:()=>({
       sosede:null,

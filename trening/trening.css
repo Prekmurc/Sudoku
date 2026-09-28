@@ -84,6 +84,11 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .vaja-enojcek .celica.izbrana{background:var(--blue-bg);box-shadow:inset 0 0 0 3px #4A86D8}
 .vaja-enojcek .celica.dana,.vaja-enojcek .celica.vpis{cursor:default}
 .vaja-enojcek .mreza.zaklenjena{outline:none}
+/* glava niza Poudari: kljukici "senči" in "več hkrati" desno */
+.vaja-enojcek .poudari-glava .kljukice{display:inline-flex;gap:10px}
+/* pravilen odgovor ob poudarjeni števki: podlaga poudarka (niz Poudari je legenda) in zelen
+   okvir (oznaka odgovora) - brez tega bi zelena podlaga k-vpis prekrila poudarek */
+.vaja-enojcek .celica.k-vpis.poud-stevka{background:var(--pb,var(--poud));box-shadow:inset 0 0 0 3px var(--green)}
 .vaja-enojcek .g9-note{margin:6px 0 8px}
 .vaja-enojcek .seznami-stikala{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 14px}
 .vaja-enojcek .seznami-stikala .niz-oznaka{margin:0;width:100%}
