@@ -9,8 +9,10 @@
 // zaklenjena brez zelene obrobe), brez napak JS; posnetki zaslona v mapi (--mapa,
 // privzeto začasna).
 //
-// Posebej: stikala seznamov s pravimi kliki in ohranitev po osvežitvi; barve poudarka
-// iz nastavitev igre (sudoku.igra.poud) pri E1 in pri vajah 1 in 2.
+// Posebej: senčenje (kljukica "senči" - šrafura, pomoč pri E2, pri E1 ne) in poudarek
+// po pravilnem odgovoru (podlaga poudarka in zelen okvir); stikala seznamov s pravimi
+// kliki in ohranitev po osvežitvi; barve poudarka iz nastavitev igre (sudoku.igra.poud)
+// pri E1 in pri vajah 1 in 2.
 //
 // Druge tehnike (1-12) morajo ostati enake: z Math.random s semenom se vsaka vaja
 // izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 10503c2 -
@@ -208,6 +210,49 @@ async function stikalaInResitev(b) {
   preveri('po spustu ni oznak', r2 === 0, r2);
 }
 
+// Senčenje (kljukica "senči", dopolnitev D2) in poudarek po pravilnem odgovoru (D1):
+// glava z dvema kljukicama v eni vrstici, šrafura natanko na celicah, kamor poudarjena
+// števka ne more, pomoč pri E2 (pri E1 ne), celica odgovora s podlago poudarka in zelenim
+// okvirjem.
+async function sencenje(b, mode, n, sirina) {
+  console.log(`Trening, ${IME[mode]} vaja ${n + 1}, ${sirina} px: senčenje in poudarek po odgovoru`);
+  await odpri(b, mode, n, sirina, 31 + n + sirina);
+  const glava = await b.izvedi(`(() => {
+    const k = [...document.querySelectorAll('.poudari-glava input')].map(i => i.getBoundingClientRect());
+    const g = document.querySelector('.poudari-glava').getBoundingClientRect(), kartica = document.querySelector('.exercise').getBoundingClientRect();
+    return { kljukic: k.length, enaVrstica: k.length === 2 && Math.abs(k[0].top - k[1].top) < 2, vKartici: g.right <= kartica.right };
+  })()`);
+  preveri('glava: kljukici »senči« in »več hkrati« v eni vrstici, v kartici', glava.kljukic === 2 && glava.enaVrstica && glava.vKartici, glava);
+  const [kc, kd] = await b.izvedi('zadnja.korak.assign[0]');
+  await b.klikni('.poudari-glava .kljukice label:nth-child(1) input');
+  await b.klikni(`.vaja-enojcek .niz-poudari button:nth-child(${kd})`);
+  const s = await b.izvedi(`(() => {
+    const c = enojcek.plosca.mreza.celice, g = zadnja.boardGrid, d = ${kd};
+    const vidi = (i, j) => Math.floor(i / 9) === Math.floor(j / 9) || i % 9 === j % 9
+      || (Math.floor(i / 27) === Math.floor(j / 27) && Math.floor(i % 9 / 3) === Math.floor(j % 9 / 3));
+    const prav = c.map((e, i) => g[i] !== d && (g[i] !== 0 || g.some((v, j) => v === d && vidi(i, j))));
+    const sraf = c.map(e => getComputedStyle(e, '::after').backgroundImage.includes('repeating-linear-gradient'));
+    return { prav: prav.filter(Boolean).length, enako: prav.every((p, i) => p === sraf[i]), odgovor: sraf[${kc}],
+      pomoc: document.getElementById('scorePomoc').textContent };
+  })()`);
+  preveri(`šrafura natanko na celicah, kamor ${kd} ne more (${s.prav})`, s.enako && s.prav > 0, s);
+  preveri('celica odgovora ni zasenčena', !s.odgovor);
+  preveri(mode === 'hidden-single' ? 'E2: senčenje je pomoč' : 'E1: senčenje ni pomoč',
+    s.pomoc === (mode === 'hidden-single' ? ' · s pomočjo: 1' : ''), s.pomoc);
+  await b.posnetek(path.join(mapa, `${IME[mode]}-${n + 1}-${sirina}-sencenje.png`));
+
+  // Pravilen odgovor ob poudarjeni števki odgovora: podlaga poudarka in zelen okvir.
+  if (!(await b.izvedi('enojcek.plosca.izbrane')).includes(kc)) await b.klikni(celica(kc));
+  if ((await b.izvedi('pickedDigits[0]')) !== kd) await b.klikni(`.digit-btns button:nth-child(${kd})`);
+  await b.izvedi(`[...document.querySelectorAll('button')].find(g => g.textContent === 'Preveri').dataset.test = 'preveri'; true`);
+  await b.klikni('[data-test="preveri"]');
+  const po = await b.izvedi(`(() => { const s = getComputedStyle(enojcek.plosca.mreza.celice[${kc}]);
+    return { bg: s.backgroundColor, okvir: s.boxShadow, fb: document.querySelector('.fb').textContent }; })()`);
+  preveri('pravilen odgovor', po.fb.startsWith('Pravilno!'), po.fb);
+  preveri('celica odgovora: podlaga poudarka in zelen okvir', po.bg === BARVA.poud && po.okvir.includes('rgb(31, 122, 86)') && /3px/.test(po.okvir), po);
+  await b.posnetek(path.join(mapa, `${IME[mode]}-${n + 1}-${sirina}-pravilno-poudarek.png`));
+}
+
 // Barve poudarka iz nastavitev igre veljajo pri E1 in pri vajah 1 in 2.
 async function barve(b) {
   console.log('Trening, barve poudarka iz nastavitev igre (sudoku.igra.poud)');
@@ -277,6 +322,10 @@ async function main() {
       for (const mode of ['naked-single', 'hidden-single']) {
         for (const n of [0, 3, 6]) await vaja(b, mode, n, sirina);
       }
+    }
+    for (const sirina of [375, 1200]) {
+      await sencenje(b, 'hidden-single', 3, sirina);
+      await sencenje(b, 'naked-single', 6, sirina);
     }
     await stikalaInResitev(b);
     await barve(b);

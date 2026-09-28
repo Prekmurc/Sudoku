@@ -84,6 +84,18 @@ Opažanje ob pregledu: po pravilnem odgovoru je zelena oznaka prekrila poudarek 
 števke – popravek D1 in novo stikalo »senči« (D2) sta v `docs/pripomocki-e1-e2-nacrt.md`,
 razdelek »Dopolnitev«.
 
+## Trening: senčenje in poudarek po odgovoru pri E1 in E2 (»Spoznaj«)
+
+Iz razdelka »Dopolnitev« v `docs/pripomocki-e1-e2-nacrt.md`. Logiko preverijo
+`tests/plosca.test.js`, `tests/mreza.test.js`, `tests/trening-pomoc.test.js` in
+`tools/preveri-enojcki-brskalnik.js` (šrafura na pravih celicah, pomoč, zelen okvir).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, telefon | E2, vaja 4: vklopi »senči« in poudari števko. | Šrafura je jasno vidna na beli, modrikasti in sivi podlagi, števke ostanejo berljive. (nepotrjeno) |
+| 2 | trening | E2: z vklopljenim senčenjem in poudarjeno števko odgovori pravilno; nato isto pri E1. | Pri E2 »(s pomočjo – ne šteje)« in rezultat se ne poveča; pri E1 se šteje. Pravilo je iz namiga kljukice razumljivo. (nepotrjeno) |
+| 3 | trening | E1, vaja 7: poudari števko odgovora in odgovori pravilno. | Celica odgovora ima podlago poudarka in zelen okvir, nova števka je med poudarjenimi. (nepotrjeno) |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

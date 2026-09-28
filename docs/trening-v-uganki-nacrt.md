@@ -46,7 +46,7 @@ docs/trening-v-uganki.md.
 | 4 `shared/mreza.js` | **narejeno 2026-09-25** | `3f6d73c` | 322 (315 + 7) |
 | 5 `shared/plosca.js` | **narejeno 2026-09-27** | `b119b32`–`4b505fe` + testi | 329 (322 + 7) |
 | – prava geometrija pri 1 in 2 v »Spoznaj« (samostojna) | **narejeno 2026-09-27** | `f505631`–`e3725d0` | 367 (346 + 21) |
-| – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28**; dopolnitev (poudarek po odgovoru, senčenje) – načrt čaka potrditev | `4121cc8`–`2fcb63a` + dokumentacija | 375 (367 + 8) |
+| – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28**, z dopolnitvijo (poudarek po odgovoru, senčenje) | `4121cc8`–`2fcb63a`, `e4ca928`–`3d8781e` + dokumentacija | 379 (367 + 12) |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
 ### Del 1 – narejeno (commit `ba1f832`)
@@ -561,6 +561,10 @@ V krogu vaj E1 in E2 v načinu »Spoznaj« naj se pomoč postopno zmanjšuje:
   ni mogoče rešiti do konca.
 - Trening naloži `shared/stanje.js`, ne pa `igra/shramba.js`, ker v `sudoku.igra.v1` ne
   piše.
+- **Senčenje** (kljukica »senči«, `shared/plosca.js`, odločitev 2026-09-28,
+  `docs/pripomocki-e1-e2-nacrt.md` D5a): pri E1/E2 enako kot v »Spoznaj« (pri E2 je vaja
+  s prikazanim senčenjem vaja s pomočjo, pri E1 ne), pri 1–12 (s kandidati) stikala ni –
+  poudarek kandidatov že pokaže, kje je števka mogoča. V igri ga ni.
 
 ### Po želji (ideje za kasneje, ni začeto)
 

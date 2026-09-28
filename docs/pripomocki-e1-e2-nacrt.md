@@ -10,7 +10,7 @@ samostojna naloga Pripomočki za E1/E2«.
 
 Stanje: **narejeno 2026-09-28** (načrt potrjen, odgovori v razdelku »Odgovori«, izvedba v
 razdelku »Izvedba«). **Dopolnitev** (poudarek po pravilnem odgovoru, senčenje): načrt
-potrjen 2026-09-28 (odgovori v D5a), izvedba po korakih – razdelek »Dopolnitev« na koncu.
+potrjen 2026-09-28 (odgovori v D5a), **narejeno 2026-09-28** – razdelek »Dopolnitev« na koncu (izvedba v D7).
 
 Posnetki zaslona so v `docs/slike/pripomocki-e1-e2/`. Predlog je posnet s prototipom v
 začasni kopiji projekta (ni v repozitoriju). Prototip uporablja pravo `shared/plosca.js`
@@ -617,3 +617,32 @@ D1), v `docs/rocni-test.md` označeno kot potrjeno.
    celoti, ker gre za razumljivost pravila za igralca.
 3. **Trening, E1 vaja 7:** poudari števko odgovora in odgovori pravilno. Pričakovano: celica
    odgovora ima podlago poudarka in zelen okvir. Ni avtomatsko, ker je to presoja videza.
+
+Seznam je prenesen v `docs/rocni-test.md` (razdelek »Trening: senčenje in poudarek po
+odgovoru pri E1 in E2«).
+
+### D7. Izvedba dopolnitve (2026-09-28)
+
+| Korak | Commit | Testi |
+|---|---|---|
+| 1 `shared/`: `pogled.zasencene`, šrafura, kljukica `senci`, `sencenjeVidno()`; odgovori, ročni pregled potrjen | `e4ca928` | 376 (375 + 1) |
+| 2 trening: kljukica »senči«, pomoč pri E2, poudarek z zelenim okvirjem | `3d8781e` | 379 (376 + 3) |
+| 3 scenarij (senčenje, poudarek po odgovoru), dokumentacija | (ta commit) | 379 |
+
+Po vsakem koraku: posnetek igre »Enako: 85 posnetkov.«, po koraku 1 še posnetki zaslona
+igre (15) enaki do bajta, `tools/preveri-enojcki-brskalnik.js` vse drži (tehnike 1–12
+enake kot `10503c2`).
+
+![Izvedba: senčenje, E2 vaja 4, 375 px](slike/pripomocki-e1-e2/izvedba-sencenje-e2-4-375.png)
+![Izvedba: poudarek z zelenim okvirjem, E1 vaja 7, 375 px](slike/pripomocki-e1-e2/izvedba-pravilno-poudarek-e1-7-375.png)
+
+Odstopanja in dopolnitve:
+
+- **Senčenje ostane po pravilnem odgovoru** in se osveži z novo števko (na posnetku 5 v
+  V7S8 zasenči še svojo vrstico, stolpec in blok). Pomoč takrat ne šteje več, ker je
+  vaja rešena.
+- **Pomoč pri E2** se oceni ob vsakem izrisu plošče (poudarek, kljukica, izbira). Takoj
+  ko se senčenje pokaže, velja vaja »s pomočjo«, tudi če igralec senčenje nato izklopi.
+- V naslednji vaji kroga je kljukica še vklopljena. Brez poudarka senčenja ni, zato
+  vaja ne velja za vajo s pomočjo, dokler igralec ne poudari števke.
+
