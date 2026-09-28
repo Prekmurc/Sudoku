@@ -92,9 +92,9 @@ Iz razdelka »Dopolnitev« v `docs/pripomocki-e1-e2-nacrt.md`. Logiko preverijo
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, telefon | E2, vaja 4: vklopi »senči« in poudari števko. | Šrafura je jasno vidna na beli, modrikasti in sivi podlagi, števke ostanejo berljive. (nepotrjeno) |
-| 2 | trening | E2: z vklopljenim senčenjem in poudarjeno števko odgovori pravilno; nato isto pri E1. | Pri E2 »(s pomočjo – ne šteje)« in rezultat se ne poveča; pri E1 se šteje. Pravilo je iz namiga kljukice razumljivo. (nepotrjeno) |
-| 3 | trening | E1, vaja 7: poudari števko odgovora in odgovori pravilno. | Celica odgovora ima podlago poudarka in zelen okvir, nova števka je med poudarjenimi. (nepotrjeno) |
+| 1 | trening, telefon | E2, vaja 4: vklopi »senči« in poudari števko. | Šrafura je jasno vidna na beli, modrikasti in sivi podlagi, števke ostanejo berljive. Potrjeno (ročni pregled 28. 9. 2026). |
+| 2 | trening | E2: z vklopljenim senčenjem in poudarjeno števko odgovori pravilno; nato isto pri E1. | Pri E2 »(s pomočjo – ne šteje)« in rezultat se ne poveča; pri E1 se šteje. Pravilo je iz namiga kljukice razumljivo. Potrjeno (ročni pregled 28. 9. 2026). |
+| 3 | trening | E1, vaja 7: poudari števko odgovora in odgovori pravilno. | Celica odgovora ima podlago poudarka in zelen okvir, nova števka je med poudarjenimi. Potrjeno (ročni pregled 28. 9. 2026). |
 
 ## Zakaj ročno
 
