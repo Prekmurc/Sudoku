@@ -247,6 +247,15 @@ test('oznacene, neaktivne in števka za vpis v mreži brez kandidatov', () => {
   assert.ok(!celice[c].className.includes('zasencena'), 'celica vpisa ne');
   run('mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null })');
   assert.equal(celice.filter(x => x.className.includes('zasencena')).length, 0);
+  // Predlog: prazna celica brez kandidatov pokaže števko z razredom predlog; na polni
+  // celici ali s kandidati se ne pokaže.
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null, predlog: { celica: ${b}, stevka: 4 } })`);
+  assert.equal(celice[b].textContent, '4');
+  assert.equal(celice[b].className, 'celica predlog');
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: null, predlog: { celica: ${dana}, stevka: 4 } })`);
+  assert.ok(!celice[dana].className.includes('predlog'));
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, predlog: { celica: ${b}, stevka: 4 } })`);
+  assert.ok(!celice[b].className.includes('predlog'), 's kandidati ni predloga');
 });
 
 test('robovi: oznake S1-S9 in V1-V9, krepka enota iz vidne, razred delna', () => {

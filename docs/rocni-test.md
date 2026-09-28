@@ -96,6 +96,20 @@ Iz razdelka »Dopolnitev« v `docs/pripomocki-e1-e2-nacrt.md`. Logiko preverijo
 | 2 | trening | E2: z vklopljenim senčenjem in poudarjeno števko odgovori pravilno; nato isto pri E1. | Pri E2 »(s pomočjo – ne šteje)« in rezultat se ne poveča; pri E1 se šteje. Pravilo je iz namiga kljukice razumljivo. Potrjeno (ročni pregled 28. 9. 2026). |
 | 3 | trening | E1, vaja 7: poudari števko odgovora in odgovori pravilno. | Celica odgovora ima podlago poudarka in zelen okvir, nova števka je med poudarjenimi. Potrjeno (ročni pregled 28. 9. 2026). |
 
+## Trening: Vadi v uganki (del 6)
+
+Iz `docs/vadi-v-uganki-nacrt.md` (točka 14). Logiko preverijo `tests/trening-uganka-ui.test.js`,
+`tests/plosca.test.js`, `tests/mreza.test.js` in `tools/preveri-vadi-brskalnik.js` (postavitev
+pri 375 in 1200 px, pravi kliki, pari QWERTZ, »Spoznaj« enak kot prej).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, pravi telefon | Skriti par, »Vadi v uganki«: vklopi »pokaži prečrtane«, izberi celico s prstom in odstrani kandidata z nizom. | Kandidati so berljivi (celica pribl. 30 px), prečrtani jasno drugačni od navadnih, celico zadeneš brez zgrešenih dotikov. (nepotrjeno) – ni avtomatsko: berljivost in dotik. |
+| 2 | trening, slovenska tipkovnica | Skriti par: Shift+števka, Ctrl+Z, Ctrl+Y; E1: števka, Backspace. | Kandidat se odstrani, razveljavi, ponovi; predlog se postavi in pobriše. (nepotrjeno) – ni avtomatsko: scenarij pošlje pare `key`/`code`, ne prave razporeditve sistema. |
+| 3 | trening, telefon | 8 · Mečarica, nekajkrat »Naslednja vaja«. | »Iščem vajo …« največ pribl. 1 s, nato vaja. (nepotrjeno) – ni avtomatsko: hitrost pravega telefona ni izmerjena. |
+| 4 | trening | Katera koli od 1–12: odstrani kandidata, ki ga izloči druga tehnika, ali kandidata brez utemeljitve (ni prava števka), nato »Preveri«. | Sporočilo je razumljivo in ne zveni kot napaka, izbrisi se vrnejo, rezultat se ne spremeni. (nepotrjeno) – ni avtomatsko: razumljivost besedila. |
+| 5 | trening, telefon | E1: postavi predlog v izbrano celico. | Vijolični predlog s črtkanim okvirjem se jasno loči od modrih vpisov poti in od izbire; ali je siva različica (posnetek v načrtu, točka 13 – 6d) boljša? (nepotrjeno) – ni avtomatsko: presoja videza. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

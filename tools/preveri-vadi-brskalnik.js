@@ -1,15 +1,16 @@
 'use strict';
 // Trening »Vadi v uganki« (trening/v-uganki.js, docs/vadi-v-uganki-nacrt.md) v pravem
-// brskalniku, pri širini 375 in 1200 px: gumba načina na kartici samo z zastavico
-// ?vadi=1 (do konca dela 6), "Iščem vajo …" in vaja (sproti in iz banke), plošča v
+// brskalniku, pri širini 375 in 1200 px: gumba načina na vseh karticah (klik kartice je
+// "Spoznaj"), "Iščem vajo …" in vaja (sproti in iz banke), plošča v
 // kartici brez vodoravnega drsnika (tudi z vsemi tremi seznami), kandidati pri 1-12,
 // prečrtani kandidati (izračunan slog), E1/E2 brez kandidatov, pravi kliki, brez napak
-// JS; posnetki zaslona v mapi (--mapa, privzeto začasna).
+// JS; odgovor pri 1-12 in E1/E2 (predlog) s pravimi kliki in tipkami (pari QWERTZ), pomoč,
+// senčenje pri E2; posnetki zaslona v mapi (--mapa, privzeto začasna).
 //
 // "Spoznaj" mora ostati enak: z Math.random s semenom se prva vaja vseh 14 tehnik
 // izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 5b9ae6f -
 // zadnji commit pred delom 6) in v trenutni kodi; primerja se innerHTML območja vaje in
-// izračunani slogi vseh njegovih elementov ter meni brez zastavice.
+// izračunani slogi vseh njegovih elementov (meni ima od dela 6 gumba načina).
 //
 //   node tools/preveri-vadi-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
 //
@@ -49,9 +50,9 @@ const ENOJCKA = ['naked-single', 'hidden-single'];
 // banka: meja iskanja je takoj presežena. Počaka na vajo.
 async function vadi(b, mode, sirina, { banka = false, seme = 7, shramba = {} } = {}) {
   const mobilno = sirina < 500;
-  await b.odpri('trening/index.html?vadi=1', { sirina, visina: 1000, mobilno });
+  await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno });
   await b.izvedi(`localStorage.clear(); ${Object.entries(shramba).map(([k, v]) => `localStorage.setItem(${JSON.stringify(k)}, ${JSON.stringify(v)});`).join(' ')} true`);
-  await b.odpri('trening/index.html?vadi=1', { sirina, visina: 1000, mobilno });
+  await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno });
   await b.izvedi(SEME(seme));
   if (banka) await b.izvedi('vadiZdaj = (() => { let t = 0; return () => (t += 5000); })(); true');
   await b.klikni(`.menu-card[data-mode="${mode}"] .nacin-btn.vadi`);
@@ -79,9 +80,7 @@ const stanjeStrani = b => b.izvedi(`(() => {
 async function meni(b) {
   console.log('Meni');
   await b.odpri('trening/index.html', { sirina: 375, visina: 900, mobilno: true });
-  preveri('brez zastavice ni gumbov načina', (await b.izvedi(`document.querySelectorAll('.nacin-btn').length`)) === 0);
-  await b.odpri('trening/index.html?vadi=1', { sirina: 375, visina: 900, mobilno: true });
-  preveri('z ?vadi=1 gumba na vseh 14 karticah', (await b.izvedi(`[...document.querySelectorAll('.menu-card')].every(k => k.querySelectorAll('.nacin-btn').length === 2)`)) === true);
+  preveri('gumba na vseh 14 karticah', (await b.izvedi(`[...document.querySelectorAll('.menu-card')].every(k => k.querySelectorAll('.nacin-btn').length === 2)`)) === true);
   preveri('meni brez drsnika', (await b.izvedi('document.documentElement.scrollWidth')) === 375);
   await b.posnetek(path.join(mapa, 'meni-375.png'));
   // Klik kartice (ne gumba) je "Spoznaj", gumb "Spoznaj" tudi.
@@ -137,6 +136,52 @@ async function enojcek(b, mode, sirina) {
   await b.klikni(`.vaja-uganka .celica[data-r="${Math.floor(prazna / 9)}"][data-c="${prazna % 9}"]`);
   preveri('prazna celica se izbere', JSON.stringify(await b.izvedi('vadi.plosca.izbrane')) === `[${prazna}]`);
   await b.posnetek(path.join(mapa, `${mode}-${sirina}.png`));
+
+  // Predlog: niz Vpiši (vseh 9 števk), tipka s števko, Backspace; videz ni moder.
+  const [kc, kd] = await b.izvedi('vadi.v.KT[0].assign[0]');
+  await b.klikni(celicaSel(kc));
+  preveri('niz Vpiši: vseh 9 števk omogočenih', (await b.izvedi(`[...document.querySelectorAll('.vaja-uganka .niz-vpisi button')].every(g => !g.disabled)`)) === true);
+  const druga = kd === 9 ? 8 : kd + 1;
+  await b.klikni(`.vaja-uganka .niz-vpisi button:nth-child(${druga})`);
+  let p = await b.izvedi(`(() => { const e = vadi.plosca.mreza.celice[${kc}], s = getComputedStyle(e), vp = document.querySelector('.vaja-uganka .celica.vpis');
+    return { besedilo: e.textContent, razred: e.className, barva: s.color, obroba: s.outlineStyle, vpis: vp ? getComputedStyle(vp).color : null, poteze: vadi.v.igra.kazalec - vadi.v.igra.zacetnihPotez }; })()`);
+  preveri('predlog v celici, ni poteza', p.besedilo === String(druga) && p.razred.includes('predlog') && p.poteze === 0, p);
+  preveri('predlog ni moder kot vpisi poti (vijoličen, črtkan okvir)', p.barva === 'rgb(104, 64, 160)' && p.barva !== p.vpis && p.obroba === 'dashed', p);
+  await b.posnetek(path.join(mapa, `${mode}-predlog-${sirina}.png`));
+  await b.tipka('Backspace');
+  preveri('Backspace pobriše predlog', (await b.izvedi(`vadi.plosca.mreza.celice[${kc}].textContent`)) === '');
+  await b.tipka(String(kd), { code: `Digit${kd}` });
+  await klikniGumb(b, 'Preveri');
+  p = await b.izvedi(`(() => { const e = vadi.plosca.mreza.celice[${kc}];
+    return { fb: document.querySelector('.fb').className, razred: e.className, bg: getComputedStyle(e).backgroundColor, grid: vadi.stanje.grid[${kc}], sirina: document.documentElement.scrollWidth }; })()`);
+  preveri('pravilen predlog: poteza vpis, zelena celica', p.fb === 'fb ok' && p.grid === kd && p.razred.includes('k-vpis') && p.bg === 'rgb(210, 237, 223)', p);
+  preveri('brez drsnika po odgovoru', p.sirina === sirina, p.sirina);
+}
+
+// E2: senčenje s pravimi kliki (kljukica, poudarek) je pomoč; šrafura na zasenčenih celicah.
+async function sencenjeE2(b, sirina) {
+  console.log(`hidden-single, senčenje, ${sirina} px`);
+  await vadi(b, 'hidden-single', sirina, { banka: true, seme: 9 });
+  await b.izvedi(`[...document.querySelectorAll('.vaja-uganka .kljukice label')].find(l => l.textContent.trim() === 'senči').setAttribute('data-k', 's'); true`);
+  await b.klikni('.vaja-uganka .kljukice label[data-k="s"] input');
+  const d = await b.izvedi('vadi.v.KT[0].assign[0][1]');
+  await b.klikni(`.vaja-uganka .niz-poudari button:nth-child(${d})`);
+  const p = await b.izvedi(`(() => { const z = [...document.querySelectorAll('.vaja-uganka .celica.zasencena')];
+    return { n: z.length, sraf: z.length && getComputedStyle(z[0], '::after').backgroundImage.includes('repeating-linear-gradient'),
+      pomoc: document.getElementById('scorePomoc').textContent }; })()`);
+  preveri('šrafura na zasenčenih celicah', p.n > 0 && p.sraf, p);
+  preveri('senčenje pri E2 = s pomočjo', p.pomoc === ' · s pomočjo: 1', p.pomoc);
+  await b.posnetek(path.join(mapa, `hidden-single-sencenje-${sirina}.png`));
+}
+
+// Druga možnost videza predloga (samo posnetek za odločitev): siva števka s črtkanim okvirjem.
+async function predlogSiv(b) {
+  await vadi(b, 'naked-single', 375, { banka: true, seme: 7 });
+  const [kc, kd] = await b.izvedi('vadi.v.KT[0].assign[0]');
+  await b.izvedi(`(() => { const s = document.createElement('style'); s.textContent = '.celica.predlog{color:#6B7682 !important;font-style:normal !important;outline-color:#8A96A3 !important}'; document.head.appendChild(s); return true; })()`);
+  await b.klikni(celicaSel(kc));
+  await b.klikni(`.vaja-uganka .niz-vpisi button:nth-child(${kd})`);
+  await b.posnetek(path.join(mapa, 'naked-single-predlog-siv-375.png'));
 }
 
 // 1-12: odgovor s pravimi kliki (celica + niz "Odstrani") in tipkami (pari QWERTZ):
@@ -229,7 +274,6 @@ const SLOGI = ['width', 'height', 'background-color', 'color', 'font-size', 'fon
   'text-decoration-line'];
 async function izris(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
-  const menu = await b.izvedi(`document.getElementById('menu').innerHTML`);
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
   // Pisave (Google Fonts, tudi latin-ext za č/š/ž) se lahko naložijo šele po kliku - širina
@@ -239,7 +283,7 @@ async function izris(b, mode, sirina) {
     const a = document.getElementById('exerciseArea');
     const slogi = [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     return { html: a.innerHTML, slogi };
-  })()`).then(r => ({ ...r, menu }));
+  })()`);
 }
 
 async function spoznaj(sirine) {
@@ -257,7 +301,6 @@ async function spoznaj(sirine) {
         const razl = s.slogi.findIndex((x, i) => x !== n.slogi[i]);
         preveri(`${m}: izris enak`, s.html === n.html && s.slogi.length === n.slogi.length && razl < 0,
           s.html !== n.html ? 'innerHTML' : razl >= 0 ? `element ${razl}: ${s.slogi[razl]} → ${n.slogi[razl]}` : 'število elementov');
-        if (m === TEHNIKE[0]) preveri('meni brez zastavice enak', s.menu === n.menu);
       }
     }
   } finally {
@@ -278,8 +321,10 @@ async function main() {
       for (const mode of ENOJCKA) await enojcek(b, mode, sirina);
       await odgovor1do12(b, sirina);
       await pomoc1do12(b, sirina);
+      await sencenjeE2(b, sirina);
     }
     await banka(b);
+    await predlogSiv(b);
   } finally {
     await b.zapri();
   }

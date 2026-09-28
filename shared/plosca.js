@@ -44,6 +44,10 @@
 //                   ne naredita nič (obTipki vrne false); niza Vpiši aplikacija ne poda
 //   obVpisu(celica, stevka) - tipka s števko in niz Vpiši pokličeta to namesto poteze
 //                   vpis (trening: izbira števke za vpis; celica je lahko null)
+//   predlog       - true (z obVpisu; trening »Vadi v uganki«, E1/E2 - vpis je predlog):
+//                   niz Vpiši za eno izbrano prazno celico omogoči vseh 9 števk (samo
+//                   kandidati bi izdali očitni enojček), Backspace/Delete pokliče
+//                   obVpisu(celica, 0)
 //   pogled()      - dodatna polja pogleda mreže (npr. oznacene, neaktivne, sosede),
 //                   ki imajo prednost pred polji plošče
 //   senci         - kljukica "senči": ob eni poudarjeni števki so zasenčene celice,
@@ -393,7 +397,8 @@ function ustvariPlosco(o) {
     }
     if ((e.key === 'Backspace' || e.key === 'Delete') && !brezVpisa) {
       e.preventDefault();
-      zbrisiVpis();
+      if (o.predlog && o.obVpisu) o.obVpisu(enaIzbrana(), 0);
+      else zbrisiVpis();
       return true;
     }
     if (e.key === 'Escape' && pocistiIzbiro()) {
@@ -433,9 +438,11 @@ function ustvariPlosco(o) {
     const manjka = igra ? seManjka(stanje) : new Array(10).fill(0);
     // Pri več izbranih celicah je mogoče samo odstraniti števko, ki je kandidat v vseh.
     const ogled = samoZaOgled();
-    const a = !igra || ogled ? mozneAkcije(null, null)
+    let a = !igra || ogled ? mozneAkcije(null, null)
       : izbrane.length > 1 ? { vpis: 0, odstrani: skupniKandidati(stanje, izbrane), vrni: 0, zbrisi: false }
       : mozneAkcije(stanje, enaIzbrana());
+    // Predlog vpisa: za prazno celico vseh 9 števk.
+    if (o.predlog && igra && !ogled && enaIzbrana() !== null && !stanje.grid[enaIzbrana()]) a = { ...a, vpis: 0x3FE };
     for (let d = 1; d <= 9; d++) {
       const bit = 1 << d;
 

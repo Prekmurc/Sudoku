@@ -37,6 +37,9 @@
 //                 celici jih ni več - trening »Vadi v uganki«: kandidati, odstranjeni pred
 //                 vajo, in izbrisi koraka po pravilnem odgovoru) ali null; kandidat, ki
 //                 je v `kandidati`, se izriše kot navaden
+//   predlog     - { celica, stevka } ali null: prazna celica brez kandidatov pokaže
+//                 števko predloga (razred "predlog"; trening »Vadi v uganki«, E1/E2 -
+//                 odgovor, ki še ni poteza)
 //   zasencene   - celice s šrafuro (razred "zasencena"; senčenje, kamor poudarjena
 //                 števka ne more - plošča, kljukica "senči") ali null; na celicah z
 //                 oznakami koraka se ne riše (oznake imajo prednost)
@@ -145,6 +148,10 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
       } else if (o.vpis.has(i)) {
         // Brez kandidatov (trening, enojčka): števka za vpis se pokaže v celici.
         c.textContent = o.vpis.get(i);
+      } else if (p.predlog && p.predlog.celica === i) {
+        // Predlog vpisa (trening »Vadi v uganki«, E1/E2) - ni poteza, drugačen videz.
+        c.textContent = p.predlog.stevka;
+        c.classList.add('predlog');
       }
       if (oznacene && oznacene.has(i)) c.classList.add('oznacena');
       if (neaktivne && neaktivne.has(i)) c.classList.add('neaktivna');

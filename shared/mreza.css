@@ -137,6 +137,15 @@
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
 }
+/* predlog vpisa (pogled.predlog - trening »Vadi v uganki«, E1/E2): vijolična poševna
+   števka s črtkanim okvirjem - ni poteza, zato ni modra kot vpisi */
+.celica.predlog{
+  color:#6840A0;
+  font-style:italic;
+  font-weight:600;
+  outline:2px dashed #6840A0;
+  outline-offset:-6px;
+}
 /* kandidat, ki ga ni več (pogled.precrtani - trening »Vadi v uganki«): sivo prečrtan;
    izbris prikazanega koraka (k-izbris) ostane rdeč */
 .kand.precrtan:not(.k-izbris){

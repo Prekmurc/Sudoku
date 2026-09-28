@@ -18,7 +18,9 @@ pogledom, tudi prikaz samo izbranih celic – `vidne`; `oznakeKoraka()`,
 vnos (izbira celic, poudarki, nizi, poteze, Razveljavi/Ponovi/Zbriši/Začni znova, vrstica
 pod nizi, seznami s stikali, tipkovnica) je v `shared/plosca.js` (`ustvariPlosco()`;
 igro in stanje ima aplikacija – `vir()`, `obSpremembi()`), igra ga uporablja in se obnaša
-enako (posnetek 74 korakov). Tabele v tem dokumentu (npr. 1.1) opisujejo stanje pred tem.
+enako (posnetek 74 korakov). **Del 6 narejen 2026-09-28:** način »Vadi v uganki« v treningu
+(`trening/v-uganki.js`, načrt in izvedba v `docs/vadi-v-uganki-nacrt.md`). Tabele v tem
+dokumentu (npr. 1.1) opisujejo stanje pred tem.
 
 **Zamisel.** Trening dobi za vsako tehniko (E1, E2, 1–12) dva načina:
 

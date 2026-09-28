@@ -25,8 +25,9 @@ uporabiBarvePoudarka(barvePoudarkaIzNastavitev(POUD_KLJUC_IGRE));
 
 // Tipkovnica pri vajah E1/E2 (plošča): števka izbere števko za vpis, puščice premikajo
 // izbiro po celicah, ki jih je mogoče izbrati, Escape izbiro počisti.
-// Pri »Vadi v uganki« tipke obdela plošča vaje (1-12: Shift+števka, puščice, Escape, Ctrl+Z/Y).
-document.addEventListener('keydown',e=>{if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode&&!jeEnojcek(vadi.v.kljuc))vadi.plosca.obTipki(e);});
+// Pri »Vadi v uganki« tipke obdela plošča vaje (1-12: Shift+števka, puščice, Escape, Ctrl+Z/Y;
+// E1/E2: števka postavi predlog, Backspace/Delete ga pobriše, puščice, Escape).
+document.addEventListener('keydown',e=>{if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode)vadi.plosca.obTipki(e);});
 
 // Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
 // (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,
@@ -49,12 +50,9 @@ function zacniKrog(m,n){
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';
   renderExercise();
 }
-// Klik kartice je "Spoznaj". Gumba "Spoznaj" in "Vadi v uganki" na kartici sta do konca
-// dela 6 skrita (docs/vadi-v-uganki-nacrt.md) - pokaže ju zastavica ?vadi=1 v naslovu strani.
-const VADI_VIDEN=typeof location!=='undefined'&&/[?&]vadi=1(&|$)/.test(location.search);
+// Klik kartice je "Spoznaj"; gumba "Spoznaj" in "Vadi v uganki" (docs/vadi-v-uganki-nacrt.md).
 document.querySelectorAll('.menu-card').forEach(card=>{
   card.addEventListener('click',()=>zacniKrog(card.dataset.mode,'spoznaj'));
-  if(!VADI_VIDEN) return;
   const nacini=document.createElement('div');nacini.className='nacin';
   for(const[napis,n]of[['Spoznaj','spoznaj'],['Vadi v uganki','uganka']]){
     const b=document.createElement('button');b.type='button';b.className='nacin-btn'+(n==='uganka'?' vadi':'');b.textContent=napis;

@@ -188,14 +188,20 @@ for (const [mode, kljuc] of [['naked-single', 'Gol enojček'], ['hidden-single',
   });
 }
 
-test('krog: 9 vaj, nato "Končano!"', () => {
+test('krog: 9 vaj s pravilnim odgovorom (predlog + Preveri), nato "Končano!" z rezultatom', () => {
   const { dom, run, izprazni } = zacni('naked-single');
   for (let i = 0; i < 9; i++) {
     izprazni();
     assert.equal(poRazredu(dom, 'ex-label')[0].textContent.endsWith(`Vaja ${i + 1} / 9`), true);
+    const [c, d] = iz(run, 'vadi.v.KT[0].assign[0]');
+    celice(dom)[c].sprozi('click');
+    poRazredu(dom, 'niz-vpisi')[0].children[d - 1].sprozi('click');
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.equal(gumb(dom, i < 8 ? 'Naslednja vaja →' : 'Končaj').style.display, 'inline-block');
     gumb(dom, i < 8 ? 'Naslednja vaja →' : 'Končaj').sprozi('click');
   }
   assert.match(dom.el('exerciseArea').children[0].innerHTML, /Končano!/);
+  assert.match(dom.el('exerciseArea').children[0].innerHTML, /Rezultat: <b>9<\/b> \/ <b>9<\/b> \(100%\)/);
   assert.equal(run('vadi'), null);
 });
 
@@ -445,3 +451,99 @@ test('1-12: ogled rešitve po pravilnem odgovoru ne šteje kot pomoč', () => {
   assert.equal(rezultat(dom), '1/1');
   assert.equal(sPomocjo(dom), '');
 });
+
+/* ---------- 6d: E1 in E2 ---------- */
+
+const nizVpisi = (dom, d) => poRazredu(dom, 'niz-vpisi')[0].children[d - 1];
+
+test('E1: predlog v celici (niz Vpiši z vsemi 9 števkami, tipke), izidi "Preveri", pravilen predlog postane poteza', () => {
+  const { dom, run, izprazni } = zacni('naked-single');
+  izprazni();
+  const S0 = iz(run, 'vadi.v.S0');
+  const N = run('vadi.v.igra.kazalec');
+  // Brez predloga.
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(fb(dom).innerHTML, 'Izberi celico in vpiši števko.');
+  // Vseh 9 števk za izbrano prazno celico (tudi tiste, ki niso kandidat).
+  const [kc, kd] = iz(run, 'vadi.v.KT[0].assign[0]');
+  const t = e => dom.tipka({ preventDefault() {}, ...e });
+  izberi(dom, run, kc);
+  assert.ok([1, 2, 3, 4, 5, 6, 7, 8, 9].every(d => !nizVpisi(dom, d).disabled), 'vseh 9 števk');
+  assert.equal(poRazredu(dom, 'niz-odstrani').length, 0);
+  // Predlog: niz in tipka (tudi Numpad), Backspace ga pobriše, ni poteza.
+  const druga = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(d => d !== kd);
+  nizVpisi(dom, druga).sprozi('click');
+  assert.equal(celice(dom)[kc].textContent, String(druga));
+  assert.equal(celice(dom)[kc].className.includes('predlog'), true);
+  t({ key: String(kd), code: `Numpad${kd}` });
+  assert.equal(celice(dom)[kc].textContent, String(kd), 'nov predlog zamenja starega');
+  t({ key: 'Backspace', code: 'Backspace' });
+  assert.equal(celice(dom)[kc].textContent, '');
+  assert.equal(run('vadi.v.igra.kazalec'), N, 'predlog ni poteza');
+  // Napačen predlog (preveriEnojcek 'narobe'): šteje, predlog se pobriše, Preveri
+  // onemogočen do novega predloga.
+  const narobe = iz(run, `(() => { for (let c = 0; c < 81; c++) if (!vadi.v.S0.grid[c]) for (let d = 1; d <= 9; d++)
+    if (preveriVajo(vadi.v, vadi.stanje, { celica: c, stevka: d }).izid === 'napacno') return [c, d]; })()`);
+  izberi(dom, run, narobe[0]);
+  t({ key: String(narobe[1]), code: `Digit${narobe[1]}` });
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(fb(dom).className, 'fb err');
+  assert.match(fb(dom).innerHTML, /^<b>Ni pravilno\.<\/b> /);
+  assert.equal(rezultat(dom), '0/1');
+  assert.equal(celice(dom)[narobe[0]].textContent, '');
+  assert.equal(gumb(dom, 'Preveri').disabled, true);
+  // Nevtralno (prava števka, ki je očitni enojček ne dokaže): ne šteje.
+  const nevt = iz(run, `(() => { for (let c = 0; c < 81; c++) if (!vadi.v.S0.grid[c])
+    if (preveriVajo(vadi.v, vadi.stanje, { celica: c, stevka: vadi.v.resitev[c] }).izid === 'nevtralno') return [c, vadi.v.resitev[c]]; })()`);
+  if (nevt) {
+    izberi(dom, run, nevt[0]);
+    nizVpisi(dom, nevt[1]).sprozi('click');
+    assert.equal(gumb(dom, 'Preveri').disabled, false);
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.equal(fb(dom).className, 'fb info');
+    assert.match(fb(dom).innerHTML, /^<b>Še ne\.<\/b> Števka je prava/);
+    assert.equal(rezultat(dom), '0/1');
+  }
+  // Pravilen predlog: poteza vpis, zelena celica, zaklep.
+  izberi(dom, run, kc);
+  nizVpisi(dom, kd).sprozi('click');
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(fb(dom).className, 'fb ok');
+  assert.equal(rezultat(dom), '1/2');
+  assert.equal(run('vadi.v.igra.kazalec'), N + 1);
+  assert.equal(run(`vadi.stanje.grid[${kc}]`), kd);
+  assert.ok(celice(dom)[kc].classList.contains('vpis') && celice(dom)[kc].classList.contains('k-vpis'));
+  assert.equal(celice(dom).filter(e => e.classList.contains('izbrana')).length, 0);
+  const prazna = S0.grid.findIndex((x, c) => !x && c !== kc);
+  celice(dom)[prazna].sprozi('click');
+  t({ key: '1', code: 'Digit1' });
+  assert.equal(celice(dom)[prazna].textContent, '', 'po pravilnem odgovoru ni predloga');
+  assert.equal(gumb(dom, 'Naslednja vaja →').style.display, 'inline-block');
+});
+
+test('E2: senčenje ob eni poudarjeni števki je pomoč, pri E1 ne; namig in rešitev', () => {
+  for (const [mode, pomoc] of [['hidden-single', true], ['naked-single', false]]) {
+    const { dom, run, izprazni } = zacni(mode);
+    izprazni();
+    const kljukice = poRazredu(dom, 'kljukice')[0].children;
+    assert.equal(kljukice[0].textContent, ' senči');
+    kljukice[0].children[0].checked = true;
+    kljukice[0].children[0].sprozi('change');
+    assert.equal(sPomocjo(dom), '', 'sama kljukica ni pomoč');
+    run('vadi.plosca.poudari(vadi.v.KT[0].assign[0][1])');
+    assert.equal(sPomocjo(dom), pomoc ? ' · s pomočjo: 1' : '', mode);
+    assert.ok(celice(dom).some(e => e.classList.contains('zasencena')));
+  }
+  // Namig (cela mreža) in rešitev (celica s števko zeleno) pri E2.
+  const { dom, run, izprazni } = zacni('hidden-single', { seme: 3 });
+  izprazni();
+  gumb(dom, 'Namig').sprozi('click');
+  assert.match(pomocOkvir(dom).textContent, /^Namig: Poglej (vrstico|stolpec|blok) \d: /);
+  assert.equal(sPomocjo(dom), ' · s pomočjo: 1');
+  gumb(dom, 'Rešitev').sprozi('click');
+  const oznacene = celice(dom).filter(e => e.classList.contains('k-vpis'));
+  assert.equal(oznacene.length, 1);
+  assert.ok(oznacene[0].textContent.length === 1, 'celica s števko rešitve');
+  assert.ok(celice(dom).some(e => e.classList.contains('k-vzorec')), 'enota koraka');
+});
+

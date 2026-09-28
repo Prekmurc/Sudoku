@@ -1,6 +1,6 @@
 # Del 6 – trening »Vadi v uganki«: načrt
 
-(2026-09-28, **načrt potrjen**, odgovori v točki 11a; izvedba po korakih 6a–6d, stanje v točki 13.) Posnetki so iz
+(2026-09-28, **načrt potrjen**, odgovori v točki 11a; **izvedeno** po korakih 6a–6d, stanje v točki 13; ročni pregled v točki 14.) Posnetki so iz
 prototipa v začasni kopiji projekta (trenutni `main` in dodatki iz točke 8). Prototip ni
 v repozitoriju.
 
@@ -370,8 +370,8 @@ en sam, po 6d.
 |---|---|---|---|
 | 6a izbira načina, iskanje, zaslon za ogled | **narejeno 2026-09-28** | `c22fe78` | 390 (379 + 11) |
 | 6b odgovor pri 1–12 | **narejeno 2026-09-28** | `566265e` | 393 (390 + 3) |
-| 6c pomoč pri 1–12 | **narejeno 2026-09-28** | (ta commit) | 396 (393 + 3) |
-| 6d E1/E2, ročni pregled | | | |
+| 6c pomoč pri 1–12 | **narejeno 2026-09-28** | `60a6d41` | 396 (393 + 3) |
+| 6d E1/E2, gumb viden, ročni pregled | **narejeno 2026-09-28** | (ta commit) | 399 (396 + 3) |
 
 ### 6a
 
@@ -436,3 +436,38 @@ en sam, po 6d.
   kliki; »Spoznaj« enak kot `5b9ae6f`).
 
 ![6c: rešitev, 375 px](slike/vadi-v-uganki/izvedba-6c-resitev-375.png)
+
+### 6d
+
+- `trening/v-uganki.js`: E1/E2 – kljukica »senči« (pri E2 pomoč, kot v »Spoznaj«), niz
+  »Vpiši« z vsemi 9 števkami, predlog v celici (niz, tipka s števko, Backspace/Delete, ista
+  števka v isti celici ga pobriše), »Preveri« s `preveriVajo(v, stanje, predlog)`
+  (pravilno → poteza vpis in zaklep, nevtralno ne šteje, napačno šteje; predlog se po oceni
+  pobriše), namig za celo mrežo, rešitev z oznakami koraka. »Preveri« je tudi tu
+  onemogočen do spremembe predloga.
+- `trening/trening.js`: gumba »Spoznaj« in »Vadi v uganki« sta **vidna vedno** (zastavica
+  `?vadi=1` odstranjena), tipkovnica tudi pri E1/E2.
+- `shared/mreza.js` + `mreza.css`: `pogled.predlog` (razred `predlog`); `shared/plosca.js`:
+  `predlog: true`.
+- Testi: `tests/trening-uganka-ui.test.js` (+2, krog zdaj z odgovori 9/9), `tests/plosca.test.js`
+  (+1), `tests/mreza.test.js` (predlog v obstoječem testu).
+- Preverjanje: 399 testov; posnetek igre »Enako: 85 posnetkov.«;
+  `tools/preveri-vadi-brskalnik.js` »Vse drži« (»Spoznaj« vseh 14 tehnik enak kot
+  `5b9ae6f`); `preveri-enojcki-brskalnik.js`, `preveri-presek-brskalnik.js` in
+  `preveri-niz-brskalnik.js` »Vse drži«.
+
+**Videz predloga (odgovor 6).** Predlog: **vijolična poševna števka s črtkanim vijoličnim
+okvirjem** (barva izbrane števke v »Spoznaj«, `#6840A0`). Loči se od danih (črne), vpisov
+poti (modre) in odgovora (zelena celica); okvir pove, da vpis še ni potrjen. Druga možnost
+– siva števka s sivim črtkanim okvirjem – je na desnem posnetku (samo za primerjavo, ni v
+kodi). Pri izbrani celici (modrikasta podlaga) je siva slabše vidna.
+
+| Vijolična (v kodi) | Siva (druga možnost) |
+|---|---|
+| ![Predlog vijoličen, E1, 375 px](slike/vadi-v-uganki/izvedba-6d-predlog-375.png) | ![Predlog siv, E1, 375 px](slike/vadi-v-uganki/izvedba-6d-predlog-siv-375.png) |
+
+![6d: E2 s senčenjem, 375 px](slike/vadi-v-uganki/izvedba-6d-sencenje-e2-375.png)
+
+## 14. Ročni pregled (en sam, po 6d)
+
+Prenesen v `docs/rocni-test.md`, razdelek »Trening: Vadi v uganki«.

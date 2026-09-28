@@ -410,6 +410,27 @@ test('plošča brez vpisa (vpis: false): števka in Backspace ne naredita nič, 
   assert.ok(p.kand(c2) & 2);
 });
 
+test('plošča s predlogom (predlog: true): vseh 9 števk v nizu Vpiši, obVpisu, Backspace', () => {
+  const p = pripravi({ pred: 'var vpisi = [];', moznosti: 'kandidati: false, samoEna: true, predlog: true, obVpisu: (c, d) => vpisi.push([c, d]),' });
+  p.run(`odpri(novaIgra(${D}))`);
+  const c = prazne[0];
+  // Brez izbire je niz onemogočen, z izbrano prazno celico so omogočene vse števke.
+  assert.ok(STEVKE.every(d => p.gumb('nizVpisi', d).disabled));
+  p.klik(c);
+  assert.ok(STEVKE.every(d => !p.gumb('nizVpisi', d).disabled), 'vseh 9 števk');
+  assert.equal(p.razlog(), '');
+  const d = STEVKE.find(x => !(p.kand(c) & (1 << x)));
+  p.gumb('nizVpisi', d).sprozi('click');
+  p.tipka({ key: '7', code: 'Numpad7' });
+  p.tipka({ key: 'Backspace', code: 'Backspace' });
+  p.tipka({ key: 'Delete', code: 'Delete' });
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(vpisi)')), [[c, d], [c, 7], [c, 0], [c, 0]]);
+  assert.equal(p.run('igra.poteze.length'), 0, 'predlog ni poteza');
+  // Dana celica: niz ostane onemogočen.
+  p.klik(dana);
+  assert.ok(STEVKE.every(x => p.gumb('nizVpisi', x).disabled));
+});
+
 test('plošča: seznami s stikali pod ključem aplikacije, plošča samo z mrežo', () => {
   const shramba = new Map([['test.seznami', JSON.stringify({ vrstice: true })]]);
   const p = pripravi({ kljucSeznamov: 'test.seznami', shramba });

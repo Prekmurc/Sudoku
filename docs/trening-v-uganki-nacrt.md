@@ -1,5 +1,5 @@
 # Trening v uganki – načrt
-(2026-09-25; deli 1–5 narejeni, glej »Stanje po delih«)
+(2026-09-25; deli 1–6 narejeni, glej »Stanje po delih«; del 6 v `docs/vadi-v-uganki-nacrt.md`)
 
 Vrstni red: najprej faza 4
 iz docs/uskladitev.md
@@ -47,7 +47,7 @@ docs/trening-v-uganki.md.
 | 5 `shared/plosca.js` | **narejeno 2026-09-27** | `b119b32`–`4b505fe` + testi | 329 (322 + 7) |
 | – prava geometrija pri 1 in 2 v »Spoznaj« (samostojna) | **narejeno 2026-09-27** | `f505631`–`e3725d0` | 367 (346 + 21) |
 | – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28**, z dopolnitvijo (poudarek po odgovoru, senčenje) | `4121cc8`–`2fcb63a`, `e4ca928`–`3d8781e` + dokumentacija | 379 (367 + 12) |
-| 6 trening »Vadi v uganki« | **načrt 2026-09-28** (`docs/vadi-v-uganki-nacrt.md`), čaka na potrditev | | |
+| 6 trening »Vadi v uganki« | **narejeno 2026-09-28** (načrt in izvedba v `docs/vadi-v-uganki-nacrt.md`, koraki 6a–6d) | `c22fe78`, `566265e`, `60a6d41` + 6d | 399 (379 + 20) |
 
 ### Del 1 – narejeno (commit `ba1f832`)
 
