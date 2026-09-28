@@ -9,7 +9,8 @@ spremenijo. Izhodišče: `docs/trening-v-uganki-nacrt.md`, razdelek »Po delih 4
 samostojna naloga Pripomočki za E1/E2«.
 
 Stanje: **narejeno 2026-09-28** (načrt potrjen, odgovori v razdelku »Odgovori«, izvedba v
-razdelku »Izvedba« na koncu).
+razdelku »Izvedba«). **Dopolnitev** (poudarek po pravilnem odgovoru, senčenje): načrt
+2026-09-28, čaka potrditev – razdelek »Dopolnitev« na koncu.
 
 Posnetki zaslona so v `docs/slike/pripomocki-e1-e2/`. Predlog je posnet s prototipom v
 začasni kopiji projekta (ni v repozitoriju). Prototip uporablja pravo `shared/plosca.js`
@@ -446,3 +447,161 @@ Odstopanja in dopolnitve glede na načrt:
   `7429363`, ker se namerno razlikujeta. Ju preverja novi scenarij.
 - **`tools/brskalnik.js` `tipka()`** dobi neobvezne `code`, `shift` in `ctrl`. Obstoječi klici
   delujejo enako.
+
+## Dopolnitev: poudarek po pravilnem odgovoru in senčenje (načrt, 2026-09-28)
+
+Iz ročnega pregleda izvedbe prihajata dve opažanji. Kode še nisem spreminjal. Posnetki so
+iz prototipa v začasni kopiji projekta (trenutni `main` z dodatki spodaj). Stanje točk
+ročnega pregleda v `docs/rocni-test.md` ostaja »(nepotrjeno)«, dokler ne sporočiš,
+katere so v redu.
+
+### D1. Poudarek po pravilnem odgovoru
+
+**Zdaj:** vpisana števka je poudarjena števka, a zelena oznaka vpisa (`k-vpis`) jo
+prekrije. V `mreza.css` je pravilo `.celica.k-vpis` za `.celica.poud-stevka`, zato zmaga
+zelena. Na posnetku je poudarjena 6, nova 6 v V8S6 pa je samo zelena:
+
+![Zdaj: E1, pravilen odgovor ob poudarjeni števki, 375 px](slike/pripomocki-e1-e2/zdaj-pravilno-poudarek-375.png)
+
+**Predlog: poudarek pred zeleno, z zelenim okvirjem.** Celica odgovora ima podlago v barvi
+poudarka, zelen okvir (3 px, kot izbira) pa jo še vedno označi kot odgovor. Niz
+»Poudari« je tudi legenda, zato mora biti nova števka med poudarjenimi. Sprememba je samo
+v treningu (`trening.css`, `.vaja-enojcek`). V igri se ne pojavi: tam je `k-vpis` na
+kandidatu prazne celice (korak pomoči), polna celica ga ne dobi.
+
+![Predlog: poudarek z zelenim okvirjem, 375 px](slike/pripomocki-e1-e2/predlog-pravilno-poudarek-375.png)
+
+Pravilo igre ostane: vpis, ki števko dokonča (deveti), izklopi njen poudarek. Takrat je
+celica samo zelena.
+
+Druga možnost je, da ostane, kot je. Zelena podlaga je enotna oznaka odgovora, kot pri
+»Rešitev (drži)«, poudarek pa se vidi v drugih celicah in v nizu.
+
+### D2. Senčenje celic, kamor poudarjena števka ne more
+
+**Kaj:** ob eni poudarjeni števki d so zasenčene:
+
+- vse polne celice, razen tistih z d (te ostanejo poudarjene);
+- vse celice v vrstici, stolpcu in bloku vsake celice z d.
+
+Nezasenčene prazne celice so mesta, kjer d po vpisanih števkah še lahko je. To je ročno
+»prečrtavanje« (cross-hatching) pri iskanju skritega enojčka. Upošteva samo vpisane
+števke, ne kandidatov in ne drugih tehnik.
+
+**Stikalo:** kljukica **»senči«** v vrstici »Poudari števko«, levo od »več hkrati«. V `title`
+je razlaga: »Zasenči celice, kamor poudarjena števka ne more (samo ob eni poudarjeni
+števki).« Kljukica ostane vklopljena med vajami kroga, kot »več hkrati«, in se ne
+shranjuje (**vprašanje 5**).
+
+**Videz** (**vprašanje 2**) – E2, vaja 4, označen blok 2, poudarjena 7:
+
+| A – šrafura (predlog) | B – ploskev |
+|---|---|
+| ![Senčenje A](slike/pripomocki-e1-e2/predlog-sencenje-A-e2-4-375.png) | ![Senčenje B](slike/pripomocki-e1-e2/predlog-sencenje-B-e2-4-375.png) |
+
+- **A** – poševne črte čez celico (`::after`, polprosojne). Šrafura se sešteje z modrikasto
+  podlago označene enote in s sivino zatemnjenih celic, zato se vsa tri stanja ločijo.
+- **B** – polprosojna siva ploskev. Zlije se z zatemnjenimi celicami postopnosti (na
+  posnetku V3S1, V4S5 in V5S1 niso zasenčene, a so skoraj enako sive).
+- Na celicah z oznakami koraka (»Rešitev (drži)«, zelena celica odgovora) se ne senči,
+  oznake imajo prednost.
+
+**»Več hkrati«** (**vprašanje 3**). Predlog: senči se samo ob **eni** poudarjeni števki. Z
+dvema ali več ni senčenja (kljukica ostane vklopljena, razlaga je v `title`). Barve
+poudarkov so različne, senčenje pa je eno. Pri več števkah ni jasno, čigavo je.
+
+Drugi možnosti:
+
+- senčenje za zadnjo izbrano števko (ista kot za »Naslednji korak« v igri), a ni vidno,
+  katera je;
+- celice, kamor ne more nobena od poudarjenih števk. Take ni lahko brati.
+
+**Ali se šteje kot pomoč** (**vprašanje 4**):
+
+- **E2:** senčenje ob pravi števki pusti v enoti **eno samo** nezasenčeno celico, in to je
+  odgovor. Na posnetku v bloku 2 ostane samo V3S4. To je isto kot namig. Predlog: vaja E2,
+  pri kateri se je senčenje pred pravilnim odgovorom **pokazalo** (kljukica vklopljena in
+  natanko ena poudarjena števka), se šteje »s pomočjo«. Velja isto pravilo kot za namig:
+  `oznaciPomoc()`, oznaka »(s pomočjo – ne šteje)«, vrstica rezultata in povzetek kroga.
+  Sama kljukica brez poudarka se ne šteje. `title` kljukice to pove: »Pri skritem enojčku
+  se vaja s senčenjem šteje kot vaja s pomočjo.«
+- **E1:** senčenje ene števke odgovora ne pove. Za očitni enojček je treba izločiti osem
+  števk v eni celici, senčenje ene števke pa pusti več prostih celic (posnetek spodaj:
+  poudarjena 6, prostih celic je veliko). Predlog: se **ne** šteje, kot poudarek in seznami.
+  Igralec bi moral zaporedoma poudariti osem števk, kar je ročno izvajanje tehnike.
+- Druga možnost: nikjer se ne šteje (pripomoček kot seznami) ali pa se šteje povsod.
+
+**E1** (predlog): isto stikalo in isto vedenje. Senčenje pomaga preveriti, ali števka v
+izbrani celici še lahko je:
+
+![Senčenje A pri E1, vaja 7, poudarjena 6, 375 px](slike/pripomocki-e1-e2/predlog-sencenje-A-e1-7-375.png)
+
+**Pozneje v »Vadi v uganki« (del 6)** (**vprašanje 6**):
+
+- E1/E2 (brez kandidatov) enako kot tu, z istim pravilom pomoči;
+- 1–12 (s kandidati) brez stikala: poudarek kandidatov že pokaže, kje je d mogoča, in
+  upošteva tudi ročne izbrise. Senčenje po vpisanih števkah bi kazalo manj, kot je znano;
+- igra ne v tej nalogi. Če bo želja, pride kot ideja v »Po želji«
+  (`docs/trening-v-uganki-nacrt.md`).
+
+### D3. Kje v kodi
+
+- **`shared/mreza.js`:** pogled dobi `zasencene` (celice). Razred je `zasencena`, ne na
+  celicah z oznakami koraka.
+- **`shared/mreza.css`:** šrafura `.celica.zasencena::after`.
+- **`shared/plosca.js`:** neobvezna kljukica `senci`. Izračun iz `stanje.grid` in `PEERS`
+  samo ob eni poudarjeni števki. Novo je `sencenjeVidno()`, ki pove, ali je senčenje
+  prikazano (trening ga rabi za pomoč). Igra kljukice ne poda, zato ostane enaka.
+- **`trening/trening.js`:** kljukica v glavi niza »Poudari«, »senči« ostane med vajami
+  kroga, pomoč pri E2 ob izrisu (`sencenjeVidno()` in vaja še ni rešena).
+- **`trening/trening.css`:** glava z dvema kljukicama, poudarek z zelenim okvirjem (D1).
+
+### D4. Testi in preverjanje
+
+- **`tests/mreza.test.js`:** razred `zasencena`, ni ga na celicah z oznakami koraka.
+- **`tests/plosca.test.js`:** izračun na uganki iz `docs/uganke.md` (primerjava z
+  neodvisnim izračunom iz niza: polne celice razen d in sosede celic z d). Brez kljukice,
+  brez poudarka in z dvema poudarjenima števkama ni senčenja. `sencenjeVidno()`.
+- **`tests/trening-pomoc.test.js`:**
+  - E2: vklop in poudarek → »s pomočjo« (že šteti poskus se odšteje);
+  - E2: sama kljukica ali dve števki → brez pomoči;
+  - E1: senčenje ni pomoč;
+  - po pravilnem odgovoru senčenje nič ne spremeni;
+  - kljukica ostane med vajami kroga;
+  - poudarek z zelenim okvirjem (razreda `poud-stevka` in `k-vpis`).
+- **`tools/preveri-enojcki-brskalnik.js`:**
+  - senčenje pri 375 in 1200 px (izračunana šrafura na `::after`, ni je na neoznačenih
+    celicah);
+  - glava z dvema kljukicama v eni vrstici brez drsnika;
+  - po pravilnem odgovoru ob poudarjeni števki podlaga v barvi poudarka in zelen okvir;
+  - druge tehnike (1–12) enake kot `10503c2`.
+- **Igra:** posnetek `--primerjaj` »Enako« in posnetki zaslona igre enaki do bajta.
+- Testi: pribl. 375 + 5.
+
+Koraki izvedbe: 1 `shared/` in testi (igra enaka), 2 trening in testi, 3 scenarij in
+dokumentacija (`CLAUDE.md`, `docs/rocni-test.md`, ta načrt). Vsak korak je commit s
+pushem.
+
+### D5. Vprašanja
+
+1. **Poudarek po pravilnem odgovoru:** poudarek pred zeleno z zelenim okvirjem – predlog;
+   ali pustiti zeleno podlago?
+2. **Videz senčenja:** A šrafura – predlog; ali B ploskev?
+3. **»Več hkrati«:** senčenje samo ob eni poudarjeni števki – predlog; ali za zadnjo
+   izbrano?
+4. **Pomoč:** pri E2 se vaja s prikazanim senčenjem šteje »s pomočjo«, pri E1 ne –
+   predlog; ali nikjer ali povsod?
+5. **Ime in obstojnost kljukice:** »senči«, ostane med vajami kroga, ne shranjuje se –
+   predlog; drugo ime (npr. »kam ne more«)?
+6. **»Vadi v uganki«:** E1/E2 enako, pri 1–12 brez stikala, igra ne – predlog?
+
+### D6. Ročni seznam (po izvedbi, največ 5)
+
+1. **Trening, telefon, E2 vaja 4:** vklopi »senči« in poudari števko. Pričakovano: šrafura
+   je jasno vidna na modrikasti in sivi podlagi, števke ostanejo berljive. Ni avtomatsko,
+   ker je to presoja videza.
+2. **Trening, E2:** z vklopljenim senčenjem odgovori pravilno. Pričakovano: »(s pomočjo –
+   ne šteje)«, rezultat se ne poveča. Pri E1 enako brez te oznake. Ni avtomatsko v
+   celoti, ker gre za razumljivost pravila za igralca.
+3. **Trening, E1 vaja 7:** poudari števko odgovora in odgovori pravilno. Pričakovano: celica
+   odgovora ima podlago poudarka in zelen okvir. Ni avtomatsko, ker je to presoja videza.

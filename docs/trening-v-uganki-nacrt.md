@@ -46,7 +46,7 @@ docs/trening-v-uganki.md.
 | 4 `shared/mreza.js` | **narejeno 2026-09-25** | `3f6d73c` | 322 (315 + 7) |
 | 5 `shared/plosca.js` | **narejeno 2026-09-27** | `b119b32`–`4b505fe` + testi | 329 (322 + 7) |
 | – prava geometrija pri 1 in 2 v »Spoznaj« (samostojna) | **narejeno 2026-09-27** | `f505631`–`e3725d0` | 367 (346 + 21) |
-| – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28** | `4121cc8`–`2fcb63a` + dokumentacija | 375 (367 + 8) |
+| – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28**; dopolnitev (poudarek po odgovoru, senčenje) – načrt čaka potrditev | `4121cc8`–`2fcb63a` + dokumentacija | 375 (367 + 8) |
 | 6 trening »Vadi v uganki« | ni začet | | |
 
 ### Del 1 – narejeno (commit `ba1f832`)
