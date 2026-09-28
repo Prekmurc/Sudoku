@@ -591,3 +591,31 @@ dokumentacija. Vsak s commitom in pushem.
 4. **E1:** vrstica, stolpec ali blok celice koraka naključno, izbira omejena na enoto
    (predlog, kot »Spoznaj« vaje 4–6)?
 5. **Besedilo prečrtanih:** kot v 15.2 (predlog)?
+
+### 15.5 Odgovori (2026-09-28)
+
+Točka 15 potrjena.
+
+1. Območja pri 7–12 (števka, par števk, pivot, bloka): **da** (predlog).
+2. Pravilen korak zunaj območja se **sprejme kot pravilen, brez novega izida**
+   (`druga-enota` odpade, `preveriVajo()` ostane nespremenjena). Sporočilo pove, da je bil
+   korak v drugem območju, npr. »Pravilno! (korak v stolpcu 5, ne v vrstici 7) …«. Namig
+   in Rešitev ostaneta v območju.
+3. Območje naključnega koraka iz `KT`: **da** (predlog).
+4. E1 kot v »Spoznaj« (naključna enota celice koraka, izbira omejena nanjo): **da**.
+5. Besedilo pri prečrtanih: **da** (predlog, 15.2).
+
+Izvedba v dveh korakih (7a `shared/`, 7b trening), vsak s commitom in pushem. Ročni
+pregled: obstoječih 5 točk (`docs/rocni-test.md`) se dopolni, največ 5.
+
+### 15.6 Izvedba
+
+| Korak | Stanje | Commit | Testi |
+|---|---|---|---|
+| 7a `shared/vaje-uganka.js`: `obmocjeKoraka()`, `vObmocju()` | **narejeno 2026-09-28** | (ta commit) | 400 (399 + 1) |
+| 7b trening: navodilo, oznaka, postopnost, sporočilo, besedilo prečrtanih | | | |
+
+- 7a: nove funkcije brez DOM-a; `preveriVajo()` ostane nespremenjena (odgovor 2). Test na
+  vseh korakih vaj iz semen v `tests/vaje-uganka.test.js`: območje vsebuje korak (tudi pri
+  treh izbirah naključne enote pri E1), korak z drugim območjem ni v njem, vrste območij po
+  tehnikah. Posnetek igre »Enako: 85 posnetkov.«

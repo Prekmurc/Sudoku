@@ -14,7 +14,7 @@ const E = loadEngine(undefined, {
   names: ['genMinimalnaUganka', 'oceniTezavnost', 'nextStep', 'applyStep', 'nakedSingles', 'hiddenSingles',
     'stanjaVUganki', 'tehnikeVUganki', 'vajaIzStanja', 'vajaIzUganke', 'preveriVajo', 'VAJA_E1_NAJMANJ_PRAZNIH',
     'stanjeIgre', 'dodajPotezo', 'lahkoRazveljavi', 'lahkoZacniZnova', 'mozneAkcije', 'imeTehnike',
-    'POSKUS_KLJUC', 'elimLabel', 'solutionOf'],
+    'POSKUS_KLJUC', 'elimLabel', 'solutionOf', 'obmocjeKoraka', 'vObmocju', 'unitNameLoc', 'cellLabel'],
 });
 
 const bits = m => [...E.bitsOf(m)];
@@ -409,4 +409,45 @@ test('preveriVajo() pri E1 in E2: predlog vpisa presodi preveriEnojcek()', () =>
     }
     assert.ok(nevtralnih > 0, `${kljuc}: prava števka, ki je tehnika ne dokaže`);
   }
+});
+
+test('obmocjeKoraka / vObmocju: območje vsebuje korak, drugo območje ga ne (vse tehnike)', () => {
+  let drugo = 0;
+  for (const kljuc of TEHNIKE) {
+    const koraki = vaje.get(kljuc).flatMap(v => v.KT);
+    assert.ok(koraki.length, kljuc);
+    for (const k of koraki) {
+      for (const r of [0, 0.4, 0.9]) {
+        const ob = E.obmocjeKoraka(k, () => r);
+        assert.ok(ob, kljuc);
+        assert.ok(E.vObmocju(k, ob), `${kljuc}: korak je v svojem območju`);
+        assert.doesNotMatch(ob.opis, /številk/);
+        if (ob.vrsta === 'enota') {
+          if (ENOJCKA.includes(kljuc)) assert.ok(ob.enota.includes(k.assign[0][0]));
+          else assert.ok(k.cells.every(c => ob.enota.includes(c)), `${kljuc}: celice vzorca v enoti`);
+          assert.equal(ob.opis, `v ${E.unitNameLoc(ob.enota)}`);
+        }
+        if (ob.vrsta === 'pivot') assert.equal(ob.opis, `s pivotom ${E.cellLabel(k.cells[0])}`);
+        if (ob.vrsta === 'bloki') assert.ok(k.cells.every(c => ob.celice.includes(c)) && ob.bloki.length === 2);
+        if (ob.vrsta === 'stevke' && kljuc !== 'W-Wing') assert.ok(k.eliminate.every(e => e[1] === ob.stevke[0]));
+      }
+      // Korak z drugim območjem ni v tem območju (pri E1 je enota naključna, zato brez).
+      if (ENOJCKA.includes(kljuc)) continue;
+      const ob = E.obmocjeKoraka(k, () => 0);
+      for (const k2 of koraki) {
+        const o2 = E.obmocjeKoraka(k2, () => 0);
+        if (o2.opis !== ob.opis) {
+          assert.equal(E.vObmocju(k2, ob), false, `${kljuc}: ${o2.opis} ni ${ob.opis}`);
+          drugo++;
+        }
+      }
+    }
+  }
+  assert.ok(drugo > 0, 'med vajami so koraki v različnih območjih');
+  // Vrste po tehnikah (vrstni red ALL_TECHNIQUES).
+  const vrsta = kljuc => E.obmocjeKoraka(vaje.get(kljuc)[0].KT[0]).vrsta;
+  assert.equal(JSON.stringify(TEHNIKE.map(vrsta)), JSON.stringify(['enota', 'enota', 'enota', 'enota', 'enota', 'enota', 'enota', 'enota',
+    'stevke', 'stevke', 'stevke', 'stevke', 'pivot', 'bloki']));
+  // Brez območja je vsak korak v območju.
+  assert.equal(E.vObmocju(vaje.get('X-Wing')[0].KT[0], null), true);
 });

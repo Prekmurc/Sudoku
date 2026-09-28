@@ -17,6 +17,9 @@
    - vajaIzUganke(danosti, kljuc, rnd): naključno ustrezno stanje uganke kot vaja;
    - preveriVajo(vaja, stanje, predlog): presoja odgovora (tabela 3.2 v
      docs/trening-v-uganki.md in vrstni red izidov v načrtu);
+   - obmocjeKoraka(), vObmocju(): območje koraka za postopnost v krogu (vaje 1-6 v
+     "Vadi v uganki" - enota, števka, par, pivot ali bloka); presoja se zaradi njega ne
+     spremeni, pravilen je tudi korak zunaj območja;
    - preveriEnojcek(), namigEnojcka(): presoja in namig pri enojčkih - skupni z
      načinom "Spoznaj" (trening/generators.js; tam tudi namig po stopnji postopnosti). */
 
@@ -257,6 +260,57 @@ function preveriVajo(vaja, stanje, predlog = null) {
     sporocilo: `Prav, a to še ni ves korak – ${manjkaIzbrisov(manjka(najblizji))}.`,
     korak: najblizji, razveljavi: [],
   };
+}
+
+/* ---------- območje koraka (postopnost v "Vadi v uganki") ---------- */
+
+// Območje, v katerem naj igralec išče korak (vaje 1-6 kroga, docs/vadi-v-uganki-nacrt.md,
+// točka 15): pri tehnikah z enoto enota koraka (E2, 1-6), pri E1 naključna vrstica,
+// stolpec ali blok celice koraka (kot "Spoznaj" vaje 4-6), pri 7-9 števka, pri W-krilu
+// par števk, pri XY-krilu pivot, pri edinstvenem pravokotniku bloka. Vrne
+// { vrsta: 'enota' | 'stevke' | 'pivot' | 'bloki', enota, stevke, celica, bloki,
+// celice (za oznako na mreži ali null), opis ("v stolpcu 5", "na števki 3", "s parom 3 in
+// 7", "s pivotom V8S1", "v blokih 1 in 2") } ali null (neznana tehnika).
+function obmocjeKoraka(korak, rnd = Math.random) {
+  const t = korak.technique;
+  if (t === 'Gol enojček') {
+    const u = UNITS_OF[korak.assign[0][0]][Math.floor(rnd() * 3)];
+    return { vrsta: 'enota', enota: u, celice: u, opis: `v ${unitNameLoc(u)}` };
+  }
+  const u = korak.unit || (korak.hint && korak.hint.unit);
+  if (u) return { vrsta: 'enota', enota: u, celice: u, opis: `v ${unitNameLoc(u)}` };
+  if (t === 'X-Wing' || t === 'Swordfish' || t === 'Turbot Fish') {
+    const d = korak.hint.digits[0];
+    return { vrsta: 'stevke', stevke: [d], celice: null, opis: `na števki ${d}` };
+  }
+  if (t === 'W-Wing') {
+    const s = [...korak.hint.digits].sort((a, b) => a - b);
+    return { vrsta: 'stevke', stevke: s, celice: null, opis: `s parom ${s[0]} in ${s[1]}` };
+  }
+  if (t === 'XY-Wing') {
+    const p = korak.cells[0];
+    return { vrsta: 'pivot', celica: p, celice: [p], opis: `s pivotom ${cellLabel(p)}` };
+  }
+  if (t === 'Unique Rectangle') {
+    const b = [...new Set(korak.cells.map(boxOf))].sort((x, y) => x - y);
+    return { vrsta: 'bloki', bloki: b, celice: b.flatMap(i => BOXES[i]), opis: `v blokih ${b[0] + 1} in ${b[1] + 1}` };
+  }
+  return null;
+}
+
+// Ali je korak v območju (brez območja vedno). Enojčka: celica koraka je v enoti; druge
+// tehnike z enoto: ista enota; števke, pivot, bloka: isti.
+function vObmocju(korak, ob) {
+  if (!ob) return true;
+  if (ob.vrsta === 'enota') {
+    if (jeEnojcek(korak.technique)) return ob.enota.includes(korak.assign[0][0]);
+    return (korak.unit || (korak.hint && korak.hint.unit)) === ob.enota;
+  }
+  const o = obmocjeKoraka(korak, () => 0);
+  if (!o || o.vrsta !== ob.vrsta) return false;
+  if (ob.vrsta === 'stevke') return o.stevke.join() === ob.stevke.join();
+  if (ob.vrsta === 'pivot') return o.celica === ob.celica;
+  return o.bloki.join() === ob.bloki.join();
 }
 
 /* ---------- enojčka (skupno s "Spoznaj") ---------- */
