@@ -471,3 +471,123 @@ kodi). Pri izbrani celici (modrikasta podlaga) je siva slabše vidna.
 ## 14. Ročni pregled (en sam, po 6d)
 
 Prenesen v `docs/rocni-test.md`, razdelek »Trening: Vadi v uganki«.
+
+## 15. Popravek po ročnem pregledu: območje koraka in besedilo prečrtanih (načrt, 2026-09-28)
+
+**Kode še nisem spreminjal.** Posnetki pri 375 px so iz prototipa v začasni kopiji
+projekta (trenutni `main` z dodatki spodaj).
+
+**Opažanje (ročni pregled, 4 · Skriti par):** navodilo »Poišči korak tehnike Skriti par«
+na celi uganki igralca zmede, ker ne ve, kje naj išče. Iz besedila pri prečrtanih
+kandidatih ni razvidno, da niso del naloge.
+
+### 15.1 Območje koraka in postopnost v krogu
+
+- **Vaje 1–6** imajo **območje**: navodilo ga pove, na mreži je označeno (kot postopnost
+  v »Spoznaj«). **Vaje 7–9** so brez območja (cela uganka, kot zdaj). Velja za vse
+  tehnike, tudi za E1 in E2.
+- **Katero območje, če je korakov več:** naključen korak iz `KT` (kot izbira koraka v
+  »Spoznaj«), območje je njegovo. Pravilen je **vsak** korak tehnike v istem območju (npr.
+  dva skrita para v istem bloku). Pomoč (Namig, Rešitev) izbira samo med koraki v območju.
+- **Območje po tehnikah.** Pri 1–6 in E2 ima korak eno enoto (`step.unit` oziroma
+  `hint.unit`), pri 7–12 in E1 pa ne. Zanje predlagam območje, ki je približno na ravni
+  namiga (`stepHint()`) in vzorca ne izda:
+
+| Tehnika | Območje | Navodilo (primer) | Na mreži | Korak je v območju, ko |
+|---|---|---|---|---|
+| E1 | vrstica, stolpec ali blok celice koraka (naključno, kot »Spoznaj« vaje 4–6) | »V vrstici 3 poišči celico z eno samo možno števko in jo vpiši.« | enota modrikasta (`oznacene`), izbrati je mogoče samo prazne celice v njej (kot »Spoznaj«) | celica koraka je v enoti |
+| E2 | enota koraka | »V bloku 5 poišči števko z enim samim mestom in jo vpiši.« | enako | enako |
+| 1–6 | enota koraka (blok pri 1, vrstica/stolpec pri 2, enota para/trojice pri 3–6) | »V vrstici 7 poišči skriti par in odstrani kandidate, ki jih izloči.« | enota modrikasta | ista enota |
+| 7, 8, 9 | števka koraka | »Na števki 2 poišči X-krilo in odstrani kandidate, ki jih izloči.« | števka poudarjena ob začetku (niz Poudari, igralec jo lahko izklopi) | ista števka |
+| 10 W-krilo | števki para | »Poišči W-krilo s parom kandidatov 3 in 7 in odstrani …« | obe števki poudarjeni (»več hkrati« se vklopi) | isti par števk |
+| 11 XY-krilo | pivot | »Poišči XY-krilo s pivotom V8S1 in odstrani …« | celica pivota modrikasta | isti pivot |
+| 12 Edinstveni pravokotnik | bloka pravokotnika | »V blokih 1 in 2 poišči edinstveni pravokotnik in odstrani …« | oba bloka modrikasta | ista bloka |
+
+  Razlaga pod navodilom dobi pri označenih celicah še »Označeno območje je na mreži
+  modrikasto.«, pri števkah »Števka je poudarjena.«. Ime tehnike v navodilu je v tožilniku
+  (»skriti par«, »očitno trojico«, »mečarico« …) – preslikava je v `trening/v-uganki.js`,
+  ker `imeTehnike()` da imenovalnik.
+
+- **Pravilen korak zunaj območja (1–12):** nov izid **`druga-enota`** – kot `druga-tehnika`
+  (ni napaka, ne šteje, izbrisi zunaj korakov v območju se samodejno vrnejo, »Preveri« do
+  spremembe onemogočen). Vrstni red izidov: prazno → napačno → neutemeljeno →
+  **druga-enota** → druga tehnika → delno / pravilno. Sporočila (brez sklanjanja imena
+  tehnike, kot pri drugi tehniki):
+  - enota: »To drži in je korak tehnike 4 · Skriti par, a v stolpcu 5 – naloga je v
+    vrstici 7. Razveljavljeno: V2S5 (3).«
+  - števka: »…, a na števki 3 – naloga je na števki 2.«; par: »…, a s parom 1 in 5 –
+    naloga je s parom 3 in 7.«; pivot: »…, a s pivotom V2S3 – naloga je s pivotom
+    V8S1.«; bloka: »…, a v blokih 4 in 5 – naloga je v blokih 1 in 2.«
+  
+  Pri E1/E2 do tega ne pride: izbrati je mogoče samo celice v enoti (kot v »Spoznaj«).
+  Druga možnost je, da je vsak korak tehnike pravilen ne glede na območje (območje je
+  samo pomoč pri iskanju) – potem bi navodilo postalo samo nasvet.
+- **Kje v kodi:**
+  - `shared/vaje-uganka.js` (brez DOM-a, testabilno): `obmocjeKoraka(korak, rnd)` →
+    `{ vrsta: 'enota' | 'stevke' | 'pivot' | 'bloki', celice, stevke, opis }` in
+    `vObmocju(korak, obmocje)`; `preveriVajo(vaja, stanje, predlog, obmocje)` – z območjem
+    so koraki tehnike samo tisti v območju, drugi dajo `druga-enota`. Brez območja (vaje
+    7–9, »Spoznaj«) se nič ne spremeni.
+  - `trening/v-uganki.js`: območje ob izrisu vaje (`exNum < 6`), navodilo, `oznacene` ali
+    poudarek, pri E1/E2 omejena izbira, pomoč iz korakov v območju, sporočilo
+    `druga-enota`.
+  - Igra in »Spoznaj« se ne spremenita (`preveriVajo()` brez območja dela kot zdaj).
+
+**Posnetki (prototip, 375 px):**
+
+| 4 · Skriti par, vaja 1 (vrstica 7), prečrtani vklopljeni | 7 · X-krilo, vaja 1 (števka 2) |
+|---|---|
+| ![](slike/vadi-v-uganki/popravek-hidden-pair-1-precrtani-375.png) | ![](slike/vadi-v-uganki/popravek-x-wing-1-375.png) |
+
+| 11 · XY-krilo, vaja 1 (pivot V8S1) | E1, vaja 1 (vrstica 3) |
+|---|---|
+| ![](slike/vadi-v-uganki/popravek-xy-wing-1-375.png) | ![](slike/vadi-v-uganki/popravek-naked-single-1-375.png) |
+
+| 4 · Skriti par, vaja 1, prečrtani izklopljeni | 4 · Skriti par, vaja 7 (cela uganka) |
+|---|---|
+| ![](slike/vadi-v-uganki/popravek-hidden-pair-1-375.png) | ![](slike/vadi-v-uganki/popravek-hidden-pair-7-375.png) |
+
+Na prototipu pri XY-krilu je pivot ena sama modrikasta celica (V8S1) – dobro viden, a
+majhen; pri E1 je v prototipu izbira še na vsej mreži (v izvedbi omejena na enoto).
+
+### 15.2 Besedilo pri prečrtanih kandidatih
+
+| Stanje | Zdaj | Predlog |
+|---|---|---|
+| kljukica izklopljena | »V tem stanju je že odstranjenih 5 kandidatov (prejšnji koraki).« ☐ pokaži prečrtane | »Prejšnji koraki so že odstranili 5 kandidatov – niso del naloge.« ☐ pokaži jih prečrtane |
+| kljukica vklopljena | isto | »Prečrtane kandidate (5) so odstranili prejšnji koraki – niso del naloge.« ☑ pokaži jih prečrtane |
+| brez prej odstranjenih | »V tem stanju ni prej odstranjenih kandidatov.« | »Prejšnji koraki niso odstranili nobenega kandidata.« |
+
+- Sklanjanje (tožilnik): 1 kandidata, 2 kandidata, 3 in 4 kandidate, 5 in več kandidatov
+  (101 kandidata, 102 kandidata …).
+- `title` kljukice: »Kandidate so odstranili koraki na poti do te vaje. Niso del odgovora –
+  odstrani samo kandidate, ki jih izloči iskani korak.«
+
+### 15.3 Testi in preverjanje
+
+- `tests/vaje-uganka.test.js`: `obmocjeKoraka()` za vse tehnike iz semen v testu (območje
+  vsebuje korak, `vObmocju()` drži za izbrani korak), `preveriVajo()` z območjem: korak v
+  območju `pravilno`, korak iste tehnike zunaj `druga-enota` z razveljavitvijo, brez
+  območja nespremenjeno.
+- `tests/trening-uganka-ui.test.js`: navodilo in oznaka po stopnjah (vaje 1–6 z območjem,
+  7–9 brez) za enoto, števke, pivot in bloka; E1/E2 omejena izbira; `druga-enota` prek
+  UI; pomoč iz koraka v območju; novo besedilo prečrtanih s sklanjanjem.
+- `tools/preveri-vadi-brskalnik.js`: označeno območje (izračunana barva), poudarjena
+  števka, besedilo prečrtanih, brez drsnika pri 375 in 1200 px; »Spoznaj« enak kot
+  `5b9ae6f`.
+- Posnetek igre »Enako«, vsi testi.
+
+Koraka izvedbe: **7a** `shared/vaje-uganka.js` (območje, `druga-enota`) in testi;
+**7b** trening (navodilo, oznaka, postopnost, besedilo prečrtanih), scenarij,
+dokumentacija. Vsak s commitom in pushem.
+
+### 15.4 Vprašanja
+
+1. **Območje pri 7–12:** števka (7–9), par števk (10), pivot (11), bloka (12) – predlog?
+   Pri X-krilu in mečarici bi bile druga možnost osnovne vrstice/stolpci (izda pol vzorca).
+2. **Pravilen korak zunaj območja:** `druga-enota` – ni napaka, ne šteje, izbrisi se vrnejo
+   (predlog)? Ali ga sprejmem kot pravilnega?
+3. **Katero območje:** naključen korak iz `KT` (predlog)?
+4. **E1:** vrstica, stolpec ali blok celice koraka naključno, izbira omejena na enoto
+   (predlog, kot »Spoznaj« vaje 4–6)?
+5. **Besedilo prečrtanih:** kot v 15.2 (predlog)?
