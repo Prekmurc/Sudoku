@@ -418,7 +418,7 @@ Koraki 1–2 so neodvisni od 3–5 in jih je mogoče narediti prej.
   banka semen se pokvari; test to ujame.
 - **Hitrost na telefonu** – meritve so v Node na namiznem računalniku; brskalnik na telefonu
   je lahko 2–4× počasnejši. Pri tehnikah, ki so blizu meje, velja banka ali delavec.
-- **Uganka »Ekstrem«** – stanje pred prvim poskusom s protislovjem je veljavno, a če bi
+- **Uganka »Presega tehnike«** (v tej meritvi »Ekstrem«) – stanje pred prvim poskusom s protislovjem je veljavno, a če bi
   igralec po vaji uganko reševal naprej (vprašanje 4), brez ugibanja ne bi prišel do konca.
 
 ### 4.5 Odločitve

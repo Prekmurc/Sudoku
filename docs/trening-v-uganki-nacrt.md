@@ -47,7 +47,7 @@ docs/trening-v-uganki.md.
 | 5 `shared/plosca.js` | **narejeno 2026-09-27** | `b119b32`–`4b505fe` + testi | 329 (322 + 7) |
 | – prava geometrija pri 1 in 2 v »Spoznaj« (samostojna) | **narejeno 2026-09-27** | `f505631`–`e3725d0` | 367 (346 + 21) |
 | – pripomočki za E1/E2 v »Spoznaj« (samostojna) | **narejeno 2026-09-28**, z dopolnitvijo (poudarek po odgovoru, senčenje) | `4121cc8`–`2fcb63a`, `e4ca928`–`3d8781e` + dokumentacija | 379 (367 + 12) |
-| 6 trening »Vadi v uganki« | ni začet | | |
+| 6 trening »Vadi v uganki« | **načrt 2026-09-28** (`docs/vadi-v-uganki-nacrt.md`), čaka na potrditev | | |
 
 ### Del 1 – narejeno (commit `ba1f832`)
 
@@ -602,6 +602,7 @@ E1, E2, 1 Pointing	100 %	92–100 %
 8 Swordfish, 12 UR	14–18 %	0–7 %
 6 Skrita trojica	0 %	0 %
 Za redke tehnike je vzorec majhen (12–65 ugank), zato so to grobe ocene. Pri tehnikah 5–8 in 12 bo vaja večinoma iz banke, kar je v skladu z odločitvijo 6.
+**Ne velja več** (tabela je brez ugank »Presega tehnike«): nova ocena z meritvijo v brskalniku je v `docs/vadi-v-uganki-nacrt.md`, točka 7.
 
 1. Razdelitev na dele (commit + push po vsakem)
 Del	Vsebina	Obseg
@@ -699,7 +700,7 @@ tests/vaje-uganka.test.js:
 genMinimalnaUganka() je ponovljiva in se ujema z merilnim orodjem;
 na več semenih za vsako tehniko:
 v S0 nextStep() vrne T;
-uganka ima eno rešitev in ni Presega tehnike;
+uganka ima eno rešitev (»ni Presega tehnike« odpade – opombe k delu 2);
 kandidati v igri iz vaje so natanko kandidati na poti;
 E1/E2 sta čista, E1 ima vsaj 30 praznih celic;
 preveriVajo() z vsemi izidi na pravih stanjih, kjer se izbrisi izračunajo iz korakov motorja in se ne sestavljajo na pamet:
@@ -710,7 +711,7 @@ druga tehnika: korak iz KV brez KT;
 neutemeljeno: kandidat, ki ni prava števka in ga noben korak ne izbriše;
 prazno.
 tests/vaje-banka.test.js:
-vsak zapis ima eno rešitev, ni Presega tehnike, ima pravo stopnjo;
+vsak zapis ima eno rešitev, ima pravo stopnjo (»ni Presega tehnike« odpade – opombe k delu 3);
 seznam tehnike je natanko izračunani (sprememba motorja ga pokvari, test to pokaže);
 seme da iste danosti;
 vsaka tehnika ima vsaj 50 ugank.
@@ -727,7 +728,7 @@ Obstoječi trening-enojcki, trening-pomoc in igra-* ostanejo zeleni, spremenijo 
 Izbira načina: predlagam dva gumba na kartici, »Spoznaj« in »Vadi v uganki«, pri čemer klik drugam na kartici pomeni »Spoznaj«. Druga možnost je eno stikalo nad menijem.
 E1/E2: se strinjaš z vpisom kot predlogom (vseh 9 števk omogočenih, poteza šele po pravilnem odgovoru) in brez razveljavi/ponovi v teh dveh vajah?
 »Prav, a z drugo tehniko«: naj se izbrisi, ki niso iz T, samodejno razveljavijo tako kot pri neutemeljenem izbrisu? Predlagam da. Sicer bi vsak naslednji »Preveri« spet dal isti izid, dokler jih igralec ne vrne sam.
-»Spoznaj« E1/E2: naj tudi tam velja pravilo »ne Presega tehnike«? Predlagam ne, ker tam štejejo samo enojčki, »Spoznaj« pa ostaja nespremenjen.
+»Spoznaj« E1/E2: naj tudi tam velja pravilo »ne Presega tehnike«? Predlagam ne, ker tam štejejo samo enojčki, »Spoznaj« pa ostaja nespremenjen. (Brezpredmetno – pravilo je odpadlo.)
 Velikost banke: je 50 ugank na tehniko dovolj (enkratno pribl. 10 min, test nekaj sekund)?
 Iskanje naslednje vaje v ozadju, medtem ko rešuješ trenutno: to močno poveča delež sprotnih vaj. Predlagam, da pride pozneje, ne v prvo različico.
 Obseg preureditve igre (dela 4 in 5): predlagam polno izločitev, kot v 4.1. Lažja možnost je, da trening prevzame samo izris, vnos pa napiše sam, a to podvoji pribl. 300 vrstic vnosa iz igre.
