@@ -165,12 +165,65 @@ function izrisiVadi(v){
   btnRow.append(checkBtn,nextBtn);div.appendChild(btnRow);
   const fb=vEl('div','fb');div.appendChild(fb);
 
+  // Pomoč (6c): "Namig" in "Rešitev" s klikom, okvir ostane do "Skrij" (ne "drži" kot v
+  // "Spoznaj"). Vsak ogled = vaja s pomočjo (oznaciPomoc). pomoc = { vrsta: 'namig' |
+  // 'resitev', korak } ali null; korak se izbere ob prvem odprtju in ostane, dokler je
+  // okvir odprt.
+  let pomoc=null;
+  const pomocVrsta=vEl('div','peek-row');
+  const namigBtn=vEl('button','sm-btn','Namig'),resitevBtn=vEl('button','sm-btn','Rešitev');
+  namigBtn.type='button';resitevBtn.type='button';
+  pomocVrsta.append(namigBtn,resitevBtn);div.appendChild(pomocVrsta);
+  const pomocEl=vEl('div','vadi-pomoc');pomocEl.hidden=true;pomocEl.setAttribute('aria-live','polite');
+  div.appendChild(pomocEl);
+  // Korak iz KT, ki ima največ igralčevih izbrisov (pri enaki meri prvi); brez njih KT[0]
+  // (= nextStep() v S0).
+  function korakPomoci(){
+    const izbrisanih=k=>k.eliminate.filter(([c,d])=>!stanje.grid[c]&&!(stanje.kandidati[c]&(1<<d))).length;
+    return v.KT.reduce((naj,k)=>izbrisanih(k)>izbrisanih(naj)?k:naj,v.KT[0]);
+  }
+  function odpriPomoc(vrsta){
+    oznaciPomoc();
+    pomoc={vrsta,korak:pomoc?pomoc.korak:korakPomoci()};
+    plosca.izrisi();izrisiPomoc();
+  }
+  function izrisiPomoc(){
+    pomocEl.innerHTML='';pomocEl.hidden=!pomoc;
+    if(!pomoc) return;
+    const k=pomoc.korak,p=vEl('p','pomoc-msg');
+    if(pomoc.vrsta==='namig'){
+      p.append(vEl('b',null,'Namig: '),stepHint(k)||'');
+      pomocEl.appendChild(p);
+    }else{
+      p.append(vEl('b',null,'Rešitev: '),k.message);
+      pomocEl.appendChild(p);
+      // Dejanja koraka z oznako izvedenih (kot v igri), na mreži samo še neizvedena.
+      const dejanja=dejanjaKoraka(k,stanje),opravljenih=dejanja.filter(a=>a.opravljeno).length;
+      if(opravljenih===dejanja.length) pomocEl.appendChild(vEl('p','pomoc-opomba ok','✓ Korak je izveden.'));
+      else if(dejanja.length>1){
+        pomocEl.appendChild(vEl('p','pomoc-opomba',`Opravljeno: ${opravljenih} od ${dejanja.length}`));
+        const ul=vEl('ul','pomoc-dejanja');
+        for(const a of dejanja){
+          const li=vEl('li',a.opravljeno?'opravljeno':null);
+          li.append(vEl('span','dejanje-znak',a.opravljeno?'✓':''),a.tip==='vpis'?`vpiši ${a.stevka} v ${cellLabel(a.celica)}`:`izbriši ${a.stevka} iz ${cellLabel(a.celica)}`);
+          ul.appendChild(li);
+        }
+        pomocEl.appendChild(ul);
+      }
+    }
+    const skrij=vEl('button','sm-btn','Skrij');skrij.type='button';
+    skrij.addEventListener('click',()=>{pomoc=null;plosca.izrisi();izrisiPomoc();});
+    pomocEl.appendChild(skrij);
+  }
+  namigBtn.addEventListener('click',()=>odpriPomoc('namig'));
+  resitevBtn.addEventListener('click',()=>odpriPomoc('resitev'));
+
   // Novo stanje igre po igralčevi spremembi ali "Poskusi znova": "Preveri" je spet na
   // voljo, staro sporočilo izgine.
   function poSpremembi(){
     const prej=stanje;stanje=stanjeIgre(v.igra);plosca.poSpremembi(prej);
     checkBtn.disabled=false;fb.className='fb';fb.innerHTML='';
-    plosca.izrisi();
+    plosca.izrisi();izrisiPomoc();
   }
   // Maske izbrisov koraka po celicah (prečrtani po pravilnem odgovoru).
   const maskeKoraka=k=>{const m=new Array(81).fill(0);for(const[c,d]of k.eliminate)m[c]|=1<<d;return m;};
@@ -184,7 +237,10 @@ function izrisiVadi(v){
     obSpremembi:poSpremembi,
     samoZaOgled:()=>vajaResena,
     razlog:()=>vajaResena?'Vaja je rešena – nadaljuj z »Naslednja vaja«.':null,
-    oznake:()=>odgovor?{vzorec:new Set(odgovor.cells),izbris:new Set(odgovor.eliminate.map(([c,d])=>c*10+d)),izbrisCelice:new Set(),vpis:new Map()}:null,
+    // Oznake: po pravilnem odgovoru korak odgovora, med odprto "Rešitvijo" njen korak (samo
+    // še neizvedena dejanja - oznakeKoraka).
+    oznake:()=>odgovor?{vzorec:new Set(odgovor.cells),izbris:new Set(odgovor.eliminate.map(([c,d])=>c*10+d)),izbrisCelice:new Set(),vpis:new Map()}
+      :pomoc&&pomoc.vrsta==='resitev'?oznakeKoraka(pomoc.korak,stanje):null,
     // E1/E2: brez kandidatov, izbrati je mogoče samo prazne celice. Po pravilnem odgovoru
     // izbire ni več.
     spremenljiva:enoj?(i=>!stanje.grid[i]):(()=>!vajaResena),
@@ -200,7 +256,7 @@ function izrisiVadi(v){
 
   if(enoj){
     // Do dela 6d: vajo E1/E2 je mogoče samo preskočiti.
-    checkBtn.style.display='none';nextBtn.style.display='inline-block';
+    checkBtn.style.display='none';nextBtn.style.display='inline-block';pomocVrsta.hidden=true;
   }
 
   // "Poskusi znova" (po napačnem odgovoru): kot "Začni znova" - kazalec na začetek vaje,
@@ -217,7 +273,7 @@ function izrisiVadi(v){
     for(const[c,d]of izbrisi){
       if(dodajPotezo(v.igra,{tip:'kandidat',celica:c,stevka:d,odstrani:false},stanje)) stanje=stanjeIgre(v.igra);
     }
-    plosca.izrisi();
+    plosca.izrisi();izrisiPomoc();
   }
   // Presoja odgovora (vrstni red izidov v preveriVajo()); po vsaki oceni je "Preveri"
   // onemogočen do naslednje igralčeve spremembe - isti odgovor se ne šteje dvakrat.
@@ -225,7 +281,7 @@ function izrisiVadi(v){
     const r=preveriVajo(v,stanje);
     checkBtn.disabled=true;
     if(r.izid==='pravilno'){
-      stej(true);odgovor=r.korak;
+      stej(true);odgovor=r.korak;pomoc=null;izrisiPomoc();
       fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${r.korak.message}`;
       akcije.hidden=true;checkBtn.style.display='none';nextBtn.style.display='inline-block';
       plosca.izrisi();

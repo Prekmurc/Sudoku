@@ -192,6 +192,29 @@ async function odgovor1do12(b, sirina) {
   await b.posnetek(path.join(mapa, `hidden-pair-pravilno-${sirina}.png`));
 }
 
+// 1-12: pomoč s pravimi kliki - Namig in Rešitev ostaneta do "Skrij", oznake koraka.
+async function pomoc1do12(b, sirina) {
+  console.log(`hidden-pair, pomoč, ${sirina} px`);
+  await vadi(b, 'hidden-pair', sirina, { banka: true, seme: 5 });
+  const e0 = await b.izvedi('vadi.v.KT[0].eliminate[0]');
+  await odstraniKlik(b, e0);
+  await klikniGumb(b, 'Namig');
+  let p = await b.izvedi(`(() => { const o = document.querySelector('.vadi-pomoc'); return { vidno: !o.hidden && o.getBoundingClientRect().height > 0, besedilo: o.textContent, pomoc: document.getElementById('scorePomoc').textContent }; })()`);
+  preveri('Namig ostane prikazan po kliku', p.vidno && p.besedilo.startsWith('Namig: '), p);
+  preveri('vaja s pomočjo', p.pomoc === ' · s pomočjo: 1', p.pomoc);
+  await klikniGumb(b, 'Rešitev');
+  p = await b.izvedi(`(() => { const o = document.querySelector('.vadi-pomoc'), k = document.querySelector('.vaja-uganka .kand.k-izbris');
+    return { besedilo: o.textContent, izbris: k ? getComputedStyle(k).color : null, vzorec: document.querySelectorAll('.vaja-uganka .celica.k-vzorec').length,
+      sirina: document.documentElement.scrollWidth, vKartici: o.getBoundingClientRect().right <= document.querySelector('.exercise').getBoundingClientRect().right }; })()`);
+  preveri('Rešitev: sporočilo koraka in oznake na mreži', p.besedilo.startsWith('Rešitev: ') && p.izbris === 'rgb(176, 46, 46)' && p.vzorec > 0, p);
+  preveri('Rešitev: opravljeni izbris v seznamu', /Opravljeno: 1 od \d+/.test(p.besedilo) || /Korak je izveden/.test(p.besedilo), p.besedilo);
+  preveri('pomoč v kartici, brez drsnika', p.vKartici && p.sirina === sirina, p);
+  await b.posnetek(path.join(mapa, `hidden-pair-resitev-${sirina}.png`));
+  await klikniGumb(b, 'Skrij');
+  p = await b.izvedi(`({ skrito: document.querySelector('.vadi-pomoc').hidden, oznak: document.querySelectorAll('.vaja-uganka .k-vzorec, .vaja-uganka .k-izbris').length })`);
+  preveri('Skrij: okvir in oznake izginejo', p.skrito && p.oznak === 0, p);
+}
+
 async function banka(b) {
   console.log('Banka ob preseženi meji');
   await vadi(b, 'swordfish', 375, { banka: true });
@@ -254,6 +277,7 @@ async function main() {
       for (const mode of ['hidden-pair', 'swordfish', 'unique-rectangle']) await vaja1do12(b, mode, sirina);
       for (const mode of ENOJCKA) await enojcek(b, mode, sirina);
       await odgovor1do12(b, sirina);
+      await pomoc1do12(b, sirina);
     }
     await banka(b);
   } finally {

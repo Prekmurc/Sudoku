@@ -109,12 +109,22 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 /* vrstica z razlogom pod nizom Odstrani (kot v igri), Razveljavi/Ponovi/Začni znova */
 .vaja-uganka .niz-razlog{font-size:12.5px;color:#3C4854;line-height:1.4;min-height:18px;margin:4px 2px 0 var(--rob)}
 .vaja-uganka .niz-razlog.zaklenjeno{font-weight:600;color:var(--green);background:#F1F8F3;border:1px solid var(--green);border-radius:8px;padding:6px 10px}
-.vaja-uganka .akcije{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px var(--rob)}
-.vaja-uganka .akcije button{font-family:'Inter',sans-serif;font-size:13px;padding:7px 11px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.vaja-uganka .akcije{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 10px var(--rob)}
+.vaja-uganka .akcije button{font-family:'Inter',sans-serif;font-size:12.5px;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap}
 .vaja-uganka .akcije button:disabled{color:#B8C0C8;cursor:default}
 /* izid, ki se ne šteje (delno, druga tehnika, neutemeljeno, prazno) */
 .fb.info{display:block;background:var(--blue-bg);border:1px solid #B5CBE6;color:#1D3F6B}
 .fb .sm-btn{margin-left:4px}
+/* pomoč (Namig, Rešitev): okvir ostane do "Skrij"; seznam dejanj kot v igri */
+.vadi-pomoc{padding:10px 14px;border-radius:8px;background:#FFFCE8;border:1px solid #E8DFA0;font-size:13px;line-height:1.6;color:#5A4A12;margin:8px 0 0}
+.vadi-pomoc .pomoc-msg{margin:0}
+.vadi-pomoc .pomoc-msg b{color:#3A3008}
+.vadi-pomoc .pomoc-opomba{margin:6px 0 0;font-size:12.5px}
+.vadi-pomoc .pomoc-opomba.ok{color:var(--green);font-weight:600}
+.vadi-pomoc .pomoc-dejanja{list-style:none;margin:4px 0 0;padding:0}
+.vadi-pomoc .pomoc-dejanja li.opravljeno{color:var(--green);text-decoration:line-through}
+.vadi-pomoc .dejanje-znak{display:inline-block;width:1.3em}
+.vadi-pomoc .sm-btn{margin-top:8px}
 
 .gc{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;border:2px solid #D0D5DA;border-radius:6px;background:#fff;transition:background .12s,box-shadow .12s;flex-shrink:0}
 .gc.selectable{cursor:pointer}

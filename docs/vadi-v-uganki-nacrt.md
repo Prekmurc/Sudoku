@@ -369,8 +369,8 @@ en sam, po 6d.
 | Korak | Stanje | Commit | Testi |
 |---|---|---|---|
 | 6a izbira načina, iskanje, zaslon za ogled | **narejeno 2026-09-28** | `c22fe78` | 390 (379 + 11) |
-| 6b odgovor pri 1–12 | **narejeno 2026-09-28** | (ta commit) | 393 (390 + 3) |
-| 6c pomoč pri 1–12 | | | |
+| 6b odgovor pri 1–12 | **narejeno 2026-09-28** | `566265e` | 393 (390 + 3) |
+| 6c pomoč pri 1–12 | **narejeno 2026-09-28** | (ta commit) | 396 (393 + 3) |
 | 6d E1/E2, ročni pregled | | | |
 
 ### 6a
@@ -420,3 +420,19 @@ en sam, po 6d.
   kliki in tipkami QWERTZ; »Spoznaj« vseh 14 tehnik enak kot `5b9ae6f`).
 
 ![6b: pravilen odgovor, 375 px](slike/vadi-v-uganki/izvedba-6b-pravilno-375.png)
+
+### 6c
+
+- `trening/v-uganki.js`: gumba »Namig« in »Rešitev« pod sporočilom, okvir pomoči ostane do
+  »Skrij« in se osveži ob vsaki potezi (tudi ob samodejni vrnitvi izbrisov), pravilen
+  odgovor ga zapre. Korak pomoči po točki 6 (največ igralčevih izbrisov, sicer `KT[0]`).
+  Rešitev: sporočilo koraka, »Opravljeno: N od M« s seznamom (kopija izrisa iz igre – igra
+  ostane nespremenjena), »✓ Korak je izveden.«, na mreži samo še neizvedena dejanja.
+- `trening/trening.css`: okvir pomoči (barve kot »Namig (drži)« v »Spoznaj«), gumbi
+  Razveljavi/Ponovi/Začni znova manjši, da so pri 375 px v eni vrstici.
+- Testi: `tests/trening-uganka-ui.test.js` (+3).
+- Preverjanje: 396 testov; posnetek igre »Enako: 85 posnetkov.«;
+  `tools/preveri-vadi-brskalnik.js` »Vse drži« (dopolnjen s pomočjo pri 4 s pravimi
+  kliki; »Spoznaj« enak kot `5b9ae6f`).
+
+![6c: rešitev, 375 px](slike/vadi-v-uganki/izvedba-6c-resitev-375.png)

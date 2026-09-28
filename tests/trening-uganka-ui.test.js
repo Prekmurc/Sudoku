@@ -368,3 +368,80 @@ test('1-12: tipkovnica (pari QWERTZ), razlog pri vpisu iz prejšnjih korakov, be
   assert.doesNotMatch(besedila, /številk|Prikaži/i);
   assert.doesNotMatch(besedila.replace(/\([^)]*\)/g, ''), /Naked|Hidden|Pair|Wing|Swordfish|Rectangle|Turbot|Pointing|Box-line/);
 });
+
+/* ---------- 6c: pomoč pri 1-12 ---------- */
+
+const pomocOkvir = dom => poRazredu(dom, 'vadi-pomoc')[0];
+const pomocBesedilo = dom => pomocOkvir(dom).textContent;
+const sPomocjo = dom => dom.el('scorePomoc').textContent;
+
+test('1-12: Namig s klikom ostane do "Skrij", vaja se ne šteje (že šteti poskus se odšteje)', () => {
+  const { dom, run } = vajaZ('hidden-pair', 'v.KT[0].eliminate.length >= 2');
+  const I = izbrisiVaje(run);
+  assert.equal(pomocOkvir(dom).hidden, true);
+  // Napačen poskus se šteje, ogled namiga ga odšteje.
+  odstrani(dom, run, I.prava);
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(rezultat(dom), '0/1');
+  gumb(dom, 'Namig').sprozi('click');
+  assert.equal(rezultat(dom), '0/0');
+  assert.equal(sPomocjo(dom), ' · s pomočjo: 1');
+  assert.equal(pomocOkvir(dom).hidden, false);
+  assert.equal(pomocBesedilo(dom), `Namig: ${run('stepHint(vadi.v.KT[0])')}Skrij`);
+  // Namig ne pokaže oznak na mreži; ostane ob potezah.
+  assert.equal(celice(dom).filter(e => /k-(vzorec|izbris)/.test(e.className)).length, 0);
+  gumb(dom, 'Poskusi znova').sprozi('click');
+  odstrani(dom, run, I.korak[0]);
+  assert.equal(pomocOkvir(dom).hidden, false, 'namig ostane ob potezah');
+  gumb(dom, 'Skrij').sprozi('click');
+  assert.equal(pomocOkvir(dom).hidden, true);
+  // Ponoven ogled se ne šteje dvakrat; pravilen odgovor po pomoči se ne šteje, oznaka.
+  gumb(dom, 'Namig').sprozi('click');
+  assert.equal(sPomocjo(dom), ' · s pomočjo: 1');
+  for (const e of I.korak) if (jeKand(run, e)) odstrani(dom, run, e);
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(rezultat(dom), '0/0');
+  assert.ok(fb(dom).children.some(c => c.className === 's-pomocjo'), 'oznaka "s pomočjo"');
+  assert.equal(pomocOkvir(dom).hidden, true, 'po pravilnem odgovoru se pomoč zapre');
+});
+
+test('1-12: Rešitev - oznake in seznam dejanj se osvežijo ob izbrisu, "Korak je izveden", korak z največ izbrisi', () => {
+  const { dom, run } = vajaZ('pointing', 'v.KT.length >= 2 && v.KT.every(k => k.eliminate.length >= 2) && v.KT[1].eliminate.every(e => !v.KT[0].eliminate.some(x => x[0] === e[0] && x[1] === e[1]))');
+  const K1 = iz(run, 'vadi.v.KT[1]');
+  // Igralec je začel drugi korak - rešitev pokaže tega.
+  odstrani(dom, run, K1.eliminate[0]);
+  gumb(dom, 'Rešitev').sprozi('click');
+  assert.equal(sPomocjo(dom), ' · s pomočjo: 1');
+  assert.equal(run('JSON.stringify(vadi.v.KT[1].eliminate)'), JSON.stringify(K1.eliminate));
+  const besedilo = () => pomocBesedilo(dom);
+  assert.ok(besedilo().startsWith(`Rešitev: ${K1.message}`), besedilo());
+  assert.match(besedilo(), new RegExp(`Opravljeno: 1 od ${K1.eliminate.length}`));
+  // Na mreži samo še neizvedeni izbrisi (rdeče), vzorec jantarno.
+  const cs = () => celice(dom);
+  const [c0, d0] = K1.eliminate[0], [c1, d1] = K1.eliminate[1];
+  assert.ok(cs()[c1].children[0].children[d1 - 1].classList.contains('k-izbris'));
+  assert.equal(cs()[c0].children[0].children[d0 - 1].textContent, '', 'izveden izbris ni prikazan');
+  for (const c of K1.cells) assert.ok(cs()[c].classList.contains('k-vzorec'));
+  // Preostali izbrisi: "Korak je izveden."
+  for (const e of K1.eliminate.slice(1)) odstrani(dom, run, e);
+  assert.match(besedilo(), /✓ Korak je izveden\./);
+  // Skrij: oznak ni več.
+  gumb(dom, 'Skrij').sprozi('click');
+  assert.equal(cs().filter(e => /k-(vzorec|izbris)/.test(e.className)).length, 0);
+  // Pravilen odgovor po ogledu rešitve se ne šteje.
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(fb(dom).className, 'fb ok');
+  assert.equal(rezultat(dom), '0/0');
+});
+
+test('1-12: ogled rešitve po pravilnem odgovoru ne šteje kot pomoč', () => {
+  const { dom, run } = vajaZ('naked-pair', 'true');
+  const I = izbrisiVaje(run);
+  for (const e of I.korak) if (jeKand(run, e)) odstrani(dom, run, e);
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(rezultat(dom), '1/1');
+  gumb(dom, 'Rešitev').sprozi('click');
+  gumb(dom, 'Namig').sprozi('click');
+  assert.equal(rezultat(dom), '1/1');
+  assert.equal(sPomocjo(dom), '');
+});
