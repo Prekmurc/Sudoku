@@ -363,3 +363,38 @@ en sam, po 6d.
 4. **Trening, 1–12:** izzovi »druga tehnika« in »neutemeljeno« (odstrani kandidata, ki ga
    izloči druga tehnika, ali kandidata brez utemeljitve, ki ni prava števka). Pričakovano: sporočilo je razumljivo in ne zveni kot napaka, izbrisi se
    vrnejo. Ni avtomatsko: razumljivost besedila.
+
+## 13. Stanje izvedbe
+
+| Korak | Stanje | Commit | Testi |
+|---|---|---|---|
+| 6a izbira načina, iskanje, zaslon za ogled | **narejeno 2026-09-28** | (ta commit) | 390 (379 + 11) |
+| 6b odgovor pri 1–12 | | | |
+| 6c pomoč pri 1–12 | | | |
+| 6d E1/E2, ročni pregled | | | |
+
+### 6a
+
+- `trening/v-uganki.js` (nov): iskanje (`najdiVajo()` sproti do 1 s, `vajaIzBanke()`),
+  »Iščem vajo …«, zaslon vaje za vseh 14 tehnik (vrstica nad vajo, navodilo, razlaga,
+  vrstica informacij s stopnjo, prej odstranjenimi in »pokaži prečrtane«, plošča s
+  poudarkom in seznami). Do 6b je vajo mogoče samo preskočiti.
+- `trening/trening.js`: `nacin`, `zacniKrog(mode, nacin)` (klik kartice = »Spoznaj«),
+  gumba načina samo z `?vadi=1`, `renderExercise()` pri načinu »uganka« pokliče
+  `renderVadi()`, »Nazaj« in nova vaja ustavita iskanje (`vadiPrekini()`). Pot »Spoznaj«
+  je nespremenjena.
+- `shared/mreza.js` + `mreza.css`: `pogled.precrtani` (`kand precrtan`, z `k-izbris`
+  rdeče). Igra ga ne poda.
+- `trening/trening.css`: pravila `.vaja-enojcek` imajo skupen izbirnik z `.vaja-uganka`
+  (razen `cursor:default` na polnih celicah – pri 1–12 se polna celica izbere), novi
+  slogi gumbov načina, vrstice informacij in »Iščem vajo …«.
+- Testi: nov `tests/trening-uganka-ui.test.js` (10), `tests/mreza.test.js` (+1),
+  nalagalna seznama `trening-pomoc` in `trening-presek` (`trening/v-uganki.js`).
+- Preverjanje: 390 testov; posnetek igre »Enako: 85 posnetkov.«; nov
+  `tools/preveri-vadi-brskalnik.js` »Vse drži« (»Spoznaj« vseh 14 tehnik enak kot
+  `5b9ae6f` pri 375 in 1200 px, meni brez zastavice enak); `preveri-enojcki-brskalnik.js`
+  in `preveri-presek-brskalnik.js` »Vse drži«.
+- Prvi zagon primerjave »Spoznaj« je pokazal razliko pri E1, 375 px (širina napisa
+  »Poudari števko« 101,09 → 101,64 px). **Vzrok ni koda:** ista stran da v zaporednih
+  odprtjih obe širini – pisava latin-ext (za »š«) se naloži šele po kliku. Scenarij zdaj
+  pred primerjavo počaka na `document.fonts.status === "loaded"`; nato enako.

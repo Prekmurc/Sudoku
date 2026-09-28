@@ -137,6 +137,13 @@
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
 }
+/* kandidat, ki ga ni več (pogled.precrtani - trening »Vadi v uganki«): sivo prečrtan;
+   izbris prikazanega koraka (k-izbris) ostane rdeč */
+.kand.precrtan:not(.k-izbris){
+  color:#A9B2BC;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
 .kand.k-vpis{
   background: var(--green);
   color:#fff;

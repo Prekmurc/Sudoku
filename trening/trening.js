@@ -5,7 +5,8 @@ const MAX_EX=9;
 
 /* ========== UI ========== */
 
-let mode=null,exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
+// nacin: 'spoznaj' (sestavljene vaje) ali 'uganka' (»Vadi v uganki«, trening/v-uganki.js).
+let mode=null,nacin='spoznaj',exNum=0,selected=[],pickedDigits=[],scoreRight=0,scoreTotal=0;
 // Pomoč (Namig ali Rešitev - vsak ogled, tudi kratek): vaja s pomočjo se ne šteje nikamor,
 // ne med pravilne ne med napačne - že šteti poskusi te vaje se ob ogledu odštejejo.
 // Ogled po pravilnem odgovoru ne spremeni ničesar (vaja je končana).
@@ -41,14 +42,28 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
   menuEl.appendChild(card);
 });
 
+// Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka').
+function zacniKrog(m,n){
+  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;
+  updateScore();menuEl.style.display='none';trainerEl.style.display='block';
+  renderExercise();
+}
+// Klik kartice je "Spoznaj". Gumba "Spoznaj" in "Vadi v uganki" na kartici sta do konca
+// dela 6 skrita (docs/vadi-v-uganki-nacrt.md) - pokaže ju zastavica ?vadi=1 v naslovu strani.
+const VADI_VIDEN=typeof location!=='undefined'&&/[?&]vadi=1(&|$)/.test(location.search);
 document.querySelectorAll('.menu-card').forEach(card=>{
-  card.addEventListener('click',()=>{
-    mode=card.dataset.mode;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;
-    updateScore();menuEl.style.display='none';trainerEl.style.display='block';
-    renderExercise();
-  });
+  card.addEventListener('click',()=>zacniKrog(card.dataset.mode,'spoznaj'));
+  if(!VADI_VIDEN) return;
+  const nacini=document.createElement('div');nacini.className='nacin';
+  for(const[napis,n]of[['Spoznaj','spoznaj'],['Vadi v uganki','uganka']]){
+    const b=document.createElement('button');b.type='button';b.className='nacin-btn'+(n==='uganka'?' vadi':'');b.textContent=napis;
+    b.addEventListener('click',e=>{e.stopPropagation();zacniKrog(card.dataset.mode,n);});
+    nacini.appendChild(b);
+  }
+  card.appendChild(nacini);
 });
 document.getElementById('backBtn').addEventListener('click',()=>{
+  vadiPrekini();
   trainerEl.style.display='none';menuEl.style.display='block';mode=null;
 });
 
@@ -299,7 +314,7 @@ function buildSingleLayout(div,ex,M){
 
 function renderExercise(){
   const M=MODES[mode];
-  enojcek=null;
+  enojcek=null;vadiPrekini();
   if(exNum>=MAX_EX){
     area.innerHTML='';const d=document.createElement('div');d.className='exercise';
     const pct=scoreTotal>0?Math.round(scoreRight/scoreTotal*100):0;
@@ -308,6 +323,7 @@ function renderExercise(){
       <p style="font-size:14px;color:#3C4854">Pritisni "Nazaj na izbiro" za novo vadbo.</p>`;
     area.appendChild(d);return;
   }
+  if(nacin==='uganka'){renderVadi();return;}
   const ex=M.gen(exNum);
   selected=[];pickedDigits=[];area.innerHTML='';presek=null;
   pomocVaje=false;vajaResena=false;vajaPrav=0;vajaVseh=0;

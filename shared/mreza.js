@@ -33,6 +33,10 @@
 //                 treningu - označena enota ali celica) ali null
 //   neaktivne   - celice, ki jih ni mogoče izbrati: razred "neaktivna" (zatemnjene,
 //                 brez kazalca z roko), klik se ne sporoči; ali null
+//   precrtani   - 81 mask kandidatov, ki se pokažejo prečrtani (razred "precrtan"; v
+//                 celici jih ni več - trening »Vadi v uganki«: kandidati, odstranjeni pred
+//                 vajo, in izbrisi koraka po pravilnem odgovoru) ali null; kandidat, ki
+//                 je v `kandidati`, se izriše kot navaden
 //   zasencene   - celice s šrafuro (razred "zasencena"; senčenje, kamor poudarjena
 //                 števka ne more - plošča, kljukica "senči") ali null; na celicah z
 //                 oznakami koraka se ne riše (oznake imajo prednost)
@@ -128,6 +132,12 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
             if (b >= 0) s.classList.add('poud', `b${b}`);
             if (o.izbris.has(i * 10 + d)) s.classList.add('k-izbris');
             if (o.vpis.get(i) === d) s.classList.add('k-vpis');
+          } else if (p.precrtani && (p.precrtani[i] & (1 << d))) {
+            // Kandidat, ki ga ni več (npr. odstranjen pred vajo), prečrtan; izbris
+            // prikazanega koraka rdeče (k-izbris).
+            s.textContent = d;
+            s.classList.add('precrtan');
+            if (o.izbris.has(i * 10 + d)) s.classList.add('k-izbris');
           }
           m.appendChild(s);
         }

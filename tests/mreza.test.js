@@ -144,6 +144,43 @@ test('oznakeKoraka: vzorec, izbrisi in vpis; izveden izbris ni več označen', (
   assert.equal(cel2[ce].children[0].children[de - 1].className, 'kand k-vpis');
 });
 
+test('precrtani: odstranjeni kandidati sivo prečrtani, izbris koraka rdeče, kandidat ostane navaden', () => {
+  const { run } = pripravi();
+  // Stanje z ročno odstranjenimi kandidati: izbrisi prvega koraka motorja z izbrisom (pot
+  // z nextStep, enojčki kot vpisi - kot v testu oznakeKoraka).
+  run(`var korak = null;
+    for (;;) {
+      korak = nextStep(stanje.deska, ALL_TECHNIQUES);
+      if (!korak || korak.eliminate.length) break;
+      for (const [c, d] of korak.assign) { dodajPotezo(igra, { tip: 'vpis', celica: c, stevka: d }, stanje); stanje = stanjeIgre(igra); }
+    }
+    for (const [c, d] of korak.eliminate) { dodajPotezo(igra, { tip: 'kandidat', celica: c, stevka: d, odstrani: true }, stanje); stanje = stanjeIgre(igra); }`);
+  const k = run('korak');
+  const celice = run('mr.celice');
+  const kand = run('stanje.kandidati');
+  const [c0, d0] = k.eliminate[0];
+  // Brez precrtani se odstranjeni kandidat ne izriše.
+  run('mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati })');
+  assert.equal(izrisaniKandidati(celice[c0])[d0 - 1], 0);
+  // S precrtani (maska vključuje tudi kandidat, ki je še v celici): odstranjeni sivo
+  // prečrtani, ostali kandidati navadni.
+  const d1 = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(d => kand[c0] & (1 << d));
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati,
+    precrtani: stanje.odstranjeni.map((m, i) => i === ${c0} ? m | (1 << ${d1}) : m) })`);
+  for (const [c, d] of k.eliminate) {
+    const s = celice[c].children[0].children[d - 1];
+    assert.equal(s.textContent, String(d));
+    assert.equal(s.className, 'kand precrtan', `V${c} ${d}`);
+  }
+  assert.equal(celice[c0].children[0].children[d1 - 1].className, 'kand');
+  // Z oznakami koraka: izbrisi koraka so rdeči (k-izbris), celica brez podlage izbrisa
+  // ni potrebna - oznake da klicatelj.
+  run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, precrtani: stanje.odstranjeni,
+    oznake: { vzorec: new Set(korak.cells), izbris: new Set(korak.eliminate.map(([c, d]) => c * 10 + d)), izbrisCelice: new Set(), vpis: new Map() } })`);
+  assert.equal(celice[c0].children[0].children[d0 - 1].className, 'kand precrtan k-izbris');
+  for (const c of k.cells) assert.ok(celice[c].className.includes('k-vzorec'));
+});
+
 test('vidne: prikaz samo izbranih celic na pravih mestih, druge niso klikljive', () => {
   const { run } = pripravi();
   // Vrstica in blok prve prazne celice (kot pri vajah 1 in 2 v treningu).

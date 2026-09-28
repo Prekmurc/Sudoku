@@ -77,22 +77,35 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
    vrstic je stolpcev 10 (in razmik --sgap). Nizi, stikala in seznam blokov so zamaknjeni
    za rob z oznakami V1-V9, da ostanejo pod stolpci mreže. Izbira kot pri 1 in 2. Polne
    celice niso klikljive; po pravilnem odgovoru je mreža zaklenjena brez zelene obrobe. */
-.vaja-enojcek{--gcs:min(46px,(min(560px,100vw) - 104px)/9);width:max-content;max-width:100%;margin:0 auto 4px}
-.vaja-enojcek.z-vrsticami{--gcs:min(46px,(min(560px,100vw) - 104px - var(--sgap))/10)}
-.vaja-enojcek .poudari-glava,.vaja-enojcek .niz,.vaja-enojcek .seznami-stikala,.vaja-enojcek .seznam-blokov{margin-left:var(--rob)}
-.vaja-enojcek .niz{margin-bottom:4px}
-.vaja-enojcek .celica.izbrana{background:var(--blue-bg);box-shadow:inset 0 0 0 3px #4A86D8}
+.vaja-enojcek,.vaja-uganka{--gcs:min(46px,(min(560px,100vw) - 104px)/9);width:max-content;max-width:100%;margin:0 auto 4px}
+.vaja-enojcek.z-vrsticami,.vaja-uganka.z-vrsticami{--gcs:min(46px,(min(560px,100vw) - 104px - var(--sgap))/10)}
+.vaja-enojcek .poudari-glava,.vaja-enojcek .niz,.vaja-enojcek .seznami-stikala,.vaja-enojcek .seznam-blokov,
+.vaja-uganka .poudari-glava,.vaja-uganka .niz,.vaja-uganka .seznami-stikala,.vaja-uganka .seznam-blokov{margin-left:var(--rob)}
+.vaja-enojcek .niz,.vaja-uganka .niz{margin-bottom:4px}
+.vaja-enojcek .celica.izbrana,.vaja-uganka .celica.izbrana{background:var(--blue-bg);box-shadow:inset 0 0 0 3px #4A86D8}
 .vaja-enojcek .celica.dana,.vaja-enojcek .celica.vpis{cursor:default}
-.vaja-enojcek .mreza.zaklenjena{outline:none}
+.vaja-enojcek .mreza.zaklenjena,.vaja-uganka .mreza.zaklenjena{outline:none}
 /* glava niza Poudari: kljukici "senči" in "več hkrati" desno */
-.vaja-enojcek .poudari-glava .kljukice{display:inline-flex;gap:10px}
+.vaja-enojcek .poudari-glava .kljukice,.vaja-uganka .poudari-glava .kljukice{display:inline-flex;gap:10px}
 /* pravilen odgovor ob poudarjeni števki: podlaga poudarka (niz Poudari je legenda) in zelen
    okvir (oznaka odgovora) - brez tega bi zelena podlaga k-vpis prekrila poudarek */
-.vaja-enojcek .celica.k-vpis.poud-stevka{background:var(--pb,var(--poud));box-shadow:inset 0 0 0 3px var(--green)}
-.vaja-enojcek .g9-note{margin:6px 0 8px}
-.vaja-enojcek .seznami-stikala{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 14px}
-.vaja-enojcek .seznami-stikala .niz-oznaka{margin:0;width:100%}
-.vaja-enojcek .seznam-blokov{--bcs:min(62px,calc(var(--gcs)*1.6));margin-top:8px}
+.vaja-enojcek .celica.k-vpis.poud-stevka,.vaja-uganka .celica.k-vpis.poud-stevka{background:var(--pb,var(--poud));box-shadow:inset 0 0 0 3px var(--green)}
+.vaja-enojcek .g9-note,.vaja-uganka .g9-note{margin:6px 0 8px}
+.vaja-enojcek .seznami-stikala,.vaja-uganka .seznami-stikala{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 14px}
+.vaja-enojcek .seznami-stikala .niz-oznaka,.vaja-uganka .seznami-stikala .niz-oznaka{margin:0;width:100%}
+.vaja-enojcek .seznam-blokov,.vaja-uganka .seznam-blokov{--bcs:min(62px,calc(var(--gcs)*1.6));margin-top:8px}
+
+/* »Vadi v uganki« (trening/v-uganki.js, docs/vadi-v-uganki-nacrt.md): ista plošča kot E1/E2
+   (pravila zgoraj), pri 1-12 s kandidati - večji kot v igri (kot pri 1 in 2). Gumba
+   načina na kartici menija, vrstica informacij (stopnja uganke, prej odstranjeni
+   kandidati s kljukico "pokaži prečrtane"). */
+.vaja-uganka .kand{font-size:calc(var(--gcs)*.34)}
+.nacin{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.nacin-btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:7px 14px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.nacin-btn.vadi{background:var(--teal);border-color:var(--teal);color:#fff}
+.vaja-info{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:13px;color:#4A5664;margin:0 0 10px}
+.vaja-info .vec-hkrati{font-size:13px;white-space:nowrap}
+.vadi-isce{font-size:14px;color:var(--pencil);margin:12px 0}
 
 .gc{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;border:2px solid #D0D5DA;border-radius:6px;background:#fff;transition:background .12s,box-shadow .12s;flex-shrink:0}
 .gc.selectable{cursor:pointer}

@@ -123,7 +123,7 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
 
 const { makeDom } = require('./dom-stub.js');
 const DATOTEKE_UI = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
-  'shared/vaje-banka.js', 'shared/mreza.js', 'shared/plosca.js', 'trening/generators.js', 'trening/trening.js'];
+  'shared/vaje-banka.js', 'shared/mreza.js', 'shared/plosca.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 
 // Odprta vaja n tehnike; `zadnja` = vaja, ki jo je dal generator.
 function odpri(mode, n = 0) {

@@ -19,7 +19,7 @@ const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v trening/index.html.
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
-  'shared/mreza.js', 'shared/plosca.js', 'trening/generators.js', 'trening/trening.js'];
+  'shared/mreza.js', 'shared/plosca.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 
 // Kontekst z odprto prvo vajo tehnike; generator vaje si zapomni zadnjo vajo (`zadnja`),
 // da test pozna pravi odgovor.
