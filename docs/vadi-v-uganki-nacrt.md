@@ -1,6 +1,6 @@
 # Del 6 – trening »Vadi v uganki«: načrt
 
-(2026-09-28, **načrt, čaka na potrditev** – kode še nisem spreminjal.) Posnetki so iz
+(2026-09-28, **načrt potrjen**, odgovori v točki 11a; izvedba po korakih 6a–6d, stanje v točki 13.) Posnetki so iz
 prototipa v začasni kopiji projekta (trenutni `main` in dodatki iz točke 8). Prototip ni
 v repozitoriju.
 
@@ -321,6 +321,32 @@ enaki (preveri scenarij).
    (banka/sproti, seme) samo v `title` (predlog)?
 8. **»Pokaži prečrtane«** ostane med vajami kroga, ne shranjuje se; stikala seznamov imajo
    isti ključ kot »Spoznaj« (`sudoku.trening.seznami`) (predlog)?
+
+## 11a. Odgovori (2026-09-28)
+
+Načrt potrjen.
+
+1. Koraki 6a–6d: **da**. Gumb »Vadi v uganki« je **skrit do konca 6d** (push gre na javno
+   stran). Za teste in scenarij med koraki ga pokaže zastavica v naslovu strani
+   **`?vadi=1`** (`trening/index.html?vadi=1`); v 6d se zastavica odstrani in gumb je
+   viden vedno.
+2. Postavitev: **en stolpec** (predlog).
+3. »Preveri« po oceni **onemogočen do naslednje spremembe** (predlog).
+4. Samodejna razveljavitev: **ena poteza »vrni« na izbris** (predlog).
+5. Po pravilnem odgovoru pri 1–12 izbrisani kandidati koraka rdeče prečrtani, vrstica
+   Razveljavi/Ponovi/Začni znova skrita: **da** (predlog).
+6. Predlog pri E1/E2 **ne sme biti moder** (zlije se z vpisi poti). V 6d predlagam drugačen
+   videz (npr. vijolična kot izbrana števka v »Spoznaj« ali siva s črtkanim okvirjem) in
+   pokažem posnetek pri 375 px.
+7. Vrstica informacij: stopnja vidna, izvor samo v `title`: **da** (predlog).
+8. »Pokaži prečrtane« ostane med vajami kroga, stikala seznamov s ključem
+   `sudoku.trening.seznami`: **da, oboje** (predlog).
+
+Pravilo v `CLAUDE.md` (po dogodku pri posnetkih prototipa): brskalnika nikoli ne ustavljaj
+po imenu procesa, samo procese z lastnim profilom orodja.
+
+Ob razliki v posnetku igre ali v primerjavi »Spoznaj« se izvedba ustavi. Ročni pregled je
+en sam, po 6d.
 
 ## 12. Ročni pregled (en sam, po 6d – osnutek, največ 5)
 

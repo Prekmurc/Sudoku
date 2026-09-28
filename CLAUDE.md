@@ -118,6 +118,7 @@ Opomba: `trening/generators.js` (razen vaj enojčkov ter vaj 1 in 2, ki so stanj
 - Odgovori Darku v slovenščini.
 - Na koncu naloge napiši povzetek: spremenjene datoteke, kaj je narejeno, kaj naj ročno preverim.
 - Pri vsaki nalogi preveri avtomatsko vse, kar se da: testi (`node --test "tests/*.test.js"`), posnetek igre (`tools/posnetek-igre.js --primerjaj`) in brskalnik brez glave (`tools/brskalnik.js` ali scenarij naloge). Ročni seznam za Darka ima **največ 5 točk**; pri vsaki: kje (igra/reševalec/trening), kaj narediti, pričakovan izid in zakaj ni avtomatsko. Stalni ročni pregledi so v `docs/rocni-test.md`.
+- **Nikoli ne ustavljaj brskalnika po imenu procesa** (`taskkill /IM msedge.exe`, `Stop-Process -Name msedge` ipd.) – to zapre tudi Darkov Edge. Ustavljaj samo procese z lastnim profilom orodja (`tools/brskalnik.js` `zapri()` ustavi procese svojega začasnega profila); če se orodje zatakne, poišči PID po ukazni vrstici s tem profilom.
 - Po vsakem commitu naredi tudi `git push` (trenutna veja na `origin`). Če push ne uspe (npr. oddaljeni repozitorij ni nastavljen ali zahteva prijavo), mi pokaži napako – ne uporabljaj `--force` in ne spreminjaj nastavitev oddaljenega repozitorija brez vprašanja.
 
 ## Izrazi
