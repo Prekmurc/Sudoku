@@ -59,13 +59,39 @@ function najdiVajo(kljuc,obNajdeni){
 
 /* ---------- zaslon vaje ---------- */
 
-// "V tem stanju je že odstranjenih 11 kandidatov (prejšnji koraki)."
-function prejOdstranjenihBesedilo(n){
-  if(!n) return 'V tem stanju ni prej odstranjenih kandidatov.';
-  const m=n%100;
-  const[gl,pr,sam]=m===1?['je','odstranjen','kandidat']:m===2?['sta','odstranjena','kandidata']
-    :m===3||m===4?['so','odstranjeni','kandidati']:['je','odstranjenih','kandidatov'];
-  return `V tem stanju ${gl} že ${pr} ${n} ${sam} (prejšnji koraki).`;
+// Kandidati, ki so jih odstranili prejšnji koraki poti (niso del naloge); besedilo je
+// odvisno od kljukice "pokaži jih prečrtane" (prikazano).
+function prejOdstranjenihBesedilo(n,prikazano=false){
+  if(!n) return 'Prejšnji koraki niso odstranili nobenega kandidata.';
+  if(prikazano) return `Prečrtane kandidate (${n}) so odstranili prejšnji koraki – niso del naloge.`;
+  const m=n%100,sam=m===1||m===2?'kandidata':m===3||m===4?'kandidate':'kandidatov';
+  return `Prejšnji koraki so že odstranili ${n} ${sam} – niso del naloge.`;
+}
+
+// Postopnost v krogu (docs/vadi-v-uganki-nacrt.md, točka 15): vaje 1-6 imajo območje
+// naključnega koraka tehnike (obmocjeKoraka), vaje 7-9 so brez (cela uganka).
+const VADI_Z_OBMOCJEM=6;
+function izberiObmocje(v){
+  return exNum<VADI_Z_OBMOCJEM?obmocjeKoraka(v.KT[Math.floor(Math.random()*v.KT.length)]):null;
+}
+// Ime tehnike v tožilniku za navodilo ("poišči skriti par").
+const VADI_TOZILNIK={'Pointing pair/triple':'izločitev izven bloka','Box-line reduction':'izločitev v bloku',
+  'Naked pair':'očitni par','Hidden pair':'skriti par','Naked triple':'očitno trojico','Hidden triple':'skrito trojico',
+  'X-Wing':'X-krilo','Swordfish':'mečarico','Turbot Fish':'verigo ene števke','W-Wing':'W-krilo','XY-Wing':'XY-krilo',
+  'Unique Rectangle':'edinstveni pravokotnik'};
+const velika=s=>s[0].toUpperCase()+s.slice(1);
+// Navodilo nad mrežo; z območjem ga pove ("V vrstici 7 poišči skriti par ...").
+function navodiloVadi(kljuc,ob){
+  if(kljuc==='Gol enojček'||kljuc==='Skriti enojček'){
+    const kaj=kljuc==='Gol enojček'?'celico z eno samo možno števko':'števko z enim samim mestom';
+    return ob?`${velika(ob.opis)} poišči ${kaj} in jo vpiši.`:kljuc==='Gol enojček'?`Poišči ${kaj} in jo vpiši.`:`Poišči ${kaj} v enoti in jo vpiši.`;
+  }
+  const odstrani='odstrani kandidate, ki jih izloči.';
+  if(!ob) return `Poišči korak tehnike ${imeTehnike(kljuc,{anglesko:false})} in ${odstrani}`;
+  const t=VADI_TOZILNIK[kljuc];
+  if(ob.vrsta==='stevke'&&ob.stevke.length===2) return `Kandidata para sta ${ob.stevke[0]} in ${ob.stevke[1]}: poišči ${t} in ${odstrani}`;
+  if(ob.vrsta==='pivot') return `Poišči ${t} ${ob.opis} in ${odstrani}`;
+  return `${velika(ob.opis)} poišči ${t} in ${odstrani}`;
 }
 
 function vadiOznaka(kljuc){
@@ -85,12 +111,17 @@ function renderVadi(){
   najdiVajo(kljuc,v=>{if(nacin==='uganka'&&exNum===n) izrisiVadi(v);});
 }
 
-// Vaja na zaslonu. 1-12: odgovor so izbrisi kandidatov S0 (niz Odstrani, več celic,
+// Vaja na zaslonu; ob = območje (izberiObmocje - vaje 1-6) ali null. 1-12: odgovor so
+// izbrisi kandidatov S0 (niz Odstrani, več celic,
 // Shift+števka), presodi ga preveriVajo() ob "Preveri". E1/E2: mreža brez kandidatov,
 // odgovor je predlog vpisa v celici (niz Vpiši z vsemi 9 števkami, tipka s števko),
 // presodi ga preveriVajo() s predlogom (preveriEnojcek); pravilen predlog postane poteza.
-function izrisiVadi(v){
+function izrisiVadi(v,ob=izberiObmocje(v)){
   const kljuc=v.kljuc,enoj=jeEnojcek(kljuc),skriti=kljuc==='Skriti enojček',M=MODES[mode];
+  // Koraki tehnike v območju: iz njih sta Namig in Rešitev (pravilen je tudi korak zunaj).
+  const KTob=v.KT.filter(k=>vObmocju(k,ob));
+  // Pri E1/E2 z območjem je izbrati mogoče samo prazne celice v enoti (kot v "Spoznaj").
+  const vEnoti=i=>!ob||!enoj||ob.celice.includes(i);
   let stanje=v.S0;
   // Po pravilnem odgovoru: korak odgovora (1-12: oznake na mreži, izbrisi rdeče prečrtani)
   // ali vpis odgovora (E1/E2: [celica, števka]).
@@ -100,10 +131,9 @@ function izrisiVadi(v){
   area.innerHTML='';
   const div=vEl('div','exercise');
   div.appendChild(vadiOznaka(kljuc));
-  div.appendChild(vEl('h3',null,enoj
-    ?(kljuc==='Gol enojček'?'Poišči celico z eno samo možno števko in jo vpiši.':'Poišči števko z enim samim mestom v enoti in jo vpiši.')
-    :`Poišči korak tehnike ${imeTehnike(kljuc,{anglesko:false})} in odstrani kandidate, ki jih izloči.`));
-  div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].razlaga));
+  div.appendChild(vEl('h3',null,navodiloVadi(kljuc,ob)));
+  div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].razlaga+(!ob?'':ob.celice?' Označeno območje je na mreži modrikasto.'
+    :ob.stevke.length>1?' Števki sta poudarjeni.':' Števka je poudarjena.')));
 
   // Stopnja uganke (samo informacija, tudi "Presega tehnike"), izvor vaje v title.
   const info=vEl('div','vaja-info');
@@ -111,11 +141,13 @@ function izrisiVadi(v){
   st.title=`${v.izvor.vrsta==='banka'?'Vaja iz banke':'Vaja iz sproti ustvarjene uganke'} (seme ${v.izvor.seme})`;
   info.appendChild(st);
   let pk=null;
+  let prejEl=null;
   if(!enoj){
-    info.appendChild(vEl('span',null,prejOdstranjenihBesedilo(v.prejOdstranjenih)));
+    prejEl=vEl('span','prej-odstranjeni',prejOdstranjenihBesedilo(v.prejOdstranjenih,precrtaniKrog));
+    info.appendChild(prejEl);
     if(v.prejOdstranjenih){
-      pk=vKljukica(' pokaži prečrtane');pk.l.className='vec-hkrati';
-      pk.l.title='Pokaži kandidate, odstranjene pred vajo, prečrtane (odgovor se ne spremeni).';
+      pk=vKljukica(' pokaži jih prečrtane');pk.l.className='vec-hkrati';
+      pk.l.title='Kandidate so odstranili koraki na poti do te vaje. Niso del odgovora – odstrani samo kandidate, ki jih izloči iskani korak.';
       pk.i.checked=precrtaniKrog;
       info.appendChild(pk.l);
     }
@@ -202,10 +234,11 @@ function izrisiVadi(v){
   div.appendChild(pomocEl);
   // Korak iz KT, ki ima največ igralčevih izbrisov (pri enaki meri prvi); brez njih KT[0]
   // (= nextStep() v S0). E1/E2: naključen korak (kot v "Spoznaj").
+  // Samo koraki v območju (KTob).
   function korakPomoci(){
-    if(enoj) return v.KT[Math.floor(Math.random()*v.KT.length)];
+    if(enoj) return KTob[Math.floor(Math.random()*KTob.length)];
     const izbrisanih=k=>k.eliminate.filter(([c,d])=>!stanje.grid[c]&&!(stanje.kandidati[c]&(1<<d))).length;
-    return v.KT.reduce((naj,k)=>izbrisanih(k)>izbrisanih(naj)?k:naj,v.KT[0]);
+    return KTob.reduce((naj,k)=>izbrisanih(k)>izbrisanih(naj)?k:naj,KTob[0]);
   }
   function odpriPomoc(vrsta){
     oznaciPomoc();
@@ -217,7 +250,8 @@ function izrisiVadi(v){
     if(!pomoc) return;
     const k=pomoc.korak,p=vEl('p','pomoc-msg');
     if(pomoc.vrsta==='namig'){
-      p.append(vEl('b',null,'Namig: '),enoj?namigEnojcka(!skriti,v.KT,k,null,stanje.grid):stepHint(k)||'');
+      // Enojčka: namig kot v "Spoznaj" - z območjem pove samo to, česar oznaka še ne.
+      p.append(vEl('b',null,'Namig: '),enoj?namigEnojcka(!skriti,v.KT,k,ob?{celica:null,enota:ob.enota,stevka:null}:null,stanje.grid):stepHint(k)||'');
       pomocEl.appendChild(p);
     }else{
       p.append(vEl('b',null,'Rešitev: '),k.message);
@@ -289,16 +323,30 @@ function izrisiVadi(v){
       :pomoc&&pomoc.vrsta==='resitev'?oznakeKoraka(pomoc.korak,stanje):null,
     // E1/E2: brez kandidatov, izbrati je mogoče samo prazne celice. Po pravilnem odgovoru
     // izbire ni več.
-    spremenljiva:enoj?(i=>!stanje.grid[i]):(()=>!vajaResena),
+    spremenljiva:enoj?(i=>!stanje.grid[i]&&vEnoti(i)):(()=>!vajaResena),
     pogled:()=>{
       const p=enoj?{sosede:null,predlog}:{};
+      // Območje (vaje 1-6): enota, pivot ali bloka modrikasto; pri E1/E2 so prazne celice
+      // zunaj enote neaktivne (zatemnjene, kot v "Spoznaj").
+      if(ob&&ob.celice&&!vajaResena){
+        p.oznacene=ob.celice;
+        if(enoj) p.neaktivne=stanje.grid.map((x,i)=>i).filter(i=>!stanje.grid[i]&&!vEnoti(i));
+      }
       if(vajaResena){p.izbrane=[];p.sosede=null;}
       const prej=precrtaniKrog&&pk?stanje.zacetni.odstranjeni:null,korak=odgovor&&!enoj?maskeKoraka(odgovor):null;
       p.precrtani=prej&&korak?prej.map((m,i)=>m|korak[i]):prej||korak;
       return p;
     },
   });
-  if(pk) pk.i.addEventListener('change',()=>{precrtaniKrog=pk.i.checked;plosca.izrisi();});
+  if(pk) pk.i.addEventListener('change',()=>{
+    precrtaniKrog=pk.i.checked;prejEl.textContent=prejOdstranjenihBesedilo(v.prejOdstranjenih,precrtaniKrog);plosca.izrisi();
+  });
+  // Števke območja (7-10) so poudarjene ob začetku (igralec jih lahko izklopi); par pri
+  // W-krilu potrebuje "več hkrati".
+  if(ob&&ob.stevke){
+    if(ob.stevke.length>1&&!vh.i.checked){vh.i.checked=true;vh.i.dispatchEvent?vh.i.dispatchEvent(new Event('change')):vh.i.sprozi('change');}
+    ob.stevke.forEach(d=>plosca.poudari(d));
+  }
 
   // "Poskusi znova" (po napačnem odgovoru): kot "Začni znova" - kazalec na začetek vaje,
   // poteze ostanejo v "Ponovi".
@@ -323,8 +371,14 @@ function izrisiVadi(v){
     const r=preveriVajo(v,stanje);
     checkBtn.disabled=true;
     if(r.izid==='pravilno'){
-      stej(true);odgovor=r.korak;pomoc=null;izrisiPomoc();
-      fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${r.korak.message}`;
+      // Pravilen je vsak cel korak tehnike (tudi zunaj območja); prednost ima korak v
+      // območju, sicer sporočilo pove, kje je bil korak.
+      const cel=k=>k.eliminate.every(([c,d])=>!(stanje.kandidati[c]&(1<<d)));
+      const vOb=KTob.find(cel);
+      odgovor=vOb||r.korak;
+      stej(true);pomoc=null;izrisiPomoc();
+      const kje=!vOb&&ob?` (korak ${obmocjeKoraka(odgovor,()=>0).opis}, ne ${ob.opis})`:'';
+      fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b>${kje} ${odgovor.message}`;
       akcije.hidden=true;checkBtn.style.display='none';nextBtn.style.display='inline-block';
       plosca.izrisi();
     }else if(r.izid==='napacno'){
@@ -365,5 +419,5 @@ function izrisiVadi(v){
 
   plosca.izrisi();
   area.appendChild(div);
-  vadi={v,plosca,get stanje(){return stanje;}};
+  vadi={v,plosca,ob,KTob,get stanje(){return stanje;}};
 }

@@ -98,17 +98,17 @@ Iz razdelka »Dopolnitev« v `docs/pripomocki-e1-e2-nacrt.md`. Logiko preverijo
 
 ## Trening: Vadi v uganki (del 6)
 
-Iz `docs/vadi-v-uganki-nacrt.md` (točka 14). Logiko preverijo `tests/trening-uganka-ui.test.js`,
+Iz `docs/vadi-v-uganki-nacrt.md` (točki 14 in 15 – območje koraka in besedilo prečrtanih). Logiko preverijo `tests/trening-uganka-ui.test.js`,
 `tests/plosca.test.js`, `tests/mreza.test.js` in `tools/preveri-vadi-brskalnik.js` (postavitev
 pri 375 in 1200 px, pravi kliki, pari QWERTZ, »Spoznaj« enak kot prej).
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, pravi telefon | Skriti par, »Vadi v uganki«: vklopi »pokaži prečrtane«, izberi celico s prstom in odstrani kandidata z nizom. | Kandidati so berljivi (celica pribl. 30 px), prečrtani jasno drugačni od navadnih, celico zadeneš brez zgrešenih dotikov. (nepotrjeno) – ni avtomatsko: berljivost in dotik. |
+| 1 | trening, pravi telefon | 4 · Skriti par, »Vadi v uganki«, vaja 1: preberi navodilo, vklopi »pokaži jih prečrtane«, izberi celico s prstom in odstrani kandidata z nizom; nato vaja 7. | Pri vaji 1 navodilo pove enoto (»V vrstici 7 poišči skriti par …«), enota je modrikasta in se loči od izbrane celice; besedilo pove, da prečrtani niso del naloge; kandidati so berljivi (celica pribl. 30 px), celico zadeneš brez zgrešenih dotikov; pri vaji 7 območja ni. (nepotrjeno) – ni avtomatsko: razumljivost navodila, berljivost in dotik. |
 | 2 | trening, slovenska tipkovnica | Skriti par: Shift+števka, Ctrl+Z, Ctrl+Y; E1: števka, Backspace. | Kandidat se odstrani, razveljavi, ponovi; predlog se postavi in pobriše. (nepotrjeno) – ni avtomatsko: scenarij pošlje pare `key`/`code`, ne prave razporeditve sistema. |
 | 3 | trening, telefon | 8 · Mečarica, nekajkrat »Naslednja vaja«. | »Iščem vajo …« največ pribl. 1 s, nato vaja. (nepotrjeno) – ni avtomatsko: hitrost pravega telefona ni izmerjena. |
-| 4 | trening | Katera koli od 1–12: odstrani kandidata, ki ga izloči druga tehnika, ali kandidata brez utemeljitve (ni prava števka), nato »Preveri«. | Sporočilo je razumljivo in ne zveni kot napaka, izbrisi se vrnejo, rezultat se ne spremeni. (nepotrjeno) – ni avtomatsko: razumljivost besedila. |
-| 5 | trening, telefon | E1: postavi predlog v izbrano celico. | Vijolični predlog s črtkanim okvirjem se jasno loči od modrih vpisov poti in od izbire; ali je siva različica (posnetek v načrtu, točka 13 – 6d) boljša? (nepotrjeno) – ni avtomatsko: presoja videza. |
+| 4 | trening | Katera koli od 1–12: odstrani kandidata, ki ga izloči druga tehnika, ali kandidata brez utemeljitve (ni prava števka), nato »Preveri«; pri vaji 1–6 še pravilen korak zunaj označenega območja (npr. pri 1 · Izločitev izven bloka v drugem bloku). | Sporočilo je razumljivo in ne zveni kot napaka, izbrisi se vrnejo, rezultat se ne spremeni; korak zunaj območja je »Pravilno! (korak v bloku 5, ne v bloku 2) …«. Pri X-krilu je števka območja poudarjena, pri XY-krilu pivot modrikast, pri edinstvenem pravokotniku oba bloka. (nepotrjeno) – ni avtomatsko: razumljivost besedila in območja pri 7–12. |
+| 5 | trening, telefon | E1, vaja 1: postavi predlog v izbrano celico označene enote. | Enota je modrikasta, druge prazne celice zatemnjene (kot v »Spoznaj«); vijolični predlog s črtkanim okvirjem se jasno loči od modrih vpisov poti in od izbire; ali je siva različica (posnetek v načrtu, točka 13 – 6d) boljša? (nepotrjeno) – ni avtomatsko: presoja videza. |
 
 ## Zakaj ročno
 

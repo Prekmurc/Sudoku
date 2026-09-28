@@ -612,10 +612,29 @@ pregled: obstoječih 5 točk (`docs/rocni-test.md`) se dopolni, največ 5.
 
 | Korak | Stanje | Commit | Testi |
 |---|---|---|---|
-| 7a `shared/vaje-uganka.js`: `obmocjeKoraka()`, `vObmocju()` | **narejeno 2026-09-28** | (ta commit) | 400 (399 + 1) |
-| 7b trening: navodilo, oznaka, postopnost, sporočilo, besedilo prečrtanih | | | |
+| 7a `shared/vaje-uganka.js`: `obmocjeKoraka()`, `vObmocju()` | **narejeno 2026-09-28** | `ebb4a60` | 400 (399 + 1) |
+| 7b trening: navodilo, oznaka, postopnost, sporočilo, besedilo prečrtanih | **narejeno 2026-09-28** | (ta commit) | 403 (400 + 3) |
 
 - 7a: nove funkcije brez DOM-a; `preveriVajo()` ostane nespremenjena (odgovor 2). Test na
   vseh korakih vaj iz semen v `tests/vaje-uganka.test.js`: območje vsebuje korak (tudi pri
   treh izbirah naključne enote pri E1), korak z drugim območjem ni v njem, vrste območij po
   tehnikah. Posnetek igre »Enako: 85 posnetkov.«
+- 7b: `trening/v-uganki.js` – `izberiObmocje()` (vaje 1–6, `VADI_Z_OBMOCJEM`), navodilo
+  `navodiloVadi()` (ime tehnike v tožilniku), razlaga dobi »Označeno območje je na mreži
+  modrikasto.« / »Števka je poudarjena.«, oznaka `oznacene` (enota, pivot, bloka) ali
+  poudarek števk ob začetku (pri W-krilu z »več hkrati«), pri E1/E2 izbira samo v enoti
+  (druge prazne celice `neaktivne`), Namig in Rešitev iz korakov v območju (`KTob`; pri
+  E1/E2 namig z oznako enote kot v »Spoznaj«), pravilen korak zunaj območja
+  »Pravilno! (korak v stolpcu 5, ne v vrstici 7) …« (korak v območju ima prednost, če je
+  cel), novo besedilo prečrtanih (15.2), ki se ob kljukici spremeni. `izrisiVadi(v, ob)`
+  sprejme območje (test).
+- Testi: `tests/trening-uganka-ui.test.js` (+3: območje po tehnikah, korak zunaj območja,
+  korak v območju; posodobljeni navodilo, sklanjanje, izbira pri E1/E2, krog; testi
+  odgovorov tečejo brez območja kot vaje 7–9).
+- Preverjanje: 403 testi; posnetek igre »Enako: 85 posnetkov.«;
+  `tools/preveri-vadi-brskalnik.js` »Vse drži« (dopolnjen z območjem pri 4, 7, 11, 12 in
+  E1/E2 ter besedilom prečrtanih; »Spoznaj« enak kot `5b9ae6f`).
+- Ročni pregled: točke 1, 4 in 5 v `docs/rocni-test.md` dopolnjene (še vedno 5 točk).
+
+![7b: E1, vaja 1, 375 px](slike/vadi-v-uganki/izvedba-7b-e1-vaja1-375.png)
+![7b: 4 · Skriti par, vaja 1, 375 px](slike/vadi-v-uganki/izvedba-7b-skriti-par-375.png)

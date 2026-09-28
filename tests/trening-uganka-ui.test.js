@@ -70,9 +70,10 @@ test('iskanje: "Iščem vajo …", nato vaja; ob preseženi meji iz banke', () =
   assert.equal(poRazredu(dom, 'ex-label')[0].textContent, '4 · Skriti par (Hidden Pair) · Vadi v uganki · Vaja 1 / 9');
   // V S0 je naslednji korak motorja izbrana tehnika.
   assert.equal(run('nextStep(vadi.v.S0.deska).technique'), 'Hidden pair');
-  assert.equal(najdi(dom, e => e.tagName === 'H3')[0].textContent,
-    'Poišči korak tehnike Skriti par in odstrani kandidate, ki jih izloči.');
-  assert.equal(poRazredu(dom, 'desc')[0].textContent, run('TEHNIKE_OPISI["hidden-pair"].razlaga'));
+  // Vaja 1: navodilo pove enoto koraka (območje), razlaga pove, da je označena.
+  assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent,
+    /^V (vrstici|stolpcu|bloku) \d poišči skriti par in odstrani kandidate, ki jih izloči\.$/);
+  assert.equal(poRazredu(dom, 'desc')[0].textContent, run('TEHNIKE_OPISI["hidden-pair"].razlaga') + ' Označeno območje je na mreži modrikasto.');
   // Stopnja uganke (informacija), izvor v title.
   const info = poRazredu(dom, 'vaja-info')[0];
   assert.equal(info.children[0].textContent, `Uganka: ${run('vadi.v.stopnja')}`);
@@ -137,6 +138,8 @@ test('1-12: mreža s kandidati S0, vpisi poti, prej odstranjeni in "pokaži pre�
   assert.equal(poRazredu(dom, 'precrtan').length, 0);
   kljukica.checked = true;
   kljukica.sprozi('change');
+  assert.equal(info.children[1].textContent, run(`prejOdstranjenihBesedilo(${n}, true)`), 'besedilo pove, da prečrtani niso del naloge');
+  assert.match(info.children[1].textContent, /niso del naloge\.$/);
   const precrtani = poRazredu(dom, 'precrtan');
   assert.equal(precrtani.length, n);
   for (let c = 0; c < 81; c++) {
@@ -159,15 +162,16 @@ test('1-12: mreža s kandidati S0, vpisi poti, prej odstranjeni in "pokaži pre�
 test('sklanjanje števila prej odstranjenih kandidatov', () => {
   const { run } = zacni('hidden-pair');
   const b = n => run(`prejOdstranjenihBesedilo(${n})`);
-  assert.equal(b(0), 'V tem stanju ni prej odstranjenih kandidatov.');
-  assert.equal(b(1), 'V tem stanju je že odstranjen 1 kandidat (prejšnji koraki).');
-  assert.equal(b(2), 'V tem stanju sta že odstranjena 2 kandidata (prejšnji koraki).');
-  assert.equal(b(3), 'V tem stanju so že odstranjeni 3 kandidati (prejšnji koraki).');
-  assert.equal(b(4), 'V tem stanju so že odstranjeni 4 kandidati (prejšnji koraki).');
-  assert.equal(b(5), 'V tem stanju je že odstranjenih 5 kandidatov (prejšnji koraki).');
-  assert.equal(b(11), 'V tem stanju je že odstranjenih 11 kandidatov (prejšnji koraki).');
-  assert.equal(b(101), 'V tem stanju je že odstranjen 101 kandidat (prejšnji koraki).');
-  assert.equal(b(102), 'V tem stanju sta že odstranjena 102 kandidata (prejšnji koraki).');
+  assert.equal(b(0), 'Prejšnji koraki niso odstranili nobenega kandidata.');
+  assert.equal(b(1), 'Prejšnji koraki so že odstranili 1 kandidata – niso del naloge.');
+  assert.equal(b(2), 'Prejšnji koraki so že odstranili 2 kandidata – niso del naloge.');
+  assert.equal(b(3), 'Prejšnji koraki so že odstranili 3 kandidate – niso del naloge.');
+  assert.equal(b(4), 'Prejšnji koraki so že odstranili 4 kandidate – niso del naloge.');
+  assert.equal(b(5), 'Prejšnji koraki so že odstranili 5 kandidatov – niso del naloge.');
+  assert.equal(b(11), 'Prejšnji koraki so že odstranili 11 kandidatov – niso del naloge.');
+  assert.equal(b(101), 'Prejšnji koraki so že odstranili 101 kandidata – niso del naloge.');
+  assert.equal(b(102), 'Prejšnji koraki so že odstranili 102 kandidata – niso del naloge.');
+  assert.equal(run('prejOdstranjenihBesedilo(5, true)'), 'Prečrtane kandidate (5) so odstranili prejšnji koraki – niso del naloge.');
 });
 
 for (const [mode, kljuc] of [['naked-single', 'Gol enojček'], ['hidden-single', 'Skriti enojček']]) {
@@ -178,13 +182,30 @@ for (const [mode, kljuc] of [['naked-single', 'Gol enojček'], ['hidden-single',
     assert.equal(run('vadi.v.prejOdstranjenih'), 0, 'čisto stanje');
     assert.equal(vsi(poRazredu(dom, 'mreza')[0]).filter(e => /\bkand\b/.test(e.className)).length, 0, 'v mreži ni kandidatov');
     assert.equal(poRazredu(dom, 'vaja-info')[0].children.length, 1, 'samo stopnja uganke');
-    const grid = iz(run, 'vadi.v.S0.grid');
+    // Vaja 1: izbrati je mogoče samo prazne celice v enoti območja (označena, druge prazne
+    // celice so zatemnjene), kot v "Spoznaj".
+    const grid = iz(run, 'vadi.v.S0.grid'), enota = iz(run, 'vadi.ob.enota');
     const cs = celice(dom);
-    for (const c of [grid.findIndex(v => v), grid.findIndex(v => !v)]) {
-      cs[c].sprozi('click');
-      assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), grid[c] ? [] : [c]);
-      cs[c].sprozi('click');
+    assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent, /^V (vrstici|stolpcu|bloku) \d poišči /);
+    const vEnoti = grid.findIndex((v, c) => !v && enota.includes(c)), zunaj = grid.findIndex((v, c) => !v && !enota.includes(c));
+    for (let c = 0; c < 81; c++) {
+      assert.equal(cs[c].classList.contains('oznacena'), enota.includes(c), `oznacena ${c}`);
+      assert.equal(cs[c].classList.contains('neaktivna'), !grid[c] && !enota.includes(c), `neaktivna ${c}`);
     }
+    for (const c of [grid.findIndex(v => v), vEnoti, zunaj]) {
+      cs[c].sprozi('click');
+      assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), c === vEnoti ? [c] : []);
+      if (c === vEnoti) cs[c].sprozi('click');
+    }
+    // Vaja 7: cela uganka - izbrati je mogoče vsako prazno celico.
+    run('exNum = 6; renderExercise()');
+    izprazni();
+    assert.equal(run('vadi.ob'), null);
+    const g7 = iz(run, 'vadi.v.S0.grid');
+    assert.equal(celice(dom).filter(e => e.classList.contains('oznacena') || e.classList.contains('neaktivna')).length, 0);
+    const p7 = g7.findIndex(v => !v);
+    celice(dom)[p7].sprozi('click');
+    assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), [p7]);
   });
 }
 
@@ -193,7 +214,8 @@ test('krog: 9 vaj s pravilnim odgovorom (predlog + Preveri), nato "Končano!" z 
   for (let i = 0; i < 9; i++) {
     izprazni();
     assert.equal(poRazredu(dom, 'ex-label')[0].textContent.endsWith(`Vaja ${i + 1} / 9`), true);
-    const [c, d] = iz(run, 'vadi.v.KT[0].assign[0]');
+    // Pri vajah 1-6 je odgovor korak v območju (izbira je omejena na enoto).
+    const [c, d] = iz(run, 'vadi.KTob[0].assign[0]');
     celice(dom)[c].sprozi('click');
     poRazredu(dom, 'niz-vpisi')[0].children[d - 1].sprozi('click');
     gumb(dom, 'Preveri').sprozi('click');
@@ -220,7 +242,8 @@ test('"Spoznaj" iz istega konteksta ostane sestavljena vaja', () => {
 // Vaja tehnike iz banke, ki izpolni pogoj (izraz nad `v`), na zaslonu. Iskanje po banki
 // po vrsti (brez naključja) - vaja je stanje prave uganke, izbrisi v testu so iz korakov
 // motorja (KT, KV) in števk rešitve.
-function vajaZ(tehnika, pogoj) {
+// ob: izraz za območje (privzeto null - cela uganka, kot vaje 7-9).
+function vajaZ(tehnika, pogoj, ob = 'null') {
   const t = zacni(tehnika);
   t.izprazni();
   t.run(`{ const kljuc = TEHNIKA_VAJE[mode]; let najdena = null;
@@ -229,7 +252,7 @@ function vajaZ(tehnika, pogoj) {
       for (const st of stanja) { const v = vajaIzStanja(z.danosti, kljuc, st, stopnja); if (v && (${pogoj})) { najdena = v; break; } }
       if (najdena) { najdena.izvor = { vrsta: 'banka', seme: z.seme }; break; }
     }
-    izrisiVadi(najdena); }`);
+    izrisiVadi(najdena, ${ob}); }`);
   return t;
 }
 // Izbrisi iz S0: KT[0] (korak tehnike), neutemeljen (kandidat, ki ni števka rešitve in ga ne
@@ -458,6 +481,7 @@ const nizVpisi = (dom, d) => poRazredu(dom, 'niz-vpisi')[0].children[d - 1];
 
 test('E1: predlog v celici (niz Vpiši z vsemi 9 števkami, tipke), izidi "Preveri", pravilen predlog postane poteza', () => {
   const { dom, run, izprazni } = zacni('naked-single');
+  run('exNum = 6; renderExercise()'); // cela uganka (vaja 7)
   izprazni();
   const S0 = iz(run, 'vadi.v.S0');
   const N = run('vadi.v.igra.kazalec');
@@ -538,7 +562,8 @@ test('E2: senčenje ob eni poudarjeni števki je pomoč, pri E1 ne; namig in re�
   const { dom, run, izprazni } = zacni('hidden-single', { seme: 3 });
   izprazni();
   gumb(dom, 'Namig').sprozi('click');
-  assert.match(pomocOkvir(dom).textContent, /^Namig: Poglej (vrstico|stolpec|blok) \d: /);
+  // Vaja 1 z enoto: namig kot v "Spoznaj" pri označeni enoti (katere števke manjkajo).
+  assert.match(pomocOkvir(dom).textContent, /^Namig: V (vrstici|stolpcu|bloku) \d manjka/);
   assert.equal(sPomocjo(dom), ' · s pomočjo: 1');
   gumb(dom, 'Rešitev').sprozi('click');
   const oznacene = celice(dom).filter(e => e.classList.contains('k-vpis'));
@@ -547,3 +572,56 @@ test('E2: senčenje ob eni poudarjeni števki je pomoč, pri E1 ne; namig in re�
   assert.ok(celice(dom).some(e => e.classList.contains('k-vzorec')), 'enota koraka');
 });
 
+
+/* ---------- popravek 7b: območje koraka (vaje 1-6) ---------- */
+
+test('območje po tehnikah (vaja 1): navodilo, oznaka na mreži ali poudarek števk; Namig in Rešitev iz območja', () => {
+  const PRICAKOVANO = {
+    'naked-triple': /^V (vrstici|stolpcu|bloku) \d poišči očitno trojico in odstrani kandidate, ki jih izloči\.$/,
+    'box-line': /^V (vrstici|stolpcu) \d poišči izločitev v bloku in odstrani /,
+    'x-wing': /^Na števki \d poišči X-krilo in odstrani /,
+    'swordfish': /^Na števki \d poišči mečarico in odstrani /,
+    'w-wing': /^Kandidata para sta \d in \d: poišči W-krilo in odstrani /,
+    'xy-wing': /^Poišči XY-krilo s pivotom V\dS\d in odstrani /,
+    'unique-rectangle': /^V blokih \d in \d poišči edinstveni pravokotnik in odstrani /,
+  };
+  for (const [mode, vzorec] of Object.entries(PRICAKOVANO)) {
+    const { dom, run, izprazni } = zacni(mode);
+    izprazni();
+    const ob = iz(run, 'vadi.ob');
+    assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent, vzorec, mode);
+    const oznacene = celice(dom).map((e, c) => e.classList.contains('oznacena') ? c : -1).filter(c => c >= 0);
+    assert.deepEqual(oznacene, ob.celice ? [...ob.celice].sort((a, b) => a - b) : [], `${mode}: oznaka`);
+    if (ob.stevke) for (const d of ob.stevke) assert.ok(run(`vadi.plosca.barvaPoudarka(${d})`) >= 0, `${mode}: poudarjena ${d}`);
+    assert.ok(run('vadi.KTob.length > 0 && vadi.KTob.every(k => vObmocju(k, vadi.ob))'));
+    // Rešitev pokaže korak iz območja.
+    gumb(dom, 'Rešitev').sprozi('click');
+    assert.ok(run(`vadi.KTob.some(k => ${JSON.stringify(poRazredu(dom, 'vadi-pomoc')[0].textContent)}.startsWith('Rešitev: ' + k.message))`), `${mode}: rešitev iz območja`);
+    // Vaja 7: brez območja.
+    run('exNum = 6; renderExercise()');
+    izprazni();
+    assert.equal(run('vadi.ob'), null);
+    assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent, /^Poišči korak tehnike /);
+    assert.equal(celice(dom).filter(e => e.classList.contains('oznacena')).length, 0);
+  }
+});
+
+test('pravilen korak zunaj območja je pravilen, sporočilo pove, kje je bil', () => {
+  const { dom, run } = vajaZ('pointing', 'v.KT.some(k => obmocjeKoraka(k).opis !== obmocjeKoraka(v.KT[0]).opis)', 'obmocjeKoraka(najdena.KT[0])');
+  const zunaj = iz(run, 'vadi.v.KT.find(k => !vObmocju(k, vadi.ob))');
+  const opisOb = run('vadi.ob.opis'), opisZunaj = run(`obmocjeKoraka(vadi.v.KT.find(k => !vObmocju(k, vadi.ob))).opis`);
+  assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent, new RegExp(`^${opisOb[0].toUpperCase()}${opisOb.slice(1)} poišči izločitev izven bloka`));
+  for (const e of zunaj.eliminate) if (jeKand(run, e)) odstrani(dom, run, e);
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(fb(dom).className, 'fb ok');
+  assert.equal(fb(dom).innerHTML, `<b>Pravilno!</b> (korak ${opisZunaj}, ne ${opisOb}) ${zunaj.message}`);
+  assert.equal(rezultat(dom), '1/1', 'šteje kot pravilno');
+});
+
+test('pravilen korak v območju: sporočilo brez opombe', () => {
+  const { dom, run } = vajaZ('pointing', 'true', 'obmocjeKoraka(najdena.KT[0])');
+  const k = iz(run, 'vadi.KTob[0]');
+  for (const e of k.eliminate) if (jeKand(run, e)) odstrani(dom, run, e);
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.equal(fb(dom).innerHTML, `<b>Pravilno!</b> ${k.message}`);
+});

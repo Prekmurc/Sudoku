@@ -108,6 +108,7 @@ async function vaja1do12(b, mode, sirina) {
       const s = e.length ? getComputedStyle(e[0]) : null;
       return { n: e.length, barva: s && s.color, crta: s && s.textDecorationLine }; })()`);
     preveri('prečrtani: število in slog', p.n === n && p.barva === 'rgb(169, 178, 188)' && p.crta === 'line-through', p);
+    preveri('besedilo: prečrtani niso del naloge', /^Prečrtane kandidate \(\d+\) so odstranili prejšnji koraki – niso del naloge\.$/.test(await b.izvedi(`document.querySelector('.prej-odstranjeni').textContent`)));
   }
   for (const k of ['Vrstice', 'Stolpci', 'Bloki']) {
     await b.izvedi(`[...document.querySelectorAll('.vaja-uganka .seznami-stikala label')].find(l => l.textContent.trim() === '${k}').setAttribute('data-k', '${k}'); true`);
@@ -125,6 +126,21 @@ async function vaja1do12(b, mode, sirina) {
 async function enojcek(b, mode, sirina) {
   console.log(`${mode}, ${sirina} px`);
   await vadi(b, mode, sirina);
+  // Vaja 1: območje - označena enota, prazne celice zunaj nje zatemnjene in neizbirljive.
+  const o = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice, e = vadi.ob.enota, g = vadi.stanje.grid;
+    const zunaj = g.findIndex((x, i) => !x && !e.includes(i));
+    return { navodilo: document.querySelector('.exercise h3').textContent, oznacenih: c.filter(x => x.classList.contains('oznacena')).length,
+      barva: getComputedStyle(c[e[0]]).backgroundColor, zunaj, neaktivna: zunaj >= 0 && c[zunaj].classList.contains('neaktivna') }; })()`);
+  preveri('vaja 1: navodilo z enoto', /^V (vrstici|stolpcu|bloku) \d poišči /.test(o.navodilo), o.navodilo);
+  preveri('vaja 1: enota označena (modrikasto), zunaj zatemnjeno', o.oznacenih === 9 && o.neaktivna, o);
+  if (o.zunaj >= 0) {
+    await b.klikni(celicaSel(o.zunaj));
+    preveri('celica zunaj enote se ne izbere', JSON.stringify(await b.izvedi('vadi.plosca.izbrane')) === '[]');
+  }
+  await b.posnetek(path.join(mapa, `${mode}-vaja1-${sirina}.png`));
+  // Nadaljevanje na celi uganki (vaja 7).
+  await b.izvedi('exNum = 6; renderExercise(); true');
+  await b.cakaj('vadi !== null', 15000);
   const s = await stanjeStrani(b);
   preveri('brez vodoravnega drsnika, v kartici', s.sirinaStrani === sirina && s.vKartici, s);
   preveri('v mreži ni kandidatov', s.kandidatov === 0, s.kandidatov);
@@ -252,12 +268,32 @@ async function pomoc1do12(b, sirina) {
     return { besedilo: o.textContent, izbris: k ? getComputedStyle(k).color : null, vzorec: document.querySelectorAll('.vaja-uganka .celica.k-vzorec').length,
       sirina: document.documentElement.scrollWidth, vKartici: o.getBoundingClientRect().right <= document.querySelector('.exercise').getBoundingClientRect().right }; })()`);
   preveri('Rešitev: sporočilo koraka in oznake na mreži', p.besedilo.startsWith('Rešitev: ') && p.izbris === 'rgb(176, 46, 46)' && p.vzorec > 0, p);
-  preveri('Rešitev: opravljeni izbris v seznamu', /Opravljeno: 1 od \d+/.test(p.besedilo) || /Korak je izveden/.test(p.besedilo), p.besedilo);
+  preveri('Rešitev: opravljeni izbris v seznamu', /Opravljeno: \d+ od \d+/.test(p.besedilo) || /Korak je izveden/.test(p.besedilo), p.besedilo);
   preveri('pomoč v kartici, brez drsnika', p.vKartici && p.sirina === sirina, p);
   await b.posnetek(path.join(mapa, `hidden-pair-resitev-${sirina}.png`));
   await klikniGumb(b, 'Skrij');
   p = await b.izvedi(`({ skrito: document.querySelector('.vadi-pomoc').hidden, oznak: document.querySelectorAll('.vaja-uganka .k-vzorec, .vaja-uganka .k-izbris').length })`);
   preveri('Skrij: okvir in oznake izginejo', p.skrito && p.oznak === 0, p);
+}
+
+// Območje pri vaji 1: enota modrikasta (1-6), števka poudarjena (7-9), pivot, bloka.
+async function obmocje(b, sirina) {
+  for (const [mode, vrsta] of [['hidden-pair', 'enota'], ['x-wing', 'stevke'], ['xy-wing', 'pivot'], ['unique-rectangle', 'bloki']]) {
+    console.log(`${mode}, območje, ${sirina} px`);
+    await vadi(b, mode, sirina, { banka: true, seme: 3 });
+    const o = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice, ob = vadi.ob;
+      const ozn = c.filter(x => x.classList.contains('oznacena'));
+      const poud = ob.stevke ? ob.stevke.map(d => [...document.querySelectorAll('.vaja-uganka .niz-poudari button')][d - 1].getAttribute('aria-pressed')) : [];
+      return { vrsta: ob.vrsta, navodilo: document.querySelector('.exercise h3').textContent, oznacenih: ozn.length, pricakovanih: ob.celice ? ob.celice.length : 0,
+        barva: ozn.length ? getComputedStyle(ozn.find(x => !x.classList.contains('dana') && !x.classList.contains('vpis')) || ozn[0]).backgroundColor : null, poud,
+        sirina: document.documentElement.scrollWidth }; })()`);
+    preveri(`${mode}: vrsta območja ${vrsta}`, o.vrsta === vrsta, o.vrsta);
+    preveri(`${mode}: navodilo pove območje`, !/^Poišči korak tehnike/.test(o.navodilo), o.navodilo);
+    if (vrsta === 'stevke') preveri(`${mode}: števka poudarjena`, o.poud.length && o.poud.every(x => x === 'true'), o.poud);
+    else preveri(`${mode}: območje modrikasto`, o.oznacenih === o.pricakovanih && o.barva === 'rgb(227, 238, 251)', o);
+    preveri(`${mode}: brez drsnika`, o.sirina === sirina, o.sirina);
+    await b.posnetek(path.join(mapa, `${mode}-obmocje-${sirina}.png`));
+  }
 }
 
 async function banka(b) {
@@ -322,6 +358,7 @@ async function main() {
       await odgovor1do12(b, sirina);
       await pomoc1do12(b, sirina);
       await sencenjeE2(b, sirina);
+      await obmocje(b, sirina);
     }
     await banka(b);
     await predlogSiv(b);
