@@ -254,7 +254,7 @@ zakrite piksle v V3S2 in V3S7 ter 92–149 v najslabšem primeru.
 | Korak | Commit | Kaj |
 |---|---|---|
 | 1 | `4155ba5` | načrt in posnetki prototipa (A, B, C) |
-| 2 | (ta commit) | slogi C3, podlagi, preverjanje v brskalniku, dokumentacija, slika |
+| 2 | `f5ff3fe` | slogi C3, podlagi, preverjanje v brskalniku, dokumentacija, slika |
 
 ![C3, izvedeno](slike/oznake/c3-izvedeno.png)
 
