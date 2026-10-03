@@ -848,3 +848,30 @@ samo kar je nujno.
   nižje stopnje od osnovne, rang po vrsti in Presega zadnja, izbira iz banke za vseh 14
   tehnik (najnižji rang med neuporabljenimi, rang ne pade, vsak zapis enkrat, nato znova).
   Posnetek igre »Enako: 85 posnetkov.«
+
+### 16.11 Napaka pri vaji 2 v »Spoznaj« (pred 8b) in popravek A
+
+**Vzrok.** `tests/trening-presek.test.js` zahteva, da na delni mreži vaj 1 in 2 ni nobenega
+drugega koraka iste tehnike z isto števko, katerega celice so vse vidne (»odgovor je
+enoličen«). Generator (`genPresek()`) tega ni preverjal, samo predpostavljal. Stara banka
+(220 zapisov) takega koraka nima nobenega, zato je test prej vedno držal. Nova banka (8b)
+jih ima, in s staro kodo treninga je test pri svojem semenu padel pri vaji 2 · Izločitev
+v bloku. Primer (števka 2, blok 4, stolpec 1): v stolpcu 1 je 2 mogoča samo v
+V4S1–V6S1 (vaja), hkrati pa je v vrstici 6 mogoča samo v V6S1 in V6S3 – obe vidni, ker
+je ves blok viden. Vrstica 6 zunaj bloka je skrita, zato drugega vzorca iz vidnega ni
+mogoče preveriti; odgovor v označenem stolpcu ostane en sam.
+
+**Pogostost** (nova banka, 900 vaj vsake tehnike s kodo 8c): 1 · Izločitev izven bloka 0,
+**2 · Izločitev v bloku 2 (0,2 %)**, nikoli v označeni enoti.
+
+**Odločitev (2026-10-03): A** – generator tako vajo zavrne in vzame drugo
+(`presekEnolicen()` v `trening/generators.js`; tudi pri vaji s tremi celicami). Strožji
+test ostane. Z novo banko se »Spoznaj« 2 spremeni pri pribl. 0,2 % vaj; to je del novega
+izhodišča za primerjavo 1 in 2 (commit 8c), s staro banko se ne spremeni nič.
+
+Vrstni red commitov: popravek A (s staro banko), 8b, 8c.
+
+- Popravek A: `presekEnolicen()`, nov test v `tests/trening-presek.test.js` (pogoj se ujema
+  s pogojem testa na vseh korakih vseh ugank banke). 408 testov, posnetek igre »Enako«,
+  `preveri-vadi-brskalnik.js` (»Spoznaj« vseh 14 tehnik enak kot `5b9ae6f`) in
+  `preveri-presek-brskalnik.js` »Vse drži«.

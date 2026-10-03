@@ -69,15 +69,27 @@ function vajaPreseka(mode,v,korak){
   };
 }
 
+// Korak je za vajo primeren, če na delni mreži (blok in vrstica/stolpec koraka) ni
+// nobenega drugega koraka tehnike z isto števko, katerega celice so vse vidne. Brez tega
+// pogoja bi bil pri pribl. 0,2 % vaj 2 · Izločitev v bloku viden še drug vzorec (npr. v
+// vrstici, ki seka blok) - odgovor v označeni enoti je sicer en sam, a mreža bi kazala
+// vzorec, ki ga iz vidnega ni mogoče preveriti (docs/vadi-v-uganki-nacrt.md, točka 16.11).
+function presekEnolicen(mode,v,korak){
+  const{blok,enota}=enoteKorakaPreseka(mode,korak);
+  const vidne=new Set([...BOXES[blok],...enota]);
+  const d=korak.eliminate[0][1];
+  return !v.KT.some(k=>k!==korak&&k.eliminate[0][1]===d&&k.cells.every(c=>vidne.has(c)));
+}
+
 // Vaja s tremi celicami: preišče uganke in stanja v naključnem vrstnem redu, dokler ne
-// najde koraka s tremi celicami (v banki jih je dovolj; če jih ni, null).
+// najde primernega koraka s tremi celicami (v banki jih je dovolj; če jih ni, null).
 function presekTrojicaIzBanke(mode,uganke){
   const kljuc=PRESEK_KLJUC[mode];
   for(const z of shuffle([...uganke])){
     const{stanja,stopnja}=stanjaVUganki(z.danosti,kljuc);
     for(const st of shuffle([...stanja])){
       const v=vajaIzStanja(z.danosti,kljuc,st,stopnja);
-      const trojice=v?v.KT.filter(k=>k.cells.length===3):[];
+      const trojice=v?v.KT.filter(k=>k.cells.length===3&&presekEnolicen(mode,v,k)):[];
       if(trojice.length) return vajaPreseka(mode,v,trojice[randInt(0,trojice.length-1)]);
     }
   }
@@ -96,7 +108,10 @@ function genPresek(n,mode){
   for(;;){
     const z=uganke[randInt(0,uganke.length-1)];
     const v=vajaIzUganke(z.danosti,kljuc,Math.random);
-    if(v&&v.KT.length) return vajaPreseka(mode,v,v.KT[randInt(0,v.KT.length-1)]);
+    if(!v||!v.KT.length) continue;
+    // Neprimeren korak (presekEnolicen): vaja se zavrne, vzame se druga uganka.
+    const korak=v.KT[randInt(0,v.KT.length-1)];
+    if(presekEnolicen(mode,v,korak)) return vajaPreseka(mode,v,korak);
   }
 }
 

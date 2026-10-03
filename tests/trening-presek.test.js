@@ -96,6 +96,29 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
     assert.ok(msNaVajo < 200, `čas na vajo ${msNaVajo.toFixed(0)} ms`);
   });
 
+  test(`${mode}: korak z drugim vzorcem iste števke s samimi vidnimi celicami je za vajo neprimeren`, () => {
+    const run = pripravi(1);
+    // Vsa stanja vseh ugank banke s tehniko: presekEnolicen() zavrne natanko korake, pri
+    // katerih je na delni mreži (blok in enota koraka) še drug korak tehnike z isto
+    // števko, katerega celice so vse vidne - isti pogoj kot "odgovor je enoličen" zgoraj.
+    const r = run(`(() => { let zavrnjenih = 0, korakov = 0, razlik = 0;
+      for (const z of VAJE_BANKA.filter(z => z.tehnike.includes('${kljuc}'))) {
+        for (const S of stanjaVUganki(z.danosti, '${kljuc}').stanja) {
+          const v = vajaIzStanja(z.danosti, '${kljuc}', S, '');
+          for (const k of v.KT) {
+            korakov++;
+            const vid = new Set(vajaPreseka('${mode}', v, k).vidne);
+            const drugi = v.KT.some(x => x !== k && x.eliminate[0][1] === k.eliminate[0][1] && x.cells.every(c => vid.has(c)));
+            if (presekEnolicen('${mode}', v, k) === drugi) razlik++;
+            if (drugi) zavrnjenih++;
+          }
+        }
+      }
+      return { zavrnjenih, korakov, razlik }; })()`);
+    assert.equal(r.razlik, 0, 'presekEnolicen() se ujema s pogojem testa');
+    assert.ok(r.korakov > 100, `${r.korakov} korakov`);
+  });
+
   test(`${mode}: v vsakem krogu 9 vaj je vsaj ena vaja s tremi celicami, druge po resnični pogostosti`, () => {
     const run = pripravi(7);
     const krogi = run(`Array.from({ length: ${KROGOV} }, () => Array.from({ length: 9 }, (_, n) => {
