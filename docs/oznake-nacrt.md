@@ -349,4 +349,4 @@ Enako v `4e1e4dc`, torej ne zaradi te naloge. Scenarij pred pritiskom doda prost
 
 | Korak | Commit | Kaj |
 |---|---|---|
-| 3 | (ta commit) | vaje 3–12 v »Spoznaj«: podlagi, kandidati, preverjanje, dokumentacija |
+| 3 | `d3929f2` | vaje 3–12 v »Spoznaj«: podlagi, kandidati, preverjanje, dokumentacija |
