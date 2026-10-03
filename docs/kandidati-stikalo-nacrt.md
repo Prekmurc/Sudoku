@@ -8,7 +8,7 @@ reševalec stikala nimata. Brez ročnih zapiskov (lastnega vpisovanja malih šte
 Izhodišče: `docs/uskladitev.md`, vrstica 5a v tabeli »Vrstni red popravkov« in opomba v
 »Opombe k delom«.
 
-Stanje: **izvedeno 2026-10-03** (koraki 2–4, razdelek 7); ročni pregled (4 točke v `docs/rocni-test.md`) še ni potrjen.
+Stanje: **izvedeno 2026-10-03** (koraki 2–4, razdelek 7); ročni pregled (4 točke v `docs/rocni-test.md`) potrjen 2026-10-03.
 
 **Odločitve (Darko, 2026-10-03):** O1 A, O2 A, O3 A, O4 A, O5 A, O7 kot predlagano. O6 A z
 drugim napisom: kljukica **»Kandidati v celicah«** (brez pojasnila v oklepaju), kartica
