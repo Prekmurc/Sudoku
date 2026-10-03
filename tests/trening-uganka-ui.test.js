@@ -795,3 +795,21 @@ test('»več celic« privzeto po deležu tehnike v banki, sprememba velja do kon
   izprazni();
   assert.equal(kljukica(dom).checked, true, 'nov krog: privzeto');
 });
+
+// Nastavitev igre »Kandidati v celicah« (sudoku.igra.kandidati, docs/kandidati-stikalo-nacrt.md)
+// je samo igrina: trening je ne bere - 1-12 s kandidati, E1/E2 brez, kot brez zapisa.
+test('nastavitev igre »Kandidati v celicah« treninga ne spremeni', () => {
+  for (const tehnika of ['hidden-pair', 'naked-single']) {
+    const izris = shramba => {
+      const { dom, izprazni } = zacni(tehnika, { shramba });
+      izprazni();
+      return { kandidati: celice(dom).map(c => c.children.filter(k => k.className === 'kandidati').length), dom };
+    };
+    const brez = izris(undefined);
+    const shramba = new Map([['sudoku.igra.kandidati', 'false']]);
+    const z = izris(shramba);
+    assert.deepEqual(z.kandidati, brez.kandidati, tehnika);
+    assert.equal(z.kandidati.some(n => n), tehnika === 'hidden-pair', tehnika);
+    assert.equal(shramba.get('sudoku.igra.kandidati'), 'false', 'trening ključa ne piše');
+  }
+});

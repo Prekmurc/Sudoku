@@ -785,3 +785,119 @@ test('ocena zbirke: oznake brez rešitve, nepreverjena enoličnost ne prepiše t
   assert.equal(run(`JSON.stringify(ocenaZapis({ resitve: 'unknown', tezavnost: '' }))`), '{}');
   assert.equal(run(`ocenaSprememba(${JSON.stringify(z)}, { resitve: 'unknown', tezavnost: '' })`), '', 'brez spremembe');
 });
+
+// Stikalo »Kandidati v celicah« v kartici Prikaz (docs/kandidati-stikalo-nacrt.md): samo
+// prikaz - kandidati se računajo naprej, »Naslednji korak« in »Preveri« sta enaka.
+const cakaj = ms => new Promise(r => setTimeout(r, ms));
+// Gumb v kartici Pomoč po napisu (ali null).
+function gumbPomoci(dom, napis) {
+  const najdi = el => {
+    for (const c of el.children || []) {
+      if (c.tagName === 'BUTTON' && c.textContent === napis) return c;
+      const g = najdi(c);
+      if (g) return g;
+    }
+    return null;
+  };
+  return najdi(dom.el('pomocVsebina'));
+}
+// "Naslednji korak" do tretje stopnje (iskanje teče v setTimeout); vrne korak.
+async function korakDoTretje(dom, run) {
+  dom.klikni('korakBtn');
+  await cakaj(60);
+  while (run('pomoc && pomoc.korak && pomoc.stopnja < 3')) dom.klikni('korakBtn');
+  return JSON.parse(run('JSON.stringify(pomoc.korak)'));
+}
+const stikalo = (dom, v) => { dom.el('stikaloKandidati').checked = v; dom.el('stikaloKandidati').sprozi('change'); };
+const kandidatiVCelici = (dom, i) => dom.el('mreza').children[i].children.filter(k => k.className === 'kandidati').length;
+
+test('stikalo kandidatov: izklop skrije kandidate in niz Odstrani, nastavitev ostane po osvežitvi', () => {
+  const { dom } = zacni();
+  const prazna = danosti.indexOf('0');
+  assert.equal(dom.el('stikaloKandidati').checked, true, 'privzeto vklopljeno');
+  assert.equal(kandidatiVCelici(dom, prazna), 1);
+  stikalo(dom, false);
+  assert.equal(dom.shramba.get('sudoku.igra.kandidati'), 'false');
+  assert.equal(kandidatiVCelici(dom, prazna), 0);
+  assert.equal(dom.el('odstraniGlava').hidden, true);
+  assert.equal(dom.el('nizOdstrani').hidden, true);
+  // Osvežitev strani: zadnja igra se odpre, kandidati ostanejo skriti.
+  const dom2 = makeDom(dom.shramba);
+  loadContext(DATOTEKE, dom2.globals);
+  assert.equal(dom2.el('stikaloKandidati').checked, false);
+  assert.equal(dom2.el('nizOdstrani').hidden, true);
+  assert.equal(kandidatiVCelici(dom2, prazna), 0);
+  assert.ok(dom2.el('mreza').children[danosti.search(/[1-9]/)].textContent, 'uganka je odprta');
+  stikalo(dom2, true);
+  assert.equal(dom2.shramba.get('sudoku.igra.kandidati'), 'true');
+  assert.equal(kandidatiVCelici(dom2, prazna), 1);
+  assert.equal(dom2.el('nizOdstrani').hidden, false);
+});
+
+test('stikalo kandidatov: korak z izbrisom - kandidati v celicah koraka, opomba, »Vklopi kandidate«; isti korak in Preveri', async () => {
+  const { dom, run } = zacni();
+  // Enojčki do prvega koraka z izbrisom (pot z nextStep, kot igralec, ki sledi pomoči).
+  run(`for (;;) { const k = nextStep(stanje.deska, ALL_TECHNIQUES); if (!k || k.eliminate.length) break;
+    for (const [c, d] of k.assign) izvedi({ tip: 'vpis', celica: c, stevka: d }); }`);
+  dom.klikni('preveriBtn');
+  const preveriVklop = dom.el('pomocVsebina').textContent;
+  const kVklop = await korakDoTretje(dom, run);
+  assert.ok(kVklop.eliminate.length && !kVklop.assign.length, 'korak z izbrisom');
+  const besediloVklop = dom.el('pomocVsebina').textContent;
+  assert.equal(gumbPomoci(dom, 'Vklopi kandidate'), null, 'pri vklopu ni opombe');
+  gumbPomoci(dom, 'Skrij').sprozi('click');
+
+  stikalo(dom, false);
+  dom.klikni('preveriBtn');
+  assert.equal(dom.el('pomocVsebina').textContent, preveriVklop, '»Preveri« je enak');
+  const k = await korakDoTretje(dom, run);
+  assert.deepEqual(k, kVklop, '»Naslednji korak« najde isti korak');
+  // Kandidati samo v celicah vzorca in izbrisov; prečrtan kandidat za izbris.
+  const vKoraku = new Set([...k.cells, ...k.eliminate.map(([c]) => c)]);
+  for (let i = 0; i < 81; i++) {
+    if (run(`stanje.grid[${i}]`)) continue;
+    assert.equal(kandidatiVCelici(dom, i), vKoraku.has(i) ? 1 : 0, `celica ${i}`);
+  }
+  const [c0, d0] = k.eliminate[0];
+  assert.ok(dom.el('mreza').children[c0].children[0].children[d0 - 1].className.includes('k-izbris'));
+  // Opomba z gumbom; drugo besedilo pomoči je enako kot pri vklopu.
+  const OPOMBA = 'Kandidati so skriti: izbrise izvedeš, ko jih vklopiš – dotlej »Naslednji korak« najde isti korak.';
+  const besedilo = dom.el('pomocVsebina').textContent;
+  assert.ok(besedilo.includes(OPOMBA));
+  assert.equal(besedilo.replace(OPOMBA + 'Vklopi kandidate', ''), besediloVklop);
+  // Skrij in znova: isti korak (izbris ni narejen).
+  gumbPomoci(dom, 'Skrij').sprozi('click');
+  assert.deepEqual(await korakDoTretje(dom, run), kVklop);
+
+  // »Vklopi kandidate«: stikalo vklopljeno in shranjeno, korak ostane, izbris se da izvesti.
+  gumbPomoci(dom, 'Vklopi kandidate').sprozi('click');
+  assert.equal(dom.el('stikaloKandidati').checked, true);
+  assert.equal(dom.shramba.get('sudoku.igra.kandidati'), 'true');
+  assert.ok(run('pomoc && pomoc.korak && pomoc.stopnja === 3'), 'korak ostane prikazan');
+  assert.equal(gumbPomoci(dom, 'Vklopi kandidate'), null);
+  assert.equal(dom.el('nizOdstrani').hidden, false);
+  for (const [c, d] of k.eliminate) {
+    dom.el('mreza').children[c].sprozi('click');
+    dom.el('nizOdstrani').children[d - 1].sprozi('click');
+    assert.equal(run(`stanje.kandidati[${c}] & (1 << ${d})`), 0, `izbris ${d} iz ${c}`);
+    dom.el('mreza').children[c].sprozi('click'); // ponoven klik prekliče izbiro
+  }
+  assert.match(dom.el('pomocVsebina').textContent, /Korak je izveden\./);
+});
+
+test('stikalo kandidatov: enojček na tretji stopnji - števka za vpis v celici, brez opombe', async () => {
+  const { dom, run } = zacni();
+  stikalo(dom, false);
+  const k = await korakDoTretje(dom, run);
+  assert.ok(k.assign.length, 'prvi korak je enojček');
+  const [ce, de] = k.assign[0];
+  const celica = dom.el('mreza').children[ce];
+  assert.equal(celica.textContent, String(de));
+  assert.equal(celica.className, 'celica k-vpis');
+  assert.equal(gumbPomoci(dom, 'Vklopi kandidate'), null);
+  for (let i = 0; i < 81; i++) assert.equal(kandidatiVCelici(dom, i), 0, `celica ${i}`);
+  celica.sprozi('click');
+  dom.el('nizVpisi').children[de - 1].sprozi('click');
+  assert.equal(run(`stanje.grid[${ce}]`), de);
+  assert.match(dom.el('pomocVsebina').textContent, /Korak je izveden\./);
+});

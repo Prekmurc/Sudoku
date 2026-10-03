@@ -60,6 +60,8 @@ function drevo(el) {
 // Okno "Nova uganka" (polje Niz, vnosna mreža okna, sporočilo) - samo v posnetkih
 // tega okna, zato se prejšnji posnetki ne spremenijo.
 const ELEMENTI_NOVA = ['novaDialog', 'novaNiz', 'novaMreza', 'novaStatus'];
+// Stikalo »Kandidati v celicah« (naloga 5a) - samo v posnetkih koraka stikala.
+const ELEMENTI_KANDIDATI = ['stikaloKandidati', 'odstraniGlava'];
 
 function posnemi(dom, dodatni = []) {
   const o = {};
@@ -401,6 +403,55 @@ async function scenarij() {
   dom.klikni('novaZacni');
   await cakaj(300); // enoličnost se preveri v setTimeout
   zapisiNovo('Začni igro po nizu');
+
+  // Stikalo »Kandidati v celicah« v kartici Prikaz (naloga 5a, docs/kandidati-stikalo-
+  // nacrt.md) na uganki iz okna »Nova uganka«. Celice in števke izpelje program.
+  const zapisiKand = ime => koraki.push({ ime, posnetek: posnemi(dom, ELEMENTI_KANDIDATI) });
+  const resN = run('resitev()');
+  const [q0, q1, q2] = [...nova].map((ch, i) => (ch === '0' ? i : -1)).filter(i => i >= 0);
+  zapisiKand('Kandidati: vklopljeno (privzeto)');
+  kljukica('vecCelic', true);
+  klikCelice(q0);
+  klikCelice(q1);
+  zapisiKand('Kandidati: izbira več celic pred izklopom');
+  kljukica('stikaloKandidati', false);
+  zapisiKand('Kandidati: izklop počisti izbiro več celic');
+  klikCelice(q0);
+  zapisiKand('Kandidati izklopljeni: izbrana prazna celica, vseh 9 števk');
+  const vEnoti = STEVKE.find(d => !(kand(q0) & (1 << d)));
+  niz('nizVpisi', vEnoti);
+  zapisiKand('Kandidati izklopljeni: zavrnjen vpis števke, ki ni kandidat');
+  tipka('!', `Digit${STEVKE.find(d => kand(q0) & (1 << d))}`, { shiftKey: true });
+  zapisiKand('Kandidati izklopljeni: Shift+števka ne naredi nič');
+  klikCelice(q1, { ctrlKey: true });
+  zapisiKand('Kandidati izklopljeni: Ctrl+klik ne doda celice');
+  niz('nizPoudari', resN[q1]);
+  zapisiKand('Kandidati izklopljeni: poudarek samo vpisanih števk');
+  niz('nizPoudari', resN[q1]);
+  niz('nizVpisi', resN[q1]);
+  zapisiKand('Kandidati izklopljeni: vpis kandidata');
+  klikCelice(q2);
+  niz('nizVpisi', resN[q2]);
+  // Enojčki do prvega koraka z izbrisom (kot igralec, ki sledi pomoči).
+  for (;;) {
+    const k = run('nextStep(stanje.deska, ALL_TECHNIQUES)');
+    if (!k || k.eliminate.length) break;
+    for (const [c, d] of k.assign) { klikCelice(c); niz('nizVpisi', d); }
+  }
+  dom.klikni('korakBtn');
+  await cakaj(60);
+  zapisiKand('Kandidati izklopljeni: Naslednji korak (ime tehnike)');
+  dom.klikni('korakBtn');
+  dom.klikni('korakBtn');
+  zapisiKand('Kandidati izklopljeni: Pokaži rešitev - kandidati v celicah koraka, opomba');
+  gumbPomoci('Vklopi kandidate');
+  zapisiKand('Vklopi kandidate: korak ostane prikazan');
+  kljukica('stikaloKandidati', false);
+  dom = makeDom(dom.shramba);
+  ({ run } = loadContext(datoteke, dom.globals));
+  zapisiKand('osvežitev: kandidati ostanejo izklopljeni');
+  kljukica('stikaloKandidati', true);
+  zapisiKand('Kandidati: vklop');
   return koraki;
 }
 

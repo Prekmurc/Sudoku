@@ -77,6 +77,12 @@ const plosca = ustvariPlosco({
   },
   postavitev: igraLayoutEl,
   kljucSeznamov: 'sudoku.igra.seznami', // ključ si delijo aplikacije - ne spreminjaj
+  // Stikalo »Kandidati v celicah« (kartica Prikaz): samo prikaz, kandidati se računajo
+  // naprej. Ključ je samo igrin - trening ga ne bere.
+  stikaloKandidatov: document.getElementById('stikaloKandidati'),
+  kljucKandidatov: 'sudoku.igra.kandidati',
+  skrijBrezKandidatov: [document.getElementById('odstraniGlava'), nizOdstraniEl],
+  pogled: () => pogledKoraka(),
   vir: () => ({ igra, stanje }),
   obSpremembi: (vrsta) => {
     sporocilo = vrsta === 'znova' ? { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' } : null;
@@ -187,6 +193,17 @@ function veljaIzhodisce(izh) {
 }
 
 /* ---------- izris ---------- */
+
+// Izklopljeni kandidati in prikazan korak (tretja stopnja): kandidati se pokažejo samo
+// v celicah vzorca in izbrisov - brez njih koraka ni mogoče razumeti. Celica za vpis
+// pokaže števko (kot mreža brez kandidatov).
+function pogledKoraka() {
+  if (!igra || plosca.kandidatiVidni() || !pomoc || !pomoc.korak || pomoc.stopnja !== 3) return {};
+  const k = pomoc.korak;
+  const vpis = new Set(k.assign.map(([c]) => c));
+  const celice = [...k.cells, ...k.eliminate.map(([c]) => c)].filter(c => !vpis.has(c));
+  return { kandidati: stanje.kandidati, celiceKandidatov: celice };
+}
 
 function izrisi() {
   plosca.izrisi();
@@ -378,6 +395,25 @@ function izrisiDejanja(k) {
   pomocEl.appendChild(seznam);
 }
 
+// Tretja stopnja pri izklopljenih kandidatih: izbrisa ni mogoče narediti (niz Odstrani
+// je skrit), zato opomba in gumb, ki kandidate vklopi (in nastavitev shrani). Korak
+// ostane prikazan.
+function izrisiOpomboKandidatov(k) {
+  if (plosca.kandidatiVidni() || !dejanjaKoraka(k, stanje).some(a => a.tip === 'izbris' && !a.opravljeno)) return;
+  const op = document.createElement('div');
+  op.className = 'pomoc-kandidati';
+  const p = document.createElement('p');
+  p.className = 'pomoc-opomba';
+  p.textContent = 'Kandidati so skriti: izbrise izvedeš, ko jih vklopiš – dotlej »Naslednji korak« najde isti korak.';
+  const vklopi = document.createElement('button');
+  vklopi.type = 'button';
+  vklopi.className = 'majhen';
+  vklopi.textContent = 'Vklopi kandidate';
+  vklopi.addEventListener('click', () => plosca.nastaviKandidate(true));
+  op.append(p, vklopi);
+  pomocEl.appendChild(op);
+}
+
 function izrisiPomoc() {
   pomocEl.innerHTML = '';
   if (!pomoc) return;
@@ -404,6 +440,7 @@ function izrisiPomoc() {
     if (pomoc.stopnja === 3) {
       izrisiRazlago(k);
       izrisiDejanja(k);
+      izrisiOpomboKandidatov(k);
     }
   } else {
     const p = document.createElement('p');

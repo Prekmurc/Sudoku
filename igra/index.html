@@ -35,7 +35,7 @@
     <div class="niz niz-poudari" id="nizPoudari" role="group" aria-labelledby="poudariOznaka"></div>
 
     <!-- mreža + seznama manjkajočih števk: desno ob vrsticah, pod stolpci (vklopita se
-         v kartici Manjkajoče števke) -->
+         v kartici Prikaz) -->
     <div class="mreza-okvir" id="mrezaOkvir">
       <div id="mreza" class="mreza" role="grid" aria-label="Sudoku mreža"></div>
       <div id="seznamVrstic" class="seznam seznam-vrstic" aria-label="Manjkajoče števke v vrsticah" hidden></div>
@@ -45,7 +45,7 @@
     <div class="niz-oznaka" id="vpisiOznaka">Vpiši v izbrano celico</div>
     <div class="niz niz-vpisi" id="nizVpisi" role="group" aria-labelledby="vpisiOznaka"></div>
 
-    <div class="niz-oznaka glava-s-kljukico">
+    <div class="niz-oznaka glava-s-kljukico" id="odstraniGlava">
       <span id="odstraniOznaka">Odstrani kandidata <span class="niz-pojasnilo">· <span class="vzorec-vrni">↺</span> = vrni odstranjenega</span></span>
       <label class="vec-hkrati" title="Izberi več celic in odstrani isto števko iz vseh (na računalniku tudi Ctrl+klik)"><input type="checkbox" id="vecCelic"> več celic</label>
     </div>
@@ -81,8 +81,10 @@
       <div id="pomocVsebina" class="pomoc-vsebina" aria-live="polite"></div>
     </div>
     <div class="card">
-      <h2>Manjkajoče števke</h2>
-      <div class="seznami-stikala" role="group" aria-label="Prikaz seznamov">
+      <h2>Prikaz</h2>
+      <div class="seznami-stikala" role="group" aria-label="Prikaz">
+        <label><input type="checkbox" id="stikaloKandidati" checked> Kandidati v celicah</label>
+        <span class="niz-oznaka">Manjkajoče števke</span>
         <label><input type="checkbox" id="stikaloVrstice"> Vrstice <span class="niz-pojasnilo">(desno od mreže)</span></label>
         <label><input type="checkbox" id="stikaloStolpci"> Stolpci <span class="niz-pojasnilo">(pod mrežo)</span></label>
         <label><input type="checkbox" id="stikaloBloki"> Bloki <span class="niz-pojasnilo">(mala mreža)</span></label>
@@ -143,6 +145,7 @@
     <h3 class="navodila-razdelek">Kako igrati</h3>
     <p>Klikni celico, nato števko v nizu <b>Vpiši</b> ali <b>Odstrani kandidata</b>. Omogočene so samo števke, ki so za izbrano celico smiselne: števke, ki je v vrstici, stolpcu ali bloku že vpisana, ni med kandidati, zato je ni mogoče vpisati. Dane števke se ne spreminjajo.</p>
     <p>Kandidati se računajo sami iz danosti in tvojih vpisov. Kandidat, ki ga odstraniš sam, ostane odstranjen, tudi če vmes zbrišeš vpis. Vrneš ga s <span class="vzorec-vrni">↺</span> v nizu <b>Odstrani kandidata</b> ali z <b>Razveljavi</b>.</p>
+    <p>Ko v kartici <b>Prikaz</b> izklopiš kljukico <b>Kandidati v celicah</b>, se male števke v praznih celicah skrijejo – rešuješ brez zapisanih kandidatov. Igra jih računa naprej, zato <b>Naslednji korak</b> in <b>Preveri</b> delujeta enako, tvoji izbrisi kandidatov pa ostanejo. Ko so kandidati skriti, je niz <b>Odstrani kandidata</b> skrit, v nizu <b>Vpiši</b> so omogočene vse števke (števka, ki v celici ni mogoča, se ne vpiše – vrstica pod nizi pove zakaj), <b>Poudari</b> obarva samo vpisane števke, <b>Pokaži rešitev</b> pa pokaže kandidate samo v celicah koraka. Izbrisa brez kandidatov ni mogoče narediti – gumb <b>Vklopi kandidate</b> pod takim korakom jih vklopi. Nastavitev si brskalnik zapomni.</p>
     <p>Isto števko odstraniš iz več celic hkrati s kljukico <b>več celic</b> (ali <kbd>Ctrl</kbd>+klik): klik celico doda v izbiro ali jo odstrani iz nje, v nizu <b>Odstrani kandidata</b> so omogočene samo števke, ki so kandidat v vseh izbranih celicah. Izbira ostane, dokler je ne počistiš z <kbd>Esc</kbd>, izklopom kljukice ali navadnim klikom; <b>Razveljavi</b> vrne vse celice naenkrat.</p>
     <p>Niz <b>Poudari</b> nad mrežo ne spremeni mreže: obarva vse celice, kjer je števka kandidat ali je vpisana. Pod vsako števko je število mest, kjer še manjka. S kljukico <b>več hkrati</b> se poudarki seštevajo in vsaka števka dobi svojo barvo.</p>
     <p><b>Razveljavi</b> in <b>Ponovi</b> hodita po tvojih potezah, <b>Zbriši vpis</b> zbriše vpis v izbrani celici, <b>Začni znova</b> (v isti vrstici pod mrežo) razveljavi vse poteze (s <b>Ponovi</b> jih dobiš nazaj, dokler ne narediš nove poteze). Igra se shrani po vsaki potezi, skupaj z zgodovino, zato jo lahko kadar koli nadaljuješ.</p>
@@ -162,7 +165,7 @@
     <p><b>Preveri</b> primerja mrežo z rešitvijo: zelena kljukica pomeni, da je vse v redu, rdeč križec pa, da je napaka – napačen vpis ali prazna celica, iz katere si odstranil pravilnega kandidata. Igra pove, pri kateri potezi je napaka nastala, in ponudi vrnitev na stanje pred njo. Poteze ostanejo v <b>Ponovi</b>, zato nič ni izgubljeno.</p>
 
     <h3 class="navodila-razdelek">Seznami manjkajočih števk</h3>
-    <p>Trije prikazi, ki jih vklopiš s stikali v kartici <b>Manjkajoče števke</b>: kvadratki desno od vrstic, pod stolpci in mala mreža 3×3 za bloke (polje je en blok, razporejeni so kot v veliki mreži).</p>
+    <p>Trije prikazi, ki jih vklopiš s stikali v kartici <b>Prikaz</b>: kvadratki desno od vrstic, pod stolpci in mala mreža 3×3 za bloke (polje je en blok, razporejeni so kot v veliki mreži).</p>
     <p>V kvadratku so števke, ki v tej enoti še niso vpisane, na istih mestih kot kandidati v celici (1 levo zgoraj … 9 desno spodaj) – vedno na istem mestu, zato jo oko hitro najde. Polna enota ima prazen kvadratek. Kandidati in tvoji izbrisi na sezname ne vplivajo, štejejo samo vpisi. Poudarjena števka je v seznamih obarvana enako kot v mreži.</p>
     <p>Stanje stikal si brskalnik zapomni, privzeto so vsi seznami izklopljeni.</p>
 
