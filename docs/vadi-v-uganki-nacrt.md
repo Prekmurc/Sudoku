@@ -838,8 +838,9 @@ samo kar je nujno.
 
 | Korak | Stanje | Commit | Testi |
 |---|---|---|---|
-| 8a `shared/vaje-uganka.js`: `stopnjaTehnike()`, `rangUganke()`, `izberiIzBanke()`, `najnizjiRangBanke()` | **narejeno 2026-10-03** | (ta commit) | 406 (403 + 3) |
-| 8b orodje, nova banka, test banke | | | |
+| 8a `shared/vaje-uganka.js`: `stopnjaTehnike()`, `rangUganke()`, `izberiIzBanke()`, `najnizjiRangBanke()` | **narejeno 2026-10-03** | `29c9376` | 406 (403 + 3) |
+| popravek A (16.11) | **narejeno 2026-10-03** | `c4dbd88` | 408 (406 + 2) |
+| 8b orodje, nova banka, test banke | **narejeno 2026-10-03** | (ta commit) | 408 |
 | 8c trening, »Spoznaj« 1 in 2, oznaka | | | |
 
 - 8a: nove funkcije brez DOM-a; trening jih še ne uporablja. Testi v
@@ -875,3 +876,17 @@ Vrstni red commitov: popravek A (s staro banko), 8b, 8c.
   s pogojem testa na vseh korakih vseh ugank banke). 408 testov, posnetek igre »Enako«,
   `preveri-vadi-brskalnik.js` (»Spoznaj« vseh 14 tehnik enak kot `5b9ae6f`) in
   `preveri-presek-brskalnik.js` »Vse drži«.
+
+- 8b: `tools/ustvari-banko-vaj.js` z novim pravilom (osnovne stopnje, rešljive, vse;
+  meja 30 000 semen), nova `shared/vaje-banka.js` z orodjem (1612 s): **463 zapisov**
+  (Lahka 50, Srednja 111, Težka 250, Zelo težka 52; Presega tehnike 0), natanko kot v
+  simulaciji 16.3. Osnovne stopnje pod 50: 6 · Skrita trojica 24, 7 · X-krilo 42,
+  8 · Mečarica 8. Test banke po novem pravilu (pribl. 35 s); v `tests/trening-presek.test.js`
+  še preverjanje, da nova banka ima korake, ki jih popravek A zavrne. Trening še izbira
+  kot prej (8c). 408 testov, posnetek igre »Enako«, `preveri-vadi-brskalnik.js
+  --brez-spoznaj` in `preveri-presek-brskalnik.js` »Vse drži«.
+- Pri prvem zagonu `preveri-presek-brskalnik.js` z 8b so se tehnike 3–12 razlikovale od
+  izhodišča za 0,016 px v širini gumba »Preveri«. Ponovni zagoni (z 8b dvakrat, brez 8b
+  dvakrat) so enaki – razlika je bila enkratna, pisava Inter (600) se je v enem brskalniku
+  naložila pozneje. Ta scenarij za razliko od `preveri-vadi-brskalnik.js` ne čaka na
+  pisave (`document.fonts.status`); tega nisem popravljal (ni del naloge).

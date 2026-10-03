@@ -117,6 +117,9 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
       return { zavrnjenih, korakov, razlik }; })()`);
     assert.equal(r.razlik, 0, 'presekEnolicen() se ujema s pogojem testa');
     assert.ok(r.korakov > 100, `${r.korakov} korakov`);
+    // Banka iz koraka 8b (izbira po stopnji, docs/vadi-v-uganki-nacrt.md 16.11) take korake
+    // ima - pogoj se res uveljavi.
+    if (mode === 'box-line') assert.ok(r.zavrnjenih > 0, 'v banki so taki koraki - pogoj se res uveljavi');
   });
 
   test(`${mode}: v vsakem krogu 9 vaj je vsaj ena vaja s tremi celicami, druge po resnični pogostosti`, () => {

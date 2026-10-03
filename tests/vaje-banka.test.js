@@ -1,7 +1,9 @@
 'use strict';
-// Banka vaj (shared/vaje-banka.js, docs/trening-v-uganki-nacrt.md, del 3): vsak zapis
-// je ponovljiv iz semena, ima eno rešitev, pravo stopnjo in natanko izračunani seznam
-// tehnik; vsaka tehnika ima vsaj 50 ugank.
+// Banka vaj (shared/vaje-banka.js, docs/trening-v-uganki-nacrt.md, del 3;
+// docs/vadi-v-uganki-nacrt.md, točka 16): vsak zapis je ponovljiv iz semena, ima eno
+// rešitev, pravo stopnjo in natanko izračunani seznam tehnik; vsaka tehnika ima vsaj 50
+// rešljivih ugank (ne "Presega tehnike") in uganke osnovne stopnje (stopnjaTehnike());
+// noben zapis ni odveč po pravilu orodja tools/ustvari-banko-vaj.js.
 //
 // Banko ustvari tools/ustvari-banko-vaj.js. Sprememba motorja ali generatorja jo lahko
 // pokvari - takrat jo ustvari znova z orodjem, datoteke in tega testa ne popravljaj ročno.
@@ -12,7 +14,7 @@ const { loadEngine } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js'],
-  names: ['VAJE_BANKA', 'genMinimalnaUganka', 'tehnikeVUganki', 'oceniTezavnost', 'imeTehnike'],
+  names: ['VAJE_BANKA', 'genMinimalnaUganka', 'tehnikeVUganki', 'oceniTezavnost', 'imeTehnike', 'stopnjaTehnike', 'OCENA_PRESEGA'],
 });
 
 const NA_TEHNIKO = 50;
@@ -20,9 +22,15 @@ const ZNOVA = 'ustvari banko znova: node tools/ustvari-banko-vaj.js';
 const TEHNIKE = E.ALL_TECHNIQUES.map(([k]) => k);
 const banka = E.VAJE_BANKA;
 
-function steviloPoTehnikah() {
-  const n = Object.fromEntries(TEHNIKE.map(k => [k, 0]));
-  for (const z of banka) for (const k of z.tehnike) n[k]++;
+// Tri štetja po tehnikah kot v orodju: osnovne stopnje, rešljive, vse.
+const STETJA = {
+  osnovna: (z, k) => z.stopnja === E.stopnjaTehnike(k),
+  resljiva: z => z.stopnja !== E.OCENA_PRESEGA,
+  vse: () => true,
+};
+function stetja() {
+  const n = Object.fromEntries(Object.keys(STETJA).map(s => [s, Object.fromEntries(TEHNIKE.map(k => [k, 0]))]));
+  for (const z of banka) for (const [s, pogoj] of Object.entries(STETJA)) for (const k of z.tehnike) if (pogoj(z, k)) n[s][k]++;
   return n;
 }
 
@@ -63,11 +71,18 @@ test('banka: tehnike so ključi ALL_TECHNIQUES po vrstnem redu, imeTehnike() jih
   }
 });
 
-test(`banka: vsaka tehnika ima vsaj ${NA_TEHNIKO} ugank, odvečnih zapisov ni`, () => {
-  const n = steviloPoTehnikah();
-  for (const k of TEHNIKE) assert.ok(n[k] >= NA_TEHNIKO, `${k}: ${n[k]} ugank - ${ZNOVA}`);
-  // Orodje odstrani zapis, pri katerem imajo vse tehnike več kot NA_TEHNIKO ugank.
+test(`banka: vsaka tehnika ima vsaj ${NA_TEHNIKO} rešljivih ugank in uganke osnovne stopnje, odvečnih zapisov ni`, () => {
+  const n = stetja();
+  for (const k of TEHNIKE) {
+    assert.ok(n.resljiva[k] >= NA_TEHNIKO, `${k}: ${n.resljiva[k]} rešljivih ugank - ${ZNOVA}`);
+    assert.ok(n.osnovna[k] > 0, `${k}: nobene uganke osnovne stopnje (${E.stopnjaTehnike(k)}) - ${ZNOVA}`);
+  }
+  // Brez "Presega tehnike", ker ima vsaka tehnika dovolj rešljivih ugank.
+  assert.ok(banka.every(z => z.stopnja !== E.OCENA_PRESEGA), 'v banki ni ugank Presega tehnike');
+  // Orodje odstrani zapis, ki ni potreben za nobeno štetje (štetje bi brez njega ostalo
+  // vsaj NA_TEHNIKO) nobene svoje tehnike.
   for (const z of banka) {
-    assert.ok(z.tehnike.some(k => n[k] === NA_TEHNIKO), `seme ${z.seme} je odveč - ${ZNOVA}`);
+    const potreben = Object.entries(STETJA).some(([s, pogoj]) => z.tehnike.some(k => pogoj(z, k) && n[s][k] <= NA_TEHNIKO));
+    assert.ok(potreben, `seme ${z.seme} je odveč - ${ZNOVA}`);
   }
 });
