@@ -7,7 +7,7 @@ shramba zaznamkov (`shared/plosca.js`), tipka O, gumbi, »Preveri«, pomoč in z
 
 Stanje: **izvedeno 2026-10-03** – različica **C3** (razdelka 6 in 7), ročni pregled (5 točk v
 `docs/rocni-test.md`, »Trening: vidnost oznak«) potrjen istega dne; O2 dokončan za vaje 3–12 v
-»Spoznaj« (razdelek 8).
+»Spoznaj« (razdelek 8), točki 6 in 7 potrjeni. **Naloga zaprta 2026-10-03.**
 
 **Odločitve (Darko, 2026-10-03):**
 
