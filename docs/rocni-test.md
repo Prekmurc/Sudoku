@@ -142,18 +142,22 @@ izklopljeno nastavitvijo).
 
 ## Trening: vidnost oznak (naloga »oznake«)
 
-Iz `docs/oznake-nacrt.md` (razdelka 6 in 7). Slog okvirja, plasti, zakrite piksle malih števk
+Iz `docs/oznake-nacrt.md` (razdelki 6–8). Slog okvirja, plasti, zakrite piksle malih števk
 (375 in 1280 px, tri stanja in najslabši primer), izbrano in označeno celico, okvir na štirih
-barvah poudarka (kontrast, viden na posnetku), podlagi v treningu in nespremenjeno igro preveri
-`tools/preveri-vadi-brskalnik.js` (del »oznake«); posnetek igre je enak.
+barvah poudarka (kontrast, viden na posnetku), podlagi v treningu – tudi v mrežah vaj 3–12 v
+»Spoznaj« (»Rešitev (drži)« s pravim pritiskom, pravilen odgovor pri 3, 7 in 11, kontrast besedila)
+– in nespremenjeno igro preveri `tools/preveri-vadi-brskalnik.js` (dela »oznake« in »Spoznaj
+3–12«); posnetek igre je enak.
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, tvoj zaslon (namizje) | 8 · Mečarica, »Vadi v uganki«: izberi celice vzorca (»več celic«), O; odpri »Rešitev« (pred izbrisi) in poglej; »Skrij«, izvedi izbrise, »Preveri«. | Vijoličen črtkan okvir oznake se jasno loči od rožnatih celic z izbrisom in od jantarnih celic vzorca; po rešeni vaji vidiš, katere celice vzorca si označil; male števke v kotih označenih celic so cele. (nepotrjeno) – ni avtomatsko: scenarij izmeri slog, kontrast in piksle, ne pa, ali razliko vidiš na svojem zaslonu (bledi odtenki). |
-| 2 | trening, pravi telefon | Isto kot 1; nato izberi dve označeni celici in pritisni »Označi izbrane« (odznači). | Okvir na majhni celici ne moti branja kandidatov; izbrana in označena celica pokaže oboje (modra obroba znotraj, vijolične črtice zunaj); po odznačitvi okvir izgine. (nepotrjeno) – ni avtomatsko: meritev je pri gostoti 1x, telefon riše pri 2–3x z drugim glajenjem; dotik. |
-| 3 | trening, s tvojimi barvami poudarka iz igre | »Več hkrati«, poudari štiri števke (vse štiri barve), z izklopljenim »več celic« označi (O) po eno polno celico vsake. | Okvir je viden na vseh štirih barvah. (nepotrjeno) – ni avtomatsko: scenarij preveri privzete barve; tvoje barve iz igre (`sudoku.igra.poud`) pozna samo tvoj profil. |
-| 4 | trening | 1 · Izločitev izven bloka ali 4 · Skriti par, »Vadi v uganki«, vaja 1 (z območjem): označi celico ob robu uokvirjenega območja. | Temen polni okvir območja in vijoličen črtkan okvir oznake se ločita; okvir območja ostane nad malimi števkami kot prej. (nepotrjeno) – ni avtomatsko: presoja dveh temnih okvirjev na pravem zaslonu; scenarij ju ne riše skupaj. |
-| 5 | trening, »Spoznaj« | E2: »Rešitev (drži)«; 2 · Izločitev v bloku: pravilen odgovor. | Jantarna enota oziroma vzorec in rdečkasti izbris so močnejši kot prej in ne motijo branja števk. (nepotrjeno) – ni avtomatsko: presoja videza (scenarij preveri samo barvo podlage). |
+| 1 | trening, tvoj zaslon (namizje) | 8 · Mečarica, »Vadi v uganki«: izberi celice vzorca (»več celic«), O; odpri »Rešitev« (pred izbrisi) in poglej; »Skrij«, izvedi izbrise, »Preveri«. | Vijoličen črtkan okvir oznake se jasno loči od rožnatih celic z izbrisom in od jantarnih celic vzorca; po rešeni vaji vidiš, katere celice vzorca si označil; male števke v kotih označenih celic so cele. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: scenarij izmeri slog, kontrast in piksle, ne pa, ali razliko vidiš na svojem zaslonu (bledi odtenki). |
+| 2 | trening, pravi telefon | Isto kot 1; nato izberi dve označeni celici in pritisni »Označi izbrane« (odznači). | Okvir na majhni celici ne moti branja kandidatov; izbrana in označena celica pokaže oboje (modra obroba znotraj, vijolične črtice zunaj); po odznačitvi okvir izgine. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: meritev je pri gostoti 1x, telefon riše pri 2–3x z drugim glajenjem; dotik. |
+| 3 | trening, s tvojimi barvami poudarka iz igre | »Več hkrati«, poudari štiri števke (vse štiri barve), z izklopljenim »več celic« označi (O) po eno polno celico vsake. | Okvir je viden na vseh štirih barvah. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: scenarij preveri privzete barve; tvoje barve iz igre (`sudoku.igra.poud`) pozna samo tvoj profil. |
+| 4 | trening | 1 · Izločitev izven bloka ali 4 · Skriti par, »Vadi v uganki«, vaja 1 (z območjem): označi celico ob robu uokvirjenega območja. | Temen polni okvir območja in vijoličen črtkan okvir oznake se ločita; okvir območja ostane nad malimi števkami kot prej. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: presoja dveh temnih okvirjev na pravem zaslonu; scenarij ju ne riše skupaj. |
+| 5 | trening, »Spoznaj« | E2: »Rešitev (drži)«; 2 · Izločitev v bloku: pravilen odgovor. | Jantarna enota oziroma vzorec in rdečkasti izbris so močnejši kot prej in ne motijo branja števk. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: presoja videza (scenarij preveri samo barvo podlage). |
+| 6 | trening, »Spoznaj«, tvoj zaslon | 3 · Očitni par: izberi dve celici, ki nista par, nato drži »Rešitev (drži)«. | Celici vzorca (močnejša jantarna, zlata obroba) ločiš od svoje izbire (bleda jantarna, temno jantarna obroba); kandidati v označenih celicah so temnejši in berljivi. (nepotrjeno) – ni avtomatsko: scenarij izmeri barve (podlagi se ločita s kontrastom 1,1, obrobi 1,9 – prej podlagi 1,2), ne pa, ali ju ločiš ti. |
+| 7 | trening, »Spoznaj« | 7 · X-krilo in 8 · Mečarica: drži »Rešitev (drži)«, nato odgovori pravilno. Če se rešitev ob pritisku takoj skrije, stran malo pomakni navzgor (znana napaka, ni del naloge – »Kasneje«). | Vzorec je zdaj jantaren (prej zelen), celice izbrisa rožnate; po pravilnem odgovoru so tvoje celice zelene, izbris rožnat z rdečo obrobo – sprememba barve vzorca je razumljiva. (nepotrjeno) – ni avtomatsko: presoja, ali je nova barva vzorca pri 7 in 8 jasna. |
 
 ## Zakaj ročno
 

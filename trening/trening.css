@@ -14,9 +14,10 @@
      --cs zanje ni dovolj majhen in mreža pri ožjem oknu uide iz kartice.
      Odštetih 104px = 22 + 32 + 32 + rezerva za drsnik. */
   --gs:min(46px,(min(560px,100vw) - 104px)/9);
-  /* Podlagi celic prikazanega koraka v mrežah iz shared/mreza.js (»Vadi v uganki«, »Spoznaj«
-     E1, E2, 1 in 2) in kvadratek legende: močnejši od igre, ker se bledi odtenki na nekaterih
-     zaslonih slabo vidijo (docs/oznake-nacrt.md, O2); vzorec in izbris loči tudi svetlost. */
+  /* Podlagi celic vzorca in izbrisa v vsem treningu: mreže iz shared/mreza.js (»Vadi v
+     uganki«, »Spoznaj« E1, E2, 1 in 2), mreže vaj 3-12 v »Spoznaj« (.gc, .xw-cell spodaj) in
+     kvadratek legende - močnejši od igre, ker se bledi odtenki na nekaterih zaslonih slabo vidijo
+     (docs/oznake-nacrt.md, O2); vzorec in izbris loči tudi svetlost. */
   --k-vzorec-bg:#EFD8A0;
   --k-izbris-bg:#F0B4AA;
 }
@@ -155,8 +156,8 @@ header.top{max-width:560px}
 .gc.selected-plum{background:var(--plum-bg)!important;box-shadow:inset 0 0 0 2.5px var(--plum)}
 .gc.selected-olive{background:var(--olive-bg)!important;box-shadow:inset 0 0 0 2.5px var(--olive)}
 .gc.correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--green)}
-.gc.elimcell{background:var(--red-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
-.gc.peek-elim{background:var(--red-bg)!important}
+.gc.elimcell{background:var(--k-izbris-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
+.gc.peek-elim{background:var(--k-izbris-bg)!important}
 .gc.fixed{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:calc(var(--cs)*.5);color:#999;background:#F4F5F7;border-color:#E0E2E5}
 
 .candgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:1px}
@@ -199,9 +200,15 @@ button.peek-btn:active{background:#F0F2F5}
 .peek-overlay{display:none;padding:10px 14px;border-radius:8px;background:#FFFCE8;border:1px solid #E8DFA0;font-size:13px;line-height:1.6;color:#5A4A12;margin:6px 0 0}
 .peek-overlay.visible{display:block}
 .peek-overlay b{color:#3A3008}
-.gc.peek-hl{box-shadow:inset 0 0 0 2.5px #C8A020!important;background:#FFFCE8!important}
-.xw-cell.peek-hl{box-shadow:inset 0 0 0 2.5px var(--green)!important;background:var(--green-bg)!important}
-.xw-cell.peek-elim{background:var(--red-bg)!important}
+/* "Rešitev (drži)" pri 3-12: celice vzorca in izbrisa v podlagah oznak koraka (--k-vzorec-bg,
+   --k-izbris-bg zgoraj), kot v "Vadi v uganki" - tudi pri X-krilu in mečarici, kjer je bil vzorec
+   zelen (docs/oznake-nacrt.md, O2). Sivi kandidati (--pencil) bi imeli na močnejši podlagi
+   premajhen kontrast, zato so v teh celicah temnejši (--kand-ink iz shared/mreza.css); :where()
+   ne prepiše obarvanih (.cd.hl-*) in izbrisanih (.cd.elim). */
+.gc.peek-hl{box-shadow:inset 0 0 0 2.5px #C8A020!important;background:var(--k-vzorec-bg)!important}
+.xw-cell.peek-hl{box-shadow:inset 0 0 0 2.5px #C8A020!important;background:var(--k-vzorec-bg)!important}
+.xw-cell.peek-elim{background:var(--k-izbris-bg)!important}
+:where(.gc.peek-hl,.gc.peek-elim,.gc.elimcell) .cd{color:var(--kand-ink)}
 .xw-cell.peek-elim .xd{text-decoration:line-through}
 .xw-cell.xw-sf-correct{background:#E8F5E9!important;box-shadow:inset 0 0 0 2px #2E7D32}
 
@@ -219,7 +226,7 @@ button.peek-btn:active{background:#F0F2F5}
 .xw-cell.has-digit:hover{background:#EDF2F7}
 .xw-cell.xw-selected{background:#FCE4EC!important;box-shadow:inset 0 0 0 2px #A02050}
 .xw-cell.xw-correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2px var(--green)}
-.xw-cell.xw-elim{background:var(--red-bg)!important}
+.xw-cell.xw-elim{background:var(--k-izbris-bg)!important}
 .xw-cell.xw-elim .xd{text-decoration:line-through;color:var(--red)}
 .xw-cell[data-c="2"],.xw-cell[data-c="5"]{border-right:2px solid var(--ink)}
 .xw-cell[data-c="0"]{border-left:2px solid var(--ink)}

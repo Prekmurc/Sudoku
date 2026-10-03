@@ -5,8 +5,9 @@ in po rešeni vaji od celic vzorca; izbrane celice imajo včasih bež podlago. P
 tri različice (A, B, C), posnete na istem stanju pri 375 in 1280 px. Samo slogi – logika in
 shramba zaznamkov (`shared/plosca.js`), tipka O, gumbi, »Preveri«, pomoč in zaklep ostanejo.
 
-Stanje: **izvedeno 2026-10-03** – različica **C3** (razdelka 6 in 7); ročni pregled (5 točk v
-`docs/rocni-test.md`, »Trening: vidnost oznak«) še ni potrjen.
+Stanje: **izvedeno 2026-10-03** – različica **C3** (razdelka 6 in 7), ročni pregled (5 točk v
+`docs/rocni-test.md`, »Trening: vidnost oznak«) potrjen istega dne; O2 dokončan za vaje 3–12 v
+»Spoznaj« (razdelek 8).
 
 **Odločitve (Darko, 2026-10-03):**
 
@@ -282,8 +283,8 @@ oznaka z izvedenimi izbrisi, oznaka in izbira (V5S7, V5S8 izbrani), rešena vaja
 
 **Ne spremeni se:** logika in shramba zaznamkov, tipka O, gumbi, igra (posnetek igre: 99
 enakih posnetkov; podlagi in male števke v igri preveri scenarij), reševalec, sestavljene vaje
-3–12 v »Spoznaj« (svoje mreže, `.gc`/`.xw-cell` – podlaga izbrisa tam ostane `--red-bg`, zapisano
-v »Kasneje«).
+3–12 v »Spoznaj« (svoje mreže, `.gc`/`.xw-cell` – v tem koraku še `--red-bg`; dopolnjeno v
+razdelku 8).
 
 **Preverjanje (vse drži):** testi 431 / 431; `tools/posnetek-igre.js --primerjaj
 tools/posnetki/igra-po-5a.json` enako (99); `tools/preveri-vadi-brskalnik.js` (z novim delom
@@ -295,3 +296,57 @@ nespremenjena, brez vodoravnega drsnika; »Spoznaj« enak izhodišču `4e1e4dc`)
 
 Kontrast okvirja (#5E2B97) s podlago: bela 9,3, vzorec #EFD8A0 6,6, izbris #F0B4AA 5,2, izbira
 7,4, poudarki 5,5 / 4,7 / 4,0 / 4,4 (privzete barve).
+
+## 8. Dopolnitev O2: vaje 3–12 v »Spoznaj«
+
+**Odločitve (Darko, 2026-10-03, po ročnem pregledu):** vseh 5 točk potrjenih. C3, kot je
+izveden, ostane – dotik okvirja in števke je sprejemljiv. Obroba izbire ostane, kot je (na
+telefonu je videti širša, števke so vidne). O2 dokončati: močnejši podlagi veljata tudi v
+mrežah vaj 3–12 v »Spoznaj« (dogovor je bil ves trening); v »Kasneje« ostaneta samo igra in
+reševalec.
+
+Vaje 3–12 v »Spoznaj« imajo svoje mreže (`.gc` – vrsta, stolpec, blok in mreža 9 × 9 pri 9–12,
+`.xw-cell` – mreža ene števke pri 7 in 8). Spremenjena pravila v `trening/trening.css`:
+
+| Pravilo | Kdaj | Prej | Zdaj |
+|---|---|---|---|
+| `.gc.peek-hl` | »Rešitev (drži)«, celice vzorca (3–6, 9–12) | #FFFCE8, obroba #C8A020 | `--k-vzorec-bg` (#EFD8A0), obroba ista |
+| `.xw-cell.peek-hl` | »Rešitev (drži)«, celice vzorca (7, 8) | `--green-bg`, zelena obroba | `--k-vzorec-bg`, obroba #C8A020 |
+| `.gc.peek-elim`, `.xw-cell.peek-elim` | »Rešitev (drži)«, celice izbrisa | `--red-bg` | `--k-izbris-bg` (#F0B4AA) |
+| `.gc.elimcell`, `.xw-cell.xw-elim` | po pravilnem odgovoru, celice izbrisa | `--red-bg` | `--k-izbris-bg` |
+| `:where(.gc.peek-hl, .gc.peek-elim, .gc.elimcell) .cd` | sivi kandidati v teh celicah | `--pencil` | `--kand-ink` (#4A5561) |
+
+- **X-krilo in mečarica:** vzorec v »Rešitvi« je bil zelen kot pravilen odgovor; zdaj je jantaren
+  kot pri drugih tehnikah in v »Vadi v uganki« (podlaga vzorca). Zelena ostane za pravilen
+  odgovor (`.gc.correct`, `.xw-cell.xw-correct` – nespremenjena).
+- **Kandidati:** sivi kandidat (`--pencil`) je imel na prejšnjih podlagah kontrast 3,0 (#FFFCE8) in
+  2,4 (#F3DEDA), na novih bi imel 2,2 in 1,7. Zato je v celicah vzorca in izbrisa temnejši
+  (`--kand-ink`): 5,4 na vzorcu, 4,3 na izbrisu. Obarvani (`.cd.hl-*`) in prečrtani (`.cd.elim`,
+  rdeč) ostanejo v svojih barvah – `:where()` ima specifičnost samo `.cd`. Najmanjši izmerjeni
+  kontrast besedila v teh celicah je 3,3 (rdeče prečrtan kandidat na izbrisu, XY-krilo).
+- **Edinstveni pravokotnik:** celica izbrisa je tudi celica vzorca (četrti vogal) – ima obe oznaki
+  in prednost ima vzorec, kot prej.
+- **Ne spremeni se:** izbira (barve tehnik, `.gc.selected-*`), pravilen odgovor (zeleno; sivi
+  kandidati na njem imajo kontrast 2,6, kot prej), prvi izris vaje (primerjava »Spoznaj« z
+  izhodiščem `4e1e4dc` enaka), igra in reševalec.
+- **Izbira pri 3 · Očitni par** je jantarna (`.gc.selected-amber`, #F1E5C9, obroba #9C6B12) – ob
+  »Rešitvi« se od vzorca (#EFD8A0, obroba #C8A020) loči s kontrastom podlag 1,1 in obrob 1,9;
+  prej je bila razlika podlag 1,2 (#FFFCE8). Ročna točka v `docs/rocni-test.md`.
+
+**Preverjanje:** `tools/preveri-vadi-brskalnik.js`, nov del »Spoznaj 3–12« pri 375 in 1280 px: za
+vseh 10 tehnik »Rešitev (drži)« s pravim pritiskom miške – podlaga in obroba vzorca, podlaga
+izbrisa, kontrast vsega besedila v teh celicah vsaj 3, brez vodoravnega drsnika; pri 3, 7 in 11
+še pravilen odgovor s pravimi kliki (celice, ki jih je pokazala »Rešitev«) – izbrane celice
+zelene, podlaga in kontrast izbrisa; vsi razredi oznak 3–12 tudi na sestavljenih celicah (barva
+podlage in kandidatov). Barve se berejo po koncu prehoda podlage (`.gc` in `.xw-cell` imata
+`transition` 0,12 s).
+
+**Opažena napaka (ni popravljena, v »Kasneje«):** »Namig (drži)« in »Rešitev (drži)« se ob
+pritisku z miško takoj skrijeta, če je stran pomaknjena do konca. Okvir z besedilom se pokaže
+pod gumbom, stran se zamakne za njegovo višino (11 · XY-krilo, okno 1280 × 1000: `scrollY` 59 →
+129 pri »Rešitvi«, 59 → 170 pri »Namigu«), gumb uide izpod miške in `mouseleave` okvir skrije.
+Enako v `4e1e4dc`, torej ne zaradi te naloge. Scenarij pred pritiskom doda prostor pod vsebino.
+
+| Korak | Commit | Kaj |
+|---|---|---|
+| 3 | (ta commit) | vaje 3–12 v »Spoznaj«: podlagi, kandidati, preverjanje, dokumentacija |

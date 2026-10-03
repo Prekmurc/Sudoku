@@ -537,6 +537,107 @@ async function oznake(b, sirina) {
   preveri('»Spoznaj« (1, 2, E1, E2): podlagi kot v »Vadi v uganki«', Object.values(p).every(x => x === 'rgb(239, 216, 160) / rgb(240, 180, 170)'), p);
 }
 
+// "Spoznaj" 3-12 (docs/oznake-nacrt.md, O2): mreže sestavljenih vaj (.gc, .xw-cell). "Rešitev
+// (drži)" s pravim pritiskom miške (gumb se odzove na mousedown/mouseup) - podlagi vzorca in
+// izbrisa, kontrast vsega besedila v teh celicah (zelene celice pravilnega odgovora - .correct - so
+// nespremenjene in se ne merijo); pravilen odgovor pri 3, 7 in 11 s pravimi
+// kliki na celice, ki jih je pokazala "Rešitev" - podlaga izbrisa po odgovoru.
+const SPOZNAJ_3_12 = TEHNIKE.filter(m => !ENOJCKA.includes(m) && !PRESEK.includes(m));
+const ODGOVOR_3_12 = ['naked-pair', 'x-wing', 'xy-wing'];
+// Stran pred pritiskom ne sme biti pomaknjena do konca: okvir z rešitvijo, ki se ob pritisku
+// pokaže pod gumbom, jo sicer zamakne za svojo višino, gumb uide izpod miške in mouseleave
+// rešitev skrije (tudi v izhodišču 4e1e4dc - docs/oznake-nacrt.md, razdelek 8). Prostor pod
+// vsebino to prepreči, mreže ne spremeni.
+async function drziResitev(b, fn) {
+  await b.izvedi("document.body.style.paddingBottom = '800px'; true");
+  const t = await b.izvedi(`(() => { const g = [...document.querySelectorAll('.peek-btn')].find(x => x.textContent === 'Rešitev (drži)');
+    g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+  await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x: t.x, y: t.y });
+  await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mousePressed', x: t.x, y: t.y, button: 'left', clickCount: 1 });
+  try { return await fn(); } finally {
+    await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseReleased', x: t.x, y: t.y, button: 'left', clickCount: 1 });
+  }
+}
+// Podlage celic z danimi razredi in najmanjši kontrast besedila v njih (vsak element z
+// lastnim vidnim besedilom proti podlagi celice).
+const podlageInKontrast = razredi => `(() => { const kontrast = ${kontrast.toString()};
+  const celice = [...document.querySelectorAll(${JSON.stringify(razredi.map(r => '#exerciseArea ' + r).join(', '))})];
+  let najmanj = 99, kje = '';
+  for (const c of celice) { const bg = getComputedStyle(c).backgroundColor;
+    for (const e of [c, ...c.querySelectorAll('*')]) {
+      if (![...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      const s = getComputedStyle(e); if (s.visibility !== 'visible') continue;
+      const k = kontrast(s.color, bg); if (k < najmanj) { najmanj = k; kje = (e.className || e.tagName) + ': ' + s.color + ' na ' + bg; } } }
+  return { razredi: Object.fromEntries(${JSON.stringify(razredi)}.map(r => [r, [...new Set([...document.querySelectorAll('#exerciseArea ' + r)].map(c => getComputedStyle(c).backgroundColor))]])),
+    stevilo: Object.fromEntries(${JSON.stringify(razredi)}.map(r => [r, document.querySelectorAll('#exerciseArea ' + r).length])),
+    najmanj: +najmanj.toFixed(2), kje, sirina: document.documentElement.scrollWidth }; })()`;
+const VZOREC_BG = 'rgb(239, 216, 160)', IZBRIS_BG = 'rgb(240, 180, 170)';
+// Celice .gc in .xw-cell imajo prehod podlage (0,12 s) - barvo beri, ko se konča.
+const poPrehodu = b => b.izvedi('new Promise(r => setTimeout(() => r(true), 300))');
+async function oznakeSpoznaj(b, sirina) {
+  console.log(`Spoznaj 3-12, podlagi vzorca in izbrisa, ${sirina} px`);
+  for (const m of SPOZNAJ_3_12) {
+    await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
+    await b.izvedi(SEME(4242));
+    await b.klikni(`.menu-card[data-mode="${m}"]`);
+    await odmakniMisko(b);
+    const p = await drziResitev(b, async () => {
+      // Celice vzorca si zapomni za odgovor (po spustu oznak ni več).
+      await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-hl').forEach((c, i) => c.dataset.cilj = i); true`);
+      await poPrehodu(b);
+      // Pri edinstvenem pravokotniku je celica izbrisa tudi celica vzorca - prednost ima vzorec
+      // (kot pred nalogo), zato se izbris meri na celicah, ki niso vzorec.
+      const r = await b.izvedi(podlageInKontrast(['.peek-hl', '.peek-elim:not(.peek-hl)', '.peek-elim']));
+      r.obroba = await b.izvedi(`[...new Set([...document.querySelectorAll('#exerciseArea .peek-hl')].map(c => getComputedStyle(c).boxShadow))]`);
+      await b.posnetek(path.join(mapa, `spoznaj-${m}-resitev-${sirina}.png`));
+      return r;
+    });
+    const vz = p.razredi['.peek-hl'], iz = p.razredi['.peek-elim:not(.peek-hl)'];
+    preveri(`${m}: »Rešitev (drži)« – vzorec ${p.stevilo['.peek-hl']} celic #EFD8A0 z obrobo #C8A020, izbris ${p.stevilo['.peek-elim:not(.peek-hl)']} celic #F0B4AA`,
+      p.stevilo['.peek-hl'] > 0 && vz.length === 1 && vz[0] === VZOREC_BG && p.obroba.every(o => o.startsWith('rgb(200, 160, 32)'))
+        && iz.every(x => x === IZBRIS_BG), p);
+    preveri(`${m}: besedilo v celicah vzorca in izbrisa s kontrastom vsaj 3 (najmanj ${p.najmanj})`, p.najmanj >= 3, p.kje);
+    preveri(`${m}: brez vodoravnega drsnika`, p.sirina === sirina, p.sirina);
+    if (!ODGOVOR_3_12.includes(m)) continue;
+    const n = await b.izvedi(`document.querySelectorAll('#exerciseArea [data-cilj]').length`);
+    for (let i = 0; i < n; i++) await b.klikni(`#exerciseArea [data-cilj="${i}"]`);
+    await klikniGumb(b, 'Preveri');
+    await poPrehodu(b);
+    const q = await b.izvedi(podlageInKontrast(['.elimcell', '.xw-elim']));
+    q.pravilnih = await b.izvedi(`document.querySelectorAll('#exerciseArea .correct, #exerciseArea .xw-correct').length`);
+    q.ok = await b.izvedi(`!!document.querySelector('#exerciseArea .fb.ok')`);
+    const elim = [...q.razredi['.elimcell'], ...q.razredi['.xw-elim']];
+    preveri(`${m}: pravilen odgovor – izbrane celice zelene, izbris #F0B4AA (${q.stevilo['.elimcell'] + q.stevilo['.xw-elim']} celic)`,
+      q.ok && q.pravilnih === n && elim.every(x => x === IZBRIS_BG) && (m === 'naked-pair' || elim.length === 1), q);
+    if (elim.length) preveri(`${m}: po odgovoru besedilo v celicah izbrisa s kontrastom vsaj 3 (najmanj ${q.najmanj})`, q.najmanj >= 3, q.kje);
+    await b.posnetek(path.join(mapa, `spoznaj-${m}-pravilno-${sirina}.png`));
+  }
+}
+// Vsi razredi oznak v mrežah 3-12 (tudi tisti, ki jih zgoraj ni na posnetih vajah).
+async function oznakeSpoznajRazredi(b) {
+  console.log('Spoznaj 3-12: razredi oznak');
+  await b.odpri('trening/index.html', { sirina: 1280, visina: 900 });
+  const p = await b.izvedi(`(() => { const o = document.createElement('div'); o.id = 'exerciseArea2';
+    o.innerHTML = ['gc peek-hl', 'xw-cell peek-hl', 'gc peek-elim', 'xw-cell peek-elim', 'gc elimcell', 'xw-cell xw-elim', 'gc correct', 'xw-cell xw-correct']
+      .map(r => '<div class="' + r + '"><span class="cd">1</span><span class="cd elim">2</span><span class="cd hl hl-plum">3</span></div>').join('');
+    document.body.appendChild(o);
+    const r = Object.fromEntries([...o.children].map(c => [c.className, [getComputedStyle(c).backgroundColor, ...[...c.children].map(s => getComputedStyle(s).color)].join(' / ')]));
+    o.remove(); return r; })()`);
+  const pricakovano = {
+    'gc peek-hl': `${VZOREC_BG} / rgb(74, 85, 97) / rgb(178, 58, 46) / rgb(138, 47, 122)`,
+    'xw-cell peek-hl': VZOREC_BG,
+    'gc peek-elim': `${IZBRIS_BG} / rgb(74, 85, 97) / rgb(178, 58, 46) / rgb(138, 47, 122)`,
+    'xw-cell peek-elim': IZBRIS_BG,
+    'gc elimcell': `${IZBRIS_BG} / rgb(74, 85, 97) / rgb(178, 58, 46) / rgb(138, 47, 122)`,
+    'xw-cell xw-elim': IZBRIS_BG,
+    'gc correct': 'rgb(220, 238, 229) / rgb(138, 148, 160) / rgb(178, 58, 46) / rgb(138, 47, 122)',
+    'xw-cell xw-correct': 'rgb(220, 238, 229)',
+  };
+  for (const [r, v] of Object.entries(pricakovano)) {
+    preveri(`.${r.replace(' ', '.')}: ${v.split(' / ')[0]}${r.startsWith('gc') ? ', kandidati' : ''}`, p[r].startsWith(v), p[r]);
+  }
+}
+
 // Igra: podlagi vzorca in izbrisa ostaneta (--amber-bg, --red-bg), male števke brez plasti.
 async function oznakeIgra(b) {
   console.log('igra: podlagi oznak koraka nespremenjeni');
@@ -635,6 +736,8 @@ async function main() {
       await zaznamki(b, sirina);
     }
     for (const sirina of [375, 1280]) await oznake(b, sirina);
+    for (const sirina of [375, 1280]) await oznakeSpoznaj(b, sirina);
+    await oznakeSpoznajRazredi(b);
     await oznakeIgra(b);
     await banka(b);
     await vecCelicPrivzeto(b);

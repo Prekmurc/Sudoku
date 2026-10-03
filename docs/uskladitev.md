@@ -1228,14 +1228,19 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
   2026-10-03 ob nalogi 5a): brez kandidatov gredo E1, E2, 1 in 2; pri težji uganki bi igra
   ob izklopu (ali ob odprtju uganke pri izklopu) povedala, da bo brez kandidatov težko.
 - **Uskladitev podlag vzorca in izbrisa v igri in reševalcu s treningom** (zapisano
-  2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`, O2): trening ima močnejši podlagi
-  celic vzorca (#EFD8A0) in izbrisa (#F0B4AA) – spremenljivki `--k-vzorec-bg` in
-  `--k-izbris-bg` v `shared/mreza.css`, ki ju nastavi `trening/trening.css`. Igra
-  (»Naslednji korak«, legenda v Pomoči `igra/igra.css`) in reševalec (mala mreža koraka
-  `.mcell.hl-source`/`.hl-elimonly` v `app/app.css`) imata bledi `--amber-bg` in `--red-bg`.
-  Pri sestavljenih vajah 3–12 v »Spoznaj« (`.gc.elimcell`, `.gc.peek-elim`,
-  `.xw-cell.xw-elim`, `.xw-cell.peek-elim` v `trening/trening.css`) je podlaga izbrisa prav
-  tako še `--red-bg`.
+  2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`, O2): trening ima v vseh mrežah
+  močnejši podlagi celic vzorca (#EFD8A0) in izbrisa (#F0B4AA) – spremenljivki
+  `--k-vzorec-bg` in `--k-izbris-bg` v `shared/mreza.css`, ki ju nastavi
+  `trening/trening.css`. Igra (»Naslednji korak«, legenda v Pomoči `igra/igra.css`) in
+  reševalec (mala mreža koraka `.mcell.hl-source`/`.hl-elimonly` v `app/app.css`) imata bledi
+  `--amber-bg` in `--red-bg`.
+- **»Namig (drži)« in »Rešitev (drži)« v »Spoznaj« se ob pritisku z miško takoj skrijeta, če je
+  stran pomaknjena do konca** (zapisano 2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`,
+  razdelek 8; ni popravljeno). Ob pritisku se pod gumbom pokaže okvir z besedilom, stran se
+  zamakne za njegovo višino (izmerjeno pri 11 · XY-krilo, okno 1280 × 1000: `scrollY` 59 →
+  129), gumb uide izpod miške, `mouseleave` pokliče `peekOff()` in okvir izgine – rešitve ni
+  mogoče pridržati. Enako v `4e1e4dc` (pred nalogo). Na dotik (telefon) ni preverjeno.
+  `tools/preveri-vadi-brskalnik.js` se temu izogne s prostorom pod vsebino.
 - **Postavka »tvoje oznake« v legendi pod »Pravilno!«** (zapisano 2026-10-03 ob nalogi
   »oznake«, `docs/oznake-nacrt.md`, O4): v legendi po pravilnem odgovoru v »Vadi v uganki«
   (`legendaKoraka()` v `trening/v-uganki.js`) še črtkan vijoličen kvadratek »tvoje oznake«.
