@@ -37,6 +37,13 @@
 //                 celici jih ni več - trening »Vadi v uganki«: kandidati, odstranjeni pred
 //                 vajo, in izbrisi koraka po pravilnem odgovoru) ali null; kandidat, ki
 //                 je v `kandidati`, se izriše kot navaden
+//   obmocje     - { celice, vrstice, stolpci } ali null: območje vaje (trening »Vadi v
+//                 uganki« in E1/E2 v »Spoznaj«) - celice ob zunanjem robu območja dobijo
+//                 razrede obm-g/-d/-l/-r (temen okvir, viden tudi brez barve, nad izbiro
+//                 in poudarkom), oznake roba (robovi) navedenih vrstic in stolpcev (0-8)
+//                 razred "obm" (temno polje)
+//   zaznamovane - celice, ki jih je igralec zaznamoval (razred "zaznamovana" - oranžna
+//                 črtkana obroba; plošča, gumb »Označi izbrane«) ali null
 //   predlog     - { celica, stevka } ali null: prazna celica brez kandidatov pokaže
 //                 števko predloga (razred "predlog"; trening »Vadi v uganki«, E1/E2 -
 //                 odgovor, ki še ni poteza)
@@ -95,6 +102,8 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
     neaktivne = p.neaktivne ? new Set(p.neaktivne) : null;
     const oznacene = p.oznacene ? new Set(p.oznacene) : null;
     const zasencene = p.zasencene ? new Set(p.zasencene) : null;
+    const obm = p.obmocje && p.obmocje.celice ? new Set(p.obmocje.celice) : null;
+    const zaznamovane = p.zaznamovane ? new Set(p.zaznamovane) : null;
     el.classList.toggle('delna', !!vidne);
     // Oznaka roba je krepka, kadar je vsa vrstica ali ves stolpec viden (enota vaje).
     if (robovi) for (let k = 0; k < 9; k++) {
@@ -102,6 +111,9 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
       const vesStolpec = !!vidne && !p.prazna && COLS[k].every(c => vidne.has(c));
       oznakeRoba.vrstice[k].className = vsaVrstica ? 'akt' : '';
       oznakeRoba.stolpci[k].className = vesStolpec ? 'akt' : '';
+      // Vrstice in stolpci območja vaje: temno polje (vidno tudi brez barve).
+      if (p.obmocje && !p.prazna && (p.obmocje.vrstice || []).includes(k)) oznakeRoba.vrstice[k].className = 'obm';
+      if (p.obmocje && !p.prazna && (p.obmocje.stolpci || []).includes(k)) oznakeRoba.stolpci[k].className = 'obm';
     }
     const o = p.oznake || { vzorec: new Set(), izbris: new Set(), izbrisCelice: new Set(), vpis: new Map() };
     const izbrane = new Set(p.izbrane || []);
@@ -161,6 +173,16 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
       if (zasencene && zasencene.has(i) && !o.vpis.has(i) && !o.vzorec.has(i) && !o.izbrisCelice.has(i)) {
         c.classList.add('zasencena');
       }
+      // Okvir območja: stranice celice, ki mejijo na celico zunaj območja ali na rob mreže.
+      if (obm && obm.has(i)) {
+        const r = Math.floor(i / 9), s = i % 9;
+        c.classList.add('obm');
+        if (r === 0 || !obm.has(i - 9)) c.classList.add('obm-g');
+        if (r === 8 || !obm.has(i + 9)) c.classList.add('obm-d');
+        if (s === 0 || !obm.has(i - 1)) c.classList.add('obm-l');
+        if (s === 8 || !obm.has(i + 1)) c.classList.add('obm-r');
+      }
+      if (zaznamovane && zaznamovane.has(i)) c.classList.add('zaznamovana');
       if (izbrane.has(i)) c.classList.add('izbrana');
       else if (sosede !== null && PEERS[sosede].has(i)) c.classList.add('soseda');
     }

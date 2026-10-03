@@ -258,6 +258,43 @@ test('oznacene, neaktivne in števka za vpis v mreži brez kandidatov', () => {
   assert.ok(!celice[b].className.includes('predlog'), 's kandidati ni predloga');
 });
 
+test('obmocje: okvir ob robu območja, temne oznake roba; zaznamovane celice', () => {
+  const { run } = pripravi();
+  run(`var ok = document.createElement('div'); var mr2 = ustvariMrezo(ok, { robovi: true });`);
+  const [, zgoraj, levo] = run('ok.children');
+  const celice = run('mr2.celice');
+  const BOX = run('BOXES[5]'); // blok 6: vrstice 4-6, stolpci 7-9 (indeksi 3-5, 6-8)
+  run(`mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati,
+    obmocje: { celice: BOXES[5], vrstice: [3, 4, 5], stolpci: [6, 7, 8] }, zaznamovane: [0, 80] })`);
+  const robovi = c => ['obm-g', 'obm-d', 'obm-l', 'obm-r'].filter(r => celice[c].classList.contains(r));
+  for (let c = 0; c < 81; c++) {
+    const v = BOX.includes(c);
+    assert.equal(celice[c].classList.contains('obm'), v, `celica ${c}`);
+    if (!v) { assert.deepEqual(robovi(c), []); continue; }
+    const r = Math.floor(c / 9), s = c % 9;
+    const pricakovano = [r === 3 && 'obm-g', r === 5 && 'obm-d', s === 6 && 'obm-l', s === 8 && 'obm-r'].filter(Boolean);
+    assert.deepEqual(robovi(c), pricakovano, `okvir celice ${c}`);
+  }
+  assert.deepEqual(robovi(BOX[4]), [], 'sredina bloka brez okvirja');
+  const temne = el => el.children.map((s, k) => (s.className === 'obm' ? k : -1)).filter(k => k >= 0);
+  assert.deepEqual(temne(levo), [3, 4, 5]);
+  assert.deepEqual(temne(zgoraj), [6, 7, 8]);
+  // Območje ene vrstice: okvir zgoraj in spodaj pri vseh, levo in desno na koncih.
+  run(`mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, obmocje: { celice: ROWS[6], vrstice: [6] } })`);
+  assert.deepEqual(robovi(54), ['obm-g', 'obm-d', 'obm-l']);
+  assert.deepEqual(robovi(58), ['obm-g', 'obm-d']);
+  assert.deepEqual(robovi(62), ['obm-g', 'obm-d', 'obm-r']);
+  assert.deepEqual(temne(levo), [6]);
+  assert.deepEqual(temne(zgoraj), []);
+  // Zaznamovane celice.
+  run(`mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati, zaznamovane: [0, 80] })`);
+  assert.deepEqual([...celice.map((e, c) => (e.classList.contains('zaznamovana') ? c : -1)).filter(c => c >= 0)], [0, 80]);
+  // Brez polj ni ne okvirja ne zaznamkov ne temnih oznak.
+  run('mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati })');
+  assert.equal(celice.filter(e => /(obm|zaznamovana)/.test(e.className)).length, 0);
+  assert.deepEqual(temne(levo), []);
+});
+
 test('robovi: oznake S1-S9 in V1-V9, krepka enota iz vidne, razred delna', () => {
   const { run } = pripravi();
   run(`var ok = document.createElement('div'); var klikovR = [];

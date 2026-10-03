@@ -1020,3 +1020,31 @@ Vsak korak s commitom in pushem.
    (predlog)?
 4. **»Spoznaj«:** zaznamkov ne; igra pozneje kot samostojna naloga (predlog)?
 5. **Legenda** tudi v okvirju »Rešitev« (predlog)?
+
+### 17.6 Odgovori (2026-10-03)
+
+Točka 17 potrjena.
+
+1. Okvir in temne oznake na robu skupaj: **da** (predlog).
+2. Oranžna črtkana obroba, gumb »Označi izbrane (O)« in tipka O: **da** (predlog).
+3. Zaznamki ostanejo ob »Začni znova« in »Poskusi znova«, nova vaja jih pobriše: **da**.
+4. »Spoznaj« brez zaznamovanja; igra pozneje kot samostojna naloga: **da** – zapisano v
+   `docs/trening-v-uganki-nacrt.md`, »Po želji«.
+5. Legenda tudi v okvirju »Rešitev«: **da** (predlog).
+
+Izvedba v dveh korakih (9a `shared/`, 9b trening), vsak s commitom in pushem. Ob razliki v
+posnetku igre ali v »Spoznaj« (razen E1/E2) se izvedba ustavi. Ročni pregled: dopolnijo se
+obstoječe točke, največ 5.
+
+### 17.7 Izvedba
+
+| Korak | Stanje | Commit | Testi |
+|---|---|---|---|
+| 9a `shared/`: `pogled.obmocje`, `pogled.zaznamovane`, zaznamki in `stevkeObmocja()` v plošči | **narejeno 2026-10-03** | (ta commit) | 414 (412 + 2) |
+| 9b trening: »Vadi v uganki« in »Spoznaj« E1/E2 | | | |
+
+- 9a: `shared/mreza.js` (okvir območja na `::before`, temne oznake roba, zaznamovane
+  celice), `shared/mreza.css` (`--obmocje`, `--zaznamek`), `shared/plosca.js` (gumba in
+  tipka O, stanje zaznamkov, obroč števke), `shared/plosca.css`. Trening še ne uporablja.
+  Testi `tests/mreza.test.js` in `tests/plosca.test.js` (+1 vsak). Posnetek igre »Enako:
+  85 posnetkov.«, `preveri-vadi-brskalnik.js` »Vse drži« (»Spoznaj« enak).

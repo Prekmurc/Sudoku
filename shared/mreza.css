@@ -33,6 +33,9 @@
   /* postopnost v treningu (pogled.oznacene, pogled.neaktivne) */
   --oznacena-bg:#E3EEFB;
   --neaktivna-bg:#E9EBEE;
+  /* območje vaje (pogled.obmocje) in zaznamovane celice (pogled.zaznamovane) */
+  --obmocje:#1D3F6B;
+  --zaznamek:#B45309;
 }
 
 /* ---------- mreža ---------- */
@@ -146,6 +149,21 @@
   outline:2px dashed #6840A0;
   outline-offset:-6px;
 }
+/* območje vaje (pogled.obmocje - trening): 3 px temen okvir ob zunanjem robu območja na
+   ::before (nad podlago, izbiro in poudarkom), oznake vrstic in stolpcev območja na robu
+   v temnem polju - vidno tudi brez barve (modrikasta podlaga sama na nekaterih zaslonih
+   ni vidna) */
+.celica.obm::before{ content:''; position:absolute; inset:0; pointer-events:none; border:0 solid var(--obmocje); z-index:1; }
+.celica.obm-g::before{ border-top-width:3px; }
+.celica.obm-d::before{ border-bottom-width:3px; }
+.celica.obm-l::before{ border-left-width:3px; }
+.celica.obm-r::before{ border-right-width:3px; }
+.rob-s span.obm, .rob-v span.obm{ background: var(--obmocje); color:#fff; font-weight:700; border-radius:3px; }
+.rob-s span.obm{ margin:1px 2px; }
+.rob-v span.obm{ margin:2px 1px; }
+/* zaznamovana celica (pogled.zaznamovane - plošča, »Označi izbrane«): oranžna črtkana
+   obroba, ločena od izbire (modra polna) in okvirja območja (temna polna) */
+.celica.zaznamovana{ outline:2px dashed var(--zaznamek); outline-offset:-3px; }
 /* kandidat, ki ga ni več (pogled.precrtani - trening »Vadi v uganki«): sivo prečrtan;
    izbris prikazanega koraka (k-izbris) ostane rdeč */
 .kand.precrtan:not(.k-izbris){

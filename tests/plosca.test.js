@@ -431,6 +431,69 @@ test('plošča s predlogom (predlog: true): vseh 9 števk v nizu Vpiši, obVpisu
   assert.ok(STEVKE.every(x => p.gumb('nizVpisi', x).disabled));
 });
 
+test('plošča: zaznamki (gumb, tipka O s QWERTZ), niso poteze; števke območja v nizu Poudari', () => {
+  const p = pripravi({ pred: 'var stObm = [4];', moznosti: 'zaznamuj: el("zazn"), pocistiZaznamke: el("zaznPoc"), stevkeObmocja: () => stObm,' });
+  p.run(`odpri(novaIgra(${D}))`);
+  const [a, b, c] = prazne;
+  const zazn = () => [...p.run('plosca.zaznamovane')].sort((x, y) => x - y);
+  const celiceZ = () => p.dom.el('mreza').children.map((e, i) => (e.classList.contains('zaznamovana') ? i : -1)).filter(i => i >= 0);
+  // Brez izbire je gumb onemogočen, »Počisti« tudi (ni zaznamkov).
+  assert.equal(p.dom.el('zazn').disabled, true);
+  assert.equal(p.dom.el('zaznPoc').disabled, true);
+  // Dve izbrani celici (Ctrl+klik) -> gumb: obe zaznamovani, izbira prazna, ni poteze.
+  p.klik(a);
+  p.klik(b, { ctrlKey: true });
+  assert.equal(p.dom.el('zazn').disabled, false);
+  p.dom.el('zazn').sprozi('click');
+  assert.deepEqual(zazn(), [a, b].sort((x, y) => x - y));
+  assert.deepEqual(celiceZ(), zazn());
+  assert.deepEqual(p.izbrane(), []);
+  assert.equal(p.run('igra.poteze.length'), 0, 'zaznamek ni poteza');
+  // Ena zaznamovana in ena nova -> tipka O (QWERTZ: key 'o', code 'KeyO'): obe zaznamovani.
+  p.klik(b);
+  p.klik(c, { ctrlKey: true });
+  assert.equal(p.tipka({ key: 'o', code: 'KeyO' }), true);
+  assert.deepEqual(zazn(), [a, b, c].sort((x, y) => x - y));
+  // Vse izbrane že zaznamovane -> odznačijo se.
+  p.klik(a);
+  p.klik(b, { ctrlKey: true });
+  p.tipka({ key: 'O', code: 'KeyO', shiftKey: true });
+  assert.deepEqual(zazn(), [c]);
+  // Razveljavi/Začni znova zaznamkov ne spremenita.
+  p.klik(a);
+  const d = STEVKE.find(x => p.kand(a) & (1 << x));
+  p.gumb('nizOdstrani', d).sprozi('click');
+  p.dom.el('razveljavi').sprozi('click');
+  p.dom.el('ponovi').sprozi('click');
+  p.dom.el('znova').sprozi('click');
+  assert.deepEqual(zazn(), [c]);
+  // Počisti oznake; ponastavi() jih pobriše.
+  p.dom.el('zaznPoc').sprozi('click');
+  assert.deepEqual(zazn(), []);
+  p.klik(c);
+  p.tipka({ key: 'o', code: 'KeyO' });
+  assert.deepEqual(zazn(), [c]);
+  p.run('plosca.ponastavi(); plosca.izrisi()');
+  assert.deepEqual(zazn(), []);
+  // Zaklenjena mreža: zaznamovanje ne dela.
+  p.klik(c);
+  p.run('zaklep = true; plosca.izrisi()');
+  p.tipka({ key: 'o', code: 'KeyO' });
+  assert.deepEqual(zazn(), []);
+  p.run('zaklep = false');
+  // Števka območja: obroč na gumbu v nizu Poudari, tudi brez poudarka in s poudarkom.
+  p.run('plosca.izrisi()');
+  assert.ok(p.gumb('nizPoudari', 4).classList.contains('obm-stevka'));
+  assert.ok(!p.gumb('nizPoudari', 5).classList.contains('obm-stevka'));
+  p.gumb('nizPoudari', 4).sprozi('click');
+  assert.ok(p.gumb('nizPoudari', 4).classList.contains('obm-stevka') && p.gumb('nizPoudari', 4).classList.contains('aktiven'));
+  // Brez možnosti zaznamuj tipka O ni porabljena.
+  const q = pripravi();
+  q.run(`odpri(novaIgra(${D}))`);
+  q.klik(a);
+  assert.equal(q.tipka({ key: 'o', code: 'KeyO' }), false);
+});
+
 test('plošča: seznami s stikali pod ključem aplikacije, plošča samo z mrežo', () => {
   const shramba = new Map([['test.seznami', JSON.stringify({ vrstice: true })]]);
   const p = pripravi({ kljucSeznamov: 'test.seznami', shramba });

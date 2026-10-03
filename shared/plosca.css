@@ -11,6 +11,10 @@
   --poud-gumb-ink:#1D4F9C;
 }
 
+/* števka območja vaje (stevkeObmocja() - trening): obroč okrog gumba v nizu Poudari,
+   viden tudi, ko poudarek ni vklopljen */
+.niz-poudari button.obm-stevka{ box-shadow: 0 0 0 2px var(--obmocje, #1D3F6B); }
+
 /* ---------- stikala seznamov manjkajočih števk (seznami so v ../shared/mreza.css) ---------- */
 .seznami-stikala{ display:flex; flex-direction:column; gap:6px; }
 .seznami-stikala label{

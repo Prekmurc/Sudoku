@@ -582,6 +582,12 @@ samostojna naloga, če jo izberem.
   treninga v igro, še ni preverjen; ob izvedbi se točka razširi): vajo »Vadi v uganki«
   nadaljevati kot igro v `igra/`; velja analiza 4.4 (uganke Presega tehnike brez
   ugibanja ni mogoče rešiti do konca).
+- **Zaznamovanje celic v igri** (odločitev 2026-10-03, `docs/vadi-v-uganki-nacrt.md`
+  točka 17.2): v »Vadi v uganki« celice z gumbom »Označi izbrane (O)« ali tipko O dobijo
+  oranžno črtkano obrobo, izbira je nato spet prosta. V igri bi bilo koristno (vzorci,
+  barvanje); plošča (`shared/plosca.js`) to že zna. Odprto: ali se zaznamki shranijo z
+  igro (zapis igre) in ali jih »Začni znova« pobriše. V »Spoznaj« ga ne bo (izbira celic
+  je tam sama odgovor).
 
 ## Načrt Claude Code
 

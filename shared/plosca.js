@@ -48,6 +48,13 @@
 //                   niz Vpiši za eno izbrano prazno celico omogoči vseh 9 števk (samo
 //                   kandidati bi izdali očitni enojček), Backspace/Delete pokliče
 //                   obVpisu(celica, 0)
+//   zaznamuj, pocistiZaznamke - gumba »Označi izbrane« in »Počisti oznake« (trening
+//                   »Vadi v uganki«): izbrane celice dobijo ali izgubijo zaznamek (če so
+//                   vse že zaznamovane, se odznačijo), izbira se nato izprazni; tipka O
+//                   (po e.key - na QWERTZ na istem mestu). Zaznamki niso poteze (Razveljavi
+//                   in Začni znova jih ne spremenita), ponastavi() jih pobriše.
+//   stevkeObmocja() - števke območja vaje: gumb v nizu Poudari dobi razred obm-stevka
+//                   (obroč, ostane tudi brez poudarka)
 //   pogled()      - dodatna polja pogleda mreže (npr. oznacene, neaktivne, sosede),
 //                   ki imajo prednost pred polji plošče
 //   senci         - kljukica "senči": ob eni poudarjeni števki so zasenčene celice,
@@ -77,6 +84,8 @@ function ustvariPlosco(o) {
   // rumena, zelena, oranžna, modra (--poud, --poud2 ... v mreza.css). Brez kljukice
   // "več hkrati" je poudarjena kvečjemu ena števka (rumena).
   let poudarjene = [];
+  // Zaznamovane celice (gumb »Označi izbrane«, tipka O) - samo stanje vnosa, ne poteze.
+  let zaznamovane = new Set();
   // Stanje kljukice ob nastanku plošče (trening jo med vajami kroga pusti vklopljeno).
   let vecHkrati = !!(o.vecHkrati && o.vecHkrati.checked);
   const BARV_POUDARKA = 4;
@@ -218,12 +227,35 @@ function ustvariPlosco(o) {
     poudarjene = poudarjene.filter(p => !(bilo[p.stevka] > 0 && zdaj[p.stevka] === 0));
   }
 
-  // Nova uganka ali prazna mreža: brez izbire in poudarkov (kljukici ostaneta).
+  // Nova uganka ali prazna mreža: brez izbire, poudarkov in zaznamkov (kljukici ostaneta).
   function ponastavi() {
     izbrane = [];
     zadnjaIzbrana = null;
     poudarjene = [];
+    zaznamovane = new Set();
   }
+
+  /* ---------- zaznamki ---------- */
+
+  // Izbrane celice dobijo zaznamek; če so vse že zaznamovane, ga izgubijo. Izbira se
+  // izprazni (je spet prosta, npr. za celice izbrisa).
+  function zaznamuj() {
+    if (!o.zaznamuj || !vir().igra || samoZaOgled() || !izbrane.length) return;
+    const vse = izbrane.every(c => zaznamovane.has(c));
+    for (const c of izbrane) {
+      if (vse) zaznamovane.delete(c);
+      else zaznamovane.add(c);
+    }
+    izbrane = [];
+    izrisiVse();
+  }
+  function pocistiZaznamke() {
+    if (!zaznamovane.size) return;
+    zaznamovane = new Set();
+    izrisiVse();
+  }
+  if (o.zaznamuj) o.zaznamuj.addEventListener('click', zaznamuj);
+  if (o.pocistiZaznamke) o.pocistiZaznamke.addEventListener('click', pocistiZaznamke);
 
   /* ---------- poteze ---------- */
 
@@ -356,6 +388,11 @@ function ustvariPlosco(o) {
       return true;
     }
     if (ctrl || e.altKey) return false;
+    if (o.zaznamuj && crka === 'o') {
+      e.preventDefault();
+      zaznamuj();
+      return true;
+    }
 
     const premik = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
     if (premik) {
@@ -429,6 +466,7 @@ function ustvariPlosco(o) {
       sosede: enaIzbrana(),
       oznake: oznake(),
       zasencene: zasencene(),
+      ...(o.zaznamuj ? { zaznamovane: [...zaznamovane] } : {}),
       ...(o.pogled ? o.pogled() : {}),
     });
   }
@@ -454,6 +492,7 @@ function ustvariPlosco(o) {
         // celice z njo (za hiter pregled).
         p.disabled = !igra;
         p.className = b >= 0 ? `aktiven b${b}` : '';
+        if (o.stevkeObmocja && o.stevkeObmocja().includes(d)) p.classList.add('obm-stevka');
         p.setAttribute('aria-pressed', b >= 0 ? 'true' : 'false');
         p.title = !igra ? '' : manjka[d] === 0 ? `Poudari ${d} (vpisana devetkrat)` : `Poudari ${d} (še manjka: ${manjka[d]})`;
       }
@@ -490,6 +529,8 @@ function ustvariPlosco(o) {
       o.znova.disabled = !igra || !lahkoZacniZnova(igra);
     }
     if (o.stevec) o.stevec.textContent = igra ? `poteza ${igra.kazalec} / ${igra.poteze.length}` : '';
+    if (o.zaznamuj) o.zaznamuj.disabled = !igra || ogled || !izbrane.length;
+    if (o.pocistiZaznamke) o.pocistiZaznamke.disabled = !zaznamovane.size;
   }
 
   // Pojasnilo pod nizoma, kadar za izbrano celico ni kaj vpisati ali odstraniti.
@@ -544,6 +585,9 @@ function ustvariPlosco(o) {
     ponastavi,
     pocistiIzbiro,
     sencenjeVidno,
+    zaznamuj,
+    pocistiZaznamke,
+    get zaznamovane() { return [...zaznamovane]; },
     izrisi,
     obTipki,
   };
