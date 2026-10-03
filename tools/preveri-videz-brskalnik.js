@@ -268,10 +268,45 @@ async function skupniVidez(b) {
   }
 }
 
+// Barva danosti (N9): v reševalcu je dana števka temna in krepka, izpeljana modra - enako kot
+// dana in vpisana števka v igri; brez modre podlage danosti.
+async function danostiResevalca(b) {
+  console.log('Barve danosti (1280 px)');
+  await b.odpri('igra/index.html', { sirina: 1280, visina: 900 });
+  await b.izvedi('zacniIgro(PRIMERI[0].danosti)');
+  await b.izvedi(OZNACI(`document.querySelectorAll('#mreza .celica')[PRIMERI[0].danosti.indexOf('0')]`));
+  await b.klikni('[data-videz]');
+  await b.klikni('#nizVpisi button:not(:disabled)');
+  const igra = await b.izvedi(`(() => { const s = e => { const c = getComputedStyle(e); return c.color + ' ' + c.fontWeight; };
+    return { dana: s(document.querySelector('#mreza .celica.dana')), vpis: s(document.querySelector('#mreza .celica.vpis')) }; })()`);
+  await b.odpri('app/index.html', { sirina: 1280, visina: 900 });
+  await b.izvedi(`(() => { const sel = document.getElementById('exampleSelect'); sel.value = '2'; sel.dispatchEvent(new Event('change')); })()`);
+  await b.klikni('#candBtn');
+  await b.klikni('#solveBtn');
+  await b.cakaj(`document.getElementById('results').style.display === 'block'`, 20000);
+  await b.klikni('#openStepsBtn');
+  await b.izvedi(`document.querySelectorAll('.mini-toggle')[4].click()`);
+  const r = await b.izvedi(`(() => {
+    const s = izb => { const e = document.querySelector(izb), c = getComputedStyle(e); return { barva: c.color + ' ' + c.fontWeight, podlaga: c.backgroundColor }; };
+    const vnos = [...document.querySelectorAll('#inputGrid input')].find(i => i.value);
+    return { vnos: getComputedStyle(vnos).color, dana: s('#solvedGrid .was-given'), izpeljana: s('#solvedGrid .was-solved'),
+      kandDana: s('#candidateGrid .ccell.given'), miniDana: s('.mini-container .mcell.given'), miniIzpeljana: s('.mini-container .mcell.solved-num'),
+      legenda: document.querySelector('.legend-grid').textContent.replace(/\\s+/g, ' ').trim() };
+  })()`);
+  const bela = x => x.podlaga === 'rgba(0, 0, 0, 0)' || x.podlaga === 'rgb(255, 255, 255)';
+  preveri('reševalec: dana števka v rešitvi kot dana v igri, brez modre podlage', r.dana.barva === igra.dana && bela(r.dana), { r: r.dana, igra: igra.dana });
+  preveri('reševalec: izpeljana števka v rešitvi modra kot vpis v igri', r.izpeljana.barva.split(' ')[0] === igra.vpis.split(' ')[0] && bela(r.izpeljana), { r: r.izpeljana, igra: igra.vpis });
+  preveri('reševalec: dana v kandidatih in mali mreži kot dana v igri', r.kandDana.barva === igra.dana && r.miniDana.barva === igra.dana && bela(r.kandDana) && bela(r.miniDana), r);
+  preveri('reševalec: izpeljana v mali mreži modra', r.miniIzpeljana.barva.split(' ')[0] === igra.vpis.split(' ')[0], r.miniIzpeljana);
+  preveri('reševalec: števke vnosne mreže temne', r.vnos === 'rgb(36, 48, 61)', r.vnos);
+  preveri('reševalec: legenda »dana / izpeljana«', r.legenda === '5dana 5izpeljana', r.legenda);
+}
+
 async function main() {
   const b = await zazeni();
   try {
     await skupniVidez(b);
+    await danostiResevalca(b);
     for (const sirina of SIRINE) {
       await resevalec(b, sirina);
       await igra(b, sirina);

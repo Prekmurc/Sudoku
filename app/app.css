@@ -43,7 +43,7 @@
     font-family:'JetBrains Mono', monospace;
     font-weight:700;
     font-size: calc(var(--cs) * 0.5);
-    color: var(--blue);
+    color: var(--ink); /* danosti temne, kot v igri (faza 5, N9) */
     background:#fff;
     border: 1px solid var(--line);
     padding:0;
@@ -87,12 +87,12 @@
     align-items:center;
     justify-content:center;
   }
+  /* dana števka temna in krepka, kot v igri (faza 5, N9) */
   #candidateGrid .ccell.given{
     font-family:'JetBrains Mono', monospace;
     font-weight:800;
     font-size: calc(var(--ccs) * 0.5);
-    color:#0B4FCC;
-    background: var(--blue-bg);
+    color:#000;
   }
   #candidateGrid .candgrid{
     display:grid;
@@ -204,14 +204,13 @@
     color: var(--ink);
     border: 1px solid var(--line);
   }
+  /* dana števka temna in krepka, izpeljana modra - kot v igri dana in vpisana (faza 5, N9) */
   #solvedGrid div.was-given{
-    color: #0B4FCC;
-    background: var(--blue-bg);
+    color: #000;
     font-weight: 800;
   }
   #solvedGrid div.was-solved{
-    color: var(--ink);
-    background: #fff;
+    color: var(--blue);
   }
   .legend-grid{
     display:flex;
@@ -221,7 +220,9 @@
     margin: -6px 0 14px;
   }
   .legend-grid span{ display:inline-flex; align-items:center; gap:6px; }
-  .legend-grid .sw{ width:14px; height:14px; border-radius:3px; border:1px solid rgba(0,0,0,0.15); }
+  .legend-grid b{ font-family:'JetBrains Mono', monospace; font-size:14px; }
+  .legend-grid .vz-dana{ color:#000; font-weight:800; }
+  .legend-grid .vz-izpeljana{ color: var(--blue); font-weight:700; }
   #solvedGrid div[data-c="0"]{ border-left: 2px solid var(--ink); }
   #solvedGrid div[data-c="3"], #solvedGrid div[data-c="6"]{ border-left: 2px solid var(--ink); }
   #solvedGrid div[data-c="8"]{ border-right: 2px solid var(--ink); }
@@ -392,19 +393,18 @@
   .mini-grid .mcell[data-r="3"], .mini-grid .mcell[data-r="6"]{ border-top: 2px solid var(--ink); }
   .mini-grid .mcell[data-r="8"]{ border-bottom: 2px solid var(--ink); }
 
+  /* dana temna, izpeljana modra (faza 5, N9), števka koraka zelena */
   .mini-grid .mcell.given{
     font-family:'JetBrains Mono', monospace;
     font-weight:800;
     font-size: calc(var(--mcs) * 0.52);
-    color:#0B4FCC;
-    background: var(--blue-bg);
+    color:#000;
   }
   .mini-grid .mcell.solved-num{
     font-family:'JetBrains Mono', monospace;
     font-weight:700;
     font-size: calc(var(--mcs) * 0.52);
-    color: var(--ink);
-    background:#fff;
+    color: var(--blue);
   }
   .mini-grid .mcell.willset{
     font-family:'JetBrains Mono', monospace;

@@ -346,3 +346,18 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
   s prejšnjim commitom `a3ebed0`: `innerHTML` povsod enak; razlike v lastnostih gumbov
   (pisava, debelina, odmik, obroba, širina, višina) in kartice vaje (odmik 18 → 16, razmik
   16 → 12, širina 347 → 343 px pri 375 px) – pri 4–5 elementih na vajo, celice mrež enake.
+
+### Korak 4a – barva danosti v reševalcu (N9, svoj commit)
+
+- `app/app.css`: števke vnosne mreže temne (`--ink`, prej modre); v rešitvi dana števka
+  črna in krepka (800) na beli, izpeljana modra (`--blue`); v mreži kandidatov in mali mreži
+  koraka dana črna brez modre podlage, izpeljana modra – enako kot dana in vpisana števka v
+  igri. Legenda je vzorec števke: »**5** dana · **5** izpeljana« (prej barvna kvadratka).
+- `app/index.html`: legenda »dana / izpeljana«, opomba pod kandidati »Krepke temne števke so
+  dane.« (prej »Modra celica = tvoj vnos.«), noga »V rešeni mreži je dana števka temna,
+  izpeljana modra.« (prej »Modra števka v rešeni mreži = tvoj vnos, črna = izpeljano.«).
+- Scenarij `preveri-videz`: barve dane in izpeljane števke v rešitvi, kandidatih in mali mreži
+  so enake dani in vpisani števki v igri, brez modre podlage; števke vnosne mreže temne;
+  legenda.
+- Preverjeno: testi 425/425, posnetek igre enak (85), `preveri-niz` in `preveri-videz` držita.
+  Trening ni spremenjen (primerjave »Spoznaj« v koraku 5).
