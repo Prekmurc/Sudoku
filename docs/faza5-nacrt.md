@@ -4,7 +4,7 @@
 (izbira celice A2) `d331c75`, 3a (paleta in podlaga) `a3ebed0`, 3b (glava, kartica, gumbi, noga,
 oznake) `cf53202`, 4a (N9, barva danosti v reševalcu) `e1c03f3`, 4b (N10, N11) `4e1e4dc`, 5
 (zaključek). Testi: 425 (422 + 3 testi palete). Ročni pregled: `docs/rocni-test.md`, razdelek
-»Faza 5 – videz« (5 točk, nepotrjeno). Izvedba po korakih je v razdelku 7.
+»Faza 5 – videz« (5 točk, vse potrjene 3. 10. 2026; N9 ostane). Izvedba po korakih je v razdelku 7.
 
 ## Odgovori (2026-10-03)
 
@@ -255,8 +255,9 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
 
 - **Navigacija med aplikacijami (4.3)** – povezave »Igra · Reševalec · Trening« v glavi;
   nova funkcija.
-- **Mreža igre in treninga iz širine vsebnika** namesto okna (`100vw`), kot pri P1 – če
-  ročna točka 2 pokaže preliv zaradi drsnika.
+- ~~**Mreža igre in treninga iz širine vsebnika** namesto okna (`100vw`), kot pri P1 – če
+  ročna točka 2 pokaže preliv zaradi drsnika.~~ Ni potrebno: ročna točka 2 je potrjena
+  (3. 10. 2026).
 - **Reševalec na širokem zaslonu v dveh stolpcih** (vnos levo, rešitev in koraki desno),
   kot igra.
 

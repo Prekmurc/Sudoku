@@ -1185,7 +1185,8 @@ komponente, na koncu videz in pomoč.
 | **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, ročni vnos dobi pravo stopnjo; primeri niso del zbirke (odločitev spremenjena 2026-09-24, narejeno: ena zbirka, brisanje v obeh aplikacijah, dogodek `storage`) | majhno–srednje |
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
-| **5 – videz** (zaključeno 2026-10-03, `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
+| **5 – videz** (zaključeno 2026-10-03, ročni pregled potrjen istega dne, N9 ostane; `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
+| **5a – stikalo »Kandidati« v igri** (nova naloga, zapisano 2026-10-03; načrt v novem pogovoru) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
 | **6 – pomoč** | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
 | **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno in vnosna mreža – iz faze 5) | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
 
@@ -1203,6 +1204,20 @@ spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne
 - v fazi 4 je jasen notranji vrstni red (1.3 + 1.4, nato 1.1); ker so imena in ravni
   določeni, faza 4 in 5 nista več odvisni od odločitev. Edino odprto vprašanje (stopnja
   uganke z ekspertno tehniko) ne zadeva nobene faze – pride z XY-Chain.
+
+## Kasneje
+
+Ideje in manjše težave, ki niso v nobeni fazi (zapisano ob fazi 5, 2026-10-03; podrobnosti
+za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
+
+- **Navigacija med aplikacijami (4.3)** – povezave »Igra · Reševalec · Trening« v skupni
+  glavi; nova funkcija.
+- **Povečan prikaz v reševalcu se z Escape ne zapre** (zapisano 2026-10-03 ob ročnem pregledu
+  faze 5; ni popravljeno). Okno »Zbirka ugank« se z Escape zapre (`app/zbirka.js`, poslušalec
+  `keydown`), povečan prikaz mreže (`#lightbox`, `openLightbox()`/`closeLightbox()` v
+  `app/app.js`) pa samo s klikom na mrežo, ozadje ali gumb ✕ – poslušalca za Escape nima.
+- **Reševalec na širokem zaslonu v dveh stolpcih** (vnos levo, rešitev in koraki desno), kot
+  igra.
 
 ## Opombe k delom
 
@@ -1239,6 +1254,14 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   korak 2, `d331c75`, `docs/faza5-nacrt.md`, odločitev A2): izbira je poenotena na izrazitejšo – modrikasta
   podlaga in 3 px obroba (`--izbira`, `--izbira-bg` v `shared/base.css`), na poudarjeni celici
   še bel notranji rob; enak je fokus v vnosni mreži reševalca in okna »Nova uganka«.
+
+### Naloga 5a – stikalo »Kandidati« v igri (pred fazo 6)
+
+- **Stikalo »Kandidati« v igri** (zapisano 2026-10-03 ob ročnem pregledu faze 5; samo zapis,
+  načrt pride v novem pogovoru): vklop in izklop prikaza kandidatov v mreži igre. Pred fazo 6,
+  ker pomoč (okno Pomoč v igri) opisuje končno stanje igre. Izhodišče za načrt: mreža iz
+  `shared/mreza.js` že zna izris brez kandidatov (`pogled.kandidati = null` – E1 in E2 v
+  treningu), plošča iz `shared/plosca.js` ima možnost `kandidati: false`.
 
 ### Faza 6 – pomoč
 
