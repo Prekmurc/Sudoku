@@ -818,3 +818,33 @@ Vsak korak s commitom in pushem. Ročni pregled: točke v `docs/rocni-test.md` s
 3. **»Spoznaj« 1 in 2:** ista izbira po stopnji (predlog) – ali ostaneta, kot sta?
 4. **Oznaka pri Presega tehnike:** »– za to vajo ni pomembno« s pojasnilom v `title`
    (predlog)?
+
+### 16.9 Odgovori (2026-10-03)
+
+Točka 16 potrjena.
+
+1. Meja banke: **30 000 semen**.
+2. Ko v seji zmanjka neuporabljenih ugank osnovne stopnje: **naslednja stopnja, šele nato
+   znova** (predlog a).
+3. »Spoznaj« 1 in 2: **ista izbira** (predlog). Novo izhodišče primerjave samo za ti dve
+   vaji; za druge tehnike ostane `5b9ae6f`.
+4. Oznaka pri »Presega tehnike«: **da** (predlog, 16.6).
+
+Izvedba v korakih 8a, 8b, 8c, vsak s commitom in pushem. Ob razliki v posnetku igre ali v
+»Spoznaj« (razen 1 in 2) se izvedba ustavi. Ročni pregled: dopolnijo se obstoječe točke,
+samo kar je nujno.
+
+### 16.10 Izvedba
+
+| Korak | Stanje | Commit | Testi |
+|---|---|---|---|
+| 8a `shared/vaje-uganka.js`: `stopnjaTehnike()`, `rangUganke()`, `izberiIzBanke()`, `najnizjiRangBanke()` | **narejeno 2026-10-03** | (ta commit) | 406 (403 + 3) |
+| 8b orodje, nova banka, test banke | | | |
+| 8c trening, »Spoznaj« 1 in 2, oznaka | | | |
+
+- 8a: nove funkcije brez DOM-a; trening jih še ne uporablja. Testi v
+  `tests/vaje-uganka.test.js`: osnovna stopnja po ravneh (tudi tehnika, dodana v
+  `GEN_EKSPERTNE`, dobi Ekstrem), nobena uganka iz semen v testu in noben zapis banke nima
+  nižje stopnje od osnovne, rang po vrsti in Presega zadnja, izbira iz banke za vseh 14
+  tehnik (najnižji rang med neuporabljenimi, rang ne pade, vsak zapis enkrat, nato znova).
+  Posnetek igre »Enako: 85 posnetkov.«

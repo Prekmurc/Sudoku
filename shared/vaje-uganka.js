@@ -17,6 +17,9 @@
    - vajaIzUganke(danosti, kljuc, rnd): naključno ustrezno stanje uganke kot vaja;
    - preveriVajo(vaja, stanje, predlog): presoja odgovora (tabela 3.2 v
      docs/trening-v-uganki.md in vrstni red izidov v načrtu);
+   - stopnjaTehnike(), rangUganke(), izberiIzBanke(), najnizjiRangBanke(): izbira uganke
+     po stopnji - osnovna stopnja tehnike (iz ravni v shared/generator.js), nato višje,
+     "Presega tehnike" zadnja (banka vaj in sprotno iskanje v treningu);
    - obmocjeKoraka(), vObmocju(): območje koraka za postopnost v krogu (vaje 1-6 v
      "Vadi v uganki" - enota, števka, par, pivot ali bloka); presoja se zaradi njega ne
      spremeni, pravilen je tudi korak zunaj območja;
@@ -260,6 +263,58 @@ function preveriVajo(vaja, stanje, predlog = null) {
     sporocilo: `Prav, a to še ni ves korak – ${manjkaIzbrisov(manjka(najblizji))}.`,
     korak: najblizji, razveljavi: [],
   };
+}
+
+/* ---------- stopnja uganke za vajo (docs/vadi-v-uganki-nacrt.md, točka 16) ---------- */
+
+// Stopnje v vrstnem redu izbire: STOPNJE_UGANK (Lahka ... Ekstrem), nato "Presega tehnike".
+function stopnjeZaVajo() {
+  return [...STOPNJE_UGANK.map(s => s.ime), OCENA_PRESEGA];
+}
+
+// Osnovna stopnja tehnike: stopnja uganke, ki uporabi samo to tehniko (poleg enojčkov) -
+// iz ravni GEN_LAHKE ... GEN_EKSPERTNE in STOPNJE_UGANK v shared/generator.js, zato velja
+// tudi za pozneje dodane tehnike. Uganka, ki tehniko uporabi na poti, nima nižje stopnje.
+function stopnjaTehnike(kljuc) {
+  const s = STOPNJE_UGANK.find(x => x.ustreza(genMere(new Set([kljuc]))));
+  return s ? s.ime : OCENA_PRESEGA;
+}
+
+// Rang uganke za vajo tehnike: 0 = osnovna stopnja, 1, 2 ... = višje stopnje,
+// "Presega tehnike" je zadnja; neznana stopnja ('') je za njo.
+function rangUganke(stopnja, kljuc) {
+  const red = stopnjeZaVajo();
+  const i = red.indexOf(stopnja);
+  if (i < 0) return red.length;
+  return Math.max(0, i - red.indexOf(stopnjaTehnike(kljuc)));
+}
+
+// Najnižji rang med zapisi banke s tehniko, ki v seji še niso bili uporabljeni
+// (uporabljene = Set semen; če so uporabljeni vsi, med vsemi), ali Infinity, če tehnike v
+// banki ni.
+function najnizjiRangBanke(banka, kljuc, uporabljene) {
+  const zapisi = banka.filter(z => z.tehnike.includes(kljuc));
+  const proste = zapisi.filter(z => !uporabljene.has(z.seme));
+  return Math.min(...(proste.length ? proste : zapisi).map(z => rangUganke(z.stopnja, kljuc)));
+}
+
+// Zapis banke za vajo tehnike: najnižji rang med neuporabljenimi (osnovna stopnja, ko je
+// zmanjka, naslednja ... "Presega tehnike" zadnja), v njem naključen zapis; ko so
+// uporabljeni vsi zapisi s tehniko, se izbira začne znova (uporabljene se izpraznijo).
+// Izbrani zapis se doda v uporabljene. Vrne zapis ali null (tehnike ni v banki).
+function izberiIzBanke(banka, kljuc, uporabljene, rnd = Math.random) {
+  const zapisi = banka.filter(z => z.tehnike.includes(kljuc));
+  if (!zapisi.length) return null;
+  let proste = zapisi.filter(z => !uporabljene.has(z.seme));
+  if (!proste.length) {
+    uporabljene.clear();
+    proste = zapisi;
+  }
+  const rang = Math.min(...proste.map(z => rangUganke(z.stopnja, kljuc)));
+  const kandidati = proste.filter(z => rangUganke(z.stopnja, kljuc) === rang);
+  const z = kandidati[Math.floor(rnd() * kandidati.length)];
+  uporabljene.add(z.seme);
+  return z;
 }
 
 /* ---------- območje koraka (postopnost v "Vadi v uganki") ---------- */

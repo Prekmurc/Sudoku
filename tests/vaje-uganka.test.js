@@ -451,3 +451,70 @@ test('obmocjeKoraka / vObmocju: območje vsebuje korak, drugo območje ga ne (vs
   // Brez območja je vsak korak v območju.
   assert.equal(E.vObmocju(vaje.get('X-Wing')[0].KT[0], null), true);
 });
+
+/* ---------- stopnja uganke za vajo (točka 16 načrta) ---------- */
+
+// Ločen kontekst z banko vaj (tudi za dodano ekspertno tehniko spodaj).
+const B = () => loadEngine(undefined, {
+  files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js'],
+  names: ['stopnjaTehnike', 'rangUganke', 'stopnjeZaVajo', 'izberiIzBanke', 'najnizjiRangBanke', 'VAJE_BANKA',
+    'GEN_LAHKE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'GEN_EKSPERTNE', 'OCENA_PRESEGA', 'STOPNJE_UGANK'],
+});
+
+test('stopnjaTehnike: osnovna stopnja iz ravni v kodi (tudi za dodano ekspertno tehniko)', () => {
+  const S = B();
+  const red = S.stopnjeZaVajo();
+  assert.equal(JSON.stringify(red), JSON.stringify([...S.STOPNJE_UGANK.map(s => s.ime), S.OCENA_PRESEGA]));
+  const pricakovano = [[S.GEN_LAHKE, 'Lahka'], [S.GEN_SREDNJE, 'Srednja'], [S.GEN_NAPREDNE, 'Težka'], [S.GEN_EKSPERTNE, 'Ekstrem']];
+  for (const [raven, ime] of pricakovano) for (const k of raven) assert.equal(S.stopnjaTehnike(k), ime, k);
+  for (const k of TEHNIKE) assert.ok(S.STOPNJE_UGANK.some(s => s.ime === S.stopnjaTehnike(k)), k);
+  // Tehnika, dodana v ekspertno raven (npr. XY-veriga), dobi Ekstrem brez seznama tehnik.
+  S.GEN_EKSPERTNE.push('XY-veriga');
+  assert.equal(S.stopnjaTehnike('XY-veriga'), 'Ekstrem');
+  assert.equal(S.rangUganke('Ekstrem', 'XY-veriga'), 0);
+  assert.equal(S.rangUganke(S.OCENA_PRESEGA, 'XY-veriga'), 1);
+});
+
+test('rangUganke: uganka s tehniko nima nižje stopnje od osnovne; Presega tehnike je zadnja', () => {
+  const S = B();
+  const red = S.stopnjeZaVajo();
+  // Uganke iz semen v testu in vsi zapisi banke: stopnja je vsaj osnovna stopnja tehnike.
+  const primeri = [...TEHNIKE.flatMap(k => vaje.get(k).map(v => [v.stopnja, k])),
+    ...S.VAJE_BANKA.flatMap(z => z.tehnike.map(k => [z.stopnja, k]))];
+  for (const [stopnja, k] of primeri) {
+    assert.ok(red.indexOf(stopnja) >= red.indexOf(S.stopnjaTehnike(k)), `${k}: ${stopnja}`);
+  }
+  for (const k of TEHNIKE) {
+    const osn = red.indexOf(S.stopnjaTehnike(k));
+    const rangi = red.slice(osn).map(s => S.rangUganke(s, k));
+    assert.equal(JSON.stringify(rangi), JSON.stringify(rangi.map((_, i) => i)), `${k}: osnovna 0, nato po vrsti`);
+    assert.equal(S.rangUganke(S.OCENA_PRESEGA, k), Math.max(...rangi), `${k}: Presega zadnja`);
+    assert.ok(S.rangUganke('', k) > S.rangUganke(S.OCENA_PRESEGA, k), `${k}: neznana za Presega`);
+  }
+});
+
+test('izberiIzBanke: najprej osnovna stopnja, nato višje, šele ko so uporabljeni vsi, znova', () => {
+  const S = B();
+  let rnd = 7;
+  const naklj = () => ((rnd = (rnd * 1103515245 + 12345) % 2147483648) / 2147483648);
+  for (const k of TEHNIKE) {
+    const zapisi = S.VAJE_BANKA.filter(z => z.tehnike.includes(k));
+    const upor = new Set();
+    let prejRang = -1;
+    for (let i = 0; i < zapisi.length; i++) {
+      const pricakovan = S.najnizjiRangBanke(S.VAJE_BANKA, k, upor);
+      const z = S.izberiIzBanke(S.VAJE_BANKA, k, upor, naklj);
+      const rang = S.rangUganke(z.stopnja, k);
+      assert.equal(rang, pricakovan, `${k}: najnižji rang med neuporabljenimi`);
+      assert.ok(rang >= prejRang, `${k}: rang ne pade, dokler so neuporabljeni`);
+      assert.ok(z.tehnike.includes(k));
+      prejRang = rang;
+    }
+    assert.equal(upor.size, zapisi.length, `${k}: vsak zapis enkrat`);
+    // Vsi uporabljeni: znova od najnižjega ranga.
+    const z = S.izberiIzBanke(S.VAJE_BANKA, k, upor, naklj);
+    assert.equal(upor.size, 1);
+    assert.equal(S.rangUganke(z.stopnja, k), Math.min(...zapisi.map(x => S.rangUganke(x.stopnja, k))));
+  }
+  assert.equal(S.izberiIzBanke(S.VAJE_BANKA, 'XY-veriga', new Set()), null, 'tehnike, ki je ni v banki');
+});
