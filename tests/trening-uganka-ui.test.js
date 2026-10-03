@@ -242,7 +242,8 @@ test('"Spoznaj" iz istega konteksta ostane sestavljena vaja', () => {
 // Vaja tehnike iz banke, ki izpolni pogoj (izraz nad `v`), na zaslonu. Iskanje po banki
 // po vrsti (brez naključja) - vaja je stanje prave uganke, izbrisi v testu so iz korakov
 // motorja (KT, KV) in števk rešitve.
-// ob: izraz za območje (privzeto null - cela uganka, kot vaje 7-9).
+// ob: izraz za območje (privzeto null - cela uganka, kot vaje 7-9). "Več celic" je
+// izklopljen (vecCelicKrog = false), ker testi odgovorov izbirajo po eno celico.
 function vajaZ(tehnika, pogoj, ob = 'null') {
   const t = zacni(tehnika);
   t.izprazni();
@@ -252,7 +253,7 @@ function vajaZ(tehnika, pogoj, ob = 'null') {
       for (const st of stanja) { const v = vajaIzStanja(z.danosti, kljuc, st, stopnja); if (v && (${pogoj})) { najdena = v; break; } }
       if (najdena) { najdena.izvor = { vrsta: 'banka', seme: z.seme }; break; }
     }
-    izrisiVadi(najdena, ${ob}); }`);
+    vecCelicKrog = false; izrisiVadi(najdena, ${ob}); }`);
   return t;
 }
 // Izbrisi iz S0: KT[0] (korak tehnike), neutemeljen (kandidat, ki ni števka rešitve in ga ne
@@ -691,7 +692,7 @@ test('»Spoznaj« 1 in 2: uganke iz banke najprej osnovne stopnje (Srednja), bre
 
 test('zaznamki: gumb in tipka O, izbira prosta, ostanejo ob »Začni znova«, nova vaja jih pobriše', () => {
   const { dom, run, izprazni } = zacni('swordfish', { banka: true });
-  run('exNum = 6; renderExercise()');
+  run('vecCelicKrog = false; exNum = 6; renderExercise()'); // izbira po eno celico, več s Ctrl+klik
   izprazni();
   const k = iz(run, 'vadi.v.KT[0]');
   const zazn = () => celice(dom).map((e, c) => e.classList.contains('zaznamovana') ? c : -1).filter(c => c >= 0);
@@ -754,4 +755,43 @@ test('»Spoznaj« E1/E2 pri vajah 1-6: okvir območja in temne oznake roba, pri 
     assert.deepEqual(zObm, pricakovano, `${mode} vaja ${n + 1}`);
     assert.equal(temne, vrsta === 'celica' ? 2 : pricakovano.length === 9 && new Set(pricakovano.map(c => Math.floor(c / 9))).size === 3 && new Set(pricakovano.map(c => c % 9)).size === 3 ? 6 : 1, `${mode} vaja ${n + 1}: oznake roba`);
   }
+});
+
+
+/* ---------- točka 18: »več celic« privzeto po tehniki ---------- */
+
+test('»več celic« privzeto po deležu tehnike v banki, sprememba velja do konca kroga, Ctrl+klik vedno', () => {
+  const kljukica = dom => poRazredu(dom, 'glava-s-kljukico')[0].children[1].children[0];
+  // Delež iz banke: mečarica nad 50 % (vklop), edinstveni pravokotnik 0 % (izklop).
+  for (const [mode, vklop] of [['swordfish', true], ['unique-rectangle', false]]) {
+    const { dom, run, izprazni } = zacni(mode);
+    izprazni();
+    const d = run(`delezVecCelic(VAJE_BANKA, TEHNIKA_VAJE[${JSON.stringify(mode)}])`);
+    assert.equal(d > 0.5, vklop, `${mode}: delež ${d}`);
+    assert.equal(kljukica(dom).checked, vklop, `${mode}: privzeto`);
+    assert.equal(run('vecCelicPrivzeto(vadi.v.kljuc)'), vklop);
+  }
+  // Vklopljena kljukica: navaden klik doda celico.
+  const { dom, run, izprazni } = zacni('swordfish');
+  izprazni();
+  const prazne = iz(run, 'vadi.stanje.grid').map((x, c) => (x ? -1 : c)).filter(c => c >= 0);
+  celice(dom)[prazne[0]].sprozi('click');
+  celice(dom)[prazne[1]].sprozi('click');
+  assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), [prazne[0], prazne[1]]);
+  // Izklop velja do konca kroga (naslednja vaja), nov krog spet privzeto.
+  kljukica(dom).checked = false;
+  kljukica(dom).sprozi('change');
+  run('exNum++; renderExercise()');
+  izprazni();
+  assert.equal(kljukica(dom).checked, false, 'izklop ostane v naslednji vaji');
+  // Izklopljena: navaden klik zamenja izbiro, Ctrl+klik doda.
+  const p2 = iz(run, 'vadi.stanje.grid').map((x, c) => (x ? -1 : c)).filter(c => c >= 0);
+  celice(dom)[p2[0]].sprozi('click');
+  celice(dom)[p2[1]].sprozi('click');
+  assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), [p2[1]]);
+  celice(dom)[p2[2]].sprozi('click', { ctrlKey: true });
+  assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), [p2[1], p2[2]]);
+  run('zacniKrog("swordfish", "uganka")');
+  izprazni();
+  assert.equal(kljukica(dom).checked, true, 'nov krog: privzeto');
 });

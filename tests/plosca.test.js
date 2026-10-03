@@ -494,6 +494,21 @@ test('plošča: zaznamki (gumb, tipka O s QWERTZ), niso poteze; števke območja
   assert.equal(q.tipka({ key: 'o', code: 'KeyO' }), false);
 });
 
+test('plošča: »več celic« se ob nastanku prebere iz kljukice (trening jo vklopi po tehniki)', () => {
+  const p = pripravi({ pred: 'el("vecCelic").checked = true;' });
+  p.run(`odpri(novaIgra(${D}))`);
+  const [a, b] = prazne;
+  p.klik(a);
+  p.klik(b);
+  assert.deepEqual(p.izbrane(), [a, b], 'navaden klik doda celico');
+  // Brez vklopljene kljukice (igra) ostane kot prej: klik zamenja izbiro.
+  const q = pripravi();
+  q.run(`odpri(novaIgra(${D}))`);
+  q.klik(a);
+  q.klik(b);
+  assert.deepEqual(q.izbrane(), [b]);
+});
+
 test('plošča: seznami s stikali pod ključem aplikacije, plošča samo z mrežo', () => {
   const shramba = new Map([['test.seznami', JSON.stringify({ vrstice: true })]]);
   const p = pripravi({ kljucSeznamov: 'test.seznami', shramba });

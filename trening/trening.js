@@ -46,7 +46,7 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
 
 // Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka').
 function zacniKrog(m,n){
-  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;
+  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';
   renderExercise();
 }

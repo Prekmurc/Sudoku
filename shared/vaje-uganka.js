@@ -20,6 +20,9 @@
    - stopnjaTehnike(), rangUganke(), izberiIzBanke(), najnizjiRangBanke(): izbira uganke
      po stopnji - osnovna stopnja tehnike (iz ravni v shared/generator.js), nato višje,
      "Presega tehnike" zadnja (banka vaj in sprotno iskanje v treningu);
+   - korakVecCelic(), vecCelicVStanjih(), delezVecCelic(): ali korak izbriše isto števko
+     iz več celic, štetje v uganki (banka) in delež tehnike iz banke - privzeti vklop
+     kljukice "več celic" v treningu;
    - obmocjeKoraka(), vObmocju(): območje koraka za postopnost v krogu (vaje 1-6 v
      "Vadi v uganki" - enota, števka, par, pivot ali bloka); presoja se zaradi njega ne
      spremeni, pravilen je tudi korak zunaj območja;
@@ -315,6 +318,42 @@ function izberiIzBanke(banka, kljuc, uporabljene, rnd = Math.random) {
   const z = kandidati[Math.floor(rnd() * kandidati.length)];
   uporabljene.add(z.seme);
   return z;
+}
+
+/* ---------- "več celic" privzeto po tehniki (docs/vadi-v-uganki-nacrt.md, točka 18) ---------- */
+
+// Korak potrebuje izbiro več celic, če je ista števka izbrisana iz 2 ali več celic.
+function korakVecCelic(korak) {
+  const celic = {};
+  for (const [c, d] of korak.eliminate) (celic[d] = celic[d] || new Set()).add(c);
+  return Object.values(celic).some(s => s.size >= 2);
+}
+
+// [korakov, z isto števko iz 2+ celic] čez vsa stanja vaje tehnike v uganki (vsi koraki
+// KT) - zapis vecCelic v banki (tools/ustvari-banko-vaj.js).
+function vecCelicVStanjih(danosti, kljuc) {
+  const { stanja, stopnja } = stanjaVUganki(danosti, kljuc);
+  let korakov = 0, vec = 0;
+  for (const st of stanja) {
+    const v = vajaIzStanja(danosti, kljuc, st, stopnja);
+    if (!v) continue;
+    korakov += v.KT.length;
+    vec += v.KT.filter(korakVecCelic).length;
+  }
+  return [korakov, vec];
+}
+
+// Delež korakov tehnike z isto števko iz 2+ celic, seštet iz zapisov banke (polje
+// vecCelic, vzporedno s tehnike), ali null, če podatka ni.
+function delezVecCelic(banka, kljuc) {
+  let korakov = 0, vec = 0;
+  for (const z of banka) {
+    const i = z.tehnike.indexOf(kljuc);
+    if (i < 0 || !z.vecCelic) continue;
+    korakov += z.vecCelic[i][0];
+    vec += z.vecCelic[i][1];
+  }
+  return korakov ? vec / korakov : null;
 }
 
 /* ---------- območje koraka (postopnost v "Vadi v uganki") ---------- */

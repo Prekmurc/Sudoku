@@ -19,6 +19,15 @@ let vadiIskanje=0;
 const vadiUporabljene={};
 // Kljukica "pokaži prečrtane" ostane med vajami kroga (ne shranjuje se).
 let precrtaniKrog=false;
+// Kljukica "več celic" (točka 18 načrta): privzeto po tehniki - vklopljena, če je v banki
+// pri več kot polovici korakov tehnike ista števka izbrisana iz 2+ celic (delezVecCelic()
+// v shared/vaje-uganka.js). Igralčeva sprememba velja do konca kroga (null = privzeto).
+const VADI_VEC_CELIC_PRAG=0.5;
+let vecCelicKrog=null;
+function vecCelicPrivzeto(kljuc){
+  const d=delezVecCelic(VAJE_BANKA,kljuc);
+  return d!==null&&d>VADI_VEC_CELIC_PRAG;
+}
 
 function vadiPrekini(){vadiIskanje++;vadi=null;}
 
@@ -244,7 +253,11 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     const poj=vEl('span','niz-pojasnilo','· ');poj.append(vEl('span','vzorec-vrni','↺'),' = vrni');
     o.appendChild(poj);
     vc=vKljukica(' več celic');vc.l.className='vec-hkrati';
-    vc.l.title='Izberi več celic in odstrani isto števko iz vseh (na računalniku tudi Ctrl+klik)';
+    const vecPrivzeto=vecCelicPrivzeto(kljuc);
+    vc.l.title='Izberi več celic in odstrani isto števko iz vseh (na računalniku tudi Ctrl+klik)'
+      +(vecPrivzeto?'. Pri tej tehniki se v večini korakov ista števka izbriše iz več celic.':'');
+    vc.i.checked=vecCelicKrog!==null?vecCelicKrog:vecPrivzeto;
+    vc.i.addEventListener('change',()=>{vecCelicKrog=vc.i.checked;});
     g.append(o,vc.l);wrap.appendChild(g);
     nizO=vEl('div','niz niz-odstrani');nizO.setAttribute('role','group');nizO.setAttribute('aria-label','Odstrani kandidata');
     wrap.appendChild(nizO);

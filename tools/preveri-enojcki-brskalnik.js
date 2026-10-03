@@ -279,6 +279,9 @@ async function izris(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
+  // Pisave (Google Fonts) se lahko naložijo šele po kliku - širina besedila bi se
+  // razlikovala zaradi nalaganja, ne zaradi kode (kot v preveri-presek-brskalnik.js).
+  await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     const a = document.getElementById('exerciseArea');
     const slogi = [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });

@@ -78,7 +78,8 @@ function ustvariPlosco(o) {
   // Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
   // dokler je igralec ne počisti (Escape, izklop kljukice, navaden klik).
   let izbrane = o.zacetnaIzbira ? [...o.zacetnaIzbira] : [];
-  let vecCelic = false;
+  // Stanje kljukice "več celic" ob nastanku plošče (trening jo vklopi po tehniki).
+  let vecCelic = !!(o.vecCelic && o.vecCelic.checked);
   let zadnjaIzbrana = null; // celica, iz katere je bila izbira izklopljena po vpisu
   // Poudarjene števke po vrstnem redu izbire: [{ stevka, barva }], barva 0..3 =
   // rumena, zelena, oranžna, modra (--poud, --poud2 ... v mreza.css). Brez kljukice

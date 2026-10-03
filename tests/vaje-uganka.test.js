@@ -518,3 +518,27 @@ test('izberiIzBanke: najprej osnovna stopnja, nato višje, šele ko so uporablje
   }
   assert.equal(S.izberiIzBanke(S.VAJE_BANKA, 'XY-veriga', new Set()), null, 'tehnike, ki je ni v banki');
 });
+
+test('korakVecCelic / vecCelicVStanjih: ista števka iz 2+ celic, štetje čez stanja vaje', () => {
+  const S = loadEngine(undefined, {
+    files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js'],
+    names: ['korakVecCelic', 'vecCelicVStanjih', 'stanjaVUganki', 'vajaIzStanja'],
+  });
+  for (const kljuc of TEHNIKE) {
+    const danosti = uganka(SEMENA[kljuc]);
+    // Neodvisen izračun iz korakov KT vseh stanj.
+    let korakov = 0, vec = 0;
+    for (const v of vaje.get(kljuc)) {
+      korakov += v.KT.length;
+      for (const k of v.KT) {
+        const po = {};
+        for (const [c, d] of k.eliminate) (po[d] = po[d] || new Set()).add(c);
+        const pricakovano = Object.values(po).some(x => x.size >= 2);
+        assert.equal(S.korakVecCelic(k), pricakovano, kljuc);
+        if (pricakovano) vec++;
+      }
+    }
+    assert.deepEqual([...S.vecCelicVStanjih(danosti, kljuc)], [korakov, vec], kljuc);
+    if (ENOJCKA.includes(kljuc)) assert.equal(vec, 0, `${kljuc}: brez izbrisov`);
+  }
+});

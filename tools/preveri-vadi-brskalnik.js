@@ -130,8 +130,10 @@ async function vaja1do12(b, mode, sirina) {
   preveri('vsi trije seznami vidni', s.seznamiVidni.every(Boolean), s.seznamiVidni);
   preveri('s seznami brez drsnika in v kartici', s.sirinaStrani === sirina && s.vKartici, s);
   // Pravi klik celice izbere celico (1-12: vsako).
-  await b.klikni('.vaja-uganka .celica[data-r="4"][data-c="4"]');
-  preveri('klik izbere celico', JSON.stringify(await b.izvedi('vadi.plosca.izbrane')) === '[40]');
+  // Prazna celica (ob privzeto vklopljenem »več celic« se polna celica ne izbere).
+  const prazna = await b.izvedi('vadi.stanje.grid.findIndex(x => !x)');
+  await b.klikni(celicaSel(prazna));
+  preveri('klik izbere celico', JSON.stringify(await b.izvedi('vadi.plosca.izbrane')) === `[${prazna}]`);
   await b.posnetek(path.join(mapa, `${mode}-${sirina}.png`));
 }
 
@@ -228,6 +230,9 @@ async function klikniGumb(b, napis) {
 async function odgovor1do12(b, sirina) {
   console.log(`hidden-pair, odgovor, ${sirina} px`);
   await vadi(b, 'hidden-pair', sirina, { banka: true, seme: 11 });
+  // Odgovor s posameznimi celicami: »več celic« (pri skritem paru privzeto vklopljen,
+  // točka 18) izklopljen s pravim klikom; izbiro več celic preverja zaznamki().
+  if (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) await b.klikni('.vaja-uganka .glava-s-kljukico input');
   const I = await b.izvedi(`(() => { const v = vadi.v; let prava = null;
     for (let c = 0; c < 81 && !prava; c++) if (!v.S0.grid[c] && (v.S0.kandidati[c] & (1 << v.resitev[c]))) prava = [c, v.resitev[c]];
     return { korak: v.KT[0].eliminate, prava }; })()`);
@@ -271,6 +276,9 @@ async function odgovor1do12(b, sirina) {
 async function pomoc1do12(b, sirina) {
   console.log(`hidden-pair, pomoč, ${sirina} px`);
   await vadi(b, 'hidden-pair', sirina, { banka: true, seme: 5 });
+  // Odgovor s posameznimi celicami: »več celic« (pri skritem paru privzeto vklopljen,
+  // točka 18) izklopljen s pravim klikom; izbiro več celic preverja zaznamki().
+  if (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) await b.klikni('.vaja-uganka .glava-s-kljukico input');
   // Korak v območju z vsaj dvema izbrisoma (po prvem izbrisu ostane na mreži še rdeč
   // izbris); vaja brez takega koraka se zamenja z naslednjo.
   for (let i = 0; i < 9 && !(await b.izvedi('vadi.KTob.some(k => k.eliminate.length > 1)')); i++) {
@@ -347,7 +355,8 @@ async function zaznamki(b, sirina) {
   await b.izvedi('exNum = 6; renderExercise(); true');
   await b.cakaj('vadi !== null', 15000);
   const k = await b.izvedi('vadi.v.KT[0]');
-  await b.klikni('.vaja-uganka .glava-s-kljukico input');
+  // "Več celic" je pri mečarici privzeto vklopljen (točka 18) - izbira več celic brez Ctrl.
+  preveri('»več celic« pri mečarici privzeto vklopljen', (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) === true);
   for (const c of k.cells) await b.klikni(celicaSel(c));
   await klikniGumb(b, '◩ Označi izbrane (O)');
   let z = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice.filter(x => x.classList.contains('zaznamovana'));
@@ -360,6 +369,17 @@ async function zaznamki(b, sirina) {
   z = await b.izvedi(`vadi.plosca.mreza.celice.filter(x => x.classList.contains('zaznamovana')).length`);
   preveri('tipka O (QWERTZ) odznači', z === k.cells.length - 1, z);
   await b.posnetek(path.join(mapa, `swordfish-zaznamki-${sirina}.png`));
+  // Izklop "več celic" (zgoraj) ostane do konca kroga - tudi v naslednji vaji.
+  await b.izvedi('exNum++; renderExercise(); true');
+  await b.cakaj('vadi !== null', 15000);
+  preveri('izklop »več celic« ostane v naslednji vaji', (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) === false);
+}
+
+// "Več celic" privzeto po tehniki (točka 18): izklopljen pri edinstvenem pravokotniku.
+async function vecCelicPrivzeto(b) {
+  console.log('»Več celic« privzeto po tehniki');
+  await vadi(b, 'unique-rectangle', 375, { banka: true });
+  preveri('»več celic« pri edinstvenem pravokotniku privzeto izklopljen', (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) === false);
 }
 
 async function banka(b) {
@@ -442,6 +462,7 @@ async function main() {
       await zaznamki(b, sirina);
     }
     await banka(b);
+    await vecCelicPrivzeto(b);
     await predlogSiv(b);
   } finally {
     await b.zapri();

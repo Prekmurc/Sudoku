@@ -14,7 +14,8 @@ const { loadEngine } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js'],
-  names: ['VAJE_BANKA', 'genMinimalnaUganka', 'tehnikeVUganki', 'oceniTezavnost', 'imeTehnike', 'stopnjaTehnike', 'OCENA_PRESEGA'],
+  names: ['VAJE_BANKA', 'genMinimalnaUganka', 'tehnikeVUganki', 'oceniTezavnost', 'imeTehnike', 'stopnjaTehnike', 'OCENA_PRESEGA',
+    'vecCelicVStanjih', 'delezVecCelic'],
 });
 
 const NA_TEHNIKO = 50;
@@ -38,7 +39,10 @@ test('banka: oblika zapisov, urejeno po semenu, semena se ne ponavljajo', () => 
   assert.ok(Array.isArray(banka) && banka.length > 0);
   for (let i = 0; i < banka.length; i++) {
     const z = banka[i];
-    assert.deepEqual(Object.keys(z), ['seme', 'danosti', 'stopnja', 'tehnike'], `zapis ${i}`);
+    assert.deepEqual(Object.keys(z), ['seme', 'danosti', 'stopnja', 'tehnike', 'vecCelic'], `zapis ${i}`);
+    // vecCelic: za vsako tehniko par [korakov, z isto števko iz 2+ celic].
+    assert.equal(z.vecCelic.length, z.tehnike.length, `seme ${z.seme}: vecCelic vzporedno s tehnike`);
+    for (const [korakov, vec] of z.vecCelic) assert.ok(Number.isInteger(korakov) && korakov > 0 && Number.isInteger(vec) && vec >= 0 && vec <= korakov, `seme ${z.seme}`);
     assert.ok(Number.isInteger(z.seme) && z.seme > 0, `zapis ${i}`);
     assert.match(z.danosti, /^[0-9]{81}$/, `seme ${z.seme}`);
     if (i > 0) assert.ok(banka[i - 1].seme < z.seme, `urejeno po semenu, strogo naraščajoče (seme ${z.seme})`);
@@ -84,5 +88,19 @@ test(`banka: vsaka tehnika ima vsaj ${NA_TEHNIKO} rešljivih ugank in uganke osn
   for (const z of banka) {
     const potreben = Object.entries(STETJA).some(([s, pogoj]) => z.tehnike.some(k => pogoj(z, k) && n[s][k] <= NA_TEHNIKO));
     assert.ok(potreben, `seme ${z.seme} je odveč - ${ZNOVA}`);
+  }
+});
+
+// Polje vecCelic (točka 18 v docs/vadi-v-uganki-nacrt.md) se preveri na vzorcu - prvih 20
+// ugank vsake tehnike (vse bi trajalo pribl. 60 s); delež tehnike je seštevek čez zapise.
+const VZOREC = 20;
+test(`banka: vecCelic na vzorcu ${VZOREC} ugank na tehniko je natanko vecCelicVStanjih(); deleži 1-12 med 0 in 1`, () => {
+  for (const k of TEHNIKE) {
+    const zapisi = banka.filter(z => z.tehnike.includes(k)).slice(0, VZOREC);
+    for (const z of zapisi) {
+      assert.deepEqual([...z.vecCelic[z.tehnike.indexOf(k)]], [...E.vecCelicVStanjih(z.danosti, k)], `seme ${z.seme}, ${k} - ${ZNOVA}`);
+    }
+    const d = E.delezVecCelic(banka, k);
+    assert.ok(d !== null && d >= 0 && d <= 1, `${k}: delež ${d}`);
   }
 });

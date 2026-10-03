@@ -1153,3 +1153,52 @@ Commit in push.
    izklop) – predlog? Ali merilo »vaj, kjer to velja za večino korakov« (enak rezultat)?
 2. **Kje:** deleži v banki prek orodja, s stikalom `--samo-vec-celic` za zdaj (predlog)?
 3. **Sprememba do konca kroga**, nov krog spet privzeto (predlog)?
+
+### 18.6 Odgovori (2026-10-03)
+
+Točka 18 potrjena.
+
+1. Pravilo: vklop pri deležu korakov z isto števko iz 2+ celic **nad 50 %**.
+2. Deleže zapiše orodje v banko, s stikalom za hiter izračun iz obstoječe banke. **Test
+   banke jih preveri na vzorcu** (20 ugank na tehniko), zagon testov ne sme biti daljši
+   za 30 s.
+3. Sprememba kljukice velja do konca kroga, nov krog spet privzeto.
+
+Še: `tools/preveri-enojcki-brskalnik.js` naj pred primerjavo počaka na pisave.
+
+**Izvedba (dopolnitev k 18.2):** da je preverjanje na vzorcu natančno, orodje k vsakemu
+zapisu banke zapiše `vecCelic` – za vsako tehniko zapisa (v istem vrstnem redu kot
+`tehnike`) par `[korakov, z isto števko iz 2+ celic]` čez vsa stanja vaje te tehnike v
+uganki. Delež tehnike je seštevek čez zapise (`delezVecCelic()` – takojšen, brez
+reševanja). Test za 20 ugank na tehniko izračuna par znova in ga primerja natančno.
+Ločena konstanta `VAJE_BANKA_VEC_CELIC` ni potrebna. Logika (`korakVecCelic()`,
+`vecCelicVStanjih()`, `delezVecCelic()`) je v `shared/vaje-uganka.js`, skupna orodju,
+testu in treningu.
+
+### 18.7 Izvedba (2026-10-03)
+
+- `shared/vaje-uganka.js`: `korakVecCelic()`, `vecCelicVStanjih()`, `delezVecCelic()`.
+- `tools/ustvari-banko-vaj.js`: polje `vecCelic` pri vsakem zapisu, stikalo
+  `--samo-vec-celic` (64 s). `shared/vaje-banka.js` je ustvarjena z njim: zapisi, semena
+  in datum so nespremenjeni (preverjeno), dodano je samo `vecCelic`; deleži v glavi so
+  enaki meritvi 18.1 (1–8 61–89 %, 9–12 0–50 %).
+- `shared/plosca.js`: »več celic« se ob nastanku prebere iz kljukice (igra je ne vklopi –
+  posnetek igre »Enako«).
+- `trening/v-uganki.js`, `trening/trening.js`: privzeti vklop po tehniki
+  (`vecCelicPrivzeto()`, prag 0,5), `vecCelicKrog` do konca kroga, `title` kljukice.
+- `tools/preveri-enojcki-brskalnik.js` pred primerjavo počaka na pisave.
+- Testi (+4): `vaje-uganka` (`korakVecCelic`/`vecCelicVStanjih` neodvisno), `vaje-banka`
+  (oblika in vzorec 20 ugank na tehniko – 6 s, test banke skupaj pribl. 29 s), `plosca`,
+  `trening-uganka-ui` (privzeto, navaden klik doda, izklop do konca kroga, Ctrl+klik, nov
+  krog). Testi odgovorov izbirajo po eno celico, zato »več celic« pred vajo izklopijo.
+- Scenarij `preveri-vadi-brskalnik.js`: privzeto vklopljen pri mečarici in izklopljen pri
+  edinstvenem pravokotniku, izklop ostane v naslednji vaji; pri odgovoru in pomoči pri
+  skritem paru se »več celic« izklopi s pravim klikom (izbira po eno celico).
+- Med izvedbo: test `kontrolni-znaki` je našel backspace v `CLAUDE.md` iz prejšnjega
+  commita (opis tega testa, urejen po zagonu testov). Vzrok: lupina v heredocu podvojene
+  poševnice spremeni v enojne, Python pa `\b` nato prebere kot backspace. Popravljeno;
+  pravilo (skripte s poševnicami v datoteko, ne v heredoc) je v `CLAUDE.md`.
+- Preverjanje: 422 testov (pribl. 82 s, enako kot prej); posnetek igre »Enako: 85
+  posnetkov.«; `preveri-vadi-brskalnik.js` in `preveri-enojcki-brskalnik.js` »Vse drži«.
+- Ročni pregled: ni potreben (privzeti vklop in izbira s pravimi kliki brez Ctrl sta
+  preverjena v brskalniku).
