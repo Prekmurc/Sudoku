@@ -1227,6 +1227,19 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
 - **Opozorilo pri izklopljenih kandidatih, če uganka zahteva tehniko 3 ali višjo** (zapisano
   2026-10-03 ob nalogi 5a): brez kandidatov gredo E1, E2, 1 in 2; pri težji uganki bi igra
   ob izklopu (ali ob odprtju uganke pri izklopu) povedala, da bo brez kandidatov težko.
+- **Uskladitev podlag vzorca in izbrisa v igri in reševalcu s treningom** (zapisano
+  2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`, O2): trening ima močnejši podlagi
+  celic vzorca (#EFD8A0) in izbrisa (#F0B4AA) – spremenljivki `--k-vzorec-bg` in
+  `--k-izbris-bg` v `shared/mreza.css`, ki ju nastavi `trening/trening.css`. Igra
+  (»Naslednji korak«, legenda v Pomoči `igra/igra.css`) in reševalec (mala mreža koraka
+  `.mcell.hl-source`/`.hl-elimonly` v `app/app.css`) imata bledi `--amber-bg` in `--red-bg`.
+  Pri sestavljenih vajah 3–12 v »Spoznaj« (`.gc.elimcell`, `.gc.peek-elim`,
+  `.xw-cell.xw-elim`, `.xw-cell.peek-elim` v `trening/trening.css`) je podlaga izbrisa prav
+  tako še `--red-bg`.
+- **Postavka »tvoje oznake« v legendi pod »Pravilno!«** (zapisano 2026-10-03 ob nalogi
+  »oznake«, `docs/oznake-nacrt.md`, O4): v legendi po pravilnem odgovoru v »Vadi v uganki«
+  (`legendaKoraka()` v `trening/v-uganki.js`) še črtkan vijoličen kvadratek »tvoje oznake«.
+  Ni samo slog.
 
 ## Opombe k delom
 

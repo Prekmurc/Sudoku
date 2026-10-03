@@ -14,6 +14,11 @@
      --cs zanje ni dovolj majhen in mreža pri ožjem oknu uide iz kartice.
      Odštetih 104px = 22 + 32 + 32 + rezerva za drsnik. */
   --gs:min(46px,(min(560px,100vw) - 104px)/9);
+  /* Podlagi celic prikazanega koraka v mrežah iz shared/mreza.js (»Vadi v uganki«, »Spoznaj«
+     E1, E2, 1 in 2) in kvadratek legende: močnejši od igre, ker se bledi odtenki na nekaterih
+     zaslonih slabo vidijo (docs/oznake-nacrt.md, O2); vzorec in izbris loči tudi svetlost. */
+  --k-vzorec-bg:#EFD8A0;
+  --k-izbris-bg:#F0B4AA;
 }
 /* reset, body, glava, gumbi in kartica (.card) so v shared/base.css - tu je samo tisto, kar je
    specifično za trening (širina 560 px; kartica vaje, menija in rezultata ima iste mere kot
@@ -98,6 +103,9 @@ header.top{max-width:560px}
    načina na kartici menija, vrstica informacij (stopnja uganke, prej odstranjeni
    kandidati s kljukico "pokaži prečrtane"). */
 .vaja-uganka .kand{font-size:calc(var(--gcs)*.34)}
+/* male števke nad okvirjem oznake (.celica.zaznamovana::after, z-index 2 v shared/mreza.css):
+   okvir sega čez mrežno črto do roba števk, ki ga zato ne zakrije (docs/oznake-nacrt.md, C3) */
+.vaja-uganka .kandidati{position:relative;z-index:3}
 .nacin{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
 .nacin-btn.vadi{background:var(--teal);border-color:var(--teal);color:#fff}
 .vaja-info{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:13px;color:var(--ink2);margin:0 0 10px}
@@ -118,7 +126,7 @@ header.top{max-width:560px}
 /* legenda oznak koraka pod sporočilom "Pravilno!" in v "Rešitvi" */
 .legenda-vaje{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;margin-top:6px;color:var(--ink2)}
 .legenda-vaje .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
-.legenda-vaje .sw-vzorec{background:var(--amber-bg);border:1px solid #C8A020}
+.legenda-vaje .sw-vzorec{background:var(--k-vzorec-bg);border:1px solid #C8A020}
 .legenda-vaje .izbris-vzorec{color:var(--red);font-weight:700;text-decoration:line-through;font-family:'JetBrains Mono',monospace;margin-right:5px}
 /* pomoč (Namig, Rešitev): okvir ostane do "Skrij"; seznam dejanj kot v igri */
 .vadi-pomoc{padding:10px 14px;border-radius:8px;background:#FFFCE8;border:1px solid #E8DFA0;font-size:13px;line-height:1.6;color:#5A4A12;margin:8px 0 0}

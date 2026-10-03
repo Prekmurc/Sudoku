@@ -5,7 +5,22 @@ in po rešeni vaji od celic vzorca; izbrane celice imajo včasih bež podlago. P
 tri različice (A, B, C), posnete na istem stanju pri 375 in 1280 px. Samo slogi – logika in
 shramba zaznamkov (`shared/plosca.js`), tipka O, gumbi, »Preveri«, pomoč in zaklep ostanejo.
 
-Stanje: **načrt, čaka na izbor** (razdelek 4).
+Stanje: **izvedeno 2026-10-03** – različica **C3** (razdelka 6 in 7); ročni pregled (5 točk v
+`docs/rocni-test.md`, »Trening: vidnost oznak«) še ni potrjen.
+
+**Odločitve (Darko, 2026-10-03):**
+
+- **O1:** C, a z drugačnim okvirjem – pri C 3 px okvir zakriva male števke v kotih (pri 375 in
+  1280 px). Preizkusi **C2** (okvir 2 px kot zdaj, vijoličen, črtkan) in **C3** (okvir 3 px,
+  risan navzven čez mrežno črto; v celico sega največ toliko kot sedanji okvir 2 px). Izmeri na
+  posnetkih, ali okvir prekrije kak piksel male števke v označeni in v sosednjih celicah pri
+  375 in 1280 px. C3, če ne prekriva nikjer, sicer C2. → **C3** (meritev v razdelku 6).
+- **O2:** močnejši podlagi za ves trening, tudi »Spoznaj«; igra in reševalec ostaneta.
+  V »Kasneje«: uskladitev podlag vzorca in izbrisa v igri in reševalcu s treningom.
+- **O3:** izbrana debelina, enaka pri vseh širinah (3 px).
+- **O4:** postavka »tvoje oznake« v legendi gre v »Kasneje«.
+
+Razdelki 1–5 so načrt, kot je bil predložen (posnetki A, B, C so prototip).
 
 ## 1. Kaj je zdaj in zakaj
 
@@ -185,3 +200,98 @@ Oznaka zaznamka (`--zaznamek`) in pravilo `.celica.zaznamovana` ostaneta v `shar
    glave izmeri slog, ne pa, ali ga vidiš).
 
 Commit in push po vsakem koraku.
+
+## 6. Meritev: C2 in C3
+
+**Kako:** brskalnik brez glave, ista vaja kot posnetki (mečarica, vaja 7 / 9), štirje posnetki
+mreže pri 1x (brez povečave): končni, brez okvirja, brez malih števk (`.kand` prozoren – tudi
+prečrtani) in brez obojega. Piksel male števke je tisti, ki ga števka spremeni; okvir ga
+**zakrije**, če je na končni sliki enak sliki brez števk (števke tam ni videti). Šteje se po
+celicah – v označeni ali v sosednji. Poleg treh stanj (oznaka z izvedenimi izbrisi, oznaka in
+izbira, rešena vaja) še sestavljen **najslabši primer**: v vsaki prazni celici vseh 9
+kandidatov (tudi 4, 6, 8 ob robovih), označene vse celice ali vsaka druga (šahovnica 1 in 2 –
+vsaka meja med označeno in neoznačeno celico v obe smeri).
+
+Zakriti piksli (stanja: oznaka / oznaka in izbira / rešena vaja; najslabši primer: vse
+označene / šahovnica 1 / šahovnica 2):
+
+| | 375 px, stanja | 375 px, najslabši | 1280 px, stanja | 1280 px, najslabši |
+|---|---|---|---|---|
+| **C2** (2 px, 1–3 px v celici, nad števkami) | **100 / 98 / 100** | 1102 / 500 / 602 | **67 / 65 / 67** | 681 / 310 / 371 |
+| **C3** (3 px, 2 px zunaj, 1 px v celici, nad števkami) | **2 / 2 / 2** | 25 / 64 / 60 | **0 / 0 / 0** | 0 / 146 / 126 |
+| **C3 pod malimi števkami** (izvedeno) | **0 / 0 / 0** | 0 / 0 / 0 | **0 / 0 / 0** | 0 / 0 / 0 |
+
+- **C2** zakrije števke **v označeni celici** pri obeh širinah (V3S2 25, V3S7 26, V5S7 14,
+  V5S8 15, V9S2 12, V9S8 8 pikslov pri 375 px) – leži 1–3 px od roba, kjer so vrhovi in dna
+  malih števk. Tudi sedanji oranžni okvir ima to geometrijo. Prvotna C (3 px, 0–3 px v celici)
+  se je v prvi meritvi s števkami stikala v 86 / 84 / 86 (375 px) in 101 / 97 / 101 pikslih
+  (1280 px) – podobno kot C2.
+- **C3** (navaden `outline`) pri 375 px zakrije po 1 piksel vrha števke v zgornji vrstici
+  (V3S2, V3S7): na 30 px celici seže vrh števke 1–3 do 1 px od roba celice – v vrstico pikslov
+  mrežne črte. Na šahovnici zakrije tudi števke v **sosednji** celici (pri 375 px 51 in 48,
+  pri 1280 px 146 in 126 pikslov): označena celica, ki je v vrstnem redu prej, nariše okvir
+  čez vrhove števk celice pod njo.
+- Zato noben okvir ob robu celice pri 375 px ne more biti brez **stika** s števkami. Izvedena
+  C3 je narisana **pod malimi števkami**: okvir je na `::after` (z-index 2, nad sosednjimi
+  celicami), male števke v »Vadi v uganki« imajo z-index 3 – vrh števke, ki seže v okvir, je
+  narisan nad njim. Stik (piksli, kjer sta oba – števka nad okvirjem): 375 px 9 / 9 / 9 in
+  253 / 167 / 161, 1280 px 0 / 0 / 0 in 364 / 196 / 168.
+- Rob glajenja: v najslabšem primeru pri 375 px so 3, 6 in 3 piksli, kjer števka sliko
+  spremeni za največ 3/255 (skoraj prozoren rob črke), na končni sliki pa so enaki okvirju –
+  mešanica se zaokroži v barvo okvirja. Takega piksla ni videti, zato se ne šteje (pri polnem
+  okvirju namesto črtkanega jih ni).
+
+**Izbira: C3** (pod malimi števkami) – ne zakrije nobenega vidnega piksla male števke ne v
+označeni ne v sosednji celici, pri 375 in 1280 px, tudi v najslabšem primeru. Če pravilo
+»ne prekriva« bereš strožje (okvir se števk sploh ne sme dotikati), ga pri 375 px ne izpolni
+nobena različica (C3 9 pikslov stika, C2 100 zakritih) – povej in izmerim drugo postavitev.
+
+Kontrola meritve: ko so male števke za poskus pod okvirjem (z-index 1), meritev najde 4
+zakrite piksle v V3S2 in V3S7 ter 92–149 v najslabšem primeru.
+
+## 7. Izvedba
+
+| Korak | Commit | Kaj |
+|---|---|---|
+| 1 | `4155ba5` | načrt in posnetki prototipa (A, B, C) |
+| 2 | (ta commit) | slogi C3, podlagi, preverjanje v brskalniku, dokumentacija, slika |
+
+![C3, izvedeno](slike/oznake/c3-izvedeno.png)
+
+`c3-izvedeno.png`: izrez celic V2–V5 × S6–S9 (označene V3S7, V5S7 in V5S8 z malimi števkami
+v kotih), povečava po najbližjem sosedu – pravi piksli pri 375 px (×4) in 1280 px (×3);
+oznaka z izvedenimi izbrisi, oznaka in izbira (V5S7, V5S8 izbrani), rešena vaja.
+
+**Slogi:**
+
+- `shared/mreza.css`: `--zaznamek` #5E2B97; `.celica.zaznamovana::after` – `inset:-3px` od
+  notranjega roba obrobe celice, `border: 3px dashed`, `z-index: 2`, `pointer-events: none`.
+  Ob tanki črti (obroba 1 px) sega okvir 1 px v celico (njena obroba) in 2 px ven (obroba
+  sosednje celice in 1 px njene vsebine), ob debeli črti bloka (obroba 2 px) ostane v obeh
+  obrobah – 2 px v svoji, 1 px v sosednji. `outline` zaznamka odpade. Okvir območja
+  (`.celica.obm::before`) z-index 1 → 4, da ostane nad malimi števkami kot prej. Spremenljivki
+  `--k-vzorec-bg` (`--amber-bg`) in `--k-izbris-bg` (`--red-bg`) za `.celica.k-vzorec` in
+  `.celica.k-izbris` – igra ima isti barvi kot prej.
+- `trening/trening.css`: `--k-vzorec-bg` #EFD8A0 in `--k-izbris-bg` #F0B4AA (vse mreže iz
+  `shared/mreza.js` v treningu: »Vadi v uganki«, »Spoznaj« E1, E2, 1 in 2), kvadratek legende
+  iz `--k-vzorec-bg`, `.vaja-uganka .kandidati { position: relative; z-index: 3 }`.
+- Izbrana in označena celica: obroba izbire (1–4 px v celici) in okvir oznake (2 px zunaj, 1 px
+  v celici) se ne prekrivata – vidna sta oba (srednji stolpec slike).
+- `::after` ima tudi senčenje (`zasencena`, samo E1/E2); zaznamki so samo pri 1–12, zato nista
+  nikoli hkrati.
+
+**Ne spremeni se:** logika in shramba zaznamkov, tipka O, gumbi, igra (posnetek igre: 99
+enakih posnetkov; podlagi in male števke v igri preveri scenarij), reševalec, sestavljene vaje
+3–12 v »Spoznaj« (svoje mreže, `.gc`/`.xw-cell` – podlaga izbrisa tam ostane `--red-bg`, zapisano
+v »Kasneje«).
+
+**Preverjanje (vse drži):** testi 431 / 431; `tools/posnetek-igre.js --primerjaj
+tools/posnetki/igra-po-5a.json` enako (99); `tools/preveri-vadi-brskalnik.js` (z novim delom
+»oznake« pri 375 in 1280 px – slog okvirja in plasti, zakriti piksli v treh stanjih in
+najslabšem primeru, izbrana in označena celica, okvir na štirih barvah poudarka – kontrast
+vsaj 3, na posnetku viden –, podlagi v »Rešitvi«, po pravilnem odgovoru in v »Spoznaj«, igra
+nespremenjena, brez vodoravnega drsnika; »Spoznaj« enak izhodišču `4e1e4dc`),
+`preveri-videz-`, `preveri-enojcki-`, `preveri-presek-` in `preveri-kandidati-brskalnik.js`.
+
+Kontrast okvirja (#5E2B97) s podlago: bela 9,3, vzorec #EFD8A0 6,6, izbris #F0B4AA 5,2, izbira
+7,4, poudarki 5,5 / 4,7 / 4,0 / 4,4 (privzete barve).

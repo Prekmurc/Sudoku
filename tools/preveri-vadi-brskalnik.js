@@ -7,6 +7,12 @@
 // JS; odgovor pri 1-12 in E1/E2 (predlog) s pravimi kliki in tipkami (pari QWERTZ), pomoč,
 // senčenje pri E2; posnetki zaslona v mapi (--mapa, privzeto začasna).
 //
+// Oznake (docs/oznake-nacrt.md, različica C3) pri 375 in 1280 px: slog okvirja (3 px črtkan,
+// vijoličen, čez mrežno črto), okvir ne zakrije nobenega vidnega piksla male števke ne v
+// označeni ne v sosednji celici (meritev na posnetkih, tudi na sestavljenem najslabšem
+// primeru), okvir je viden na vseh štirih barvah poudarka in ob izbiri, podlagi vzorca in
+// izbrisa v treningu močnejši, v igri nespremenjeni.
+//
 // "Spoznaj" mora ostati enak: z Math.random s semenom se prva vaja vseh 14 tehnik
 // izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 4e1e4dc -
 // zadnji commit faze 5 »videz«, docs/faza5-nacrt.md, ki je spremenila videz treninga;
@@ -363,9 +369,10 @@ async function zaznamki(b, sirina) {
   for (const c of k.cells) await b.klikni(celicaSel(c));
   await klikniGumb(b, '◩ Označi izbrane (O)');
   let z = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice.filter(x => x.classList.contains('zaznamovana'));
-    return { n: c.length, izbrane: vadi.plosca.izbrane.length, slog: c.length ? getComputedStyle(c[0]).outlineStyle + ' ' + getComputedStyle(c[0]).outlineColor : '' }; })()`);
+    const s = c.length ? getComputedStyle(c[0], '::after') : null;
+    return { n: c.length, izbrane: vadi.plosca.izbrane.length, slog: s ? s.borderTopStyle + ' ' + s.borderTopWidth + ' ' + s.borderTopColor : '' }; })()`);
   preveri('zaznamovane celice vzorca, izbira prazna', z.n === k.cells.length && z.izbrane === 0, z);
-  preveri('oranžna črtkana obroba', z.slog === 'dashed rgb(180, 83, 9)', z.slog);
+  preveri('vijoličen črtkan okvir 3 px', z.slog === 'dashed 3px rgb(94, 43, 151)', z.slog);
   await b.klikni('.vaja-uganka .glava-s-kljukico input');
   await b.klikni(celicaSel(k.cells[0]));
   await b.tipka('o', { code: 'KeyO' });
@@ -376,6 +383,169 @@ async function zaznamki(b, sirina) {
   await b.izvedi('exNum++; renderExercise(); true');
   await b.cakaj('vadi !== null', 15000);
   preveri('izklop »več celic« ostane v naslednji vaji', (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) === false);
+}
+
+// Oznake (docs/oznake-nacrt.md, C3): ali okvir oznake zakrije kak piksel male števke. Štirje
+// posnetki mreže: končni, brez okvirja, brez malih števk (.kand prozoren - tudi prečrtani) in
+// brez obojega. Piksel števke je tisti, ki ga števka spremeni (brez okvirja); okvir ga zakrije,
+// če je na končni sliki enak sliki brez števk. Rob glajenja, ki ga števka spremeni za največ
+// 3/255 (nevidno), se ne šteje - na skoraj prozornem robu se mešanica z okvirjem zaokroži v
+// barvo okvirja. Vrne število zakritih pikslov, celice in stik (piksli, ki jih spremenita
+// oba - števka nad okvirjem).
+const OKVIR_SKRIT = '.celica.zaznamovana::after{ border-color:transparent !important; }';
+const STEVKE_SKRITE = '.vaja-uganka .kand{ color:transparent !important; }';
+async function posnetekMreze(b, slog) {
+  await b.izvedi(`(() => { let s = document.getElementById('meritev'); if (!s) { s = document.createElement('style'); s.id = 'meritev'; document.head.appendChild(s); }
+    s.textContent = ${JSON.stringify(slog)}; return true; })()`);
+  const r = await b.izvedi(`(() => { const q = document.querySelector('.vaja-uganka .mreza').getBoundingClientRect();
+    return { x: Math.floor(q.left + scrollX) - 6, y: Math.floor(q.top + scrollY) - 6, w: Math.ceil(q.width) + 12, h: Math.ceil(q.height) + 12 }; })()`);
+  const s = await b.cdp.poslji('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 1 } });
+  return { b64: s.data, x: r.x, y: r.y };
+}
+async function zakritiPiksli(b) {
+  const F = await posnetekMreze(b, '');
+  const A = await posnetekMreze(b, OKVIR_SKRIT);
+  const B = await posnetekMreze(b, OKVIR_SKRIT + STEVKE_SKRITE);
+  const C = await posnetekMreze(b, STEVKE_SKRITE);
+  await posnetekMreze(b, '');
+  return b.izvedi(`(async () => {
+    const slika = async b64 => { const bm = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+      const c = new OffscreenCanvas(bm.width, bm.height); const x = c.getContext('2d'); x.drawImage(bm, 0, 0); return x.getImageData(0, 0, bm.width, bm.height); };
+    const [f, a, bb, c] = await Promise.all([${[F, A, B, C].map(s => JSON.stringify(s.b64)).join(', ')}].map(slika));
+    const celice = vadi.plosca.mreza.celice.map(el => { const q = el.getBoundingClientRect(); return { x1: q.left + scrollX - ${F.x}, y1: q.top + scrollY - ${F.y}, x2: q.right + scrollX - ${F.x}, y2: q.bottom + scrollY - ${F.y} }; });
+    const raz = (p, q, k) => Math.max(Math.abs(p.data[k] - q.data[k]), Math.abs(p.data[k + 1] - q.data[k + 1]), Math.abs(p.data[k + 2] - q.data[k + 2]));
+    const r = { zakritih: 0, stik: 0, celice: [] };
+    for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++) {
+      const k = (y * f.width + x) * 4, stevka = raz(a, bb, k), okvir = raz(bb, c, k);
+      if (!stevka || !okvir) continue;
+      r.stik++;
+      if (stevka > 3 && raz(f, c, k) === 0) {
+        r.zakritih++;
+        const i = celice.findIndex(q => x + 0.5 >= q.x1 && x + 0.5 < q.x2 && y + 0.5 >= q.y1 && y + 0.5 < q.y2);
+        if (!r.celice.includes(i)) r.celice.push(i);
+      }
+    }
+    return r;
+  })()`);
+}
+// Kontrast (WCAG) dveh barv rgb(...).
+function kontrast(p, q) {
+  const L = s => { const [r, g, b] = s.match(/\d+/g).slice(0, 3).map(v => +v / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const [x, y] = [L(p), L(q)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
+async function oznake(b, sirina) {
+  console.log(`swordfish, oznake (C3), ${sirina} px`);
+  const nalozi = async () => {
+    await vadi(b, 'swordfish', sirina, { banka: true, seme: 4 });
+    await b.izvedi('exNum = 6; renderExercise(); true');
+    await b.cakaj('vadi !== null', 15000);
+    return b.izvedi('vadi.v.KT[0]');
+  };
+  const oznaciVzorec = async k => {
+    if (!(await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`))) await b.klikni('.vaja-uganka .glava-s-kljukico input');
+    for (const c of k.cells) await b.klikni(celicaSel(c));
+    await klikniGumb(b, '◩ Označi izbrane (O)');
+  };
+  const izbrisi = async k => {
+    for (const [c] of k.eliminate) await b.klikni(celicaSel(c));
+    await b.klikni(`.vaja-uganka .niz-odstrani button:nth-child(${k.eliminate[0][1]})`);
+    await b.tipka('Escape');
+  };
+  const ime = i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`;
+  const nicZakritih = async opis => {
+    const r = await zakritiPiksli(b);
+    preveri(`${opis}: okvir ne zakrije nobenega piksla male števke (stik ${r.stik})`, r.zakritih === 0, { zakritih: r.zakritih, celice: r.celice.map(ime) });
+  };
+  let k = await nalozi();
+  // Podlagi vzorca in izbrisa ob odprti "Rešitvi" (pred izbrisi) in kvadratek legende.
+  await klikniGumb(b, 'Rešitev');
+  let p = await b.izvedi(`(() => { const bg = s => { const e = document.querySelector(s); return e ? getComputedStyle(e).backgroundColor : null; };
+    return { vzorec: bg('.vaja-uganka .celica.k-vzorec'), izbris: bg('.vaja-uganka .celica.k-izbris'), legenda: bg('.vadi-pomoc .sw-vzorec') }; })()`);
+  preveri('»Rešitev«: podlaga vzorca #EFD8A0, izbrisa #F0B4AA, legenda kot vzorec',
+    p.vzorec === 'rgb(239, 216, 160)' && p.izbris === 'rgb(240, 180, 170)' && p.legenda === p.vzorec, p);
+  await klikniGumb(b, 'Skrij');
+  // Slog okvirja in plasti: okvir na ::after (z-index 2) 2 px zunaj celice, male števke nad njim.
+  await oznaciVzorec(k);
+  p = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice[${k.cells[0]}], s = getComputedStyle(c, '::after'), m = getComputedStyle(c.querySelector('.kandidati'));
+    return { okvir: [s.borderTopStyle, s.borderTopWidth, s.borderTopColor, s.top, s.left, s.zIndex].join(' '), stevke: m.position + ' ' + m.zIndex }; })()`);
+  preveri('okvir: črtkan 3 px #5E2B97, 3 px čez notranji rob obrobe, z-index 2', p.okvir === 'dashed 3px rgb(94, 43, 151) -3px -3px 2', p.okvir);
+  preveri('male števke nad okvirjem (z-index 3)', p.stevke === 'relative 3', p.stevke);
+  await izbrisi(k);
+  await nicZakritih('oznaka, izbrisi izvedeni');
+  // Izbrana in označena celica: obroba izbire in okvir oznake sta oba vidna.
+  await b.klikni(celicaSel(k.cells[2])); await b.klikni(celicaSel(k.cells[3])); await b.klikni(celicaSel(71));
+  p = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice[${k.cells[2]}];
+    return { cls: c.className, senca: getComputedStyle(c).boxShadow, okvir: getComputedStyle(c, '::after').borderTopStyle }; })()`);
+  preveri('izbrana in označena: obroba izbire 3 px in okvir oznake', /izbrana/.test(p.cls) && /zaznamovana/.test(p.cls)
+    && p.senca === 'rgb(74, 134, 216) 0px 0px 0px 3px inset' && p.okvir === 'dashed', p);
+  await nicZakritih('oznaka in izbira');
+  await b.posnetek(path.join(mapa, `oznake-izbira-${sirina}.png`));
+  await b.tipka('Escape');
+  await klikniGumb(b, 'Preveri');
+  await b.cakaj(`document.querySelector('.fb.ok')`);
+  p = await b.izvedi(`({ vzorec: getComputedStyle(vadi.plosca.mreza.celice[${k.cells[0]}]).backgroundColor, legenda: getComputedStyle(document.querySelector('.fb .sw-vzorec')).backgroundColor,
+    oznak: vadi.plosca.mreza.celice.filter(c => c.classList.contains('zaznamovana')).length, sirina: document.documentElement.scrollWidth })`);
+  preveri('rešena vaja: oznake ostanejo, podlaga vzorca in legenda #EFD8A0', p.oznak === k.cells.length && p.vzorec === 'rgb(239, 216, 160)' && p.legenda === p.vzorec, p);
+  preveri('brez vodoravnega drsnika', p.sirina === sirina, p.sirina);
+  await nicZakritih('rešena vaja');
+  await b.posnetek(path.join(mapa, `oznake-resena-${sirina}.png`));
+  // Najslabši primer (sestavljen v DOM-u): v vsaki prazni celici vseh 9 kandidatov, označene
+  // vse celice in obe šahovnici (vsaka meja označena / neoznačena celica v obe smeri).
+  k = await nalozi();
+  await b.izvedi(`(() => { for (const c of vadi.plosca.mreza.celice) c.querySelectorAll('.kand').forEach((s, j) => { if (!s.textContent) s.textContent = j + 1; }); return true; })()`);
+  for (const [opis, pogoj] of [['vse označene', 'true'], ['šahovnica 1', '(r + s) % 2 === 0'], ['šahovnica 2', '(r + s) % 2 === 1']]) {
+    await b.izvedi(`(() => { vadi.plosca.mreza.celice.forEach((c, i) => { const r = Math.floor(i / 9), s = i % 9; c.classList.toggle('zaznamovana', ${pogoj}); }); return true; })()`);
+    await nicZakritih(`najslabši primer, ${opis}, vsi kandidati`);
+  }
+  // Oznaka na vseh štirih barvah poudarka: po ena polna celica števk 3, 1, 2, 6 ("več hkrati").
+  k = await nalozi();
+  await oznaciVzorec(k);
+  await izbrisi(k);
+  await b.klikni('.vaja-uganka .poudari-glava .vec-hkrati input');
+  for (const d of [3, 1, 2, 6]) await b.klikni(`.vaja-uganka .niz-poudari button:nth-child(${d})`);
+  if (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) await b.klikni('.vaja-uganka .glava-s-kljukico input');
+  const polne = await b.izvedi(`[3, 1, 2, 6].map(d => vadi.stanje.grid.findIndex((x, i) => x === d && i >= 9 && i < 72))`);
+  for (const c of polne) { await b.klikni(celicaSel(c)); await b.tipka('o', { code: 'KeyO' }); }
+  p = await b.izvedi(`${JSON.stringify(polne)}.map(i => { const c = vadi.plosca.mreza.celice[i];
+    return { cls: c.className, podlaga: getComputedStyle(c).backgroundColor, okvir: getComputedStyle(c, '::after').borderTopColor }; })`);
+  const barve = p.map(x => x.podlaga);
+  preveri('štiri polne celice v štirih barvah poudarka, označene', new Set(barve).size === 4 && p.every(x => /poud-stevka/.test(x.cls) && /zaznamovana/.test(x.cls)), p);
+  const kontrasti = p.map(x => +kontrast(x.okvir, x.podlaga).toFixed(1));
+  preveri('kontrast okvirja z barvo poudarka vsaj 3', kontrasti.every(x => x >= 3), kontrasti);
+  // Okvir je na posnetku res narisan nad podlago poudarka: v vsaki od štirih celic ga je
+  // videti (piksli, ki jih okvir spremeni).
+  const A = await posnetekMreze(b, OKVIR_SKRIT), F = await posnetekMreze(b, '');
+  const vidno = await b.izvedi(`(async () => {
+    const slika = async b64 => { const bm = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+      const c = new OffscreenCanvas(bm.width, bm.height); const x = c.getContext('2d'); x.drawImage(bm, 0, 0); return x.getImageData(0, 0, bm.width, bm.height); };
+    const [a, f] = await Promise.all([${JSON.stringify(A.b64)}, ${JSON.stringify(F.b64)}].map(slika));
+    return ${JSON.stringify(polne)}.map(i => { const q = vadi.plosca.mreza.celice[i].getBoundingClientRect(); let n = 0;
+      for (let y = Math.ceil(q.top + scrollY - ${F.y}); y < q.bottom + scrollY - ${F.y}; y++) for (let x = Math.ceil(q.left + scrollX - ${F.x}); x < q.right + scrollX - ${F.x}; x++) {
+        const k = (y * f.width + x) * 4; if (Math.abs(a.data[k] - f.data[k]) + Math.abs(a.data[k + 1] - f.data[k + 1]) + Math.abs(a.data[k + 2] - f.data[k + 2]) > 60) n++; }
+      return n; });
+  })()`);
+  preveri('okvir viden na vseh štirih barvah poudarka', vidno.every(n => n >= 20), vidno);
+  await posnetekMreze(b, '');
+  await nicZakritih('oznake na štirih barvah poudarka');
+  await b.posnetek(path.join(mapa, `oznake-poudarek-${sirina}.png`));
+  // Podlagi v "Spoznaj" (E1, E2, 1 in 2 - mreže iz shared/mreza.js) iz istih spremenljivk.
+  p = await b.izvedi(`(() => { const r = {};
+    for (const ovoj of ['vaja-presek', 'vaja-enojcek']) { const o = document.createElement('div'); o.className = ovoj; o.innerHTML = '<div class="mreza"><div class="celica k-vzorec"></div><div class="celica k-izbris"></div></div>';
+      document.body.appendChild(o); r[ovoj] = [...o.querySelectorAll('.celica')].map(c => getComputedStyle(c).backgroundColor).join(' / '); o.remove(); }
+    return r; })()`);
+  preveri('»Spoznaj« (1, 2, E1, E2): podlagi kot v »Vadi v uganki«', Object.values(p).every(x => x === 'rgb(239, 216, 160) / rgb(240, 180, 170)'), p);
+}
+
+// Igra: podlagi vzorca in izbrisa ostaneta (--amber-bg, --red-bg), male števke brez plasti.
+async function oznakeIgra(b) {
+  console.log('igra: podlagi oznak koraka nespremenjeni');
+  await b.odpri('igra/index.html', { sirina: 1280, visina: 900 });
+  const p = await b.izvedi(`(() => { const o = document.createElement('div'); o.className = 'mreza';
+    o.innerHTML = '<div class="celica k-vzorec"><div class="kandidati"></div></div><div class="celica k-izbris"></div>'; document.body.appendChild(o);
+    const c = [...o.querySelectorAll('.celica')], m = getComputedStyle(o.querySelector('.kandidati'));
+    const r = { podlagi: c.map(e => getComputedStyle(e).backgroundColor).join(' / '), stevke: m.position + ' ' + m.zIndex }; o.remove(); return r; })()`);
+  preveri('igra: podlagi #F1E5C9 / #F3DEDA, male števke brez z-index', p.podlagi === 'rgb(241, 229, 201) / rgb(243, 222, 218)' && p.stevke === 'static auto', p);
 }
 
 // "Več celic" privzeto po tehniki (točka 18): izklopljen pri edinstvenem pravokotniku.
@@ -464,6 +634,8 @@ async function main() {
       await obmocje(b, sirina);
       await zaznamki(b, sirina);
     }
+    for (const sirina of [375, 1280]) await oznake(b, sirina);
+    await oznakeIgra(b);
     await banka(b);
     await vecCelicPrivzeto(b);
     await predlogSiv(b);

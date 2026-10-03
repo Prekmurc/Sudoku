@@ -33,9 +33,14 @@
   /* postopnost v treningu (pogled.oznacene, pogled.neaktivne) */
   --oznacena-bg:#E3EEFB;
   --neaktivna-bg:#E9EBEE;
-  /* območje vaje (pogled.obmocje) in zaznamovane celice (pogled.zaznamovane) */
+  /* območje vaje (pogled.obmocje) in zaznamovane celice (pogled.zaznamovane - temno
+     vijolična: te barve nima nobena druga oznaka; docs/oznake-nacrt.md) */
   --obmocje:#1D3F6B;
-  --zaznamek:#B45309;
+  --zaznamek:#5E2B97;
+  /* podlagi celic prikazanega koraka (vzorec, izbris); trening ju nastavi močnejši
+     (trening/trening.css, docs/oznake-nacrt.md O2), igra ima te */
+  --k-vzorec-bg: var(--amber-bg);
+  --k-izbris-bg: var(--red-bg);
 }
 
 /* ---------- mreža ---------- */
@@ -122,8 +127,8 @@
 /* prikazan korak (Naslednji korak): celice vzorca jantarno, celice z
    izbrisom rdečkasto, kandidat za izbris rdeč prečrtan, števka za vpis zelena
    - kot na mini mreži v reševalcu; ima prednost pred sivino izbire */
-.celica.k-vzorec{ background: var(--amber-bg); }
-.celica.k-izbris{ background: var(--red-bg); }
+.celica.k-vzorec{ background: var(--k-vzorec-bg); }
+.celica.k-izbris{ background: var(--k-izbris-bg); }
 .celica.k-vpis{ background: var(--green-bg); }
 /* senčenje (pogled.zasencene): celice, kamor poudarjena števka ne more, so šrafirane -
    poševne polprosojne črte čez celico (::after), ki se seštejejo s podlago (označena
@@ -155,8 +160,9 @@
 /* območje vaje (pogled.obmocje - trening): 3 px temen okvir ob zunanjem robu območja na
    ::before (nad podlago, izbiro in poudarkom), oznake vrstic in stolpcev območja na robu
    v temnem polju - vidno tudi brez barve (modrikasta podlaga sama na nekaterih zaslonih
-   ni vidna) */
-.celica.obm::before{ content:''; position:absolute; inset:0; pointer-events:none; border:0 solid var(--obmocje); z-index:1; }
+   ni vidna). z-index 4: nad malimi števkami, ki jih »Vadi v uganki« dvigne na 3 (glej
+   zaznamovana spodaj) - okvir območja je nad njimi kot prej */
+.celica.obm::before{ content:''; position:absolute; inset:0; pointer-events:none; border:0 solid var(--obmocje); z-index:4; }
 .celica.obm-g::before{ border-top-width:3px; }
 .celica.obm-d::before{ border-bottom-width:3px; }
 .celica.obm-l::before{ border-left-width:3px; }
@@ -164,9 +170,22 @@
 .rob-s span.obm, .rob-v span.obm{ background: var(--obmocje); color:#fff; font-weight:700; border-radius:3px; }
 .rob-s span.obm{ margin:1px 2px; }
 .rob-v span.obm{ margin:2px 1px; }
-/* zaznamovana celica (pogled.zaznamovane - plošča, »Označi izbrane«): oranžna črtkana
-   obroba, ločena od izbire (modra polna) in okvirja območja (temna polna) */
-.celica.zaznamovana{ outline:2px dashed var(--zaznamek); outline-offset:-3px; }
+/* zaznamovana celica (pogled.zaznamovane - plošča, »Označi izbrane«, samo trening »Vadi v
+   uganki«; docs/oznake-nacrt.md, različica C3): 3 px črtkan vijoličen okvir, risan navzven
+   čez mrežno črto - 2 px zunaj roba celice, 1 px v celici (ob debeli črti bloka ostane v
+   njej), zato ne zakrije izbire (modra polna, 1-4 px v celici) in se loči od okvirja
+   območja (temna polna). Na ::after (inset od notranjega roba obrobe celice) z z-index 2,
+   da je nad sosednjimi celicami; male števke so nad njim (.vaja-uganka .kandidati z-index
+   3 v trening/trening.css), da jih okvir ne zakrije. ::after ima tudi senčenje (E1/E2), ki
+   pri zaznamkih (1-12) ni nikoli hkrati. */
+.celica.zaznamovana::after{
+  content:'';
+  position:absolute;
+  inset:-3px;
+  border:3px dashed var(--zaznamek);
+  pointer-events:none;
+  z-index:2;
+}
 /* kandidat, ki ga ni več (pogled.precrtani - trening »Vadi v uganki«): sivo prečrtan;
    izbris prikazanega koraka (k-izbris) ostane rdeč */
 .kand.precrtan:not(.k-izbris){
