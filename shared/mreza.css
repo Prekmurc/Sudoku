@@ -69,7 +69,9 @@
 .celica.dana{ color:#000; font-weight:800; }
 .celica.vpis{ color: var(--blue); font-weight:700; }
 .celica.soseda{ background: var(--peer-bg); }
-.celica.izbrana{ background: var(--peer-bg); } /* kot vrstica/stolpec/blok; pred .poud-stevka: poudarek ima prednost */
+/* izbrana celica: modrikasta podlaga (druge barve kot siva vrstica/stolpec/blok); pred
+   .poud-stevka in oznakami koraka - te imajo prednost pred podlago, obroba ostane */
+.celica.izbrana{ background: var(--izbira-bg); }
 /* poudarjena števka, vpisana ali dana: cela celica v barvi poudarka, števka
    temna (dana skoraj črna, vpis temno moder); kandidati: glej .kand.poud.
    Barva: --pb iz razreda b1..b3 (več hkrati), sicer --poud. */
@@ -78,9 +80,10 @@
 .b3{ --pb: var(--poud4); --pb-ink: var(--poud4-ink); }
 .celica.poud-stevka{ background: var(--pb, var(--poud)); color: var(--poud-stevka); }
 .celica.vpis.poud-stevka{ color: var(--poud-vpis); }
-/* izbrana celica: tanka srednje modra obroba z belim notranjim robom - vidna
-   tudi, ko je celica sama poudarjena (modra obroba na rumeni podlagi 1. poudarka) */
-.celica.izbrana{ box-shadow: inset 0 0 0 2px #4A86D8, inset 0 0 0 3px #fff; }
+/* izbrana celica: 3 px modra obroba (--izbira v shared/base.css); na poudarjeni celici še
+   bel notranji rob, da se obroba loči tudi od modre 4. barve poudarka */
+.celica.izbrana{ box-shadow: inset 0 0 0 3px var(--izbira); }
+.celica.izbrana.poud-stevka{ box-shadow: inset 0 0 0 3px var(--izbira), inset 0 0 0 4px #fff; }
 .celica[data-c="0"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="3"], .celica[data-c="6"]{ border-left: 2px solid var(--ink); }
 .celica[data-c="8"]{ border-right: 2px solid var(--ink); }

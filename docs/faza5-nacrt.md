@@ -279,3 +279,24 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
   `-enojcki` in `-vadi`: vse drži razen primerjave »Spoznaj« pri 3–6 pri 375 px – HTML enak,
   razlike samo v `width`, `height` in `font-size` celic vrste (P6, pričakovano). Te primerjave
   ostanejo rdeče do koraka 5, ko se izhodišča premaknejo na zadnji commit faze 5.
+
+### Korak 2 – izbira celice (A2)
+
+- `shared/base.css`: `--izbira` (#4A86D8) in `--izbira-bg` (`var(--blue-bg)`) – skupno vsem
+  trem aplikacijam (reševalec `mreza.css` ne naloži).
+- `shared/mreza.css`: `.celica.izbrana` = `--izbira-bg` in 3 px obroba `--izbira`;
+  `.celica.izbrana.poud-stevka` še bel notranji rob. Poudarek in oznake koraka imajo prednost
+  pred podlago izbire (v treningu je prej izbira prekrila oznako koraka).
+- `trening/trening.css`: pravili `.vaja-presek .celica.izbrana` in `.vaja-enojcek/.vaja-uganka
+  .celica.izbrana` odpadeta.
+- Fokus v vnosni mreži reševalca (`app/app.css`) in okna »Nova uganka« (`igra/igra.css`): brez
+  obrobe `outline`, podlaga `--izbira-bg` in 3 px obroba `--izbira`.
+- Scenarij `preveri-videz-brskalnik.js` pri 375 in 1280 px preveri izračunani slog: igra
+  (prazna celica, poudarjena dana števka z belim robom, fokus v oknu »Nova uganka«),
+  reševalec (fokus), trening (1, E1 z vnaprej izbrano celico, »Vadi v uganki« 3).
+- `tools/primerjava-slogov.js`: številske vrednosti, ki se razlikujejo za manj kot 0,05 px,
+  so enake – širina gumba »Preveri« (Inter 600) je med dvema zagonoma brskalnika nihala za
+  1/64 px (87,859 ↔ 87,844 px) pri vseh tehnikah; ponovitev brez spremembe kode je bila enaka.
+- Preverjeno: testi 422/422, posnetek igre enak (85), `preveri-niz` drži,
+  `preveri-videz` drži; primerjave »Spoznaj« s prejšnjim commitom `c5a5fbb` (presek, enojčki,
+  vadi) so enake – trening je imel že prej enako podlago in obrobo izbire.

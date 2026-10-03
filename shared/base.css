@@ -5,6 +5,14 @@
   box-sizing: border-box;
 }
 
+/* Izbrana celica (shared/mreza.css) in fokus v vnosni mreži (reševalec, okno »Nova uganka«
+   v igri) - povsod enako (faza 5, docs/faza5-nacrt.md, odločitev A2): modrikasta podlaga in
+   3 px modra obroba. --blue-bg je iz palete aplikacije. */
+:root {
+  --izbira: #4A86D8;
+  --izbira-bg: var(--blue-bg);
+}
+
 /* Atribut hidden mora skriti element vedno: pravilo z display (npr. display:flex
    na razredu) bi sicer povozilo privzeto skrivanje brskalnika. */
 [hidden] {

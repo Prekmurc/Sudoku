@@ -107,10 +107,11 @@
     appearance:none;
     outline-offset:-2px;
   }
+  /* fokus = izbrana celica, kot v igri in treningu (--izbira, --izbira-bg v shared/base.css) */
   #inputGrid input:focus{
-    outline: 2px solid var(--blue);
-    outline-offset:-2px;
-    background: var(--blue-bg);
+    outline:none;
+    background: var(--izbira-bg);
+    box-shadow: inset 0 0 0 3px var(--izbira);
   }
   #inputGrid input.given-style{ color: var(--ink); }
   #inputGrid input.conflict{

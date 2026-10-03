@@ -4,6 +4,7 @@
 // (scrollWidth <= clientWidth), da noben element ne sega čez svojo kartico (ali ploščo,
 // okno), da povečan prikaz in okna pokrijejo celo okno in nimajo vodoravnega drsnika
 // (razen notranjosti povečanega prikaza - tam je povečava namen) ter da v strani ni napak JS.
+// Pri 375 in 1280 px še slog izbrane celice (igra, trening, fokus vnosnih mrež).
 //
 //   node tools/preveri-videz-brskalnik.js [--mapa <mapa za posnetke>] [--sirine 320,375]
 //
@@ -157,6 +158,65 @@ async function trening(b, sirina) {
   }
 }
 
+// Slog izbrane celice (odločitev A2, docs/faza5-nacrt.md): modrikasta podlaga --izbira-bg in
+// 3 px obroba --izbira (#4A86D8); na poudarjeni celici podlaga poudarka in še bel notranji rob.
+// Fokus v vnosni mreži (reševalec, okno »Nova uganka«) je enak izbrani celici.
+const OBROBA = 'rgb(74, 134, 216) 0px 0px 0px 3px inset';
+const OBROBA_POUD = 'rgb(74, 134, 216) 0px 0px 0px 3px inset, rgb(255, 255, 255) 0px 0px 0px 4px inset';
+const SLOG_IZBIRE = izraz => `(() => {
+  const el = ${izraz};
+  if (!el) return null;
+  const s = getComputedStyle(el);
+  const barva = v => { const p = document.createElement('div'); p.style.background = v; document.body.appendChild(p); const c = getComputedStyle(p).backgroundColor; p.remove(); return c; };
+  return { bg: s.backgroundColor, senca: s.boxShadow, obroba: s.outlineStyle, izbiraBg: barva('var(--izbira-bg)'), peerBg: barva('var(--peer-bg)'), poud: barva('var(--poud)') };
+})()`;
+// Označi element, da ga pravi klik najde po izbirniku.
+const OZNACI = izraz => `(() => { document.querySelectorAll('[data-videz]').forEach(e => e.removeAttribute('data-videz')); const el = ${izraz}; if (el) el.setAttribute('data-videz', ''); return !!el; })()`;
+
+async function izbiraCelice(b, sirina) {
+  console.log(`Izbira celice, ${sirina} px`);
+  const mobilno = sirina < 500;
+  const navadna = (ime, s) => preveri(`${ime}: modrikasta podlaga in 3 px obroba`,
+    s && s.bg === s.izbiraBg && s.bg !== s.peerBg && s.senca === OBROBA && s.obroba === 'none', s);
+
+  await b.odpri('igra/index.html', { sirina, visina: 800, mobilno });
+  await b.izvedi('zacniIgro(PRIMERI[0].danosti)');
+  await b.klikni('#mreza .celica[data-r="4"][data-c="5"]');
+  navadna('igra, prazna celica', await b.izvedi(SLOG_IZBIRE(`document.querySelector('#mreza .celica.izbrana')`)));
+  await b.klikni('#nizPoudari button:nth-child(4)');
+  await b.izvedi(OZNACI(`document.querySelectorAll('#mreza .celica')[PRIMERI[0].danosti.indexOf('4')]`));
+  await b.klikni('[data-videz]');
+  const p = await b.izvedi(SLOG_IZBIRE(`document.querySelector('#mreza .celica.izbrana')`));
+  preveri('igra, poudarjena dana števka: podlaga poudarka, obroba z belim robom', p && p.bg === p.poud && p.senca === OBROBA_POUD, p);
+  await b.cdp.poslji('Emulation.setFocusEmulationEnabled', { enabled: true });
+  await b.klikni('#novaBtn');
+  await b.klikni('#novaMreza input[data-r="0"][data-c="0"]');
+  navadna('igra, fokus v vnosni mreži okna »Nova uganka«', await b.izvedi(SLOG_IZBIRE('document.activeElement')));
+
+  await b.odpri('app/index.html', { sirina, visina: 800, mobilno });
+  await b.cdp.poslji('Emulation.setFocusEmulationEnabled', { enabled: true });
+  await b.klikni('#inputGrid input[data-r="4"][data-c="4"]');
+  navadna('reševalec, fokus v vnosni mreži', await b.izvedi(SLOG_IZBIRE('document.activeElement')));
+
+  await b.odpri('trening/index.html', { sirina, visina: 800, mobilno });
+  await b.izvedi(SEME(4242));
+  await b.izvedi(`zacniKrog('pointing', 'spoznaj')`);
+  await b.izvedi(OZNACI(`document.querySelector('.vaja-presek .celica:not(.izven):not(.dana):not(.vpis)')`));
+  await b.klikni('[data-videz]');
+  navadna('trening, 1 · Izločitev izven bloka', await b.izvedi(SLOG_IZBIRE(`document.querySelector('.vaja-presek .celica.izbrana')`)));
+  await b.klikni('#backBtn');
+  await b.izvedi(SEME(4242));
+  await b.izvedi(`zacniKrog('naked-single', 'spoznaj')`);
+  navadna('trening, E1 (vnaprej izbrana celica)', await b.izvedi(SLOG_IZBIRE(`document.querySelector('.vaja-enojcek .celica.izbrana')`)));
+  await b.klikni('#backBtn');
+  await b.izvedi(SEME(4242));
+  await b.izvedi(`zacniKrog('naked-pair', 'uganka')`);
+  await b.cakaj(`!document.querySelector('.vadi-isce')`, 15000);
+  await b.izvedi(OZNACI(`vadi.plosca.mreza.celice.find((e, i) => !vadi.stanje.grid[i])`));
+  await b.klikni('[data-videz]');
+  navadna('trening, Vadi v uganki 3', await b.izvedi(SLOG_IZBIRE(`document.querySelector('.vaja-uganka .celica.izbrana')`)));
+}
+
 async function main() {
   const b = await zazeni();
   try {
@@ -165,6 +225,7 @@ async function main() {
       await igra(b, sirina);
       await trening(b, sirina);
     }
+    for (const sirina of SIRINE.filter(s => s === 375 || s === 1280)) await izbiraCelice(b, sirina);
   } finally {
     await b.zapri();
   }
