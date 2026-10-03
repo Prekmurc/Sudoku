@@ -841,7 +841,8 @@ samo kar je nujno.
 | 8a `shared/vaje-uganka.js`: `stopnjaTehnike()`, `rangUganke()`, `izberiIzBanke()`, `najnizjiRangBanke()` | **narejeno 2026-10-03** | `29c9376` | 406 (403 + 3) |
 | popravek A (16.11) | **narejeno 2026-10-03** | `c4dbd88` | 408 (406 + 2) |
 | 8b orodje, nova banka, test banke | **narejeno 2026-10-03** | `0f2f2ed` | 408 |
-| 8c trening, »Spoznaj« 1 in 2, oznaka | **narejeno 2026-10-03** | (ta commit) | 412 (408 + 4) |
+| 8c trening, »Spoznaj« 1 in 2, oznaka | **narejeno 2026-10-03** | `dd316bd` | 412 (408 + 4) |
+| izhodišče »Spoznaj« 1 in 2 = `dd316bd` (vključuje popravek A in novo banko) | **narejeno 2026-10-03** | (ta commit) | 412 |
 
 - 8a: nove funkcije brez DOM-a; trening jih še ne uporablja. Testi v
   `tests/vaje-uganka.test.js`: osnovna stopnja po ravneh (tudi tehnika, dodana v
@@ -898,7 +899,7 @@ Vrstni red commitov: popravek A (s staro banko), 8b, 8c.
   osnovne (mečarica 8 × Težka), nato Zelo težka, oznaka pri uganki iz semena 12,
   »Spoznaj« 1 in 2 iz Srednjih ugank brez ponovitev.
 - Scenarij: »Spoznaj« vaji 1 in 2 dobita svoje izhodišče (`--izhodisce-presek`,
-  `IZHODISCE_PRESEK` = ta commit, nastavljen v naslednjem commitu); druge tehnike ostanejo
+  `IZHODISCE_PRESEK` = `dd316bd`, nastavljen v naslednjem commitu; primerjava »Vse drži«); druge tehnike ostanejo
   enake kot `5b9ae6f` (»Vse drži«). `preveri-enojcki-brskalnik.js` primerja z `10503c2`
   samo še 3–12. Preverjanje stopnje pri vaji iz banke (Težka). Pri pomoči scenarij zdaj
   izbere korak z vsaj dvema izbrisoma (z novo banko je prvi korak skritega para imel en sam

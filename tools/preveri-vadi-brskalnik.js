@@ -31,7 +31,7 @@ const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-vadi'));
 const izhodisce = arg('--izhodisce', '5b9ae6f');
 // Vaji 1 in 2 v "Spoznaj" sta od izbire uganke po stopnji (načrt, točka 16) iz drugih ugank
 // banke, zato imata svoje izhodišče (prazno = ne primerjata se).
-const IZHODISCE_PRESEK = '';
+const IZHODISCE_PRESEK = 'dd316bd';
 const izhodiscePresek = arg('--izhodisce-presek', IZHODISCE_PRESEK);
 const PRESEK = ['pointing', 'box-line'];
 const KOREN = path.join(__dirname, '..');
