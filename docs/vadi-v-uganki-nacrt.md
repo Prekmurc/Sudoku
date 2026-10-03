@@ -840,8 +840,8 @@ samo kar je nujno.
 |---|---|---|---|
 | 8a `shared/vaje-uganka.js`: `stopnjaTehnike()`, `rangUganke()`, `izberiIzBanke()`, `najnizjiRangBanke()` | **narejeno 2026-10-03** | `29c9376` | 406 (403 + 3) |
 | popravek A (16.11) | **narejeno 2026-10-03** | `c4dbd88` | 408 (406 + 2) |
-| 8b orodje, nova banka, test banke | **narejeno 2026-10-03** | (ta commit) | 408 |
-| 8c trening, »Spoznaj« 1 in 2, oznaka | | | |
+| 8b orodje, nova banka, test banke | **narejeno 2026-10-03** | `0f2f2ed` | 408 |
+| 8c trening, »Spoznaj« 1 in 2, oznaka | **narejeno 2026-10-03** | (ta commit) | 412 (408 + 4) |
 
 - 8a: nove funkcije brez DOM-a; trening jih še ne uporablja. Testi v
   `tests/vaje-uganka.test.js`: osnovna stopnja po ravneh (tudi tehnika, dodana v
@@ -890,3 +890,22 @@ Vrstni red commitov: popravek A (s staro banko), 8b, 8c.
   dvakrat) so enaki – razlika je bila enkratna, pisava Inter (600) se je v enem brskalniku
   naložila pozneje. Ta scenarij za razliko od `preveri-vadi-brskalnik.js` ne čaka na
   pisave (`document.fonts.status`); tega nisem popravljal (ni del naloge).
+- 8c: `trening/v-uganki.js` – sprotno iskanje vzame takoj samo uganko osnovne stopnje,
+  najboljšo drugo primerja ob meji z bančno (`najnizjiRangBanke()`), banka prek
+  `izberiIzBanke()`, oznaka pri »Presega tehnike« (16.6); `trening/generators.js` –
+  `genPresek()` z `izberiIzBanke()` in vaja s tremi celicami po rangu (skupaj s popravkom A).
+  Testi (+4): sproti osnovna stopnja (1 → Srednja, E1 → Lahka), banka ob meji najprej
+  osnovne (mečarica 8 × Težka), nato Zelo težka, oznaka pri uganki iz semena 12,
+  »Spoznaj« 1 in 2 iz Srednjih ugank brez ponovitev.
+- Scenarij: »Spoznaj« vaji 1 in 2 dobita svoje izhodišče (`--izhodisce-presek`,
+  `IZHODISCE_PRESEK` = ta commit, nastavljen v naslednjem commitu); druge tehnike ostanejo
+  enake kot `5b9ae6f` (»Vse drži«). `preveri-enojcki-brskalnik.js` primerja z `10503c2`
+  samo še 3–12. Preverjanje stopnje pri vaji iz banke (Težka). Pri pomoči scenarij zdaj
+  izbere korak z vsaj dvema izbrisoma (z novo banko je prvi korak skritega para imel en sam
+  izbris, zato po njem ni ostal rdeč izbris za preverjanje – predpostavka scenarija, ne
+  napaka pomoči).
+- Preverjanje: 412 testov; posnetek igre »Enako: 85 posnetkov.«;
+  `preveri-vadi-brskalnik.js`, `preveri-enojcki-brskalnik.js`,
+  `preveri-presek-brskalnik.js` »Vse drži«.
+- Ročni pregled: točka 3 v `docs/rocni-test.md` dopolnjena (oznaka »Uganka: Težka« pri
+  mečarici).

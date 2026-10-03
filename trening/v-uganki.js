@@ -27,31 +27,51 @@ function vKljukica(besedilo){const l=vEl('label'),i=vEl('input');i.type='checkbo
 
 /* ---------- iskanje vaje ---------- */
 
-// Vaja iz banke: naključen zapis s tehniko, ki v tej seji še ni bil uporabljen.
+// Uporabljeni zapisi banke za tehniko (Set semen) v tej seji.
+const vadiUporabljeneZa=kljuc=>vadiUporabljene[kljuc]||(vadiUporabljene[kljuc]=new Set());
+
+// Vaja iz banke: izberiIzBanke() (shared/vaje-uganka.js) - najnižji rang stopnje (osnovna
+// stopnja tehnike, ko je zmanjka, naslednja ...) med zapisi, ki v tej seji še niso bili
+// uporabljeni; ko so uporabljeni vsi, znova. Null, če tehnike v banki ni.
 function vajaIzBanke(kljuc){
-  const uganke=VAJE_BANKA.filter(z=>z.tehnike.includes(kljuc));
-  const upor=vadiUporabljene[kljuc]||(vadiUporabljene[kljuc]=new Set());
-  for(;;){
-    let proste=uganke.filter(z=>!upor.has(z.seme));
-    if(!proste.length){upor.clear();proste=uganke;}
-    const z=proste[Math.floor(Math.random()*proste.length)];
-    upor.add(z.seme);
+  const upor=vadiUporabljeneZa(kljuc);
+  for(let i=0;i<1000;i++){
+    const z=izberiIzBanke(VAJE_BANKA,kljuc,upor,Math.random);
+    if(!z) return null;
     const v=vajaIzUganke(z.danosti,kljuc,Math.random);
     if(v){v.izvor={vrsta:'banka',seme:z.seme};return v;}
   }
+  return null;
 }
 
 // Sproti: po ena minimalna uganka na setTimeout (vmesnik ostane odziven, deluje tudi pri
-// file://), dokler ena nima stanja vaje; meja se preverja med ugankami. Nato banka.
+// file://). Takoj se vzame samo uganka osnovne stopnje tehnike (rang 0, točka 16 načrta);
+// najboljša druga (najnižji rang) se zapomni. Ob meji se primerja z najnižjim rangom v
+// banki: vzame se nižji rang, pri enakem sprotna (raznolikost). Če tehnike v banki ni in
+// sproti še ni nič, iskanje teče naprej.
 function najdiVajo(kljuc,obNajdeni){
   const zeton=++vadiIskanje,zacetek=vadiZdaj();
+  let najboljsa=null; // { rang, danosti, stanja, stopnja, seme }
+  const vzemi=c=>{
+    const v=vajaIzStanja(c.danosti,kljuc,c.stanja[Math.floor(Math.random()*c.stanja.length)],c.stopnja);
+    if(!v) return false;
+    v.izvor={vrsta:'sproti',seme:c.seme};obNajdeni(v);return true;
+  };
   const korak=()=>{
     if(zeton!==vadiIskanje) return;
-    if(vadiZdaj()-zacetek>=VADI_MEJA_MS){obNajdeni(vajaIzBanke(kljuc));return;}
+    if(vadiZdaj()-zacetek>=VADI_MEJA_MS){
+      if(najboljsa&&najboljsa.rang<=najnizjiRangBanke(VAJE_BANKA,kljuc,vadiUporabljeneZa(kljuc))&&vzemi(najboljsa)) return;
+      const v=vajaIzBanke(kljuc);
+      if(v){obNajdeni(v);return;}
+      if(najboljsa&&vzemi(najboljsa)) return;
+    }
     const seme=genNaklucnoSeme(),danosti=genMinimalnaUganka(seme);
     const{stanja,stopnja}=stanjaVUganki(danosti,kljuc);
-    const v=stanja.length?vajaIzStanja(danosti,kljuc,stanja[Math.floor(Math.random()*stanja.length)],stopnja):null;
-    if(v){v.izvor={vrsta:'sproti',seme};obNajdeni(v);return;}
+    if(stanja.length){
+      const c={rang:rangUganke(stopnja,kljuc),danosti,stanja,stopnja,seme};
+      if(c.rang===0&&vzemi(c)) return;
+      if(!najboljsa||c.rang<najboljsa.rang) najboljsa=c;
+    }
     setTimeout(korak,0);
   };
   setTimeout(korak,0);
@@ -137,8 +157,12 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
 
   // Stopnja uganke (samo informacija, tudi "Presega tehnike"), izvor vaje v title.
   const info=vEl('div','vaja-info');
-  const st=vEl('span',null,`Uganka: ${v.stopnja||'–'}`);
-  st.title=`${v.izvor.vrsta==='banka'?'Vaja iz banke':'Vaja iz sproti ustvarjene uganke'} (seme ${v.izvor.seme})`;
+  // Pri "Presega tehnike" (skrajni primer, točka 16.6) kratko pojasnilo, da za vajo ni
+  // pomembno.
+  const presega=v.stopnja===OCENA_PRESEGA;
+  const st=vEl('span',null,`Uganka: ${v.stopnja||'–'}${presega?' – za to vajo ni pomembno':''}`);
+  st.title=(presega?'Uganke brez ugibanja ni mogoče rešiti do konca; vaja je korak pred mestom, kjer bi bilo treba ugibati. ':'')
+    +`${v.izvor.vrsta==='banka'?'Vaja iz banke':'Vaja iz sproti ustvarjene uganke'} (seme ${v.izvor.seme})`;
   info.appendChild(st);
   let pk=null;
   let prejEl=null;

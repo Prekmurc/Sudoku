@@ -14,7 +14,8 @@
 // kliki in ohranitev po osvežitvi; barve poudarka iz nastavitev igre (sudoku.igra.poud)
 // pri E1 in pri vajah 1 in 2.
 //
-// Druge tehnike (1-12) morajo ostati enake: z Math.random s semenom se vsaka vaja
+// Druge tehnike (3-12; 1 in 2 od točke 16 v docs/vadi-v-uganki-nacrt.md primerja
+// preveri-vadi-brskalnik.js) morajo ostati enake: z Math.random s semenom se vsaka vaja
 // izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 10503c2 -
 // zadnji commit pred to nalogo) in v trenutni kodi; primerja se innerHTML območja vaje in
 // izračunani slogi vseh njegovih elementov.
@@ -287,8 +288,11 @@ async function izris(b, mode, sirina) {
 
 async function drugeTehnike(sirine) {
   const html = fs.readFileSync(path.join(KOREN, 'trening', 'index.html'), 'utf8');
-  const nacini = [...html.matchAll(/data-mode="([^"]+)"/g)].map(m => m[1]).filter(m => !IME[m]);
-  preveri('druge tehnike: 12 kartic (1-12)', nacini.length === 12, nacini);
+  // Vaji 1 in 2 sta od izbire uganke po stopnji (docs/vadi-v-uganki-nacrt.md, točka 16) iz
+  // drugih ugank banke - primerja ju tools/preveri-vadi-brskalnik.js s svojim izhodiščem.
+  const vse = [...html.matchAll(/data-mode="([^"]+)"/g)].map(m => m[1]).filter(m => !IME[m]);
+  preveri('druge tehnike: 12 kartic (1-12)', vse.length === 12, vse);
+  const nacini = vse.filter(m => m !== 'pointing' && m !== 'box-line');
 
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
   execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce], { cwd: KOREN });

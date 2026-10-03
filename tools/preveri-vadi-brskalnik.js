@@ -12,7 +12,10 @@
 // zadnji commit pred delom 6) in v trenutni kodi; primerja se innerHTML območja vaje in
 // izračunani slogi vseh njegovih elementov (meni ima od dela 6 gumba načina).
 //
-//   node tools/preveri-vadi-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
+// Vaji 1 in 2 imata od točke 16 (izbira uganke po stopnji) svoje izhodišče
+// (--izhodisce-presek, privzeto IZHODISCE_PRESEK spodaj).
+//
+//   node tools/preveri-vadi-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>] [--izhodisce-presek <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
@@ -26,6 +29,11 @@ const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-vadi'));
 const izhodisce = arg('--izhodisce', '5b9ae6f');
+// Vaji 1 in 2 v "Spoznaj" sta od izbire uganke po stopnji (načrt, točka 16) iz drugih ugank
+// banke, zato imata svoje izhodišče (prazno = ne primerjata se).
+const IZHODISCE_PRESEK = '';
+const izhodiscePresek = arg('--izhodisce-presek', IZHODISCE_PRESEK);
+const PRESEK = ['pointing', 'box-line'];
 const KOREN = path.join(__dirname, '..');
 
 let napak = 0;
@@ -257,7 +265,14 @@ async function odgovor1do12(b, sirina) {
 async function pomoc1do12(b, sirina) {
   console.log(`hidden-pair, pomoč, ${sirina} px`);
   await vadi(b, 'hidden-pair', sirina, { banka: true, seme: 5 });
-  const e0 = await b.izvedi('vadi.v.KT[0].eliminate[0]');
+  // Korak v območju z vsaj dvema izbrisoma (po prvem izbrisu ostane na mreži še rdeč
+  // izbris); vaja brez takega koraka se zamenja z naslednjo.
+  for (let i = 0; i < 9 && !(await b.izvedi('vadi.KTob.some(k => k.eliminate.length > 1)')); i++) {
+    await b.izvedi('exNum++; renderExercise(); true');
+    await b.cakaj('vadi !== null', 15000);
+  }
+  // Isti korak izbere tudi pomoč (največ igralčevih izbrisov - korakPomoci()).
+  const e0 = await b.izvedi('vadi.KTob.find(k => k.eliminate.length > 1).eliminate[0]');
   await odstraniKlik(b, e0);
   await klikniGumb(b, 'Namig');
   let p = await b.izvedi(`(() => { const o = document.querySelector('.vadi-pomoc'); return { vidno: !o.hidden && o.getBoundingClientRect().height > 0, besedilo: o.textContent, pomoc: document.getElementById('scorePomoc').textContent }; })()`);
@@ -301,6 +316,8 @@ async function banka(b) {
   await vadi(b, 'swordfish', 375, { banka: true });
   preveri('vaja iz banke', (await b.izvedi('vadi.v.izvor.vrsta')) === 'banka');
   preveri('v S0 je naslednji korak Mečarica', (await b.izvedi('nextStep(vadi.v.S0.deska).technique')) === 'Swordfish');
+  // Izbira po stopnji (točka 16): najprej uganka osnovne stopnje tehnike (Težka).
+  preveri('uganka osnovne stopnje (Težka) in oznaka', (await b.izvedi(`vadi.v.stopnja === 'Težka' && document.querySelector('.vaja-info span').textContent === 'Uganka: Težka'`)) === true);
   preveri('izvor v title', /^Vaja iz banke \(seme \d+\)$/.test(await b.izvedi(`document.querySelector('.vaja-info span').title`)));
 }
 
@@ -322,29 +339,40 @@ async function izris(b, mode, sirina) {
   })()`);
 }
 
-async function spoznaj(sirine) {
+// Izvleček commita v začasno mapo in brskalnik nad njim.
+async function izhodisceBrskalnik(commit) {
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
-  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce], { cwd: KOREN });
+  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), commit], { cwd: KOREN });
   execFileSync('tar', ['-xf', 'izhodisce.tar'], { cwd: star }); // relativno ime: GNU tar bi "C:" bral kot strežnik
-  const bStar = await zazeni({ koren: star });
+  return { star, b: await zazeni({ koren: star }) };
+}
+
+async function spoznaj(sirine) {
+  const izh = { [izhodisce]: await izhodisceBrskalnik(izhodisce) };
+  if (izhodiscePresek && !izh[izhodiscePresek]) izh[izhodiscePresek] = await izhodisceBrskalnik(izhodiscePresek);
   const bNov = await zazeni();
   try {
     for (const sirina of sirine) {
-      console.log(`Spoznaj, ${sirina} px (izhodišče ${izhodisce})`);
+      console.log(`Spoznaj, ${sirina} px (izhodišče ${izhodisce}; 1 in 2: ${izhodiscePresek || 'brez primerjave'})`);
       for (const m of TEHNIKE) {
-        const s = await izris(bStar, m, sirina);
+        const commit = PRESEK.includes(m) ? izhodiscePresek : izhodisce;
+        if (!commit) { console.log(`  - ${m}: brez izhodišča (izbira po stopnji, točka 16)`); continue; }
+        const s = await izris(izh[commit].b, m, sirina);
         const n = await izris(bNov, m, sirina);
         const razl = s.slogi.findIndex((x, i) => x !== n.slogi[i]);
-        preveri(`${m}: izris enak`, s.html === n.html && s.slogi.length === n.slogi.length && razl < 0,
+        preveri(`${m}: izris enak (${commit})`, s.html === n.html && s.slogi.length === n.slogi.length && razl < 0,
           s.html !== n.html ? 'innerHTML' : razl >= 0 ? `element ${razl}: ${s.slogi[razl]} → ${n.slogi[razl]}` : 'število elementov');
       }
     }
   } finally {
-    await bStar.zapri();
+    for (const { star, b } of Object.values(izh)) {
+      await b.zapri();
+      for (const n of b.napake) { console.log(`  ✗ ${n}`); napak++; }
+      fs.rmSync(star, { recursive: true, force: true });
+    }
     await bNov.zapri();
-    fs.rmSync(star, { recursive: true, force: true });
   }
-  for (const n of [...bStar.napake, ...bNov.napake]) { console.log(`  ✗ ${n}`); napak++; }
+  for (const n of bNov.napake) { console.log(`  ✗ ${n}`); napak++; }
 }
 
 async function main() {

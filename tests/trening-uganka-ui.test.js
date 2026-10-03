@@ -625,3 +625,55 @@ test('pravilen korak v območju: sporočilo brez opombe', () => {
   gumb(dom, 'Preveri').sprozi('click');
   assert.equal(fb(dom).innerHTML, `<b>Pravilno!</b> ${k.message}`);
 });
+
+/* ---------- 8c: izbira uganke po stopnji (točka 16 načrta) ---------- */
+
+test('sproti se vzame samo uganka osnovne stopnje tehnike', () => {
+  for (const [mode, osnovna] of [['pointing', 'Srednja'], ['naked-single', 'Lahka']]) {
+    const { run, izprazni } = zacni(mode, { banka: false });
+    izprazni();
+    assert.equal(run('vadi.v.izvor.vrsta'), 'sproti');
+    assert.equal(run('vadi.v.stopnja'), osnovna, mode);
+    assert.equal(run('stopnjaTehnike(vadi.v.kljuc)'), osnovna);
+  }
+});
+
+test('banka ob meji: najprej vse uganke osnovne stopnje, nato višje stopnje', () => {
+  const { run, izprazni } = zacni('swordfish');
+  izprazni();
+  assert.equal(run('vadi.v.izvor.vrsta'), 'banka');
+  assert.equal(run('vadi.v.stopnja'), 'Težka', 'osnovna stopnja mečarice');
+  const osnovnih = run('VAJE_BANKA.filter(z => z.tehnike.includes("Swordfish") && z.stopnja === "Težka").length');
+  const stopnje = iz(run, `Array.from({ length: ${osnovnih + 2} }, () => vajaIzBanke('Swordfish').stopnja)`);
+  // Prva je že uporabljena (vaja na zaslonu): še osnovnih - 1 Težkih, nato Zelo težka.
+  assert.deepEqual(stopnje.slice(0, osnovnih - 1), Array(osnovnih - 1).fill('Težka'));
+  assert.ok(stopnje.slice(osnovnih - 1).every(s => s === 'Zelo težka'), JSON.stringify(stopnje));
+});
+
+test('oznaka pri uganki Presega tehnike: »za to vajo ni pomembno«', () => {
+  const { dom, run, izprazni } = zacni('pointing');
+  izprazni();
+  // Uganka iz semena 12 presega tehnike, stanja izločitve izven bloka so pred prvim poskusom
+  // (tests/vaje-uganka.test.js).
+  run(`{ const v = vajaIzUganke(genMinimalnaUganka(12), 'Pointing pair/triple', Math.random);
+    v.izvor = { vrsta: 'sproti', seme: 12 }; exNum = 6; izrisiVadi(v); }`);
+  const st = poRazredu(dom, 'vaja-info')[0].children[0];
+  assert.equal(st.textContent, 'Uganka: Presega tehnike – za to vajo ni pomembno');
+  assert.match(st.title, /^Uganke brez ugibanja ni mogoče rešiti do konca; vaja je korak pred mestom, kjer bi bilo treba ugibati\. Vaja iz sproti ustvarjene uganke \(seme 12\)$/);
+  // Pri rešljivi uganki brez pojasnila.
+  run('exNum = 6; renderExercise()');
+  izprazni();
+  assert.equal(poRazredu(dom, 'vaja-info')[0].children[0].textContent, `Uganka: ${run('vadi.v.stopnja')}`);
+});
+
+test('»Spoznaj« 1 in 2: uganke iz banke najprej osnovne stopnje (Srednja), brez ponovitev', () => {
+  const { run } = zacni('pointing');
+  for (const mode of ['pointing', 'box-line']) {
+    const kljuc = run(`PRESEK_KLJUC[${JSON.stringify(mode)}]`);
+    const srednjih = run(`VAJE_BANKA.filter(z => z.tehnike.includes(${JSON.stringify(kljuc)}) && z.stopnja === 'Srednja').length`);
+    const stopnje = iz(run, `Array.from({ length: 9 }, (_, n) => { const ex = genPresek(n, ${JSON.stringify(mode)});
+      return VAJE_BANKA.find(z => z.danosti === ex.danosti).stopnja; })`);
+    assert.ok(srednjih >= 9, `${mode}: dovolj ugank osnovne stopnje v banki`);
+    assert.deepEqual(stopnje, Array(9).fill('Srednja'), mode);
+  }
+});

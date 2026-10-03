@@ -28,10 +28,14 @@ function cellPos(idx){return `V${Math.floor(idx/9)+1}S${idx%9+1}`;}
    skladni z vidnimi števkami. Odgovor je enoličen: pri dani števki je vzorec v bloku
    (1) oz. v vrstici/stolpcu (2) en sam - to je korak vaje (celice ex.solutionCells).
    V krogu 9 vaj ima vsaj ena vaja vzorec s tremi celicami (ena naključna vaja v krogu,
-   izbrana ob prvi); ostale imajo trojico po resnični pogostosti (pribl. 1 od 10). */
+   izbrana ob prvi); ostale imajo trojico po resnični pogostosti (pribl. 1 od 10).
+   Uganka iz banke je izbrana kot v "Vadi v uganki" (izberiIzBanke(), točka 16 v
+   docs/vadi-v-uganki-nacrt.md): najprej osnovna stopnja tehnike (Srednja), nato višje,
+   zapisi se v seji ne ponavljajo, dokler jih je. */
 const PRESEK_KLJUC={pointing:'Pointing pair/triple','box-line':'Box-line reduction'};
 const PRESEK_V_KROGU=9;
 let presekTrojica={pointing:-1,'box-line':-1};
+const presekUporabljene={pointing:new Set(),'box-line':new Set()};
 
 // Blok in vrstica/stolpec koraka: pri 1 (Pointing) je vrstica/stolpec tista, v kateri
 // ležijo celice koraka, pri 2 (Box-line) enota koraka (hint.unit).
@@ -81,11 +85,13 @@ function presekEnolicen(mode,v,korak){
   return !v.KT.some(k=>k!==korak&&k.eliminate[0][1]===d&&k.cells.every(c=>vidne.has(c)));
 }
 
-// Vaja s tremi celicami: preišče uganke in stanja v naključnem vrstnem redu, dokler ne
-// najde primernega koraka s tremi celicami (v banki jih je dovolj; če jih ni, null).
+// Vaja s tremi celicami: preišče uganke (po rangu stopnje - rangUganke(), znotraj ranga v
+// naključnem vrstnem redu) in stanja, dokler ne najde primernega koraka s tremi celicami
+// (v banki jih je dovolj; če jih ni, null).
 function presekTrojicaIzBanke(mode,uganke){
   const kljuc=PRESEK_KLJUC[mode];
-  for(const z of shuffle([...uganke])){
+  const urejene=shuffle([...uganke]).sort((a,b)=>rangUganke(a.stopnja,kljuc)-rangUganke(b.stopnja,kljuc));
+  for(const z of urejene){
     const{stanja,stopnja}=stanjaVUganki(z.danosti,kljuc);
     for(const st of shuffle([...stanja])){
       const v=vajaIzStanja(z.danosti,kljuc,st,stopnja);
@@ -106,7 +112,7 @@ function genPresek(n,mode){
     if(ex) return ex;
   }
   for(;;){
-    const z=uganke[randInt(0,uganke.length-1)];
+    const z=izberiIzBanke(VAJE_BANKA,kljuc,presekUporabljene[mode],Math.random);
     const v=vajaIzUganke(z.danosti,kljuc,Math.random);
     if(!v||!v.KT.length) continue;
     // Neprimeren korak (presekEnolicen): vaja se zavrne, vzame se druga uganka.
