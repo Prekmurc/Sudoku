@@ -1077,3 +1077,79 @@ obstoječe točke, največ 5.
   korak motorja (eno obliko), igralec pa je morda zaznamoval celice druge. Predlog za
   pozneje: sporočilo pokaže obliko, ki se ujema z igralčevimi zaznamovanimi celicami
   (`plosca.zaznamovane`), ali pa omeni tudi drugo obliko.
+
+## 18. »Več celic« privzeto po tehniki (predlog, 2026-10-03)
+
+**Kode še nisem spreminjal.** Kljukica »več celic« (izbira več celic za odstranitev iste
+števke iz vseh v eni potezi) je privzeto izklopljena, pri nekaterih tehnikah pa je
+skoraj nujna. Na računalniku Ctrl/⌘+klik že zdaj doda ali odstrani celico ne glede na
+kljukico (`shared/plosca.js`, preverja `tests/plosca.test.js`); na telefonu Ctrl ni, zato
+je pomemben privzeti vklop.
+
+### 18.1 Meritev iz banke (`shared/vaje-banka.js`, vsa stanja vaj, vsi koraki KT)
+
+Korak »potrebuje več celic«, če je ista števka izbrisana iz 2 ali več celic.
+
+| Tehnika | ugank | vaj (stanj) | korakov | izbrisov na korak | korakov z isto števko iz 2+ celic | vaj, kjer to velja za večino korakov | čas izračuna (Node) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 · Izločitev izven bloka | 354 | 1211 | 2588 | 1,8 | **61 %** | 54 % | 9,2 s |
+| 2 · Izločitev v bloku | 199 | 325 | 417 | 2,5 | **82 %** | 80 % | 4,1 s |
+| 3 · Očitni par | 193 | 304 | 509 | 3,0 | **68 %** | 62 % | 3,6 s |
+| 4 · Skriti par | 157 | 204 | 393 | 3,8 | **72 %** | 64 % | 2,4 s |
+| 5 · Očitna trojica | 79 | 83 | 98 | 4,1 | **83 %** | 80 % | 1,0 s |
+| 6 · Skrita trojica | 50 | 51 | 57 | 5,1 | **89 %** | 88 % | 0,8 s |
+| 7 · X-krilo | 54 | 61 | 88 | 3,0 | **84 %** | 85 % | 0,8 s |
+| 8 · Mečarica | 50 | 51 | 76 | 3,6 | **83 %** | 84 % | 0,9 s |
+| 9 · Veriga ene števke | 84 | 126 | 372 | 1,3 | 29 % | 5 % | 1,5 s |
+| 10 · W-krilo | 81 | 96 | 349 | 1,4 | 38 % | 34 % | 1,2 s |
+| 11 · XY-krilo | 66 | 72 | 236 | 1,6 | 50 % | 42 % | 0,9 s |
+| 12 · Edinstveni pravokotnik | 54 | 58 | 61 | 2,0 | 0 % | 0 % | 0,8 s |
+
+E1 in E2 nimata niza »Odstrani« (odgovor je vpis), zato zanju ni kljukice.
+
+**Pravilo:** vklop, kjer je delež korakov z isto števko iz 2+ celic **več kot 50 %** →
+1–8 vklopljeno, 9–12 izklopljeno (XY-krilo je z natanko 50 % na meji in ostane
+izklopljeno).
+
+### 18.2 Kje se izračuna
+
+Izračun med vajo ni primeren (1 · Izločitev izven bloka 9 s). Predlog:
+
+- Orodje `tools/ustvari-banko-vaj.js` na koncu izračuna delež za vsako tehniko iz banke in
+  ga zapiše v `shared/vaje-banka.js` kot `VAJE_BANKA_VEC_CELIC = { kljuc: delež }` (zraven
+  zapisov, ne ročno). Nova tehnika dobi vrednost sama, ko se banka ustvari znova (kar je
+  ob novi tehniki tako ali tako treba).
+- Da zdaj ni treba čakati 27 min na novo banko: orodje dobi stikalo `--samo-vec-celic`, ki
+  prebere obstoječo banko, izračuna samo deleže in datoteko zapiše znova z istimi zapisi
+  (pribl. 30 s).
+- `tests/vaje-banka.test.js`: deleži se ujemajo s ponovnim izračunom (pribl. +30 s k
+  sedanjim 35 s) in so med 0 in 1 za vsako tehniko 1–12.
+- Prag 50 % je v treningu (`VADI_VEC_CELIC_PRAG`), ne v banki.
+
+### 18.3 Obnašanje
+
+- Ob začetku kroga »Vadi v uganki« je kljukica »več celic« vklopljena po deležu tehnike.
+  `title` kljukice to pove: »Pri tej tehniki se v večini korakov ista števka izbriše iz več
+  celic.«
+- Igralčeva sprememba kljukice ostane do konca kroga (`vecCelicKrog`, kot »več hkrati«);
+  nov krog (izbira tehnike) spet vzame privzeto.
+- Ctrl/⌘+klik doda ali odstrani celico ne glede na kljukico (že zdaj).
+- `shared/plosca.js`: stanje »več celic« se ob nastanku plošče prebere iz kljukice (zdaj je
+  vedno `false`), kot pri »več hkrati«. Igra kljukice ne vklopi, zato ostane enaka
+  (posnetek igre).
+- »Spoznaj« nima te kljukice (izbira celic je tam sama odgovor) – brez spremembe.
+
+### 18.4 Koraki in preverjanje
+
+En korak: orodje (`--samo-vec-celic`), nova `shared/vaje-banka.js` (samo dodani deleži,
+zapisi enaki), plošča, trening, testi (`plosca`, `vaje-banka`, `trening-uganka-ui`),
+scenarij v brskalniku (kljukica vklopljena pri 8, izklopljena pri 9, ostane do konca
+kroga, izbira več celic s pravimi kliki brez Ctrl), posnetek igre »Enako«, `CLAUDE.md`.
+Commit in push.
+
+### 18.5 Vprašanja
+
+1. **Pravilo:** delež korakov z isto števko iz 2+ celic nad 50 % (1–8 vklop, 9–12
+   izklop) – predlog? Ali merilo »vaj, kjer to velja za večino korakov« (enak rezultat)?
+2. **Kje:** deleži v banki prek orodja, s stikalom `--samo-vec-celic` za zdaj (predlog)?
+3. **Sprememba do konca kroga**, nov krog spet privzeto (predlog)?
