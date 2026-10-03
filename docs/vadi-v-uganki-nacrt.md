@@ -1041,7 +1041,8 @@ obstoječe točke, največ 5.
 | Korak | Stanje | Commit | Testi |
 |---|---|---|---|
 | 9a `shared/`: `pogled.obmocje`, `pogled.zaznamovane`, zaznamki in `stevkeObmocja()` v plošči | **narejeno 2026-10-03** | `e578c94` | 414 (412 + 2) |
-| 9b trening: »Vadi v uganki« in »Spoznaj« E1/E2 | **narejeno 2026-10-03** | (ta commit) | 417 (414 + 3) |
+| 9b trening: »Vadi v uganki« in »Spoznaj« E1/E2 | **narejeno 2026-10-03** | `0d457e8` | 417 (414 + 3) |
+| izhodišče »Spoznaj« E1/E2 = `0d457e8` | **narejeno 2026-10-03** | (ta commit) | 417 |
 
 - 9a: `shared/mreza.js` (okvir območja na `::before`, temne oznake roba, zaznamovane
   celice), `shared/mreza.css` (`--obmocje`, `--zaznamek`), `shared/plosca.js` (gumba in
@@ -1058,7 +1059,7 @@ obstoječe točke, največ 5.
 - Scenarij `preveri-vadi-brskalnik.js`: okvir z izračunanim slogom `::before` (3 px
   `rgb(29, 63, 107)`, tudi na izbrani celici ob poudarku), temne oznake roba, obroč
   števke, zaznamki s pravimi kliki in tipko O (QWERTZ), legenda. »Spoznaj« E1/E2 dobita
-  svoje izhodišče (`IZHODISCE_ENOJCKI` = ta commit, nastavljen v naslednjem commitu);
+  svoje izhodišče (`IZHODISCE_ENOJCKI` = `0d457e8`, nastavljen v naslednjem commitu; primerjava »Vse drži«);
   druge tehnike enake kot prej.
 - Preverjanje: 417 testov; posnetek igre »Enako: 85 posnetkov.«;
   `preveri-vadi-brskalnik.js`, `preveri-enojcki-brskalnik.js`, `preveri-presek-brskalnik.js`

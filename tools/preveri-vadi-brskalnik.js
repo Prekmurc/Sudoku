@@ -35,7 +35,7 @@ const IZHODISCE_PRESEK = 'dd316bd';
 const izhodiscePresek = arg('--izhodisce-presek', IZHODISCE_PRESEK);
 // E1 in E2 v "Spoznaj" imata od točke 17 (okvir območja pri vajah 1-6) svoje izhodišče
 // (prazno = ne primerjata se).
-const IZHODISCE_ENOJCKI = '';
+const IZHODISCE_ENOJCKI = '0d457e8';
 const izhodisceEnojcki = arg('--izhodisce-enojcki', IZHODISCE_ENOJCKI);
 const PRESEK = ['pointing', 'box-line'];
 const KOREN = path.join(__dirname, '..');
