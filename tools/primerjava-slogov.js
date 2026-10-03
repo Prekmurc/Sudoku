@@ -39,4 +39,12 @@ function razlikeIzrisa(star, nov, lastnosti) {
   return razlike;
 }
 
-module.exports = { razlikeIzrisa };
+// Po pravem kliku (npr. na kartico tehnike) miška obstane na istem mestu - po izrisu vaje je
+// lahko nad celico s :hover in prehodom (transition), ki bi ga primerjava ujela na pol poti.
+// Odmakne miško v kot okna in počaka, da se prehod konča.
+async function odmakniMisko(b) {
+  await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 });
+  await b.izvedi('new Promise(r => setTimeout(r, 300))');
+}
+
+module.exports = { razlikeIzrisa, odmakniMisko };

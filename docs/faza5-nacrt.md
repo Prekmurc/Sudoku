@@ -1,6 +1,10 @@
 # Faza 5 – videz (načrt)
 
-**Stanje: načrt potrjen 2026-10-03, izvedba po korakih (razdelek 4).**
+**Faza 5 je zaključena 2026-10-03.** Commiti: načrt `3cc8a04`, korak 1 (prelivi) `c5a5fbb`, 2
+(izbira celice A2) `d331c75`, 3a (paleta in podlaga) `a3ebed0`, 3b (glava, kartica, gumbi, noga,
+oznake) `cf53202`, 4a (N9, barva danosti v reševalcu) `e1c03f3`, 4b (N10, N11) `4e1e4dc`, 5
+(zaključek). Testi: 425 (422 + 3 testi palete). Ročni pregled: `docs/rocni-test.md`, razdelek
+»Faza 5 – videz« (5 točk, nepotrjeno). Izvedba po korakih je v razdelku 7.
 
 ## Odgovori (2026-10-03)
 
@@ -372,3 +376,20 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
 - Scenarij `preveri-videz`: barve značk = barve oznak korakov, v obeh oknih zbirke opis nad
   gumbi.
 - Preverjeno: testi 425/425, posnetek igre enak (85), `preveri-niz` in `preveri-videz` držita.
+
+### Korak 5 – zaključek
+
+- Primerjave »Spoznaj« v `preveri-presek-`, `-enojcki-` in `-vadi-brskalnik.js` imajo za
+  privzeto izhodišče `4e1e4dc` (zadnji commit faze 5, ki spremeni videz; prej `7429363`,
+  `10503c2`, `5b9ae6f`, `dd316bd`, `0d457e8`). Vsi trije scenariji s privzetimi izhodišči
+  držijo v celoti.
+- **Nestabilna primerjava, popravljeno v orodju:** `preveri-presek` je dvakrat v treh tekih dal
+  razliko pri tehniki 9 (ena celica `rgb(252, 253, 254)` namesto bele). Miška po pravem kliku na
+  kartico tehnike obstane na istem mestu, ki je po novih odmikih (korak 3b) nad celico s števko v
+  mreži vaje; `:hover` s prehodom (0,12 s) primerjava ujame na pol poti. `odmakniMisko()` v
+  `tools/primerjava-slogov.js` po kliku premakne miško v kot okna in počaka 300 ms – uporabljajo
+  jo vsi trije primerjalni scenariji.
+- `docs/rocni-test.md`: razdelek »Faza 5 – videz« s 5 točkami (razdelek 5 tega načrta).
+- `docs/uskladitev.md`: faza 5 zaključena v tabeli faz, točke 4.1, 4.2, 4.4, 4.5, 6.8 in 1.1
+  (značke) narejene, 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 (okno, vnosna mreža) v
+  fazo 7, 4.3 v »Kasneje«; obe opombi k fazi 5 razrešeni.

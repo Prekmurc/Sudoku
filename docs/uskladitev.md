@@ -128,6 +128,11 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   kodi in testih že prej (`GEN_NAJMANJ_SREDNJIH`), zdaj še v `docs/tehnike.md` in
   `docs/uganke.md`. Raven kot polje tehnike, `tagClass()` po ravneh in poved v pomoči igre
   gredo v fazo 5 (`docs/faza4-nacrt.md`, odgovor 5).
+- **Faza 5 (2026-10-03, `docs/faza5-nacrt.md`, N10):** značke ravni v treningu imajo barve oznak korakov
+  (LAHKA zelena, SREDNJA jantarna, NAPREDNA vijolična; rdeča ostane poskusu). `tagClass()`
+  barve že deli po ravneh (enojčka `t-single`, 1–6 `t-pair`, 7–12 `t-advanced`), zato vidne
+  razlike ni več. **Ostanek:** raven kot polje tehnike in `tagClass()` iz ravni namesto iz imen
+  → faza 7 (koda, brez vidne spremembe); poved o ravneh v pomoči igre → faza 6.
 - **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
   `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 
@@ -672,6 +677,9 @@ Glej 0.2 (vzrok je CSS, ne logika).
   dodatne barve tehnik (`--teal`, `--indigo`, `--cyan`, `--orange`, `--plum`, `--olive`).
 - **Predlog:** `shared/theme.css` (ali razširjen `shared/base.css`) s skupnimi barvami.
   Trening obdrži samo svoje dodatne barve tehnik.
+- **Narejeno 2026-10-03** (faza 5, `docs/faza5-nacrt.md`, N1, commit `a3ebed0`): paleta je samo v
+  `shared/base.css` (z `--ink2` za sivo besedilo), trening obdrži barve tehnik; test
+  `tests/css-paleta.test.js`.
 - **Obseg:** srednje (trening se vizualno malo spremeni).
 
 ### 4.2 Ozadje, širina, glava
@@ -694,6 +702,10 @@ Glej 0.2 (vzrok je CSS, ne logika).
   zato na beli podlagi ostanejo ločene; `--card` in `--bg` sta potem enaki. Ista glava (nadnaslov, naslov, gumbi desno), ista
   noga in iste mere kartic v `shared/`. Širina ostane po aplikaciji (igra potrebuje dva
   stolpca).
+- **Narejeno 2026-10-03** (faza 5, `docs/faza5-nacrt.md`, N2–N4, N7, commita `a3ebed0` in `cf53202`):
+  povsod bela podlaga, ista glava (trening dobi nadnaslov »Trening · spoznaš in vadiš
+  tehnike«), kartica (16 px odmika, 12 px razmika), naslov kartice in noga v `shared/base.css`;
+  trening noge nima (novo besedilo). Širina ostane po aplikaciji.
 - **Obseg:** srednje.
 
 ### 4.3 Navigacija med aplikacijami
@@ -706,6 +718,8 @@ Glej 0.2 (vzrok je CSS, ne logika).
 - **Predlog:** v glavi vseh treh strani enaka vrstica povezav »Igra · Reševalec ·
   Trening« (trenutna označena). Po želji še `index.html` v korenu kot vstopna stran.
   Povezave so relativne (`../igra/`), zato delujejo z lokalnim strežnikom in s `file://`.
+- **Premaknjeno 2026-10-03 v »Kasneje«** (`docs/faza5-nacrt.md`, razdelek 6): nova funkcija, faza 5 je bila
+  samo videz. Glava je zdaj skupna (4.2), zato bi povezave dobile eno mesto.
 - **Obseg:** majhno (brez skupne glave), srednje (s 4.2).
 
 ### 4.4 Gumbi
@@ -718,6 +732,10 @@ Glej 0.2 (vzrok je CSS, ne logika).
   števk.
 - **Predlog:** osnovni `button`, `.primary`, `.majhen` in `:disabled` v `shared/base.css`
   (po vzoru igre). Trening obdrži barve tehnik kot različice `.primary`.
+- **Narejeno 2026-10-03** (faza 5, `docs/faza5-nacrt.md`, N6, commit `cf53202`): `button`, `.primary`,
+  `.majhen`, `:disabled` v `shared/base.css`; v treningu `.pri` = `.primary` v barvi
+  tehnike, `.sm-btn` = `.majhen`, gumbi plošče »Vadi v uganki« manjši z onemogočenim slogom
+  igre.
 - **Obseg:** srednje.
 
 ### 4.5 Barva danosti in vpisov je v reševalcu obrnjena
@@ -730,6 +748,9 @@ Glej 0.2 (vzrok je CSS, ne logika).
   »dano« in enkrat kot »moje«.
 - **Predlog:** povsod dana = temna in krepka, izračunana ali vpisana = modra. V reševalcu
   se spremenita legenda (»dano« / »izpeljano«) in besedilo noge.
+- **Narejeno 2026-10-03** (faza 5, `docs/faza5-nacrt.md`, N9, svoj commit `e1c03f3`): dana števka temna in
+  krepka, izpeljana modra (vnosna mreža, rešitev, kandidati, mala mreža koraka); legenda
+  »dana / izpeljana«, opomba pod kandidati in noga.
 - **Obseg:** majhno.
 
 ### 4.6 Ločila in narekovaji
@@ -740,6 +761,8 @@ Glej 0.2 (vzrok je CSS, ne logika).
   » - « (npr. `igra/igra.js:586` »Uganka je rešena - ni več korakov.« proti `:511`
   »… rešena – mreža je zaklenjena«). Trening uporablja pomišljaj.
 - **Predlog:** povsod »…« in pomišljaj » – «.
+- **Premaknjeno 2026-10-03 v fazo 6** (`docs/faza5-nacrt.md`, odgovor 2): to so besedila v JS in HTML, ne
+  CSS; faza 6 piše besedila pomoči.
 - **Obseg:** majhno.
 
 ---
@@ -953,6 +976,10 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   barve, glava, gumbi, kartica, okno, oznake korakov, seznam zbirke, vnosna mreža, noga,
   `[hidden]` (0.2). V datotekah aplikacij ostane samo, kar je njihovo (mreža igre, vaje
   treninga, koraki reševalca).
+- **Narejeno 2026-10-03** (faza 5, `docs/faza5-nacrt.md`): v `shared/base.css` so paleta, `[hidden]`,
+  `body`, glava, kartica, gumbi, noga in oznake korakov. **Ostanek → faza 7:** okno
+  (`#library`/`.lib-panel` proti `.dialog`/`.dialog-panel` – videz je že enak) in vnosna
+  mreža (skupaj s 6.4).
 - **Obseg:** srednje.
 
 ### 6.9 Ime tehnike in opis na kartici
@@ -1158,9 +1185,9 @@ komponente, na koncu videz in pomoč.
 | **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, ročni vnos dobi pravo stopnjo; primeri niso del zbirke (odločitev spremenjena 2026-09-24, narejeno: ena zbirka, brisanje v obeh aplikacijah, dogodek `storage`) | majhno–srednje |
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
-| **5 – videz** | 6.8, 4.1, 4.4, 4.2, 4.5, 4.6, 4.3, 1.1 (raven tehnike, barve oznak, poved v pomoči igre) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
-| **6 – pomoč** | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
-| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10 | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
+| **5 – videz** (zaključeno 2026-10-03, `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
+| **6 – pomoč** | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
+| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno in vnosna mreža – iz faze 5) | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu
 spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne spremeni.
@@ -1184,7 +1211,11 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
 ### Faza 5 – videz
 
 - **Vnosna mreža reševalca se pri ozkem zaslonu preliva** (zapisano 2026-09-27, opaženo
-  pri nalogi »niz v reševalcu«, `docs/niz-resevalec-nacrt.md`; ni popravljeno).
+  pri nalogi »niz v reševalcu«, `docs/niz-resevalec-nacrt.md`). **Razrešeno 2026-10-03**
+  (faza 5, korak 1, `c5a5fbb`, `docs/faza5-nacrt.md` P1–P6): velikost celic vnosne mreže, rešitve,
+  kandidatov in male mreže koraka je iz širine kartice (enote vsebnika `cqi`); pri 320, 375,
+  430 in 1280 px nobena od treh aplikacij nima vodoravnega preliva in nič ne sega čez svojo
+  kartico (`tools/preveri-videz-brskalnik.js`).
   Pri širini okna 375 px sega `#inputGrid` v `app/` pribl. 20 px čez desni rob kartice
   in 4 px čez rob okna (`scrollWidth` 379 > 375, stran ima vodoravni drsnik). Obstaja že
   od prej – enako je na kodi pred polje Niz (`tools/brskalnik.js` z `--koren` na
@@ -1204,7 +1235,10 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   2026-09-28). V igri je siva podlaga tudi barva vrstice, stolpca in bloka izbrane
   celice, zato izbrana celica tam izstopa predvsem po obrobi. Ob fazi 5 odloči, ali
   izbiro poenotiš in kako (npr. izrazitejša izbira tudi v igri, ali trening nazaj na
-  videz igre, ali ostane razlika zaradi manjših celic).
+  videz igre, ali ostane razlika zaradi manjših celic). **Razrešeno 2026-10-03** (faza 5,
+  korak 2, `d331c75`, `docs/faza5-nacrt.md`, odločitev A2): izbira je poenotena na izrazitejšo – modrikasta
+  podlaga in 3 px obroba (`--izbira`, `--izbira-bg` v `shared/base.css`), na poudarjeni celici
+  še bel notranji rob; enak je fokus v vnosni mreži reševalca in okna »Nova uganka«.
 
 ### Faza 6 – pomoč
 

@@ -8,11 +8,12 @@
 //
 // Druge tehnike (3-12) morajo ostati enake: z Math.random s semenom se vsaka
 // vaja izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto
-// 7429363 - zadnji commit pred spremembo prikaza) in v trenutni kodi; primerja se
+// 4e1e4dc - zadnji commit faze 5 »videz«, docs/faza5-nacrt.md; prej 7429363) in v
+// trenutni kodi; primerja se
 // innerHTML območja vaje in izračunani slogi vseh njegovih elementov. E1 in E2 sta od
 // naloge »Pripomočki za E1/E2« (2026-09-28) na plošči iz shared/plosca.js in se od
 // izhodišča namerno razlikujeta, zato ju tu ni - preverja ju
-// tools/preveri-enojcki-brskalnik.js (ta primerja 1-12 z izhodiščem 10503c2).
+// tools/preveri-enojcki-brskalnik.js (ta primerja 3-12 z istim izhodiščem).
 //
 //   node tools/preveri-presek-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
 //
@@ -23,12 +24,12 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-presek'));
-const izhodisce = arg('--izhodisce', '7429363');
+const izhodisce = arg('--izhodisce', '4e1e4dc');
 const KOREN = path.join(__dirname, '..');
 
 const SIVA = 'rgb(228, 232, 236)'; // --izven-bg v shared/mreza.css
@@ -130,6 +131,7 @@ async function izris(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
+  await odmakniMisko(b); // :hover s prehodom pod miško ne sme vplivati na primerjavo
   // Pisave (Google Fonts) se lahko naložijo šele po kliku - širina besedila bi se
   // razlikovala zaradi nalaganja, ne zaradi kode (lažna razlika 0,016 px pri 8b,
   // docs/vadi-v-uganki-nacrt.md 16.10).

@@ -110,6 +110,21 @@ pri 375 in 1200 px, pravi kliki, pari QWERTZ, »Spoznaj« enak kot prej).
 | 4 | trening | Katera koli od 1–12: odstrani kandidata, ki ga izloči druga tehnika, ali kandidata brez utemeljitve (ni prava števka), nato »Preveri«; pri vaji 1–6 še pravilen korak zunaj označenega območja (npr. pri 1 · Izločitev izven bloka v drugem bloku). | Sporočilo je razumljivo in ne zveni kot napaka; po pravilnem odgovoru legenda jasno pove »celice vzorca« in »izbrisani kandidati (odstranjeni)«; delni izbris pri mečarici da »Še ne.«, izbrisi se vrnejo, rezultat se ne spremeni; korak zunaj območja je »Pravilno! (korak v bloku 5, ne v bloku 2) …«. Pri X-krilu je števka območja poudarjena, pri XY-krilu pivot modrikast, pri edinstvenem pravokotniku oba bloka. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: razumljivost besedila in območja pri 7–12. |
 | 5 | trening, telefon | E1, vaja 1: postavi predlog v izbrano celico označene enote. | Enota je modrikasta, druge prazne celice zatemnjene (kot v »Spoznaj«); vijolični predlog s črtkanim okvirjem se jasno loči od modrih vpisov poti in od izbire; predlog ostane vijoličen (odločitev 3. 10. 2026). Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: presoja videza. |
 
+## Faza 5 – videz (vse tri aplikacije)
+
+Iz `docs/faza5-nacrt.md` (razdelek 5). Prelive, izbiro celice, paleto, skupne sestavine in
+barve danosti preveri `tools/preveri-videz-brskalnik.js` (320, 375, 430 in 1280 px), paleto še
+`tests/css-paleta.test.js`; trening »Spoznaj« primerjajo `preveri-presek-`, `-enojcki-` in
+`-vadi-brskalnik.js`.
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | vse tri, pravi telefon | Reševalec: »Primer«, »Reši«, »Pokaži kandidate«, »Pokaži korake reševanja«, »Pokaži na mreži« pri nekaj korakih. Igra: odpri uganko, vklopi vse tri sezname, odpri »Barve poudarka«. Trening: meni, 3 · Očitni par »Spoznaj« (do vaje, kjer je enota vrstica), 4 · Skriti par »Vadi v uganki«. | Nikjer vodoravnega drsenja; vse mreže so cele v svojih karticah (vnosna mreža reševalca, mala mreža koraka, vrsta devetih celic pri 3); celice zadeneš s prstom (reševalec pribl. 34 px, mala mreža koraka pribl. 30 px). **(nepotrjeno)** – ni avtomatsko: emulacija nima pravega zaslona, dotika, sistemskih pisav in povečave strani. |
+| 2 | vse tri, namizje (Edge), ozko okno | Okno zoži na pribl. 400–500 px, da je viden navpični drsnik: reševalec z rešitvijo in koraki, igra z vklopljenim seznamom vrstic, trening 3 · Očitni par in 4 »Vadi v uganki«. | Brez vodoravnega drsnika. **(nepotrjeno)** – ni avtomatsko: brskalnik brez glave drsnike skrije, igra in trening pa računata mrežo iz širine okna (`100vw`), ki drsnik vključuje. |
+| 3 | igra | S kljukico »več hkrati« poudari štiri števke (vse štiri barve poudarka). Pri vsaki izberi celico z dano ali vpisano poudarjeno števko, nato prazno celico. | Izbrana celica je opazna – modrikasta podlaga in 3 px modra obroba, na poudarjeni celici obroba z belim notranjim robom – tudi na modri 4. barvi, branje kandidatov ne moti. **(nepotrjeno)** – ni avtomatsko: scenarij preveri vrednosti sloga, kontrasta na tvojem zaslonu ne presodi. |
+| 4 | trening, reševalec | Trening: meni, nekaj vaj »Spoznaj« (3, 8, 11) z napačnim in pravilnim odgovorom, »Namig (drži)«. Reševalec: okno »Zbirka ugank«. | Bela podlaga, kartice ločene z obrobo, glava kot v igri (nadnaslov »Trening · spoznaš in vadiš tehnike«); značke SREDNJA jantarne, NAPREDNA vijolične; barve tehnik, zelena in rdeča povratna informacija in gumbi niso izgubili kontrasta. **(nepotrjeno)** – ni avtomatsko: presoja celotnega vtisa. |
+| 5 | reševalec | »Primer«, »Reši«, »Pokaži kandidate«, »Pokaži korake reševanja«, »Pokaži na mreži«, klik na mrežo (povečan prikaz). | Dane števke so črne in krepke, izpeljane modre – v rešitvi, kandidatih, mali mreži koraka in povečanem prikazu; legenda »**5** dana · **5** izpeljana«, opomba pod kandidati in noga povedo isto. **(nepotrjeno)** – ni avtomatsko: berljivost in razumljivost legende. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

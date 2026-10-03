@@ -8,12 +8,13 @@
 // senčenje pri E2; posnetki zaslona v mapi (--mapa, privzeto začasna).
 //
 // "Spoznaj" mora ostati enak: z Math.random s semenom se prva vaja vseh 14 tehnik
-// izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 5b9ae6f -
-// zadnji commit pred delom 6) in v trenutni kodi; primerja se innerHTML območja vaje in
+// izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 4e1e4dc -
+// zadnji commit faze 5 »videz«, docs/faza5-nacrt.md, ki je spremenila videz treninga;
+// prej 5b9ae6f, zadnji commit pred delom 6) in v trenutni kodi; primerja se innerHTML območja vaje in
 // izračunani slogi vseh njegovih elementov (meni ima od dela 6 gumba načina).
 //
-// Vaji 1 in 2 imata od točke 16 (izbira uganke po stopnji) svoje izhodišče
-// (--izhodisce-presek, privzeto IZHODISCE_PRESEK spodaj).
+// Vaji 1 in 2 ter E1 in E2 imata svoje izhodišče (--izhodisce-presek, --izhodisce-enojcki,
+// privzeto IZHODISCE_PRESEK in IZHODISCE_ENOJCKI spodaj) - od faze 5 isto kot druge tehnike.
 //
 //   node tools/preveri-vadi-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>] [--izhodisce-presek <commit>]
 //
@@ -24,19 +25,20 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-vadi'));
-const izhodisce = arg('--izhodisce', '5b9ae6f');
+const izhodisce = arg('--izhodisce', '4e1e4dc');
 // Vaji 1 in 2 v "Spoznaj" sta od izbire uganke po stopnji (načrt, točka 16) iz drugih ugank
-// banke, zato imata svoje izhodišče (prazno = ne primerjata se).
-const IZHODISCE_PRESEK = 'dd316bd';
+// banke, zato sta imeli svoje izhodišče (dd316bd; prazno = ne primerjata se); od faze 5 je
+// to zadnji commit faze 5.
+const IZHODISCE_PRESEK = '4e1e4dc';
 const izhodiscePresek = arg('--izhodisce-presek', IZHODISCE_PRESEK);
 // E1 in E2 v "Spoznaj" imata od točke 17 (okvir območja pri vajah 1-6) svoje izhodišče
-// (prazno = ne primerjata se).
-const IZHODISCE_ENOJCKI = '0d457e8';
+// (0d457e8; prazno = ne primerjata se); od faze 5 je to zadnji commit faze 5.
+const IZHODISCE_ENOJCKI = '4e1e4dc';
 const izhodisceEnojcki = arg('--izhodisce-enojcki', IZHODISCE_ENOJCKI);
 const PRESEK = ['pointing', 'box-line'];
 const KOREN = path.join(__dirname, '..');
@@ -401,6 +403,7 @@ async function izris(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
+  await odmakniMisko(b); // :hover s prehodom pod miško ne sme vplivati na primerjavo
   // Pisave (Google Fonts, tudi latin-ext za č/š/ž) se lahko naložijo šele po kliku - širina
   // besedila bi se razlikovala zaradi nalaganja, ne zaradi kode.
   await b.cakaj('document.fonts.status === "loaded"', 15000);

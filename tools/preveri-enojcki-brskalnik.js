@@ -16,8 +16,8 @@
 //
 // Druge tehnike (3-12; 1 in 2 od točke 16 v docs/vadi-v-uganki-nacrt.md primerja
 // preveri-vadi-brskalnik.js) morajo ostati enake: z Math.random s semenom se vsaka vaja
-// izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 10503c2 -
-// zadnji commit pred to nalogo) in v trenutni kodi; primerja se innerHTML območja vaje in
+// izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 4e1e4dc -
+// zadnji commit faze 5 »videz«, docs/faza5-nacrt.md; prej 10503c2) in v trenutni kodi; primerja se innerHTML območja vaje in
 // izračunani slogi vseh njegovih elementov.
 //
 //   node tools/preveri-enojcki-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
@@ -29,12 +29,12 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-enojcki'));
-const izhodisce = arg('--izhodisce', '10503c2');
+const izhodisce = arg('--izhodisce', '4e1e4dc');
 const KOREN = path.join(__dirname, '..');
 
 const BARVA = { oznacena: 'rgb(227, 238, 251)', neaktivna: 'rgb(233, 235, 238)', poud: 'rgb(246, 192, 38)', lastna: 'rgb(255, 128, 128)' };
@@ -280,6 +280,7 @@ async function izris(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
+  await odmakniMisko(b); // :hover s prehodom pod miško ne sme vplivati na primerjavo
   // Pisave (Google Fonts) se lahko naložijo šele po kliku - širina besedila bi se
   // razlikovala zaradi nalaganja, ne zaradi kode (kot v preveri-presek-brskalnik.js).
   await b.cakaj('document.fonts.status === "loaded"', 15000);
