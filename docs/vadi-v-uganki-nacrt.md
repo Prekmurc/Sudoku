@@ -1068,3 +1068,12 @@ obstoječe točke, največ 5.
 
 ![9b: območje, 4 · Skriti par, 375 px](slike/vadi-v-uganki/izvedba-9b-obmocje-375.png)
 ![9b: zaznamki, 8 · Mečarica, 375 px](slike/vadi-v-uganki/izvedba-9b-zaznamki-375.png)
+
+## Kasneje (opombe, ni začeto)
+
+- **Več oblik istega vzorca v sporočilu** (zapisano 2026-10-03 ob ročnem pregledu; kode
+  nisem spreminjal). Ista izločitev ima lahko več oblik vzorca – npr. mečarica v vrsticah
+  3, 4 in 9 je ista kot v stolpcih 2, 6 in 9. Sporočilo ob pravilnem odgovoru zdaj pokaže
+  korak motorja (eno obliko), igralec pa je morda zaznamoval celice druge. Predlog za
+  pozneje: sporočilo pokaže obliko, ki se ujema z igralčevimi zaznamovanimi celicami
+  (`plosca.zaznamovane`), ali pa omeni tudi drugo obliko.

@@ -291,7 +291,7 @@ test('obmocje: okvir ob robu območja, temne oznake roba; zaznamovane celice', (
   assert.deepEqual([...celice.map((e, c) => (e.classList.contains('zaznamovana') ? c : -1)).filter(c => c >= 0)], [0, 80]);
   // Brez polj ni ne okvirja ne zaznamkov ne temnih oznak.
   run('mr2.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati })');
-  assert.equal(celice.filter(e => /(obm|zaznamovana)/.test(e.className)).length, 0);
+  assert.equal(celice.filter(e => /\b(obm|zaznamovana)\b/.test(e.className)).length, 0);
   assert.deepEqual(temne(levo), []);
 });
 

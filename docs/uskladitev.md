@@ -1205,3 +1205,13 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   celice, zato izbrana celica tam izstopa predvsem po obrobi. Ob fazi 5 odloči, ali
   izbiro poenotiš in kako (npr. izrazitejša izbira tudi v igri, ali trening nazaj na
   videz igre, ali ostane razlika zaradi manjših celic).
+
+### Faza 6 – pomoč
+
+- **Opisi tehnik so ponekod prekratki** (zapisano 2026-10-03 ob ročnem pregledu »Vadi v
+  uganki«, `docs/vadi-v-uganki-nacrt.md`; kode nisem spreminjal). Razlaga Skritega para v
+  `TEHNIKE_OPISI` (`shared/engine.js`) je samo »Najdi 2 celici, ki skrivata par.« – v
+  »Vadi v uganki« se izpiše pod navodilom in igralcu ne pove, kaj par skriva in kaj se
+  izbriše. Ob fazi 6 preglej opise (`razlaga`, `navodilo`, `posledica`) vseh tehnik E1, E2
+  in 1–12, ker jih zdaj uporabljajo trening (»Spoznaj« in »Vadi v uganki«) in okno Pomoč v
+  igri.
