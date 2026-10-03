@@ -8,7 +8,20 @@ reševalec stikala nimata. Brez ročnih zapiskov (lastnega vpisovanja malih šte
 Izhodišče: `docs/uskladitev.md`, vrstica 5a v tabeli »Vrstni red popravkov« in opomba v
 »Opombe k delom«.
 
-Stanje: **načrt, čaka na odločitve O1–O7** (razdelek 2).
+Stanje: **odločitve potrjene 2026-10-03, izvedba po korakih** (razdelek 5).
+
+**Odločitve (Darko, 2026-10-03):** O1 A, O2 A, O3 A, O4 A, O5 A, O7 kot predlagano. O6 A z
+drugim napisom: kljukica **»Kandidati v celicah«** (brez pojasnila v oklepaju), kartica
+**»Prikaz«**, pod kljukico oznaka »Manjkajoče števke« in tri obstoječa stikala. Dodatka:
+
+- **a)** O4: v opombi pod korakom z izbrisi gumb **»Vklopi kandidate«** – klik vklopi stikalo
+  (in ga shrani), korak ostane prikazan, izbris se da izvesti. V testih in scenariju.
+- **b)** v »Kasneje« (`docs/uskladitev.md`), ne zdaj: senčenje pri izklopljenih kandidatih
+  (opomba pri O1); ročni zapiski (lastno vpisovanje malih števk); pri izklopljenih kandidatih
+  opozorilo, če uganka zahteva tehniko 3 ali višjo (brez kandidatov gredo E1, E2, 1 in 2).
+
+Ročni pregled: kot v osnutku (4 točke), en sam, na koncu; v točki 3 še gumb »Vklopi
+kandidate«.
 
 ## 1. Kaj že obstaja
 
@@ -112,7 +125,8 @@ in števka za vpis (pokaže se v celici, kot pri E1/E2); prečrtan kandidat in k
   »Kandidati so skriti: izbrise izvedeš, ko jih vklopiš – dotlej »Naslednji korak« najde
   isti korak.« Izbrisa pri izklopu ni mogoče narediti (O2), zato tak korak ostane prikazan
   do »Skrij« ali do vklopa in izvedbe; ker se kandidati računajo naprej brez tega izbrisa,
-  ga »Naslednji korak« najde znova. Enojček (samo vpis) izvedeš normalno.
+  ga »Naslednji korak« najde znova. Enojček (samo vpis) izvedeš normalno. *Dodatek a: v
+  opombi gumb »Vklopi kandidate« – vklopi in shrani stikalo, korak ostane prikazan.*
 - B: brez kandidatov tudi na stopnji 3 (`1280-izklop-korak-brez.png`): podlage celic,
   besedilo in seznam dejanj; vzorec se razbere samo iz besedila. Opomba enaka kot pri A.
 - (Ne predlagam) ob »Pokaži rešitev« vklopiti kandidate na vsej mreži – spremeni nastavitev
@@ -133,7 +147,8 @@ Za A dobi mreža neobvezno polje pogleda (celice, v katerih se kandidati izriše
 
 ### O6 – mesto, ime, privzeta vrednost
 
-- **Ime:** »Kandidati« s pojasnilom »(male števke v praznih celicah)«.
+- **Ime:** »Kandidati« s pojasnilom »(male števke v praznih celicah)«. *Odločeno: »Kandidati
+  v celicah«, brez pojasnila.*
 - **Privzeto: vklopljeno** – igra je ob prvem zagonu in po tej posodobitvi taka kot zdaj.
 - **Mesto:**
   - **A (predlog): kartica »Manjkajoče števke« postane »Prikaz«**: prva kljukica
@@ -160,22 +175,25 @@ Za A dobi mreža neobvezno polje pogleda (celice, v katerih se kandidati izriše
 
 ## 3. Koda (pri predlaganih odločitvah)
 
-- `shared/plosca.js` – novi neobvezni možnosti `stikaloKandidatov` (kljukica) in
-  `kljucKandidatov` (ključ shrambe) ter `skupinaOdstrani` (element, ki se pri izklopu skrije).
+- `shared/plosca.js` – nove neobvezne možnosti `stikaloKandidatov` (kljukica),
+  `kljucKandidatov` (ključ shrambe) in `skrijBrezKandidatov` (elementi, ki se pri izklopu
+  skrijejo – v igri oznaka niza »Odstrani« s kljukico »več celic« in niz; brez ovoja, da
+  ostane pravilo `.niz-oznaka:first-child` nedotaknjeno).
   Brez stikala (trening) je obnašanje enako kot zdaj, stalna `kandidati: false` ostane.
   Pri izklopu: mreža brez kandidatov, Shift+števka in niz »Odstrani« nič, Ctrl+klik ne
   doda, niz »Vpiši« vseh 9 za eno izbrano prazno celico, zavrnjen vpis z razlogom (O3 A).
   Ob preklopu: zapis v shrambo, izbira več celic in kljukica »več celic« (O2 A), izris.
-  Vrne še `kandidatiVidni()`.
+  Vrne še `kandidatiVidni()` in `nastaviKandidate(vidni)` (gumb »Vklopi kandidate«).
 - `shared/mreza.js` – neobvezno polje pogleda `celiceKandidatov` (celice, v katerih se
   kandidati izrišejo; `null` = vse); druge prazne celice so kot pri `kandidati: null` (O4 A).
   Trening ga ne uporablja.
-- `igra/index.html` – kartica »Prikaz« s kljukico `#stikaloKandidati` (O6 A); oznaka niza
-  »Odstrani« in niz v ovoju `#odstraniSkupina`; kratek odstavek o stikalu v oknu Pomoč
+- `igra/index.html` – kartica »Prikaz« s kljukico `#stikaloKandidati` »Kandidati v celicah«
+  (O6 A); oznaka niza »Odstrani« dobi id `odstraniGlava`; kratek odstavek o stikalu v oknu Pomoč
   (razdelek »Kako igrati«) in novo ime kartice v razdelku »Seznami manjkajočih števk«. Slog
   besedil uredi faza 6; kartice »Kako« ne spreminjam.
-- `igra/igra.js` – plošči poda stikalo, ključ in skupino; `pogled()` s `celiceKandidatov` pri
-  prikazanem koraku na stopnji 3 in izklopu; opomba pod korakom z izbrisi (`izrisiPomoc()`).
+- `igra/igra.js` – plošči poda stikalo, ključ in elementa za skrivanje; `pogled()` s
+  `celiceKandidatov` pri prikazanem koraku na stopnji 3 in izklopu; opomba z gumbom »Vklopi
+  kandidate« pod korakom z izbrisi (`izrisiPomoc()`).
 - `igra/igra.css` – kvečjemu razmik oznake »Manjkajoče števke« v kartici (slog `.niz-oznaka`
   že obstaja).
 - `tools/posnetek-igre.js` – novi koraki na koncu scenarija (izklop, poudarek, vpis
@@ -227,5 +245,5 @@ Za A dobi mreža neobvezno polje pogleda (celice, v katerih se kandidati izriše
 |---|---|---|---|---|
 | 1 | igra, pravi telefon | Izklopi kandidate, izberi celico s prstom, vpiši števko, poudari števko; vklopi. | Mreža brez malih števk je pregledna, niz »Odstrani« izgine in se vrne, vpis deluje, poudarek je viden. | presoja videza in dotik |
 | 2 | igra, slovenska tipkovnica | Pri izklopu: Shift+števka, 1–9 na kandidatu in na števki, ki je v vrstici že vpisana. | Shift+števka nič; kandidat se vpiše; druga števka se ne vpiše, vrstica pod nizi pove zakaj. | scenarij pošlje pare `key`/`code`, ne prave razporeditve sistema |
-| 3 | igra | Pri izklopu »Naslednji korak« do »Pokaži rešitev« pri koraku z izbrisom (npr. par ali izločitev). | Iz kandidatov v celicah koraka in opombe je jasno, kaj korak naredi in zakaj ga ni mogoče izvesti brez kandidatov. | presoja razumljivosti |
+| 3 | igra | Pri izklopu »Naslednji korak« do »Pokaži rešitev« pri koraku z izbrisom (npr. par ali izločitev); nato »Vklopi kandidate« v opombi. | Iz kandidatov v celicah koraka in opombe je jasno, kaj korak naredi in zakaj ga ni mogoče izvesti brez kandidatov. Gumb vklopi kandidate (kljukica v kartici »Prikaz« obkljukana), korak ostane prikazan, izbris lahko izvedeš. | presoja razumljivosti |
 | 4 | igra in trening, lokalni strežnik, tvoj Edge (ne InPrivate) | V igri izklopi kandidate, odpri trening (»Vadi v uganki« 4, »Spoznaj« E1), nato znova igro (F5). | Trening kot prej; igra po F5 ostane brez kandidatov. | obstoječa shramba pravega profila |

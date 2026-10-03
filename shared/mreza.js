@@ -21,6 +21,9 @@
 //   danosti     - niz 81 znakov, '0' = prazno (dana števka je temna, vpis moder)
 //   kandidati   - 81 mask kandidatov (bit d = števka d) ali null: brez kandidatov -
 //                 prazna celica z oznako vpisa (oznake.vpis) takrat pokaže števko
+//   celiceKandidatov - celice, v katerih se kandidati izrišejo, ali null = vse (igra:
+//                 izklopljeni kandidati in prikazan korak - kandidati samo v celicah
+//                 koraka); druge prazne celice so kot pri kandidati = null
 //   barva(d)    - barva poudarka števke d (0..3) ali -1
 //   izbrane     - izbrane celice
 //   sosede      - celica, katere vrstica/stolpec/blok se senčijo, ali null
@@ -104,6 +107,7 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
     const zasencene = p.zasencene ? new Set(p.zasencene) : null;
     const obm = p.obmocje && p.obmocje.celice ? new Set(p.obmocje.celice) : null;
     const zaznamovane = p.zaznamovane ? new Set(p.zaznamovane) : null;
+    const celiceKandidatov = p.celiceKandidatov ? new Set(p.celiceKandidatov) : null;
     el.classList.toggle('delna', !!vidne);
     // Oznaka roba je krepka, kadar je vsa vrstica ali ves stolpec viden (enota vaje).
     if (robovi) for (let k = 0; k < 9; k++) {
@@ -134,7 +138,7 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
         c.classList.add(p.danosti[i] !== '0' ? 'dana' : 'vpis');
         const b = barva(v);
         if (b >= 0) c.classList.add('poud-stevka', `b${b}`);
-      } else if (p.kandidati) {
+      } else if (p.kandidati && (!celiceKandidatov || celiceKandidatov.has(i))) {
         const k = p.kandidati[i];
         const m = document.createElement('div');
         m.className = 'kandidati';
@@ -158,7 +162,8 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
         }
         c.appendChild(m);
       } else if (o.vpis.has(i)) {
-        // Brez kandidatov (trening, enojčka): števka za vpis se pokaže v celici.
+        // Brez kandidatov (trening, enojčka; igra z izklopljenimi kandidati): števka za
+        // vpis se pokaže v celici.
         c.textContent = o.vpis.get(i);
       } else if (p.predlog && p.predlog.celica === i) {
         // Predlog vpisa (trening »Vadi v uganki«, E1/E2) - ni poteza, drugačen videz.

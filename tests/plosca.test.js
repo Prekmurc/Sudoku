@@ -694,3 +694,121 @@ test('barve poudarka iz nastavitev igre: nov in star zapis, napačen zapis, brez
   assert.equal(b.run("document.documentElement.style.getPropertyValue('--poud2')"), '');
   assert.equal(b.run("document.documentElement.style.getPropertyValue('--poud3')"), '#AABBCC');
 });
+
+// Stikalo »Kandidati v celicah« (igra, docs/kandidati-stikalo-nacrt.md): prikaz se vklopi
+// in izklopi med igro, kandidati se računajo naprej. Pri izklopu je niz Odstrani skrit,
+// izbire več celic ni, v nizu Vpiši je vseh 9 števk, vpis števke, ki ni kandidat, se
+// zavrne z razlogom. Stanje stikala je v shrambi pod ključem aplikacije.
+test('plošča: stikalo kandidatov - izklop in vklop, shramba, Vpiši vseh 9, zavrnjen vpis, brez več celic', () => {
+  const MOZNOSTI = 'stikaloKandidatov: el("kK"), kljucKandidatov: "test.kandidati", skrijBrezKandidatov: [el("glavaOdstrani"), el("nizOdstrani")],';
+  const shramba = new Map();
+  const p = pripravi({ shramba, moznosti: MOZNOSTI });
+  const kK = p.dom.el('kK');
+  assert.equal(kK.checked, true, 'brez zapisa so kandidati vklopljeni');
+  assert.equal(p.run('plosca.kandidatiVidni()'), true);
+  p.run(`odpri(novaIgra(${D}))`);
+  const oznaka = i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`;
+  const kandidatiVCelici = i => p.celica(i).children.filter(k => k.className === 'kandidati').length;
+  // Celica c: v njeni vrstici je dana števka d (zavrnjen vpis); celica q: ročni izbris x.
+  const c = prazne.find(i => [...danosti.slice(Math.floor(i / 9) * 9, Math.floor(i / 9) * 9 + 9)].some(ch => ch !== '0'));
+  const r = Math.floor(c / 9);
+  const kjeDana = [...Array(9).keys()].map(s => r * 9 + s).find(i => danosti[i] !== '0');
+  const d = +danosti[kjeDana];
+  const q = prazne.find(i => i !== c);
+  const x = STEVKE.find(s => (p.kand(q) & (1 << s)) && s !== resitev[q]);
+  assert.equal(kandidatiVCelici(c), 1, 'vklopljeno: kandidati v prazni celici');
+
+  // Ročni izbris pred izklopom in izbira več celic.
+  p.klik(q);
+  p.gumb('nizOdstrani', x).sprozi('click');
+  p.kljukica('vecCelic', true);
+  p.klik(c);
+  assert.deepEqual(p.izbrane(), [q, c]);
+  const potez = p.run('igra.poteze.length');
+
+  p.kljukica('kK', false);
+  assert.equal(shramba.get('test.kandidati'), 'false');
+  assert.equal(p.run('plosca.kandidatiVidni()'), false);
+  assert.deepEqual(p.izbrane(), [], 'izbira več celic se počisti');
+  assert.equal(p.dom.el('vecCelic').checked, false, 'kljukica »več celic« se izklopi');
+  assert.equal(p.dom.el('glavaOdstrani').hidden, true);
+  assert.equal(p.dom.el('nizOdstrani').hidden, true);
+  assert.equal(prazne.filter(i => kandidatiVCelici(i)).length, 0, 'izklopljeno: nobena celica nima kandidatov');
+  assert.equal(p.kand(q) & (1 << x), 0, 'ročni izbris ostane, kandidati se računajo naprej');
+  assert.equal(p.run('igra.poteze.length'), potez, 'preklop ni poteza');
+
+  // Brez več celic: Ctrl+klik ne doda celice.
+  p.klik(q);
+  p.klik(c, { ctrlKey: true });
+  assert.deepEqual(p.izbrane(), [c]);
+  // Vpiši: vseh 9 števk za prazno celico; Shift+števka (par QWERTZ) ne naredi nič.
+  assert.deepEqual(STEVKE.filter(s => !p.gumb('nizVpisi', s).disabled), STEVKE);
+  const kc = p.kand(c);
+  const s0 = STEVKE.find(s => kc & (1 << s));
+  p.tipka({ key: '!', code: `Digit${s0}`, shiftKey: true });
+  assert.equal(p.kand(c), kc);
+  assert.equal(p.run('igra.poteze.length'), potez);
+  // Števka, ki je v vrstici že vpisana: ni poteze, vrstica pod nizi pove zakaj.
+  p.gumb('nizVpisi', d).sprozi('click');
+  assert.equal(p.grid(c), 0);
+  assert.equal(p.run('igra.poteze.length'), potez);
+  assert.equal(p.razlog(), `Števka ${d} je v vrstici ${r + 1} že vpisana (${oznaka(kjeDana)}).`);
+  // Sporočilo izgine ob naslednji izbiri.
+  p.klik(q);
+  assert.equal(p.razlog(), '');
+  // Ročno odstranjen kandidat (tipka na številčnici): ni poteze, razlog.
+  p.tipka({ key: String(x), code: `Numpad${x}` });
+  assert.equal(p.grid(q), 0);
+  assert.equal(p.razlog(), `Kandidat ${x} je v ${oznaka(q)} odstranjen – vrneš ga pri vklopljenih kandidatih (↺) ali z »Razveljavi«.`);
+  // Kandidat se vpiše (poteza), sporočilo izgine.
+  p.klik(c);
+  p.tipka({ key: String(resitev[c]), code: `Digit${resitev[c]}` });
+  assert.equal(p.grid(c), resitev[c]);
+  assert.equal(p.run('igra.poteze.length'), potez + 1);
+  assert.equal(p.razlog(), 'Izberi celico v mreži.');
+  // Zaklenjena mreža: v nizu Vpiši ni nič omogočeno.
+  p.run('zaklep = true; plosca.izrisi()');
+  p.klik(q);
+  assert.deepEqual(STEVKE.filter(s => !p.gumb('nizVpisi', s).disabled), []);
+  p.run('zaklep = false; plosca.izrisi()');
+
+  // Vklop: kandidati spet vidni, ročni izbris ostane (v nizu Odstrani ga je mogoče vrniti).
+  p.kljukica('kK', true);
+  assert.equal(shramba.get('test.kandidati'), 'true');
+  assert.equal(p.dom.el('glavaOdstrani').hidden, false);
+  assert.equal(p.dom.el('nizOdstrani').hidden, false);
+  assert.equal(kandidatiVCelici(q), 1);
+  assert.deepEqual(p.izbrane(), [q]);
+  assert.ok(p.gumb('nizOdstrani', x).className.includes('vrni'));
+  assert.equal(p.gumb('nizVpisi', x).disabled, true, 'pri vklopu le smiselne števke, kot prej');
+  p.klik(c, { ctrlKey: true });
+  assert.equal(p.izbrane().length, 1, 'celica z vpisom se ne doda');
+  p.klik(prazne.find(i => i !== q && !p.grid(i)), { ctrlKey: true });
+  assert.equal(p.izbrane().length, 2, 'pri vklopu Ctrl+klik spet doda');
+
+  // Gumb aplikacije (nastaviKandidate) in nova stran z isto shrambo.
+  p.run('plosca.nastaviKandidate(false)');
+  assert.equal(kK.checked, false);
+  assert.equal(shramba.get('test.kandidati'), 'false');
+  assert.deepEqual(p.izbrane(), []);
+  const p2 = pripravi({ shramba, moznosti: MOZNOSTI, pred: 'el("vecCelic").checked = true;' });
+  assert.equal(p2.dom.el('kK').checked, false, 'stanje se prebere iz shrambe');
+  assert.equal(p2.dom.el('vecCelic').checked, false);
+  p2.run(`odpri(novaIgra(${D}))`);
+  assert.equal(p2.dom.el('nizOdstrani').hidden, true);
+  p2.run('plosca.nastaviKandidate(true)');
+  assert.equal(p2.dom.el('kK').checked, true);
+  assert.equal(p2.dom.el('nizOdstrani').hidden, false);
+
+  // Neveljaven zapis: vklopljeno. Shramba, ki ne dela: vklopljeno, preklop deluje do osvežitve.
+  assert.equal(pripravi({ shramba: new Map([['test.kandidati', '{napaka']]), moznosti: MOZNOSTI }).dom.el('kK').checked, true);
+  assert.equal(pripravi({ shramba: new Map([['test.kandidati', '0']]), moznosti: MOZNOSTI }).dom.el('kK').checked, true);
+  const p4 = pripravi({ moznosti: MOZNOSTI, pred: "localStorage.getItem = () => { throw new Error('ni shrambe'); }; localStorage.setItem = localStorage.getItem;" });
+  assert.equal(p4.dom.el('kK').checked, true);
+  p4.kljukica('kK', false);
+  assert.equal(p4.run('plosca.kandidatiVidni()'), false);
+
+  // Brez stikala (trening): stalno vklopljeno ali stalno izklopljeno (kandidati: false).
+  assert.equal(pripravi().run('plosca.kandidatiVidni()'), true);
+  assert.equal(pripravi({ moznosti: 'kandidati: false,' }).run('plosca.kandidatiVidni()'), false);
+});

@@ -144,6 +144,30 @@ test('oznakeKoraka: vzorec, izbrisi in vpis; izveden izbris ni več označen', (
   assert.equal(cel2[ce].children[0].children[de - 1].className, 'kand k-vpis');
 });
 
+// Igra z izklopljenimi kandidati pri prikazanem koraku (docs/kandidati-stikalo-nacrt.md, O4).
+test('celiceKandidatov: kandidati samo v naštetih celicah, druge prazne celice kot brez kandidatov', () => {
+  const { run } = pripravi();
+  const e = run('nextStep(stanje.deska, ALL_TECHNIQUES)');
+  assert.ok(e.assign.length, 'prvi korak je enojček');
+  const [ce, de] = e.assign[0];
+  const [a, b] = prazne.filter(i => i !== ce);
+  const izris = celiceKandidatov => run(`mr.izrisi({ grid: stanje.grid, danosti: igra.danosti, kandidati: stanje.kandidati,
+    celiceKandidatov: ${JSON.stringify(celiceKandidatov)}, oznake: oznakeKoraka(nextStep(stanje.deska, ALL_TECHNIQUES), stanje) })`);
+  izris([a]);
+  const celice = run('mr.celice');
+  const kand = run('stanje.kandidati');
+  assert.deepEqual(izrisaniKandidati(celice[a]), [1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (kand[a] & (1 << d) ? d : 0)));
+  assert.equal(celice[b].children.length, 0, 'celica zunaj seznama je brez kandidatov');
+  assert.equal(celice[b].textContent, '');
+  assert.equal(celice[ce].textContent, String(de), 'celica za vpis zunaj seznama pokaže števko');
+  assert.equal(celice[ce].className, 'celica k-vpis');
+  assert.equal(celice[dana].className, 'celica dana');
+  // null = kandidati v vseh praznih celicah.
+  izris(null);
+  assert.equal(celice[b].children.length, 1);
+  assert.equal(celice[ce].children[0].children[de - 1].className, 'kand k-vpis');
+});
+
 test('precrtani: odstranjeni kandidati sivo prečrtani, izbris koraka rdeče, kandidat ostane navaden', () => {
   const { run } = pripravi();
   // Stanje z ročno odstranjenimi kandidati: izbrisi prvega koraka motorja z izbrisom (pot

@@ -34,6 +34,17 @@
 //   kandidati     - false: mreža brez kandidatov (trening, enojčka); Shift+števka in
 //                   niz Odstrani takrat ne naredita nič (nevidnega kandidata ni mogoče
 //                   odstraniti)
+//   stikaloKandidatov - kljukica za vklop in izklop prikaza kandidatov med igro (igra,
+//                   »Kandidati v celicah«); kandidati se računajo naprej. Pri izklopu je
+//                   mreža brez kandidatov, Shift+števka in niz Odstrani ne naredita nič,
+//                   izbira več celic ni mogoča (ob izklopu se počisti, kljukica "več
+//                   celic" se izklopi), niz Vpiši za eno izbrano prazno celico omogoči
+//                   vseh 9 števk (samo kandidati bi jih izdali) - števka, ki ni kandidat,
+//                   se ne vpiše, vrstica pod nizi pove zakaj
+//   kljucKandidatov - ključ v localStorage za stanje stikala (true/false; brez zapisa
+//                   vklopljeno; brez ključa samo do osvežitve)
+//   skrijBrezKandidatov - elementi, ki so pri izklopljenih kandidatih skriti (igra:
+//                   oznaka niza Odstrani s kljukico "več celic" in niz)
 //   samoEna       - izbrana je kvečjemu ena celica (Ctrl/⌘+klik ne dodaja)
 //   spremenljiva(i) - ali igralec sme celico i izbrati ali odizbrati (privzeto vse):
 //                   klik je ne spremeni, puščice jo preskočijo, Escape in
@@ -71,8 +82,17 @@ function ustvariPlosco(o) {
   const obSpremembi = o.obSpremembi || (() => {});
   const izrisiVse = () => (o.izrisi || izrisi)();
   const spremenljiva = o.spremenljiva || (() => true);
-  const brezKandidatov = o.kandidati === false;
   const brezVpisa = o.vpis === false;
+  // Prikaz kandidatov: stalno izklopljen (o.kandidati === false, trening) ali s stikalom
+  // (igra). skritiStikalo() = izklopljen s stikalom - samo takrat veljajo pravila za
+  // igro brez kandidatov (vseh 9 števk v nizu Vpiši, brez izbire več celic).
+  const stikaloKandidatov = o.stikaloKandidatov || null;
+  let kandidatiVidni = o.kandidati !== false;
+  const brezKandidatov = () => !kandidatiVidni;
+  const skritiStikalo = () => !!stikaloKandidatov && !kandidatiVidni;
+  // Zavrnjen vpis pri izklopljenih kandidatih ({ celica, stevka }) - razlog je v vrstici
+  // pod nizi do naslednje poteze ali izbire.
+  let zavrnjen = null;
 
   // Izbrane celice v vrstnem redu izbire. Več celic (kljukica "več celic" ali
   // Ctrl+klik) je samo za odstranjevanje istega kandidata iz vseh; izbira ostane,
@@ -97,7 +117,9 @@ function ustvariPlosco(o) {
     robovi: !!o.robovi,
     obKliku: (i, e) => {
       if (!vir().igra || !spremenljiva(i)) return;
-      if (!o.samoEna && (vecCelic || e.ctrlKey || e.metaKey)) preklopiVIzbiri(i);
+      zavrnjen = null;
+      // Več celic je samo za odstranjevanje kandidatov - brez kandidatov ga ni.
+      if (!o.samoEna && !skritiStikalo() && (vecCelic || e.ctrlKey || e.metaKey)) preklopiVIzbiri(i);
       else izbrane = enaIzbrana() === i ? [] : [i]; // ponoven klik prekliče izbiro
       izrisiVse();
     },
@@ -133,6 +155,44 @@ function ustvariPlosco(o) {
       if (!vecCelic) izbrane = [];
       izrisiVse();
     });
+  }
+
+  /* ---------- stikalo kandidatov ---------- */
+
+  // Stanje stikala si zapomni brskalnik pod ključem aplikacije; brez zapisa (ali pri
+  // neveljavnem zapisu) so kandidati vklopljeni.
+  function kandidatiBeri() {
+    if (!o.kljucKandidatov) return true;
+    try {
+      return JSON.parse(localStorage.getItem(o.kljucKandidatov)) !== false;
+    } catch (e) { return true; }
+  }
+  function kandidatiPisi() {
+    if (!o.kljucKandidatov) return;
+    try { localStorage.setItem(o.kljucKandidatov, JSON.stringify(kandidatiVidni)); } catch (e) { /* velja do osvežitve */ }
+  }
+
+  // Vklop ali izklop prikaza kandidatov (kljukica ali gumb aplikacije, npr. »Vklopi
+  // kandidate« pri koraku): stanje se shrani, igra ostane nespremenjena. Ob izklopu se
+  // izbira več celic počisti in kljukica "več celic" izklopi (kot ob njenem izklopu).
+  function nastaviKandidate(vidni) {
+    if (!stikaloKandidatov) return;
+    kandidatiVidni = !!vidni;
+    stikaloKandidatov.checked = kandidatiVidni;
+    kandidatiPisi();
+    zavrnjen = null;
+    if (!kandidatiVidni) {
+      if (vecCelic || izbrane.length > 1) izbrane = [];
+      vecCelic = false;
+      if (o.vecCelic) o.vecCelic.checked = false;
+    }
+    izrisiVse();
+  }
+  if (stikaloKandidatov) {
+    kandidatiVidni = kandidatiBeri();
+    stikaloKandidatov.checked = kandidatiVidni;
+    if (!kandidatiVidni && o.vecCelic) { vecCelic = false; o.vecCelic.checked = false; }
+    stikaloKandidatov.addEventListener('change', () => nastaviKandidate(stikaloKandidatov.checked));
   }
 
   /* ---------- nizi gumbov ---------- */
@@ -232,6 +292,7 @@ function ustvariPlosco(o) {
   function ponastavi() {
     izbrane = [];
     zadnjaIzbrana = null;
+    zavrnjen = null;
     poudarjene = [];
     zaznamovane = new Set();
   }
@@ -261,16 +322,27 @@ function ustvariPlosco(o) {
   /* ---------- poteze ---------- */
 
   // Vpis števke v izbrano celico (niz Vpiši, tipka) - ali povratni klic aplikacije.
+  // Pri izklopljenih kandidatih je v nizu omogočenih vseh 9 števk: števka, ki ni
+  // kandidat, se ne vpiše, vrstica pod nizi pove zakaj (razlogZavrnitve).
   function vpisi(d) {
     if (o.obVpisu) {
       if (vir().igra) o.obVpisu(enaIzbrana(), d);
       return;
     }
-    izvedi({ tip: 'vpis', celica: enaIzbrana(), stevka: d });
+    const celica = enaIzbrana();
+    const { igra, stanje } = vir();
+    if (skritiStikalo() && igra && !samoZaOgled() && celica !== null && !stanje.grid[celica]
+      && !(mozneAkcije(stanje, celica).vpis & (1 << d))) {
+      zavrnjen = { celica, stevka: d };
+      izrisiVse();
+      return;
+    }
+    izvedi({ tip: 'vpis', celica, stevka: d });
   }
 
   function izvedi(poteza) {
     const { igra, stanje } = vir();
+    zavrnjen = null;
     if (!igra || samoZaOgled() || !dodajPotezo(igra, poteza, stanje)) return;
     // Po vpisu števke se izbira celice izklopi (puščice nadaljujejo od nje).
     if (poteza.tip === 'vpis' && poteza.stevka) {
@@ -284,7 +356,7 @@ function ustvariPlosco(o) {
   // več izbranih celicah se števka v eni potezi odstrani iz vseh (izbira ostane).
   function odstraniAliVrni(d) {
     const { igra, stanje } = vir();
-    if (!igra || brezKandidatov) return;
+    if (!igra || brezKandidatov()) return;
     if (izbrane.length > 1) {
       izvedi({ tip: 'kandidati', celice: [...izbrane].sort((x, y) => x - y), stevka: d, odstrani: true });
       return;
@@ -303,6 +375,7 @@ function ustvariPlosco(o) {
   function razveljaviPotezo() {
     const { igra } = vir();
     if (!igra || samoZaOgled() || !lahkoRazveljavi(igra)) return;
+    zavrnjen = null;
     razveljavi(igra);
     obSpremembi('razveljavi');
   }
@@ -310,6 +383,7 @@ function ustvariPlosco(o) {
   function ponoviPotezo() {
     const { igra } = vir();
     if (!igra || samoZaOgled() || !lahkoPonovi(igra)) return;
+    zavrnjen = null;
     ponovi(igra);
     obSpremembi('ponovi');
   }
@@ -319,6 +393,7 @@ function ustvariPlosco(o) {
     const { igra } = vir();
     if (!igra || !lahkoZacniZnova(igra)) return;
     if (!potrdiZnova()) return;
+    zavrnjen = null;
     zacniZnova(igra);
     obSpremembi('znova');
   }
@@ -398,6 +473,7 @@ function ustvariPlosco(o) {
     const premik = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
     if (premik) {
       e.preventDefault();
+      zavrnjen = null;
       // Pri več izbranih celicah puščice ne naredijo nič (izbire ne podrejo po nesreči).
       if (izbrane.length > 1) return true;
       // Po vpisu (izbira izklopljena) se premik nadaljuje od zadnje izbrane celice.
@@ -440,6 +516,7 @@ function ustvariPlosco(o) {
       return true;
     }
     if (e.key === 'Escape' && pocistiIzbiro()) {
+      zavrnjen = null;
       izrisiVse();
       return true;
     }
@@ -461,7 +538,7 @@ function ustvariPlosco(o) {
       zaklenjena: samoZaOgled(),
       grid: stanje.grid,
       danosti: igra.danosti,
-      kandidati: brezKandidatov ? null : stanje.kandidati,
+      kandidati: brezKandidatov() ? null : stanje.kandidati,
       barva: barvaPoudarka,
       izbrane,
       sosede: enaIzbrana(),
@@ -482,6 +559,13 @@ function ustvariPlosco(o) {
       : mozneAkcije(stanje, enaIzbrana());
     // Predlog vpisa: za prazno celico vseh 9 števk.
     if (o.predlog && igra && !ogled && enaIzbrana() !== null && !stanje.grid[enaIzbrana()]) a = { ...a, vpis: 0x3FE };
+    // Izklopljeni kandidati: za prazno celico vseh 9 števk (samo kandidati bi jih
+    // izdali), odstranjevati ni česa (niz je skrit).
+    if (skritiStikalo() && igra && !ogled) {
+      a = { ...a, odstrani: 0, vrni: 0 };
+      if (enaIzbrana() !== null && !stanje.grid[enaIzbrana()]) a.vpis = 0x3FE;
+    }
+    for (const el of o.skrijBrezKandidatov || []) el.hidden = skritiStikalo();
     for (let d = 1; d <= 9; d++) {
       const bit = 1 << d;
 
@@ -556,11 +640,21 @@ function ustvariPlosco(o) {
     // Vpisa iz začetnih potez (vaja v treningu - prejšnji koraki) ni mogoče zbrisati.
     if (v && stanje.zacetni.vpisi[izbrana]) return `V ${ime} je vpis iz prejšnjih korakov (${v}) – ne spreminja se.`;
     if (v) return `V ${ime} je tvoj vpis (${v}) – za spremembo ga najprej zbriši.`;
+    if (zavrnjen && zavrnjen.celica === izbrana) return razlogZavrnitve(stanje, izbrana, zavrnjen.stevka);
     if (!a.vpis) {
       return a.vrni ? `V ${ime} ni več kandidatov – vrni odstranjenega (↺) ali razveljavi.`
         : `V ${ime} ni več kandidatov – razveljavi zadnje poteze.`;
     }
     return '';
+  }
+
+  // Zakaj števka d ni kandidat prazne celice (zavrnjen vpis pri izklopljenih
+  // kandidatih): v kaki enoti celice je že vpisana - to se vidi tudi na mreži -, sicer
+  // je bil kandidat ročno odstranjen.
+  function razlogZavrnitve(stanje, celica, d) {
+    const enota = UNITS_OF[celica].find(u => u.some(c => stanje.grid[c] === d));
+    if (enota) return `Števka ${d} je v ${unitNameLoc(enota)} že vpisana (${cellLabel(enota.find(c => stanje.grid[c] === d))}).`;
+    return `Kandidat ${d} je v ${cellLabel(celica)} odstranjen – vrneš ga pri vklopljenih kandidatih (↺) ali z »Razveljavi«.`;
   }
 
   function izrisi() {
@@ -589,6 +683,8 @@ function ustvariPlosco(o) {
     zaznamuj,
     pocistiZaznamke,
     get zaznamovane() { return [...zaznamovane]; },
+    kandidatiVidni: () => kandidatiVidni,
+    nastaviKandidate,
     izrisi,
     obTipki,
   };
