@@ -1040,11 +1040,30 @@ obstoječe točke, največ 5.
 
 | Korak | Stanje | Commit | Testi |
 |---|---|---|---|
-| 9a `shared/`: `pogled.obmocje`, `pogled.zaznamovane`, zaznamki in `stevkeObmocja()` v plošči | **narejeno 2026-10-03** | (ta commit) | 414 (412 + 2) |
-| 9b trening: »Vadi v uganki« in »Spoznaj« E1/E2 | | | |
+| 9a `shared/`: `pogled.obmocje`, `pogled.zaznamovane`, zaznamki in `stevkeObmocja()` v plošči | **narejeno 2026-10-03** | `e578c94` | 414 (412 + 2) |
+| 9b trening: »Vadi v uganki« in »Spoznaj« E1/E2 | **narejeno 2026-10-03** | (ta commit) | 417 (414 + 3) |
 
 - 9a: `shared/mreza.js` (okvir območja na `::before`, temne oznake roba, zaznamovane
   celice), `shared/mreza.css` (`--obmocje`, `--zaznamek`), `shared/plosca.js` (gumba in
   tipka O, stanje zaznamkov, obroč števke), `shared/plosca.css`. Trening še ne uporablja.
   Testi `tests/mreza.test.js` in `tests/plosca.test.js` (+1 vsak). Posnetek igre »Enako:
   85 posnetkov.«, `preveri-vadi-brskalnik.js` »Vse drži« (»Spoznaj« enak).
+- 9b: `trening/v-uganki.js` – `obmocjeZaMrezo()` (okvir in oznake roba iz celic
+  območja), `pogled.obmocje` pri vajah 1–6, obroč števke (7–10), razlaga »Območje je na
+  mreži uokvirjeno.«, vrstica zaznamkov pri 1–12 (skrita po pravilnem odgovoru),
+  `legendaKoraka()` pod »Pravilno!« in v »Rešitvi«; `trening/trening.js` – okvir pri
+  E1/E2 v »Spoznaj« (vaje 1–6); `trening/trening.css`. Testi v
+  `tests/trening-uganka-ui.test.js` (+3: zaznamki, legenda, »Spoznaj« E1/E2; okvir in
+  oznake v testu območja po tehnikah).
+- Scenarij `preveri-vadi-brskalnik.js`: okvir z izračunanim slogom `::before` (3 px
+  `rgb(29, 63, 107)`, tudi na izbrani celici ob poudarku), temne oznake roba, obroč
+  števke, zaznamki s pravimi kliki in tipko O (QWERTZ), legenda. »Spoznaj« E1/E2 dobita
+  svoje izhodišče (`IZHODISCE_ENOJCKI` = ta commit, nastavljen v naslednjem commitu);
+  druge tehnike enake kot prej.
+- Preverjanje: 417 testov; posnetek igre »Enako: 85 posnetkov.«;
+  `preveri-vadi-brskalnik.js`, `preveri-enojcki-brskalnik.js`, `preveri-presek-brskalnik.js`
+  »Vse drži«.
+- Ročni pregled: točke 1, 2 in 4 v `docs/rocni-test.md` dopolnjene (še vedno 5).
+
+![9b: območje, 4 · Skriti par, 375 px](slike/vadi-v-uganki/izvedba-9b-obmocje-375.png)
+![9b: zaznamki, 8 · Mečarica, 375 px](slike/vadi-v-uganki/izvedba-9b-zaznamki-375.png)

@@ -94,6 +94,29 @@ const VADI_Z_OBMOCJEM=6;
 function izberiObmocje(v){
   return exNum<VADI_Z_OBMOCJEM?obmocjeKoraka(v.KT[Math.floor(Math.random()*v.KT.length)]):null;
 }
+// Območje za izris mreže (pogled.obmocje v shared/mreza.js - okvir in temne oznake roba,
+// točka 17 načrta) iz celic območja: ena celica - njena vrstica in stolpec, vse v eni
+// vrstici ali stolpcu - ta vrstica ali stolpec, sicer (blok, dva bloka) vrstice in stolpci
+// vseh celic. Uporablja ga tudi "Spoznaj" E1/E2 (trening.js).
+function obmocjeZaMrezo(celice){
+  if(!celice||!celice.length) return null;
+  const vr=new Set(celice.map(c=>Math.floor(c/9))),st=new Set(celice.map(c=>c%9));
+  if(celice.length>1&&vr.size===1) return{celice,vrstice:[...vr],stolpci:[]};
+  if(celice.length>1&&st.size===1) return{celice,vrstice:[],stolpci:[...st]};
+  return{celice,vrstice:[...vr],stolpci:[...st]};
+}
+
+// Legenda oznak koraka pod sporočilom (točka 17.3): jantarno = celice vzorca, rdeče
+// prečrtano = izbrisi - po pravilnem odgovoru so odstranjeni, v "Rešitvi" še ne.
+function legendaKoraka(korak,odstranjeni){
+  const l=vEl('div','legenda-vaje');
+  const vz=vEl('span');vz.append(vEl('span','sw sw-vzorec'),'celice vzorca');
+  const iz=vEl('span');iz.append(vEl('span','izbris-vzorec',String(korak.eliminate[0][1])),
+    odstranjeni?'izbrisani kandidati (odstranjeni)':'kandidat za izbris');
+  l.append(vz,iz);
+  return l;
+}
+
 // Ime tehnike v tožilniku za navodilo ("poišči skriti par").
 const VADI_TOZILNIK={'Pointing pair/triple':'izločitev izven bloka','Box-line reduction':'izločitev v bloku',
   'Naked pair':'očitni par','Hidden pair':'skriti par','Naked triple':'očitno trojico','Hidden triple':'skrito trojico',
@@ -152,7 +175,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   const div=vEl('div','exercise');
   div.appendChild(vadiOznaka(kljuc));
   div.appendChild(vEl('h3',null,navodiloVadi(kljuc,ob)));
-  div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].razlaga+(!ob?'':ob.celice?' Označeno območje je na mreži modrikasto.'
+  div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].razlaga+(!ob?'':ob.celice?' Območje je na mreži uokvirjeno.'
     :ob.stevke.length>1?' Števki sta poudarjeni.':' Števka je poudarjena.')));
 
   // Stopnja uganke (samo informacija, tudi "Presega tehnike"), izvor vaje v title.
@@ -207,7 +230,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   const sV=seznam('seznam-vrstic','Manjkajoče števke v vrsticah'),sS=seznam('seznam-stolpcev','Manjkajoče števke v stolpcih');
   okvir.append(mEl,sV,sS);wrap.appendChild(okvir);
   wrap.appendChild(vEl('div','g9-note','Temne števke so dane, modre so vpisane na poti do te vaje.'));
-  let nizO=null,nizV=null,vc=null,razlogEl=null,akcije=null,raz=null,pon=null,zn=null;
+  let nizO=null,nizV=null,vc=null,razlogEl=null,akcije=null,raz=null,pon=null,zn=null,zaznamki=null,zaznBtn=null,zaznPoc=null;
   if(enoj){
     const g=vEl('div','niz-oznaka');g.append('Vpiši v izbrano celico ');
     g.appendChild(vEl('span','niz-pojasnilo','· predlog'));
@@ -231,6 +254,13 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     pon=vEl('button',null,'↷ Ponovi');pon.type='button';pon.title='Ponovi (Ctrl+Y)';
     zn=vEl('button',null,'↺ Začni znova');zn.type='button';zn.title='Vrni na začetek vaje (poteze ostanejo v »Ponovi«)';
     akcije.append(raz,pon,zn);wrap.appendChild(akcije);
+    // Zaznamki (točka 17.2): izbrane celice dobijo obstojno oranžno črtkano obrobo, izbira
+    // je nato spet prosta; niso poteze in ne štejejo kot pomoč; nova vaja jih pobriše.
+    zaznamki=vEl('div','zaznamki');
+    zaznBtn=vEl('button',null,'◩ Označi izbrane (O)');zaznBtn.type='button';
+    zaznBtn.title='Izbrane celice označi (ali odznači) z obrobo - izbira je nato spet prosta';
+    zaznPoc=vEl('button',null,'Počisti oznake');zaznPoc.type='button';
+    zaznamki.append(zaznBtn,zaznPoc);wrap.appendChild(zaznamki);
   }
   const stikalaEl=vEl('div','seznami-stikala');stikalaEl.setAttribute('role','group');stikalaEl.setAttribute('aria-label','Prikaz seznamov');
   const kV=vKljukica(' Vrstice'),kS=vKljukica(' Stolpci'),kB=vKljukica(' Bloki');
@@ -280,6 +310,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     }else{
       p.append(vEl('b',null,'Rešitev: '),k.message);
       pomocEl.appendChild(p);
+      if(!enoj) pomocEl.appendChild(legendaKoraka(k,false));
       // Dejanja koraka z oznako izvedenih (kot v igri), na mreži samo še neizvedena.
       const dejanja=dejanjaKoraka(k,stanje),opravljenih=dejanja.filter(a=>a.opravljeno).length;
       if(opravljenih===dejanja.length) pomocEl.appendChild(vEl('p','pomoc-opomba ok','✓ Korak je izveden.'));
@@ -326,6 +357,9 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     mreza:mEl,robovi:true,kandidati:!enoj,samoEna:enoj,vpis:enoj?undefined:false,
     nizPoudari:nizP,vecHkrati:vh.i,nizOdstrani:nizO,vecCelic:vc&&vc.i,
     nizVpisi:nizV,predlog:enoj,obVpisu:enoj?nastaviPredlog:undefined,senci:sc&&sc.i,
+    zaznamuj:zaznBtn,pocistiZaznamke:zaznPoc,
+    // Števke območja (7-10): obroč na gumbu v nizu Poudari, ostane tudi brez poudarka.
+    stevkeObmocja:()=>ob&&ob.stevke&&!vajaResena?ob.stevke:[],
     // Senčenje pri E2 pred pravilnim odgovorom je pomoč (kot namig; oznaciPomoc po rešeni
     // vaji ne naredi nič).
     izrisi:()=>{plosca.izrisi();if(skriti&&plosca.sencenjeVidno())oznaciPomoc();},
@@ -354,6 +388,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
       // zunaj enote neaktivne (zatemnjene, kot v "Spoznaj").
       if(ob&&ob.celice&&!vajaResena){
         p.oznacene=ob.celice;
+        p.obmocje=obmocjeZaMrezo(ob.celice);
         if(enoj) p.neaktivne=stanje.grid.map((x,i)=>i).filter(i=>!stanje.grid[i]&&!vEnoti(i));
       }
       if(vajaResena){p.izbrane=[];p.sosede=null;}
@@ -403,7 +438,8 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
       stej(true);pomoc=null;izrisiPomoc();
       const kje=!vOb&&ob?` (korak ${obmocjeKoraka(odgovor,()=>0).opis}, ne ${ob.opis})`:'';
       fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b>${kje} ${odgovor.message}`;
-      akcije.hidden=true;checkBtn.style.display='none';nextBtn.style.display='inline-block';
+      fb.appendChild(legendaKoraka(odgovor,true));
+      akcije.hidden=true;zaznamki.hidden=true;checkBtn.style.display='none';nextBtn.style.display='inline-block';
       plosca.izrisi();
     }else if(r.izid==='napacno'){
       stej(false);

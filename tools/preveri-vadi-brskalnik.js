@@ -33,6 +33,10 @@ const izhodisce = arg('--izhodisce', '5b9ae6f');
 // banke, zato imata svoje izhodišče (prazno = ne primerjata se).
 const IZHODISCE_PRESEK = 'dd316bd';
 const izhodiscePresek = arg('--izhodisce-presek', IZHODISCE_PRESEK);
+// E1 in E2 v "Spoznaj" imata od točke 17 (okvir območja pri vajah 1-6) svoje izhodišče
+// (prazno = ne primerjata se).
+const IZHODISCE_ENOJCKI = '';
+const izhodisceEnojcki = arg('--izhodisce-enojcki', IZHODISCE_ENOJCKI);
 const PRESEK = ['pointing', 'box-line'];
 const KOREN = path.join(__dirname, '..');
 
@@ -254,6 +258,8 @@ async function odgovor1do12(b, sirina) {
       obroba: getComputedStyle(document.querySelector('.vaja-uganka .mreza')).outlineStyle, sirina: document.documentElement.scrollWidth };
   })()`);
   preveri('pravilen odgovor', p.fb === 'fb ok', p.fb);
+  const leg = await b.izvedi(`(() => { const l = document.querySelector('.fb .legenda-vaje'); return l ? { besedilo: l.textContent, visina: l.getBoundingClientRect().height } : null; })()`);
+  preveri('legenda: celice vzorca, izbrisani kandidati', leg && leg.visina > 0 && /celice vzorca.*izbrisani kandidati \(odstranjeni\)/.test(leg.besedilo), leg);
   preveri('Razveljavi/Ponovi/Začni znova skriti', p.akcije === 0, p.akcije);
   preveri('izbrisi koraka rdeče prečrtani', p.kIzbris === 'kand precrtan k-izbris' && p.barva === 'rgb(176, 46, 46)' && p.crta === 'line-through', p);
   preveri('vzorec koraka jantarno, brez zelene obrobe', p.vzorec && p.obroba === 'none', p);
@@ -306,9 +312,54 @@ async function obmocje(b, sirina) {
     preveri(`${mode}: navodilo pove območje`, !/^Poišči korak tehnike/.test(o.navodilo), o.navodilo);
     if (vrsta === 'stevke') preveri(`${mode}: števka poudarjena`, o.poud.length && o.poud.every(x => x === 'true'), o.poud);
     else preveri(`${mode}: območje modrikasto`, o.oznacenih === o.pricakovanih && o.barva === 'rgb(227, 238, 251)', o);
+    // Točka 17: okvir ob robu območja (::before, 3 px temen) in temne oznake roba; pri
+    // števkah obroč na gumbu v nizu Poudari. Okvir ostane ob izbrani celici in poudarku.
+    if (vrsta !== 'stevke') {
+      const c0 = await b.izvedi('vadi.ob.celice.find(c => !vadi.stanje.grid[c])');
+      if (c0 !== undefined) await b.klikni(celicaSel(c0));
+      await b.izvedi('vadi.plosca.poudari(vadi.KTob[0].eliminate[0][1]); true');
+    }
+    const k = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice;
+      const rob = c.filter(x => x.classList.contains('obm-g') || x.classList.contains('obm-l'));
+      const okvir = rob.map(x => { const s = getComputedStyle(x, '::before'); return x.classList.contains('obm-g') ? [s.borderTopWidth, s.borderTopColor] : [s.borderLeftWidth, s.borderLeftColor]; });
+      const izbrana = c.find(x => x.classList.contains('izbrana') && x.classList.contains('obm'));
+      const oznake = [...document.querySelectorAll('.vaja-uganka .rob-s span.obm, .vaja-uganka .rob-v span.obm')].map(s => [getComputedStyle(s).backgroundColor, getComputedStyle(s).color]);
+      const obroc = [...document.querySelectorAll('.vaja-uganka .niz-poudari button.obm-stevka')].map(g => getComputedStyle(g).boxShadow);
+      return { robnih: rob.length, okvir: [...new Set(okvir.map(x => x.join(' ')))], izbranaOkvir: izbrana ? getComputedStyle(izbrana, '::before').borderTopWidth + getComputedStyle(izbrana, '::before').borderLeftWidth : null,
+        oznake: [...new Set(oznake.map(x => x.join(' ')))], stOznak: oznake.length, obroc }; })()`);
+    if (vrsta === 'stevke') {
+      preveri(`${mode}: obroč števke v nizu Poudari`, k.obroc.length === 1 && k.obroc[0].includes('rgb(29, 63, 107)'), k.obroc);
+    } else {
+      preveri(`${mode}: okvir 3 px temen`, k.robnih > 0 && k.okvir.length === 1 && k.okvir[0] === '3px rgb(29, 63, 107)', k);
+      preveri(`${mode}: oznake roba v temnem polju`, k.stOznak > 0 && k.oznake.length === 1 && k.oznake[0] === 'rgb(29, 63, 107) rgb(255, 255, 255)', k);
+      if (k.izbranaOkvir !== null) preveri(`${mode}: okvir viden tudi na izbrani celici`, k.izbranaOkvir !== '0px0px', k.izbranaOkvir);
+    }
     preveri(`${mode}: brez drsnika`, o.sirina === sirina, o.sirina);
     await b.posnetek(path.join(mapa, `${mode}-obmocje-${sirina}.png`));
   }
+}
+
+// Zaznamki (točka 17.2) s pravimi kliki: kljukica "več celic", celice vzorca, gumb, nato
+// tipka O na QWERTZ; oranžna črtkana obroba; izbira je spet prosta.
+async function zaznamki(b, sirina) {
+  console.log(`swordfish, zaznamki, ${sirina} px`);
+  await vadi(b, 'swordfish', sirina, { banka: true, seme: 4 });
+  await b.izvedi('exNum = 6; renderExercise(); true');
+  await b.cakaj('vadi !== null', 15000);
+  const k = await b.izvedi('vadi.v.KT[0]');
+  await b.klikni('.vaja-uganka .glava-s-kljukico input');
+  for (const c of k.cells) await b.klikni(celicaSel(c));
+  await klikniGumb(b, '◩ Označi izbrane (O)');
+  let z = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice.filter(x => x.classList.contains('zaznamovana'));
+    return { n: c.length, izbrane: vadi.plosca.izbrane.length, slog: c.length ? getComputedStyle(c[0]).outlineStyle + ' ' + getComputedStyle(c[0]).outlineColor : '' }; })()`);
+  preveri('zaznamovane celice vzorca, izbira prazna', z.n === k.cells.length && z.izbrane === 0, z);
+  preveri('oranžna črtkana obroba', z.slog === 'dashed rgb(180, 83, 9)', z.slog);
+  await b.klikni('.vaja-uganka .glava-s-kljukico input');
+  await b.klikni(celicaSel(k.cells[0]));
+  await b.tipka('o', { code: 'KeyO' });
+  z = await b.izvedi(`vadi.plosca.mreza.celice.filter(x => x.classList.contains('zaznamovana')).length`);
+  preveri('tipka O (QWERTZ) odznači', z === k.cells.length - 1, z);
+  await b.posnetek(path.join(mapa, `swordfish-zaznamki-${sirina}.png`));
 }
 
 async function banka(b) {
@@ -350,13 +401,14 @@ async function izhodisceBrskalnik(commit) {
 async function spoznaj(sirine) {
   const izh = { [izhodisce]: await izhodisceBrskalnik(izhodisce) };
   if (izhodiscePresek && !izh[izhodiscePresek]) izh[izhodiscePresek] = await izhodisceBrskalnik(izhodiscePresek);
+  if (izhodisceEnojcki && !izh[izhodisceEnojcki]) izh[izhodisceEnojcki] = await izhodisceBrskalnik(izhodisceEnojcki);
   const bNov = await zazeni();
   try {
     for (const sirina of sirine) {
-      console.log(`Spoznaj, ${sirina} px (izhodišče ${izhodisce}; 1 in 2: ${izhodiscePresek || 'brez primerjave'})`);
+      console.log(`Spoznaj, ${sirina} px (izhodišče ${izhodisce}; 1 in 2: ${izhodiscePresek || 'brez primerjave'}; E1 in E2: ${izhodisceEnojcki || 'brez primerjave'})`);
       for (const m of TEHNIKE) {
-        const commit = PRESEK.includes(m) ? izhodiscePresek : izhodisce;
-        if (!commit) { console.log(`  - ${m}: brez izhodišča (izbira po stopnji, točka 16)`); continue; }
+        const commit = PRESEK.includes(m) ? izhodiscePresek : ENOJCKA.includes(m) ? izhodisceEnojcki : izhodisce;
+        if (!commit) { console.log(`  - ${m}: brez izhodišča (točka 16 ali 17)`); continue; }
         const s = await izris(izh[commit].b, m, sirina);
         const n = await izris(bNov, m, sirina);
         const razl = s.slogi.findIndex((x, i) => x !== n.slogi[i]);
@@ -387,6 +439,7 @@ async function main() {
       await pomoc1do12(b, sirina);
       await sencenjeE2(b, sirina);
       await obmocje(b, sirina);
+      await zaznamki(b, sirina);
     }
     await banka(b);
     await predlogSiv(b);

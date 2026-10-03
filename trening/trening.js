@@ -292,6 +292,9 @@ function buildSingleLayout(div,ex,M){
     pogled:()=>({
       sosede:null,
       oznacene:o?VSE.filter(oznacena):null,
+      // Območje postopnosti tudi brez barve: okvir in temne oznake roba (točka 17 v
+      // docs/vadi-v-uganki-nacrt.md; obmocjeZaMrezo() v trening/v-uganki.js).
+      obmocje:o&&!vajaResena?obmocjeZaMrezo(VSE.filter(oznacena)):null,
       neaktivne:VSE.filter(i=>!ex.boardGrid[i]&&!dovoljena(i)&&!oznacena(i)),
       ...(vajaResena?{izbrane:[]}:{}),
     }),

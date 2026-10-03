@@ -73,7 +73,7 @@ test('iskanje: "Iščem vajo …", nato vaja; ob preseženi meji iz banke', () =
   // Vaja 1: navodilo pove enoto koraka (območje), razlaga pove, da je označena.
   assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent,
     /^V (vrstici|stolpcu|bloku) \d poišči skriti par in odstrani kandidate, ki jih izloči\.$/);
-  assert.equal(poRazredu(dom, 'desc')[0].textContent, run('TEHNIKE_OPISI["hidden-pair"].razlaga') + ' Označeno območje je na mreži modrikasto.');
+  assert.equal(poRazredu(dom, 'desc')[0].textContent, run('TEHNIKE_OPISI["hidden-pair"].razlaga') + ' Območje je na mreži uokvirjeno.');
   // Stopnja uganke (informacija), izvor v title.
   const info = poRazredu(dom, 'vaja-info')[0];
   assert.equal(info.children[0].textContent, `Uganka: ${run('vadi.v.stopnja')}`);
@@ -593,6 +593,14 @@ test('območje po tehnikah (vaja 1): navodilo, oznaka na mreži ali poudarek št
     const oznacene = celice(dom).map((e, c) => e.classList.contains('oznacena') ? c : -1).filter(c => c >= 0);
     assert.deepEqual(oznacene, ob.celice ? [...ob.celice].sort((a, b) => a - b) : [], `${mode}: oznaka`);
     if (ob.stevke) for (const d of ob.stevke) assert.ok(run(`vadi.plosca.barvaPoudarka(${d})`) >= 0, `${mode}: poudarjena ${d}`);
+    // Okvir območja (točka 17): razred obm natanko na celicah območja; temne oznake roba;
+    // pri števkah obroč na gumbu v nizu Poudari.
+    const zObm = celice(dom).map((e, c) => e.classList.contains('obm') ? c : -1).filter(c => c >= 0);
+    assert.deepEqual(zObm, ob.celice ? [...ob.celice].sort((a, b) => a - b) : [], `${mode}: okvir`);
+    const temne = poRazredu(dom, 'obm').filter(e => e.tagName === 'SPAN').length;
+    assert.ok(ob.celice ? temne > 0 : temne === 0, `${mode}: oznake roba ${temne}`);
+    const obroci = poRazredu(dom, 'niz-poudari')[0].children.map((g, i) => g.classList.contains('obm-stevka') ? i + 1 : 0).filter(Boolean);
+    assert.deepEqual(obroci, ob.stevke ? [...ob.stevke] : [], `${mode}: obroč števke`);
     assert.ok(run('vadi.KTob.length > 0 && vadi.KTob.every(k => vObmocju(k, vadi.ob))'));
     // Rešitev pokaže korak iz območja.
     gumb(dom, 'Rešitev').sprozi('click');
@@ -675,5 +683,75 @@ test('»Spoznaj« 1 in 2: uganke iz banke najprej osnovne stopnje (Srednja), bre
       return VAJE_BANKA.find(z => z.danosti === ex.danosti).stopnja; })`);
     assert.ok(srednjih >= 9, `${mode}: dovolj ugank osnovne stopnje v banki`);
     assert.deepEqual(stopnje, Array(9).fill('Srednja'), mode);
+  }
+});
+
+
+/* ---------- 9b: zaznamki, legenda, območje v »Spoznaj« E1/E2 (točka 17) ---------- */
+
+test('zaznamki: gumb in tipka O, izbira prosta, ostanejo ob »Začni znova«, nova vaja jih pobriše', () => {
+  const { dom, run, izprazni } = zacni('swordfish', { banka: true });
+  run('exNum = 6; renderExercise()');
+  izprazni();
+  const k = iz(run, 'vadi.v.KT[0]');
+  const zazn = () => celice(dom).map((e, c) => e.classList.contains('zaznamovana') ? c : -1).filter(c => c >= 0);
+  // Celice vzorca izbrane s Ctrl+klikom, nato gumb: zaznamovane, izbira prazna.
+  celice(dom)[k.cells[0]].sprozi('click');
+  for (const c of k.cells.slice(1)) celice(dom)[c].sprozi('click', { ctrlKey: true });
+  gumb(dom, '◩ Označi izbrane (O)').sprozi('click');
+  assert.deepEqual(zazn(), [...k.cells].sort((a, b) => a - b));
+  assert.deepEqual(iz(run, 'vadi.plosca.izbrane'), []);
+  assert.equal(run('vadi.v.igra.kazalec'), run('vadi.v.igra.zacetnihPotez'), 'zaznamek ni poteza');
+  assert.equal(dom.el('scorePomoc').textContent, '', 'ni pomoč');
+  // Celica izbrisa je spet prosta za izbiro; izbris in »Začni znova«: zaznamki ostanejo.
+  const [ec, ed] = k.eliminate[0];
+  celice(dom)[ec].sprozi('click');
+  poRazredu(dom, 'niz-odstrani')[0].children[ed - 1].sprozi('click');
+  gumb(dom, '↺ Začni znova').sprozi('click');
+  assert.deepEqual(zazn(), [...k.cells].sort((a, b) => a - b));
+  // Tipka O (QWERTZ: key 'o', code 'KeyO') na zaznamovani celici: odznači.
+  celice(dom)[k.cells[0]].sprozi('click');
+  dom.tipka({ key: 'o', code: 'KeyO', preventDefault() {} });
+  assert.equal(zazn().includes(k.cells[0]), false);
+  gumb(dom, 'Počisti oznake').sprozi('click');
+  assert.deepEqual(zazn(), []);
+  // Nova vaja: brez zaznamkov.
+  celice(dom)[k.cells[0]].sprozi('click');
+  gumb(dom, '◩ Označi izbrane (O)').sprozi('click');
+  run('exNum++; renderExercise()');
+  izprazni();
+  assert.deepEqual(zazn(), []);
+  assert.equal(poRazredu(dom, 'zaznamki').length, 1);
+});
+
+test('legenda: po pravilnem odgovoru »izbrisani kandidati (odstranjeni)«, v Rešitvi »kandidat za izbris«', () => {
+  const { dom, run } = vajaZ('hidden-pair', 'true');
+  gumb(dom, 'Rešitev').sprozi('click');
+  const vRes = poRazredu(dom, 'vadi-pomoc')[0];
+  assert.match(vRes.textContent, /celice vzorca\d?kandidat za izbris/);
+  gumb(dom, 'Skrij').sprozi('click');
+  const k = iz(run, 'vadi.KTob[0]');
+  for (const e of k.eliminate) if (jeKand(run, e)) odstrani(dom, run, e);
+  gumb(dom, 'Preveri').sprozi('click');
+  const leg = vsi(fb(dom)).find(e => e.className === 'legenda-vaje');
+  assert.ok(leg, 'legenda pod sporočilom');
+  assert.equal(leg.textContent, `celice vzorca${run('vadi.KTob[0].eliminate[0][1]')}izbrisani kandidati (odstranjeni)`);
+  assert.equal(poRazredu(dom, 'zaznamki')[0].hidden, true, 'gumba zaznamkov po pravilnem odgovoru skrita');
+});
+
+test('»Spoznaj« E1/E2 pri vajah 1-6: okvir območja in temne oznake roba, pri vajah 7-9 ne', () => {
+  for (const [mode, n, vrsta] of [['naked-single', 0, 'celica'], ['naked-single', 3, 'enota'], ['hidden-single', 3, 'enota'], ['naked-single', 6, null]]) {
+    const { dom, run } = zacni(mode);
+    run(`var zadnja; { const g = MODES[${JSON.stringify(mode)}].gen; MODES[${JSON.stringify(mode)}].gen = n => (zadnja = g(n)); }`);
+    run(`zacniKrog(${JSON.stringify(mode)}, 'spoznaj'); exNum = ${n}; renderExercise();`);
+    const o = iz(run, 'zadnja.oznaka');
+    const vse = vsi(dom.el('exerciseArea'));
+    const cel = vse.filter(e => /\bcelica\b/.test(e.className) && e.dataset.r !== undefined);
+    const zObm = cel.filter(e => e.classList.contains('obm')).map(e => +e.dataset.r * 9 + +e.dataset.c).sort((a, b) => a - b);
+    const temne = vse.filter(e => e.tagName === 'SPAN' && e.className === 'obm').length;
+    if (!vrsta) { assert.equal(o, null); assert.deepEqual(zObm, []); assert.equal(temne, 0); continue; }
+    const pricakovano = vrsta === 'celica' ? [o.celica] : [...o.enota].sort((a, b) => a - b);
+    assert.deepEqual(zObm, pricakovano, `${mode} vaja ${n + 1}`);
+    assert.equal(temne, vrsta === 'celica' ? 2 : pricakovano.length === 9 && new Set(pricakovano.map(c => Math.floor(c / 9))).size === 3 && new Set(pricakovano.map(c => c % 9)).size === 3 ? 6 : 1, `${mode} vaja ${n + 1}: oznake roba`);
   }
 });
