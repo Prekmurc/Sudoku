@@ -1,21 +1,7 @@
 /* app/app.css — stili za Sudoku reševalec. Skupne osnove so v ../shared/base.css */
 
+  /* paleta in bela podlaga so v ../shared/base.css */
   :root{
-    --paper:#E9EDF0;
-    --card:#F6F8F9;
-    --ink:#24303D;
-    --line:#C7CFD6;
-    --pencil:#8A94A0;
-    --red:#B23A2E;
-    --red-bg:#F3DEDA;
-    --blue:#1F5FA8;
-    --blue-bg:#DDE7F3;
-    --green:#2E7D5C;
-    --green-bg:#DCEEE5;
-    --amber:#9C6B12;
-    --amber-bg:#F1E5C9;
-    --purple:#7548A0;
-    --purple-bg:#E7DEF0;
     /* velikost celice vnosne mreže in rešitve (--cs), mreže kandidatov (--ccs) in male
        mreže koraka (--mcs-koraka); za brskalnike brez enot vsebnika - spodaj @supports */
     --cs: min(10.2vw, 48px);
@@ -30,15 +16,9 @@
     #inputGrid, #solvedGrid{ --cs: min(calc(100cqi / 9), 48px); }
     #candidateGrid{ --ccs: min(calc(100cqi / 9), 50px); }
   }
-  /* *{box-sizing:border-box} in body{margin:0;color:var(--ink);font-family:'Inter',sans-serif}
-     sta v shared/base.css - tu je samo tisto, kar je specifično za to aplikacijo. */
+  /* *{box-sizing:border-box} in body (barva, podlaga, pisava) so v shared/base.css - tu je
+     samo tisto, kar je specifično za to aplikacijo. */
   body{
-    background:var(--paper);
-    background-image:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size: 22px 22px;
-    background-attachment: fixed;
     padding: 0 0 60px 0;
   }
   header.top{
@@ -64,7 +44,7 @@
   header.top p{
     font-size: 14px;
     line-height:1.5;
-    color:#3C4854;
+    color:var(--ink2);
     margin: 0;
   }
 
@@ -235,7 +215,7 @@
     align-items:center;
     gap:8px;
     font-size:12.5px;
-    color:#3C4854;
+    color:var(--ink2);
     margin-bottom:6px;
   }
   .prilepi input{
@@ -295,7 +275,7 @@
     display:flex;
     gap:16px;
     font-size:12.5px;
-    color:#3C4854;
+    color:var(--ink2);
     margin: -6px 0 14px;
   }
   .legend-grid span{ display:inline-flex; align-items:center; gap:6px; }
@@ -377,7 +357,7 @@
     border-radius:5px;
     margin-bottom:6px;
   }
-  #steps li .msg{ font-size:14.5px; line-height:1.55; color:#3C4854; }
+  #steps li .msg{ font-size:14.5px; line-height:1.55; color:var(--ink2); }
   #steps li .idx{ color:var(--pencil); font-family:'JetBrains Mono', monospace; font-size:11.5px; margin-right:4px; }
 
   .tag.t-single{ background:var(--green-bg); color:var(--green); }
@@ -594,7 +574,7 @@
     align-items:center;
     gap:6px;
     font-size:12.5px;
-    color:#3C4854;
+    color:var(--ink2);
   }
   .save-fields label:last-child{ flex:1; min-width:180px; }
   .save-fields select, .save-fields input{

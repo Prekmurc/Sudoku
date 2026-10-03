@@ -217,9 +217,33 @@ async function izbiraCelice(b, sirina) {
   navadna('trening, Vadi v uganki 3', await b.izvedi(SLOG_IZBIRE(`document.querySelector('.vaja-uganka .celica.izbrana')`)));
 }
 
+// Skupni videz (N1, N2): paleta iz shared/base.css je v vseh treh aplikacijah enaka, podlaga
+// strani je bela brez vzorca.
+const PALETA = ['--paper', '--card', '--ink', '--ink2', '--line', '--pencil', '--red', '--red-bg', '--blue', '--blue-bg',
+  '--green', '--green-bg', '--amber', '--amber-bg', '--purple', '--purple-bg', '--izbira', '--izbira-bg'];
+const STRANI = { reševalec: 'app/index.html', igra: 'igra/index.html', trening: 'trening/index.html' };
+
+async function skupniVidez(b) {
+  console.log('Skupni videz (1280 px)');
+  const v = {};
+  for (const [ime, stran] of Object.entries(STRANI)) {
+    await b.odpri(stran, { sirina: 1280, visina: 900 });
+    v[ime] = await b.izvedi(`(() => {
+      const r = getComputedStyle(document.documentElement), t = getComputedStyle(document.body);
+      return { paleta: ${JSON.stringify(PALETA)}.map(p => p + ': ' + r.getPropertyValue(p).trim()),
+        podlaga: t.backgroundColor + ' ' + t.backgroundImage };
+    })()`);
+  }
+  const [prva, ...druge] = Object.keys(v);
+  for (const ime of druge) preveri(`paleta: ${ime} = ${prva}`, JSON.stringify(v[ime].paleta) === JSON.stringify(v[prva].paleta),
+    v[ime].paleta.filter((x, i) => x !== v[prva].paleta[i]));
+  for (const ime of Object.keys(v)) preveri(`${ime}: bela podlaga brez vzorca`, v[ime].podlaga === 'rgb(255, 255, 255) none', v[ime].podlaga);
+}
+
 async function main() {
   const b = await zazeni();
   try {
+    await skupniVidez(b);
     for (const sirina of SIRINE) {
       await resevalec(b, sirina);
       await igra(b, sirina);

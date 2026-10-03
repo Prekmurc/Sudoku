@@ -5,10 +5,28 @@
   box-sizing: border-box;
 }
 
-/* Izbrana celica (shared/mreza.css) in fokus v vnosni mreži (reševalec, okno »Nova uganka«
-   v igri) - povsod enako (faza 5, docs/faza5-nacrt.md, odločitev A2): modrikasta podlaga in
-   3 px modra obroba. --blue-bg je iz palete aplikacije. */
+/* Paleta, skupna vsem trem aplikacijam (faza 5, docs/faza5-nacrt.md, N1). Aplikacija doda
+   samo svoje (trening barve tehnik, mreža v shared/mreza.css svoje barve). Podlaga strani je
+   bela (odločitev 2026-09-23), kartice so sivkaste z obrobo. */
 :root {
+  --paper: #FFFFFF;
+  --card: #F6F8F9;
+  --ink: #24303D;
+  --ink2: #3C4854;          /* sivo besedilo: opisi, pojasnila */
+  --line: #C7CFD6;
+  --pencil: #8A94A0;
+  --red: #B23A2E;
+  --red-bg: #F3DEDA;
+  --blue: #1F5FA8;
+  --blue-bg: #DDE7F3;
+  --green: #2E7D5C;
+  --green-bg: #DCEEE5;
+  --amber: #9C6B12;
+  --amber-bg: #F1E5C9;
+  --purple: #7548A0;
+  --purple-bg: #E7DEF0;
+  /* Izbrana celica (shared/mreza.css) in fokus v vnosni mreži (reševalec, okno »Nova
+     uganka« v igri) - povsod enako (odločitev A2): modrikasta podlaga in 3 px modra obroba. */
   --izbira: #4A86D8;
   --izbira-bg: var(--blue-bg);
 }
@@ -22,5 +40,6 @@
 body {
   margin: 0;
   color: var(--ink);
+  background: var(--paper);
   font-family: 'Inter', sans-serif;
 }

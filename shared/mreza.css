@@ -2,7 +2,7 @@
    (shared/mreza.js), skupno igri (igra/) in treningu. Naloži se PRED slogi
    aplikacije, da ima aplikacija zadnjo besedo (velikost celice --gcs, postavitev).
    Barve palete (--line, --ink, --blue, --card, --amber-bg, --red, --red-bg,
-   --green, --green-bg) so iz :root aplikacije; tu so samo barve in mere mreže.
+   --green, --green-bg) so iz shared/base.css; tu so samo barve in mere mreže.
    Barve poudarka lahko igralec spremeni v igri (inline slog na <html>). */
 
 :root{
@@ -264,7 +264,7 @@
   min-width:0;
   min-height:0;
 }
-.seznam-polje .kand{ color:#3C4854; }
+.seznam-polje .kand{ color:var(--ink2); }
 .seznam-polje .kand.poud{ color: var(--poud-stevka); }
 /* mala mreža blokov: polje = blok, razporeditev kot v veliki mreži */
 .seznam-blokov{

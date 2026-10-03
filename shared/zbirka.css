@@ -1,6 +1,6 @@
 /* shared/zbirka.css — seznam ugank v zbirki (kartica uganke), skupen za reševalec
    in igro. Izris je v shared/zbirka-ui.js. Barve (--blue, --green, --red, --pencil,
-   --line, --blue-bg) definira :root aplikacije. */
+   --line, --blue-bg) so iz shared/base.css. */
 
 .zbirka-seznam{
   list-style:none;
@@ -33,13 +33,13 @@
   white-space:nowrap;
 }
 /* 2. vrstica: moje reševanje in stanje */
-.zb-casi{ font-size:13px; color:#3C4854; margin-top:2px; }
+.zb-casi{ font-size:13px; color:var(--ink2); margin-top:2px; }
 .zb-casi .v-teku{ color: var(--blue); }
 .zb-casi .resena{ color: var(--green); font-weight:600; }
 .zb-casi .napaka{ color: var(--red); }
 /* 3. vrstica: danih · tehnike · koraki */
 .zb-info{ font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--pencil); margin-top:3px; }
-.zb-opomba{ font-size:13.5px; color:#3C4854; margin-top:6px; line-height:1.45; overflow-wrap:anywhere; }
+.zb-opomba{ font-size:13.5px; color:var(--ink2); margin-top:6px; line-height:1.45; overflow-wrap:anywhere; }
 .zb-gumbi{ display:flex; gap:8px; margin-top:9px; }
 .zb-gumbi button{ font-size:12.5px; padding:7px 12px; }
 .zb-gumbi button.danger{ color: var(--red); }

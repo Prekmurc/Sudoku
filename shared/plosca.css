@@ -2,8 +2,8 @@
    treningu: nizi gumbov (Poudari, Vpiši, Odstrani), oznake nizov, kljukici "več hkrati" /
    "več celic" in stikala seznamov manjkajočih števk. Mreža in seznami so v mreza.css.
    Naloži se za mreza.css in PRED slogi aplikacije (aplikacija ima zadnjo besedo).
-   Barve palete (--line, --ink, --blue, --pencil, --red, --red-bg ...) so iz :root
-   aplikacije. */
+   Barve palete (--line, --ink, --blue, --pencil, --red, --red-bg ...) so iz
+   shared/base.css. */
 
 :root{
   /* neizbrani gumbi v nizu Poudari - niso vezani na barve poudarka */
@@ -51,7 +51,7 @@
   letter-spacing:0;
   font-family:'Inter', sans-serif;
   font-size:12px;
-  color:#3C4854;
+  color:var(--ink2);
   white-space:nowrap; /* na ozkem zaslonu se prelomi oznaka niza, ne kljukica */
 }
 .vec-hkrati input{ margin:0; accent-color: var(--blue); cursor:pointer; }

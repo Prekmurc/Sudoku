@@ -300,3 +300,20 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
 - Preverjeno: testi 422/422, posnetek igre enak (85), `preveri-niz` drži,
   `preveri-videz` drži; primerjave »Spoznaj« s prejšnjim commitom `c5a5fbb` (presek, enojčki,
   vadi) so enake – trening je imel že prej enako podlago in obrobo izbire.
+
+### Korak 3a – paleta in podlaga (N1, N2, N8)
+
+- `shared/base.css`: paleta (vrednosti reševalca in igre) z novim `--ink2` (#3C4854) in
+  `body{ background: var(--paper) }` (bela). `app.css` in `igra.css` izgubita svojo kopijo
+  palete, reševalec mrežni vzorec podlage; `trening.css` obdrži samo barve tehnik.
+- Sivo besedilo: v treningu #4A5664 → `var(--ink2)`, drugod literal #3C4854 → `var(--ink2)`
+  (brez vidne spremembe).
+- `trening/index.html`: `preconnect` za Google Fonts.
+- Test `tests/css-paleta.test.js` (3 testi): paleta samo v `shared/base.css`, ta je prvi slog.
+  Scenarij `preveri-videz`: paleta v vseh treh aplikacijah enaka, podlaga bela.
+- Barve treninga v starih scenarijih na novo paleto (`preveri-vadi`: zelena podlaga vpisa,
+  rdeča izbrisa; `preveri-enojcki`: zelen okvir odgovora).
+- Preverjeno: testi 425/425, posnetek igre enak (85), `preveri-niz` in `preveri-videz` držita,
+  funkcionalni pregledi v `preveri-presek`, `-enojcki` in `-vadi` držijo. Primerjave »Spoznaj«
+  s prejšnjim commitom `d331c75`: `innerHTML` povsod enak, razlike samo v `background-color`,
+  `color` in `border-left-color` (paleta treninga) – pričakovano.

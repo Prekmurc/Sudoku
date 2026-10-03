@@ -251,7 +251,7 @@ async function sencenje(b, mode, n, sirina) {
   const po = await b.izvedi(`(() => { const s = getComputedStyle(enojcek.plosca.mreza.celice[${kc}]);
     return { bg: s.backgroundColor, okvir: s.boxShadow, fb: document.querySelector('.fb').textContent }; })()`);
   preveri('pravilen odgovor', po.fb.startsWith('Pravilno!'), po.fb);
-  preveri('celica odgovora: podlaga poudarka in zelen okvir', po.bg === BARVA.poud && po.okvir.includes('rgb(31, 122, 86)') && /3px/.test(po.okvir), po);
+  preveri('celica odgovora: podlaga poudarka in zelen okvir', po.bg === BARVA.poud && po.okvir.includes('rgb(46, 125, 92)') && /3px/.test(po.okvir), po);
   await b.posnetek(path.join(mapa, `${IME[mode]}-${n + 1}-${sirina}-pravilno-poudarek.png`));
 }
 
