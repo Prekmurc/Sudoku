@@ -52,6 +52,7 @@
   font-family:'Inter', sans-serif;
   font-size:12px;
   color:#3C4854;
+  white-space:nowrap; /* na ozkem zaslonu se prelomi oznaka niza, ne kljukica */
 }
 .vec-hkrati input{ margin:0; accent-color: var(--blue); cursor:pointer; }
 .niz-pojasnilo{ text-transform:none; letter-spacing:0; }

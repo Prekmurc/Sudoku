@@ -53,6 +53,9 @@ header p{font-size:14px;color:#4A5664;line-height:1.55;margin:0}
 .layout-row .cw .clbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pencil);margin-bottom:1px}
 .layout-row .cw .ccnt{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);margin-top:1px;visibility:hidden}
 .layout-row .cw .ccnt.vis{visibility:visible}
+/* Vrsta devetih celic (enota vrstica pri 3-6): celica iz širine kartice vaje (cqi), da vrsta
+   ne sega čez kartico; 16px = 8 razmikov po 2px. Kartica vaje nima potomcev s position:fixed. */
+@supports (width:1cqi){.exercise{container-type:inline-size}.layout-row{--cs:min(46px,(100cqi - 16px)/9)}}
 .layout-col{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 auto 8px}
 .layout-col .cw{display:flex;align-items:center;gap:4px}
 .layout-col .cw .clbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pencil);width:36px;text-align:right}

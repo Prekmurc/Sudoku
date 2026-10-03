@@ -1,6 +1,24 @@
 # Faza 5 – videz (načrt)
 
-**Stanje: načrt, čaka na potrditev.** Koda se v tem koraku ne spreminja.
+**Stanje: načrt potrjen 2026-10-03, izvedba po korakih (razdelek 4).**
+
+## Odgovori (2026-10-03)
+
+1. Izbira celice: **A2**.
+2. Razvrstitev točk potrjena: 4.6 v fazo 6, 4.3 v »Kasneje«, ostanek 1.1 v fazi 6 in 7.
+3. Popravi se vse: P1–P6, R1, N1–N11.
+4. Nadnaslov treninga: **»Trening · spoznaš in vadiš tehnike«**.
+5. Posega zunaj CSS sta potrjena: niz velikosti celice v `app/app.js:201` in besedila pri N9.
+6. Dopolnitev a): N9 je svoj commit, ločen od N10 in N11 (da se ga da razveljaviti samega).
+7. Dopolnitev b): `container-type` naredi element za okvir elementov s `position: fixed`
+   med potomci (zadrževanje postavitve). Preveri se, da noben tak element (povečan prikaz,
+   okna) ni potomec vsebnika – sicer gre vsebnik na ožji element (ovoj mreže). Scenarij
+   odpre povečan prikaz in vsa okna in preveri, da pokrijejo celo okno. **Preverjeno:**
+   elementi s `position: fixed` so `#lightbox` (z gumbom in namigom) in `#library` v
+   reševalcu ter `.dialog` v igri – vsi so neposredni otroci `<body>`; trening jih nima.
+   Vsebniki (kartice reševalca, ovoj male mreže koraka, kartica vaje v treningu) jih zato
+   nimajo med potomci.
+8. Ročni pregled: en sam, na koncu, največ 5 točk (razdelek 5).
 
 Naloga 2026-10-03: (1) preliv vnosne mreže reševalca, (2) predlog za izbiro celice,
 (3) ostale opombe za fazo 5, (4) pregled videza vseh treh aplikacij pri 375 in 1280 px.
@@ -237,3 +255,27 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
   ročna točka 2 pokaže preliv zaradi drsnika.
 - **Reševalec na širokem zaslonu v dveh stolpcih** (vnos levo, rešitev in koraki desno),
   kot igra.
+
+## 7. Izvedba
+
+### Korak 1 – prelivi (P1–P6, R1)
+
+- Reševalec (`app/app.css`): `container-type: inline-size` na `.card` in `.mini-container`
+  (v `@supports (width: 1cqi)`), `--cs`, `--ccs` in `--mcs-koraka` iz `100cqi / 9` (mala
+  mreža odšteje 2 px obrobe); ovoj male mreže sega 29 px čez levi odmik koraka. V
+  `app/app.js:201` je velikost male mreže `var(--mcs-koraka)` (iz CSS). Celice pri 375 px:
+  vnos in rešitev 33,9 px, mala mreža koraka pribl. 30 px; pri 1280 px 45,6 px (prej 48 px
+  in čez kartico).
+- **Dodatno (P1):** nov scenarij je pri 320 px našel še spustni seznam »Primer«, ki je širok
+  kot najdaljše ime primera in sega 3 px čez kartico – zdaj `max-width: 100%`.
+- Igra (`igra/igra.css`): vrstica »Barve poudarka« se prelomi.
+- Trening (`trening/trening.css`): `container-type` na `.exercise`, `--cs` vrste devetih
+  celic iz `(100cqi - 16px) / 9` – pri 375 px 32,5 px (prej 39,75 px).
+- Plošča (`shared/plosca.css`): kljukici »več hkrati« / »več celic« brez preloma.
+- Orodja: `tools/preveri-videz-brskalnik.js` (nov, pribl. 30 s – vse drži pri 320, 375, 430
+  in 1280 px) in `tools/primerjava-slogov.js` (povzetek razlik v treh primerjalnih
+  scenarijih namesto prve razlike).
+- Preverjeno: testi 422/422, posnetek igre enak (85), `preveri-niz` drži. `preveri-presek`,
+  `-enojcki` in `-vadi`: vse drži razen primerjave »Spoznaj« pri 3–6 pri 375 px – HTML enak,
+  razlike samo v `width`, `height` in `font-size` celic vrste (P6, pričakovano). Te primerjave
+  ostanejo rdeče do koraka 5, ko se izhodišča premaknejo na zadnji commit faze 5.

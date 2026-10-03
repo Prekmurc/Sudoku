@@ -16,9 +16,19 @@
     --amber-bg:#F1E5C9;
     --purple:#7548A0;
     --purple-bg:#E7DEF0;
+    /* velikost celice vnosne mreže in rešitve (--cs), mreže kandidatov (--ccs) in male
+       mreže koraka (--mcs-koraka); za brskalnike brez enot vsebnika - spodaj @supports */
     --cs: min(10.2vw, 48px);
     --ccs: min(10.5vw, 50px);
     --zcs: 42px;
+  }
+  /* Mreže so široke natanko kot kartica (oz. korak): celica = širina vsebnika / 9 (cqi),
+     neodvisno od odmikov strani in kartice in od drsnika okna. Vsebnik (kartica, ovoj male
+     mreže) nima potomcev s position:fixed - povečan prikaz in okno zbirke sta otroka body. */
+  @supports (width: 1cqi){
+    .card, .mini-container{ container-type: inline-size; }
+    #inputGrid, #solvedGrid{ --cs: min(calc(100cqi / 9), 48px); }
+    #candidateGrid{ --ccs: min(calc(100cqi / 9), 50px); }
   }
   /* *{box-sizing:border-box} in body{margin:0;color:var(--ink);font-family:'Inter',sans-serif}
      sta v shared/base.css - tu je samo tisto, kar je specifično za to aplikacijo. */
@@ -192,8 +202,10 @@
   }
   button.primary:active{ opacity:0.85; }
   button:not(.primary):active{ background: var(--paper); }
-  /* spustni seznam "Primer" - videz kot ostali gumbi v vrstici */
+  /* spustni seznam "Primer" - videz kot ostali gumbi v vrstici; ne širši od kartice
+     (sicer je širok kot najdaljše ime primera) */
   .btn-row select{
+    max-width:100%;
     font-family:'Inter', sans-serif;
     font-weight:600;
     font-size:14px;
@@ -437,9 +449,16 @@
     font-weight:600;
     cursor:pointer;
   }
+  /* ovoj male mreže sega čez levi odmik koraka (prostor kljukice) - simetrično z desnim
+     (13 px), da so celice na telefonu čim večje; mreža ima 1 px obrobe na vsaki strani */
   .mini-container{
     margin-top:10px;
+    margin-left:-29px;
     padding-top:2px;
+    --mcs-koraka: min(9.8vw, 42px);
+  }
+  @supports (width: 1cqi){
+    .mini-container{ --mcs-koraka: min(calc((100cqi - 2px) / 9), 42px); }
   }
   .mini-grid{
     --mcs: min(9.8vw, 42px);

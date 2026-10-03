@@ -24,6 +24,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
+const { razlikeIzrisa } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -431,9 +432,8 @@ async function spoznaj(sirine) {
         if (!commit) { console.log(`  - ${m}: brez izhodišča (točka 16 ali 17)`); continue; }
         const s = await izris(izh[commit].b, m, sirina);
         const n = await izris(bNov, m, sirina);
-        const razl = s.slogi.findIndex((x, i) => x !== n.slogi[i]);
-        preveri(`${m}: izris enak (${commit})`, s.html === n.html && s.slogi.length === n.slogi.length && razl < 0,
-          s.html !== n.html ? 'innerHTML' : razl >= 0 ? `element ${razl}: ${s.slogi[razl]} → ${n.slogi[razl]}` : 'število elementov');
+        const razl = razlikeIzrisa(s, n, SLOGI);
+        preveri(`${m}: izris enak (${commit})`, razl.length === 0, razl);
       }
     }
   } finally {

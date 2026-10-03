@@ -198,7 +198,7 @@ function renderStepsList() {
           techTitle.title = `Korak ${idx + 1} · ${celo}`;
           miniContainer.appendChild(techTitle);
           const gridDiv = document.createElement('div');
-          renderGridInto(gridDiv, s, 'min(9.8vw, 42px)');
+          renderGridInto(gridDiv, s, 'var(--mcs-koraka)'); // velikost iz širine koraka (app.css)
           gridDiv.addEventListener('click', () => {
             openLightbox(el => {
               const lbTitle = document.createElement('div');

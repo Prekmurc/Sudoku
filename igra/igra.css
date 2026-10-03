@@ -292,8 +292,10 @@ kbd{
   text-transform:uppercase;
   width:max-content;
 }
+/* na ozkem zaslonu se vrstica prelomi (plošča je široka kot mreža) */
 .nastavi-poud-vrstica{
   display:flex;
+  flex-wrap:wrap;
   align-items:center;
   gap:8px;
   margin-top:8px;
