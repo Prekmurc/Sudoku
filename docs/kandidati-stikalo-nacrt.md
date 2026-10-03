@@ -8,7 +8,7 @@ reševalec stikala nimata. Brez ročnih zapiskov (lastnega vpisovanja malih šte
 Izhodišče: `docs/uskladitev.md`, vrstica 5a v tabeli »Vrstni red popravkov« in opomba v
 »Opombe k delom«.
 
-Stanje: **odločitve potrjene 2026-10-03, izvedba po korakih** (razdelek 5).
+Stanje: **izvedeno 2026-10-03** (koraki 2–4, razdelek 7); ročni pregled (4 točke v `docs/rocni-test.md`) še ni potrjen.
 
 **Odločitve (Darko, 2026-10-03):** O1 A, O2 A, O3 A, O4 A, O5 A, O7 kot predlagano. O6 A z
 drugim napisom: kljukica **»Kandidati v celicah«** (brez pojasnila v oklepaju), kartica
@@ -232,7 +232,7 @@ Za A dobi mreža neobvezno polje pogleda (celice, v katerih se kandidati izriše
 
 ## 5. Koraki izvedbe (commit + push po vsakem)
 
-1. Načrt in posnetki prototipa (ta dokument). ← zdaj
+1. Načrt in posnetki prototipa (ta dokument).
 2. `shared/` (plošča, mreža) in njuni testi; igra še nespremenjena – posnetek igre »Enako«,
    vsi testi zeleni.
 3. Igra: stikalo, kartica, Pomoč, korak na stopnji 3; testi igre in treninga; posnetek z
@@ -247,3 +247,22 @@ Za A dobi mreža neobvezno polje pogleda (celice, v katerih se kandidati izriše
 | 2 | igra, slovenska tipkovnica | Pri izklopu: Shift+števka, 1–9 na kandidatu in na števki, ki je v vrstici že vpisana. | Shift+števka nič; kandidat se vpiše; druga števka se ne vpiše, vrstica pod nizi pove zakaj. | scenarij pošlje pare `key`/`code`, ne prave razporeditve sistema |
 | 3 | igra | Pri izklopu »Naslednji korak« do »Pokaži rešitev« pri koraku z izbrisom (npr. par ali izločitev); nato »Vklopi kandidate« v opombi. | Iz kandidatov v celicah koraka in opombe je jasno, kaj korak naredi in zakaj ga ni mogoče izvesti brez kandidatov. Gumb vklopi kandidate (kljukica v kartici »Prikaz« obkljukana), korak ostane prikazan, izbris lahko izvedeš. | presoja razumljivosti |
 | 4 | igra in trening, lokalni strežnik, tvoj Edge (ne InPrivate) | V igri izklopi kandidate, odpri trening (»Vadi v uganki« 4, »Spoznaj« E1), nato znova igro (F5). | Trening kot prej; igra po F5 ostane brez kandidatov. | obstoječa shramba pravega profila |
+
+## 7. Izvedba
+
+| Korak | Commit | Kaj |
+|---|---|---|
+| 1 | `4048df5` | načrt in posnetki prototipa |
+| 2 | `3097473` | `shared/plosca.js` (stikalo, zavrnjen vpis, `kandidatiVidni()`, `nastaviKandidate()`), `shared/mreza.js` (`celiceKandidatov`), testi; igra še brez stikala – posnetek igre »Enako: 85« |
+| 3 | `5b9ff90` | igra: kartica »Prikaz« s kljukico »Kandidati v celicah«, `#odstraniGlava`, `pogledKoraka()`, opomba z gumbom »Vklopi kandidate«, odstavek v oknu Pomoč; testi igre in treninga; posnetek: prvih 85 enakih, 14 novih korakov, novo izhodišče `tools/posnetki/igra-po-5a.json` (99) |
+| 4 | (ta commit) | `tools/preveri-kandidati-brskalnik.js`, ročni pregled v `docs/rocni-test.md`, `docs/uskladitev.md` (stanje, tri točke v »Kasneje«) |
+
+Preverjeno avtomatsko: vsi testi (431), posnetek igre, `tools/preveri-kandidati-brskalnik.js`
+(44 preverjanj pri 375 in 1280 px), obstoječi `preveri-videz-`, `preveri-enojcki-`,
+`preveri-vadi-` in `preveri-presek-brskalnik.js` (trening uporablja isto ploščo – »Spoznaj« je
+enak izhodišču `4e1e4dc`).
+
+Odstopanja od načrta: namesto ovoja `#odstraniSkupina` plošča dobi seznam elementov
+(`skrijBrezKandidatov`), ker bi ovoj spremenil pravilo `.niz-oznaka:first-child` in razmik nad
+nizom. Razlog zavrnjenega vpisa ostane ob Shift+števki (ta pri izklopu ni poteza) in izgine ob
+naslednji potezi ali izbiri.

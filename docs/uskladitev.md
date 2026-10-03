@@ -1186,7 +1186,7 @@ komponente, na koncu videz in pomoč.
 | **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** (zaključeno 2026-10-03, ročni pregled potrjen istega dne, N9 ostane; `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
-| **5a – stikalo »Kandidati« v igri** (nova naloga, zapisano 2026-10-03; načrt `docs/kandidati-stikalo-nacrt.md`, čaka na odločitve) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
+| **5a – stikalo »Kandidati« v igri** (izvedeno 2026-10-03, ročni pregled še ni potrjen; `docs/kandidati-stikalo-nacrt.md`: načrt `4048df5`, korak 2 `3097473`, korak 3 `5b9ff90`, korak 4 – scenarij v brskalniku in ročni pregled) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
 | **6 – pomoč** | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
 | **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno in vnosna mreža – iz faze 5) | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
 
@@ -1218,6 +1218,15 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
   `app/app.js`) pa samo s klikom na mrežo, ozadje ali gumb ✕ – poslušalca za Escape nima.
 - **Reševalec na širokem zaslonu v dveh stolpcih** (vnos levo, rešitev in koraki desno), kot
   igra.
+- **Senčenje pri izklopljenih kandidatih** (zapisano 2026-10-03 ob nalogi 5a,
+  `docs/kandidati-stikalo-nacrt.md`, opomba pri O1): v igri pri izklopljenih kandidatih
+  kljukica »senči« kot pri E1/E2 v treningu – ob eni poudarjeni števki so šrafirane celice,
+  kamor ne more (samo iz vpisov). Plošča ga že zna (`senci`, `sencenjeVidno()`).
+- **Ročni zapiski** (zapisano 2026-10-03 ob nalogi 5a): lastno vpisovanje malih števk v
+  celice, ločeno od samodejnih kandidatov. Pri nalogi 5a namenoma izpuščeno.
+- **Opozorilo pri izklopljenih kandidatih, če uganka zahteva tehniko 3 ali višjo** (zapisano
+  2026-10-03 ob nalogi 5a): brez kandidatov gredo E1, E2, 1 in 2; pri težji uganki bi igra
+  ob izklopu (ali ob odprtju uganke pri izklopu) povedala, da bo brez kandidatov težko.
 
 ## Opombe k delom
 
@@ -1263,6 +1272,11 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   `shared/mreza.js` že zna izris brez kandidatov (`pogled.kandidati = null` – E1 in E2 v
   treningu), plošča iz `shared/plosca.js` ima možnost `kandidati: false`.
   Načrt z odločitvami O1–O7 in posnetki prototipa: `docs/kandidati-stikalo-nacrt.md`.
+  **Izvedeno 2026-10-03:** kljukica »Kandidati v celicah« v kartici »Prikaz« (prej »Manjkajoče
+  števke«), ključ `sudoku.igra.kandidati` (samo igra); pri izklopu niz »Odstrani« skrit, v nizu
+  »Vpiši« vseh 9 števk z razlogom za zavrnjen vpis, poudarek samo vpisanih števk, na tretji
+  stopnji koraka kandidati v celicah koraka in gumb »Vklopi kandidate«. Ročni pregled (4 točke)
+  v `docs/rocni-test.md`.
 
 ### Faza 6 – pomoč
 

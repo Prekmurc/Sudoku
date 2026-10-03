@@ -125,6 +125,21 @@ barve danosti preveri `tools/preveri-videz-brskalnik.js` (320, 375, 430 in 1280 
 | 4 | trening, reševalec | Trening: meni, nekaj vaj »Spoznaj« (3, 8, 11) z napačnim in pravilnim odgovorom, »Namig (drži)«. Reševalec: okno »Zbirka ugank«. | Bela podlaga, kartice ločene z obrobo, glava kot v igri (nadnaslov »Trening · spoznaš in vadiš tehnike«); značke SREDNJA jantarne, NAPREDNA vijolične; barve tehnik, zelena in rdeča povratna informacija in gumbi niso izgubili kontrasta. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: presoja celotnega vtisa. |
 | 5 | reševalec | »Primer«, »Reši«, »Pokaži kandidate«, »Pokaži korake reševanja«, »Pokaži na mreži«, klik na mrežo (povečan prikaz). | Dane števke so črne in krepke, izpeljane modre – v rešitvi, kandidatih, mali mreži koraka in povečanem prikazu; legenda »**5** dana · **5** izpeljana«, opomba pod kandidati in noga povedo isto. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: berljivost in razumljivost legende. |
 
+## Igra: stikalo »Kandidati v celicah« (naloga 5a)
+
+Iz `docs/kandidati-stikalo-nacrt.md` (razdelek 6). Logiko preverijo `tests/plosca.test.js`,
+`tests/mreza.test.js`, `tests/igra-ui.test.js`, `tests/trening-uganka-ui.test.js`, posnetek
+igre (`tools/posnetki/igra-po-5a.json`) in `tools/preveri-kandidati-brskalnik.js` (375 in
+1280 px, pravi kliki, pari QWERTZ, shranjevanje ob osvežitvi, trening in reševalec z
+izklopljeno nastavitvijo).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | igra, pravi telefon | V kartici »Prikaz« izklopi »Kandidati v celicah«; izberi celico s prstom, vpiši števko z nizom »Vpiši«, poudari števko; nato kandidate spet vklopi. | Mreža brez malih števk je pregledna; niz »Odstrani kandidata« izgine in se ob vklopu vrne; kandidat se vpiše, za števko, ki v celici ni mogoča, vrstica pod nizi pove zakaj; poudarek obarva samo vpisane števke. (nepotrjeno) – ni avtomatsko: presoja videza in dotik. |
+| 2 | igra, slovenska tipkovnica | Pri izklopu: Shift+števka; 1–9 na kandidatu; 1–9 na števki, ki je v vrstici že vpisana. | Shift+števka ne naredi nič; kandidat se vpiše; druga števka se ne vpiše, vrstica pod nizi: »Števka N je v vrstici R že vpisana (VxSy).«. (nepotrjeno) – ni avtomatsko: scenarij pošlje pare `key`/`code`, ne prave razporeditve sistema. |
+| 3 | igra | Pri izklopu »Naslednji korak« do »Pokaži rešitev« pri koraku z izbrisom (npr. 1 · Izločitev izven bloka ali par); nato »Vklopi kandidate« v opombi in izvedi izbris. | Kandidati so vidni samo v celicah koraka (vzorec jantarno, celice izbrisa rdečkasto, kandidat za izbris rdeče prečrtan); opomba pove, da izbrise izvedeš, ko kandidate vklopiš. Gumb vklopi kandidate (kljukica v kartici »Prikaz« obkljukana), korak ostane prikazan, izbris lahko izvedeš (»Korak je izveden.«). (nepotrjeno) – ni avtomatsko: presoja razumljivosti. |
+| 4 | igra in trening, lokalni strežnik, tvoj Edge (ne InPrivate) | V igri izklopi kandidate; odpri trening (»Vadi v uganki« 4, »Spoznaj« E1); nato znova igro (F5). | Trening kot prej (4 s kandidati, E1 brez); igra po F5 ostane brez kandidatov. (nepotrjeno) – ni avtomatsko: obstoječa shramba pravega profila (scenarij začne s praznim profilom). |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
