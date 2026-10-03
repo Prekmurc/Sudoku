@@ -910,3 +910,113 @@ Vrstni red commitov: popravek A (s staro banko), 8b, 8c.
   `preveri-presek-brskalnik.js` »Vse drži«.
 - Ročni pregled: točka 3 v `docs/rocni-test.md` dopolnjena (oznaka »Uganka: Težka« pri
   mečarici).
+
+## 17. Opažanja ročnega pregleda: vidnost območja, zaznamovanje celic, legenda (predlog, 2026-10-03)
+
+**Kode še nisem spreminjal.** Posnetki so iz prototipa v začasni kopiji projekta
+(trenutni `main` in dodatki spodaj).
+
+**Opažanja:**
+
+1. Območje (vaje 1–6) je na Darkovem zaslonu nevidno – modrikasta podlaga `#E3EEFB` se
+   skoraj ne loči od bele. Oznaka mora biti vidna neodvisno od barve, tudi ob izbrani
+   celici in poudarku; velja tudi za »Spoznaj« E1/E2 in za 7–12.
+2. Pri mečarici je igralec izbral celice vzorca, nato jih je moral odznačiti, da je lahko
+   odstranil 9 iz drugih celic. Želi pripomoček, ki celice obstojno označi, izbira pa je
+   nato spet prosta.
+3. Po pravilnem odgovoru so rdeče prečrtane devetke zmedle (videti je bilo, da niso
+   odstranjene).
+
+### 17.1 Območje, vidno brez barve
+
+| Del | Predlog |
+|---|---|
+| **okvir** | 3 px temnomoder (`#1D3F6B`) ob zunanjem robu območja: enota, blok, pivot, oba bloka. Riše se na `::before` celice nad podlago, izbiro in poudarkom, zato ostane viden. Pri tisku v sivinah je debela temna črta. |
+| **oznake robov** | vrstice in stolpci območja imajo oznako na robu v temnem polju z belo krepko pisavo, npr. **V7**. Pri bloku so to tri vrstice in trije stolpci (blok 3: **V1–V3** in **S7–S9**), pri pivotu njegova vrstica in stolpec, pri edinstvenem pravokotniku vrstice in stolpci obeh blokov. Oznake »B6« ob mreži ne predlagam, ker zanjo ni mesta; vrstice in stolpci bloka ga povedo. |
+| **podlaga** | modrikasta ostane (pri E1/E2 loči označeno enoto od zatemnjenih celic), ni pa več edina oznaka |
+| **števka** (7–10) | gumb števke v nizu »Poudari« dobi temen obroč, ki ostane, tudi ko igralec poudarek izklopi; števka je ob začetku poudarjena (kot zdaj) |
+| **razlaga** | »Območje je na mreži uokvirjeno.« namesto »… modrikasto.«; pri števkah kot zdaj |
+
+- **»Spoznaj« E1/E2, vaje 1–6** (označena celica ali enota): isti okvir in oznake robov
+  (celica – okvir celice ter njena V in S). Izris teh vaj se namerno spremeni, zato
+  scenarija dobita novo izhodišče za E1/E2. Pri »Spoznaj« 1 in 2 je delna mreža že sama
+  območje in oznake robov so že krepke (`akt`), zato ne spreminjam nič. Pri 3–12 v
+  »Spoznaj« območja ni.
+- Kje: `shared/mreza.js` – pogled `obmocje = { celice, vrstice, stolpci }` (razredi
+  `obm-g/-d/-l/-r` na celicah ob robu, `obm` na oznakah roba); `shared/mreza.css`;
+  `shared/plosca.js` – neobvezna `stevkeObmocja()` (obroč gumba v nizu »Poudari«). Igra
+  teh polj ne poda, zato ostane enaka (posnetek igre).
+
+**4 · Skriti par, vaja 1 (blok 3), 375 px** – izbrana celica in poudarjena 3 v območju:
+
+![Območje: blok, 375 px](slike/vadi-v-uganki/predlog17-obmocje-enota-375.png)
+
+**1 · Izločitev izven bloka, vaja 1 (blok 1), 1200 px:**
+
+![Območje: blok, 1200 px](slike/vadi-v-uganki/predlog17-obmocje-blok-1200.png)
+
+| 11 · XY-krilo (pivot V8S5) | 12 · Edinstveni pravokotnik (bloka 7 in 9) | 7 · X-krilo (števka 3) |
+|---|---|---|
+| ![](slike/vadi-v-uganki/predlog17-obmocje-pivot-375.png) | ![](slike/vadi-v-uganki/predlog17-obmocje-bloka-375.png) | ![](slike/vadi-v-uganki/predlog17-obmocje-stevka-375.png) |
+
+| »Spoznaj« E1, vaja 1 (celica) | »Spoznaj« E1, vaja 4 (stolpec 6) |
+|---|---|
+| ![](slike/vadi-v-uganki/predlog17-spoznaj-e1-vaja1-375.png) | ![](slike/vadi-v-uganki/predlog17-spoznaj-e1-vaja4-375.png) |
+
+### 17.2 Zaznamovanje celic (»Vadi v uganki«, 1–12)
+
+- **Gumba** pod Razveljavi/Ponovi/Začni znova: **»◩ Označi izbrane (O)«** in **»Počisti
+  oznake«**; **tipka O** (na QWERTZ na istem mestu). Klik ali tipka: če so vse izbrane
+  celice že zaznamovane, se odznačijo, sicer se zaznamujejo. Izbira se nato izprazni, da
+  je spet prosta (npr. za celice izbrisa).
+- **Videz:** oranžna črtkana obroba 2 px (`#B45309`). Loči se od izbire (modra polna), od
+  okvirja območja (temna polna ob robu) in od vzorca po pravilnem odgovoru (jantarna
+  podlaga); črtkanost je vidna tudi brez barve.
+- **Obnašanje:** zaznamki niso poteze – »Razveljavi« jih ne vrne, »Začni znova« in
+  »Poskusi znova« jih pustita, nova vaja jih pobriše. Ne štejejo kot pomoč in se ne
+  shranjujejo.
+- Kje: `shared/plosca.js` – neobvezna elementa `zaznamuj`, `pocistiZaznamke`, tipka O,
+  stanje zaznamkov (kot izbira in poudarki); `shared/mreza.js` – pogled `zaznamovane`
+  (razred `zaznamovana`). Igra jih ne poda.
+- **»Spoznaj«** (ocena): pri 1–12 je izbira celic sama odgovor (`pickN`), pri E1/E2 je
+  odgovor en vpis – zaznamovanje tam ne pomaga. Predlog: ne.
+- **Igra** (ocena, pozneje): koristno (vzorci, barvanje). Plošča bi ga dala z istimi
+  možnostmi; odprto je, ali naj se zaznamki shranijo z igro (zapis igre) in ali »Začni
+  znova« briše. Predlog: samostojna naloga, zapišem v »Po želji«.
+
+**8 · Mečarica, vaja 7, 375 in 1200 px** – šest celic vzorca zaznamovanih s tipko O, nato
+izbrana celica izbrisa:
+
+![Zaznamki, 375 px](slike/vadi-v-uganki/predlog17-zaznamki-375.png)
+![Zaznamki, 1200 px](slike/vadi-v-uganki/predlog17-zaznamki-1200.png)
+
+### 17.3 Legenda po pravilnem odgovoru
+
+Pod sporočilom »Pravilno! …« vrstica z legendo: **[jantarno] celice vzorca** ·
+**~~3~~ izbrisani kandidati (odstranjeni)** (števka iz koraka). V okvirju »Rešitev«
+(pomoč) enaka legenda z besedilom **»kandidat za izbris«** – tam še niso odstranjeni.
+
+![Pravilno z legendo, 375 px](slike/vadi-v-uganki/predlog17-pravilno-legenda-375.png)
+
+### 17.4 Koraki in preverjanje
+
+1. **9a** `shared/`: `pogled.obmocje`, `pogled.zaznamovane`, CSS, v plošči zaznamki in
+   `stevkeObmocja()`; testi `tests/mreza.test.js` in `tests/plosca.test.js` (zaznamki z
+   gumbom in tipko O – tudi QWERTZ –, odznačitev, izbira prazna, niso poteza); posnetek
+   igre »Enako«.
+2. **9b** trening: »Vadi v uganki« (območje, zaznamki, legendi) in »Spoznaj« E1/E2
+   (območje); testi v nadomestnem DOM-u; scenarij v brskalniku (okvir z izračunanim slogom
+   `::before`, oznake robov, obroč števke, zaznamki s tipko O, legenda; »Spoznaj« E1/E2 dobi
+   novo izhodišče, druge tehnike ostanejo enake); `CLAUDE.md`, ta načrt, ročni pregled.
+
+Vsak korak s commitom in pushem.
+
+### 17.5 Vprašanja
+
+1. **Območje:** okvir 3 px in temne oznake robov (predlog) – ali samo oznake robov? Barva
+   `#1D3F6B` v redu?
+2. **Zaznamek:** oranžna črtkana obroba, gumb in tipka O (predlog)?
+3. **Zaznamki ob »Začni znova«/»Poskusi znova«** ostanejo, nova vaja jih pobriše
+   (predlog)?
+4. **»Spoznaj«:** zaznamkov ne; igra pozneje kot samostojna naloga (predlog)?
+5. **Legenda** tudi v okvirju »Rešitev« (predlog)?
