@@ -16,50 +16,14 @@
     #inputGrid, #solvedGrid{ --cs: min(calc(100cqi / 9), 48px); }
     #candidateGrid{ --ccs: min(calc(100cqi / 9), 50px); }
   }
-  /* *{box-sizing:border-box} in body (barva, podlaga, pisava) so v shared/base.css - tu je
-     samo tisto, kar je specifično za to aplikacijo. */
-  body{
-    padding: 0 0 60px 0;
-  }
-  header.top{
-    padding: 30px 20px 14px;
-    max-width: 480px;
-    margin: 0 auto;
-  }
-  header.top .eyebrow{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--pencil);
-    margin: 0 0 6px;
-  }
-  header.top h1{
-    font-family:'Source Serif 4', serif;
-    font-weight: 700;
-    font-size: 24px;
-    margin: 0 0 8px;
-    line-height:1.25;
-  }
-  header.top p{
-    font-size: 14px;
-    line-height:1.5;
-    color:var(--ink2);
-    margin: 0;
-  }
+  /* reset, body, glava, kartica, gumbi, noga in oznake korakov so v shared/base.css - tu je
+     samo tisto, kar je specifično za to aplikacijo (širina 480 px) */
+  header.top, footer.note{ max-width: 480px; }
 
   main{
     max-width: 480px;
     margin: 0 auto;
     padding: 0 16px;
-  }
-
-  .card{
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px;
-    margin-top: 16px;
   }
 
   /* ---------- vnosna mreža ---------- */
@@ -164,25 +128,8 @@
     gap:10px;
     flex-wrap:wrap;
   }
-  button{
-    font-family:'Inter', sans-serif;
-    font-weight:600;
-    font-size:14px;
-    padding: 11px 16px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    background:#fff;
-    color: var(--ink);
-    cursor:pointer;
-  }
-  button.primary{
-    background: var(--blue);
-    color:#fff;
-    border-color: var(--blue);
-    flex:1;
-  }
-  button.primary:active{ opacity:0.85; }
-  button:not(.primary):active{ background: var(--paper); }
+  /* »Reši« zapolni vrstico (gumbi so v shared/base.css) */
+  .btn-row .primary{ flex:1; }
   /* spustni seznam "Primer" - videz kot ostali gumbi v vrstici; ne širši od kartice
      (sicer je širok kot najdaljše ime primera) */
   .btn-row select{
@@ -190,7 +137,7 @@
     font-family:'Inter', sans-serif;
     font-weight:600;
     font-size:14px;
-    padding: 11px 12px;
+    padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid var(--line);
     background:#fff;
@@ -236,11 +183,6 @@
 
   /* ---------- rezultati ---------- */
   #results{ display:none; }
-  #results h2{
-    font-family:'Source Serif 4', serif;
-    font-size:18px;
-    margin: 0 0 10px;
-  }
 
   #solvedGrid{
     display:grid;
@@ -343,28 +285,10 @@
     font-size:13px;
     color:var(--pencil);
   }
-  #resetChecks{
-    font-size:12.5px;
-    padding:7px 11px;
-  }
-  #steps li .tag{
-    display:inline-block;
-    font-family:'JetBrains Mono', monospace;
-    font-size:11px;
-    font-weight:700;
-    letter-spacing:0.02em;
-    padding:3px 8px;
-    border-radius:5px;
-    margin-bottom:6px;
-  }
+  #steps li .tag{ margin-bottom:6px; }
   #steps li .msg{ font-size:14.5px; line-height:1.55; color:var(--ink2); }
   #steps li .idx{ color:var(--pencil); font-family:'JetBrains Mono', monospace; font-size:11.5px; margin-right:4px; }
 
-  .tag.t-single{ background:var(--green-bg); color:var(--green); }
-  .tag.t-pair{ background:var(--amber-bg); color:var(--amber); }
-  .tag.t-advanced{ background:var(--purple-bg); color:var(--purple); }
-  .tag.t-chain{ background:var(--red-bg); color:var(--red); }
-  .tag.t-basic{ background:var(--blue-bg); color:var(--blue); }
 
   /* ---------- lightbox: tapni katerokoli mrežo za povečan prikaz ---------- */
   #lightbox{
@@ -526,31 +450,7 @@
   .mini-legend span{ display:inline-flex; align-items:center; gap:5px; }
   .mini-legend .sw{ width:11px; height:11px; border-radius:3px; border:1px solid rgba(0,0,0,0.15); }
 
-  footer.note{
-    max-width:480px;
-    margin: 20px auto 0;
-    padding: 0 16px;
-    font-size:12px;
-    color: var(--pencil);
-    line-height:1.6;
-  }
-
   /* ---------- zbirka ugank ---------- */
-  .top-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin: 0 0 6px;
-  }
-  header.top .top-row .eyebrow{ margin:0; }
-  .lib-open{
-    font-size:12px;
-    padding:5px 10px;
-    border-radius:6px;
-    color: var(--blue);
-    flex-shrink:0;
-  }
 
   .save-row{
     border-top:1px dashed var(--line);

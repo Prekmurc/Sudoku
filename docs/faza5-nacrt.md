@@ -317,3 +317,32 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
   funkcionalni pregledi v `preveri-presek`, `-enojcki` in `-vadi` držijo. Primerjave »Spoznaj«
   s prejšnjim commitom `d331c75`: `innerHTML` povsod enak, razlike samo v `background-color`,
   `color` in `border-left-color` (paleta treninga) – pričakovano.
+
+### Korak 3b – glava, kartica, naslovi, gumbi, noga, oznake korakov (N3–N7)
+
+- `shared/base.css`: `body` (spodnji odmik 60 px), `header.top` (odmik 26/16/10 px,
+  `.top-row`, `.eyebrow`, h1 24 px, opis `header.top > p`), `.top-actions`/`.top-btn`, `.card`
+  (16 px odmika, 12 px razmika) in `.card h2` (Source Serif 17 px), `button`, `.primary`,
+  `.majhen`, `:disabled` (0,4), `:active` (`brightness`), `footer.note` (sredinsko, 12 px),
+  `.tag` in `.tag.t-*` (prej enaka kopija v reševalcu in igri).
+- Reševalec: iz `app.css` odpadejo glava, kartica, gumbi, noga, oznake in `.lib-open`; gumb
+  »Zbirka« ima razred `top-btn`, »Počisti kljukice« `majhen`; »Reši« raztegne pravilo
+  `.btn-row .primary`; naslova »Možni kandidati« in »Koraki reševanja« sta zdaj Source Serif
+  17 px (prej privzeti h2 brskalnika), »Rešitev« 17 namesto 18 px. Glava: gumb »Zbirka« se
+  pri ozkem zaslonu prelomi pod nadnaslov (kot v igri).
+- Igra: iz `igra.css` odpadejo glava, gumbi, kartica, noga in oznake (spodnji odmik glave 8 →
+  10 px, razmik vrstic noge 1,5 → 1,6).
+- Trening: `<header class="top">` z nadnaslovom »Trening · spoznaš in vadiš tehnike«, h1
+  22 → 24 px, odmik strani 14 → 16 px, kartice vaje, menija in rezultata 16 px odmika in 12 px
+  razmika (formula `--gs` ostane: 104 = 22 + 32 + 32 + 18), gumbi iz `shared/base.css`:
+  `.pri` = velikost `.primary` (10×14 px) v barvi tehnike, `.sm-btn` = `.majhen` (barva besedila
+  temna namesto sive), »Nazaj na izbiro« in gumba načina = osnovni gumb, gumbi plošče »Vadi v
+  uganki« manjši (12,5 px, 6×8 px) z onemogočenim slogom igre (prej siva barva besedila).
+- Scenarij `preveri-videz`: pri 1280 px enaki izračunani slogi skupnih sestavin v vseh treh
+  aplikacijah (naslov, nadnaslov, glava, kartica, naslov kartice, gumb, glavni gumb, gumb v
+  glavi, noga).
+- Preverjeno: testi 425/425, posnetek igre enak (85), `preveri-niz` in `preveri-videz` držita,
+  funkcionalni pregledi v `preveri-presek`, `-enojcki` in `-vadi` držijo. Primerjave »Spoznaj«
+  s prejšnjim commitom `a3ebed0`: `innerHTML` povsod enak; razlike v lastnostih gumbov
+  (pisava, debelina, odmik, obroba, širina, višina) in kartice vaje (odmik 18 → 16, razmik
+  16 → 12, širina 347 → 343 px pri 375 px) – pri 4–5 elementih na vajo, celice mrež enake.

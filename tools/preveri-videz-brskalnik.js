@@ -223,21 +223,49 @@ const PALETA = ['--paper', '--card', '--ink', '--ink2', '--line', '--pencil', '-
   '--green', '--green-bg', '--amber', '--amber-bg', '--purple', '--purple-bg', '--izbira', '--izbira-bg'];
 const STRANI = { reševalec: 'app/index.html', igra: 'igra/index.html', trening: 'trening/index.html' };
 
+// Skupne sestavine (N3-N7) iz shared/base.css: izbirnik po aplikaciji (null = aplikacija je
+// nima) in lastnosti, ki morajo biti v vseh enake.
+const SESTAVINE = {
+  naslov: { izbirniki: ['header.top h1', 'header.top h1', 'header.top h1'], lastnosti: ['font-family', 'font-size', 'font-weight', 'color'] },
+  nadnaslov: { izbirniki: ['header.top .eyebrow', 'header.top .eyebrow', 'header.top .eyebrow'], lastnosti: ['font-family', 'font-size', 'letter-spacing', 'text-transform', 'color'] },
+  glava: { izbirniki: ['header.top', 'header.top', 'header.top'], lastnosti: ['padding-top', 'padding-left', 'padding-bottom'] },
+  kartica: { izbirniki: ['.card', '.card', '.menu-card'], lastnosti: ['background-color', 'border-top-width', 'border-top-color', 'border-radius', 'padding-top', 'padding-left'] },
+  'naslov kartice': { izbirniki: ['#stepsCard h2', '.card h2', null], lastnosti: ['font-family', 'font-size', 'font-weight', 'margin-bottom'] },
+  gumb: { izbirniki: ['#clearBtn', '#preveriBtn', '.nacin-btn:not(.vadi)'], lastnosti: ['font-family', 'font-size', 'font-weight', 'padding-top', 'padding-left', 'border-radius', 'border-top-color', 'background-color', 'color'] },
+  'glavni gumb': { izbirniki: ['#solveBtn', '#korakBtn', null], lastnosti: ['font-size', 'padding-top', 'padding-left', 'border-radius', 'background-color', 'color'] },
+  'gumb v glavi': { izbirniki: ['#libraryBtn', '#zbirkaBtn', null], lastnosti: ['font-size', 'padding-top', 'padding-left', 'border-radius', 'color'] },
+  noga: { izbirniki: ['footer.note', 'footer.note', null], lastnosti: ['font-size', 'color', 'text-align', 'line-height'] },
+};
+
 async function skupniVidez(b) {
   console.log('Skupni videz (1280 px)');
   const v = {};
-  for (const [ime, stran] of Object.entries(STRANI)) {
+  const imena = Object.keys(STRANI);
+  for (const [k, [ime, stran]] of Object.entries(STRANI).entries()) {
     await b.odpri(stran, { sirina: 1280, visina: 900 });
+    const izbirniki = Object.fromEntries(Object.entries(SESTAVINE).map(([s, d]) => [s, [d.izbirniki[k], d.lastnosti]]));
     v[ime] = await b.izvedi(`(() => {
       const r = getComputedStyle(document.documentElement), t = getComputedStyle(document.body);
+      const sestavine = {};
+      for (const [s, [izb, lastnosti]] of Object.entries(${JSON.stringify(izbirniki)})) {
+        if (!izb) continue;
+        const el = document.querySelector(izb);
+        sestavine[s] = el ? lastnosti.map(p => p + ': ' + getComputedStyle(el).getPropertyValue(p)).join('; ') : 'ni elementa ' + izb;
+      }
       return { paleta: ${JSON.stringify(PALETA)}.map(p => p + ': ' + r.getPropertyValue(p).trim()),
-        podlaga: t.backgroundColor + ' ' + t.backgroundImage };
+        podlaga: t.backgroundColor + ' ' + t.backgroundImage, sestavine };
     })()`);
   }
-  const [prva, ...druge] = Object.keys(v);
+  const [prva, ...druge] = imena;
   for (const ime of druge) preveri(`paleta: ${ime} = ${prva}`, JSON.stringify(v[ime].paleta) === JSON.stringify(v[prva].paleta),
     v[ime].paleta.filter((x, i) => x !== v[prva].paleta[i]));
-  for (const ime of Object.keys(v)) preveri(`${ime}: bela podlaga brez vzorca`, v[ime].podlaga === 'rgb(255, 255, 255) none', v[ime].podlaga);
+  for (const ime of imena) preveri(`${ime}: bela podlaga brez vzorca`, v[ime].podlaga === 'rgb(255, 255, 255) none', v[ime].podlaga);
+  for (const s of Object.keys(SESTAVINE)) {
+    const ima = imena.filter(ime => v[ime].sestavine[s] !== undefined);
+    const vrednosti = ima.map(ime => v[ime].sestavine[s]);
+    preveri(`${s}: enako v ${ima.join(', ')}`, vrednosti.every(x => x === vrednosti[0] && !x.startsWith('ni elementa')),
+      Object.fromEntries(ima.map(ime => [ime, v[ime].sestavine[s]])));
+  }
 }
 
 async function main() {

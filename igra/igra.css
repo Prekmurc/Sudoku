@@ -6,67 +6,9 @@
 
 /* seznam vrstic je 10. stolpec ob mreži - celice se pomanjšajo, da gre vse v širino */
 .igra-layout.z-vrsticami{ --gcs: min(calc((100vw - 36px - var(--sgap)) / 10), 56px); }
-body{
-  padding: 0 0 60px 0;
-}
-
-/* ---------- glava ---------- */
-header.top{
-  padding: 26px 16px 8px;
-  max-width: 960px;
-  margin: 0 auto;
-}
-header.top .top-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-  margin: 0 0 6px;
-}
-header.top .eyebrow{
-  font-family:'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--pencil);
-  margin: 0;
-}
-header.top h1{
-  font-family:'Source Serif 4', serif;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
-  line-height:1.25;
-}
-.top-actions{ display:flex; gap:8px; }
-.top-btn{
-  font-size:12px;
-  padding:5px 10px;
-  border-radius:6px;
-  color: var(--blue);
-}
-
-/* ---------- gumbi ---------- */
-button{
-  font-family:'Inter', sans-serif;
-  font-weight:600;
-  font-size:14px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background:#fff;
-  color: var(--ink);
-  cursor:pointer;
-}
-button.primary{
-  background: var(--blue);
-  color:#fff;
-  border-color: var(--blue);
-}
-button:disabled{ cursor:default; opacity:0.4; }
-button:not(:disabled):active{ filter: brightness(0.94); }
-button.majhen{ font-size:12.5px; padding:7px 11px; }
+/* reset, body, glava, kartica, gumbi, noga in oznake korakov so v ../shared/base.css -
+   tu samo širina igre (960 px) */
+header.top, footer.note{ max-width: 960px; }
 
 /* ---------- razporeditev ---------- */
 .igra-layout{
@@ -95,20 +37,8 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
 .z-vrsticami .plosca{ width: calc(var(--gcs) * 10 + var(--sgap)); }
 .stranski{ width:100%; max-width: 480px; }
 
-.card{
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 16px;
-  margin-top: 12px;
-}
 .card:first-child{ margin-top: 0; }
 @media (max-width: 899px){ .card:first-child{ margin-top: 4px; } }
-.card h2{
-  font-family:'Source Serif 4', serif;
-  font-size:17px;
-  margin: 0 0 8px;
-}
 .opis-uganke{ font-size:13.5px; color:var(--ink2); line-height:1.5; white-space: pre-line; }
 #status{
   font-size:13px;
@@ -148,20 +78,6 @@ button.majhen{ font-size:12.5px; padding:7px 11px; }
 /* druga stopnja koraka: enota in števka */
 .pomoc-namig{ color: var(--ink); font-weight:600; }
 .pomoc-opomba{ font-size:12.5px; color: var(--pencil); line-height:1.45; margin:6px 0 0; }
-.tag{
-  display:inline-block;
-  font-family:'JetBrains Mono', monospace;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:0.02em;
-  padding:3px 8px;
-  border-radius:5px;
-}
-.tag.t-single{ background:var(--green-bg); color:var(--green); }
-.tag.t-pair{ background:var(--amber-bg); color:var(--amber); }
-.tag.t-advanced{ background:var(--purple-bg); color:var(--purple); }
-.tag.t-chain{ background:var(--red-bg); color:var(--red); }
-.tag.t-basic{ background:var(--blue-bg); color:var(--blue); }
 .pomoc-legenda{
   display:flex;
   flex-wrap:wrap;
@@ -445,12 +361,3 @@ kbd{
 .vnosna-mreza input[data-r="3"], .vnosna-mreza input[data-r="6"]{ border-top: 2px solid var(--ink); }
 .vnosna-mreza input[data-r="8"]{ border-bottom: 2px solid var(--ink); }
 
-footer.note{
-  max-width: 960px;
-  margin: 24px auto 0;
-  padding: 0 16px;
-  font-size: 12px;
-  color: var(--pencil);
-  line-height:1.5;
-  text-align:center;
-}
