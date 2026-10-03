@@ -361,3 +361,14 @@ commit in push. Korakov, ki jih ne potrdiš, ni.
   legenda.
 - Preverjeno: testi 425/425, posnetek igre enak (85), `preveri-niz` in `preveri-videz` držita.
   Trening ni spremenjen (primerjave »Spoznaj« v koraku 5).
+
+### Korak 4b – značke ravni in okno zbirke (N10, N11)
+
+- `trening/trening.css`: značka SREDNJA jantarna (`--amber`, prej modra), NAPREDNA vijolična
+  (`--purple`, prej rdeča), LAHKA ostane zelena – iste barve kot oznaka koraka `.tag.t-pair` /
+  `.t-advanced` / `.t-single`; rdeča ostane poskusu s protislovjem (`.t-chain`).
+- `app/index.html`: v oknu »Zbirka ugank« je opis nad gumbi »Izvozi / Uvozi / Izbriši vse«,
+  kot v igri.
+- Scenarij `preveri-videz`: barve značk = barve oznak korakov, v obeh oknih zbirke opis nad
+  gumbi.
+- Preverjeno: testi 425/425, posnetek igre enak (85), `preveri-niz` in `preveri-videz` držita.

@@ -302,11 +302,33 @@ async function danostiResevalca(b) {
   preveri('reševalec: legenda »dana / izpeljana«', r.legenda === '5dana 5izpeljana', r.legenda);
 }
 
+// Značke ravni v treningu (N10) imajo barve oznake koraka (.tag.t-*), okno zbirke v reševalcu
+// ima opis nad gumbi kot v igri (N11).
+async function znackeInOkno(b) {
+  console.log('Značke ravni in okno zbirke (1280 px)');
+  await b.odpri('trening/index.html', { sirina: 1280, visina: 900 });
+  const z = await b.izvedi(`(() => {
+    const barva = e => { const c = getComputedStyle(e); return c.backgroundColor + ' / ' + c.color; };
+    return [['lahka', 't-single'], ['srednja', 't-pair'], ['napredna', 't-advanced']].map(([r, t]) => {
+      const oznaka = document.createElement('span'); oznaka.className = 'tag ' + t; document.body.appendChild(oznaka);
+      const v = { raven: r, znacka: barva(document.querySelector('.badge-' + r)), oznaka: barva(oznaka) };
+      oznaka.remove(); return v;
+    });
+  })()`);
+  for (const v of z) preveri(`značka ${v.raven}: barva kot oznaka koraka`, v.znacka === v.oznaka, v);
+  const prej = (a, c) => `!!(document.querySelector('${a}').compareDocumentPosition(document.querySelector('${c}')) & Node.DOCUMENT_POSITION_FOLLOWING)`;
+  await b.odpri('igra/index.html', { sirina: 1280, visina: 900 });
+  preveri('igra, okno zbirke: opis nad gumbi', await b.izvedi(prej('#zbirkaDialog .namig', '#zbirkaDialog .zbirka-gumbi')));
+  await b.odpri('app/index.html', { sirina: 1280, visina: 900 });
+  preveri('reševalec, okno zbirke: opis nad gumbi', await b.izvedi(prej('#library .cand-hint', '#library .lib-tools')));
+}
+
 async function main() {
   const b = await zazeni();
   try {
     await skupniVidez(b);
     await danostiResevalca(b);
+    await znackeInOkno(b);
     for (const sirina of SIRINE) {
       await resevalec(b, sirina);
       await igra(b, sirina);
