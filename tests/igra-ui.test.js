@@ -472,13 +472,36 @@ const vrsticaSeznama = run => {
 // Ena pravilna poteza v prvo prosto celico.
 const enVpis = run => run("(() => { const c = igra.danosti.split('').findIndex((ch, i) => ch === '0' && !stanje.vpisi[i]); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); })()");
 
+// Kartica »Uganka« (popravek po ročnem pregledu faze 6): značka težavnosti, tehnike v svoji vrstici,
+// čas reševanja brez stanja - stanje (»V teku (2/57).«) je samo v vrstici pod kartico.
+const vrsticeKartice = dom => dom.el('opisUganke').children.map(v => v.textContent);
 test('kartica "Uganka": napredek "moji vpisi / prazne celice"', () => {
   const { dom, run } = zacni();
   assert.equal(dom.el('status').textContent, `Nova uganka (0/${praznih}).`);
+  assert.equal(vrsticeKartice(dom).length, 2, 'nova uganka: brez vrstice reševanja');
   enVpis(run);
   enVpis(run);
   assert.equal(dom.el('status').textContent, `V teku (2/${praznih}).`);
-  assert.ok(dom.el('opisUganke').textContent.includes(`· v teku (2/${praznih})`), dom.el('opisUganke').textContent);
+  const v = vrsticeKartice(dom);
+  assert.equal(v.length, 3, v.join(' | '));
+  assert.match(v[2], /^zadnje reševanje \d+\. \d+\. \d{4} ob \d{2}:\d{2}$/);
+  assert.ok(!dom.el('opisUganke').textContent.includes('v teku'), 'stanje je izpisano samo enkrat');
+});
+
+test('kartica "Uganka": značka težavnosti, izvor in dane števke v 1. vrstici, tehnike v 2.', () => {
+  const { dom, run } = zacni();
+  const z = run(`zbirkaBeri().find(x => x.danosti === ${D})`);
+  const [prva, druga] = dom.el('opisUganke').children;
+  const znacka = prva.children[0];
+  assert.equal(znacka.textContent, z.tezavnost);
+  assert.equal(znacka.className, `tag ${{ Lahka: 't-single', Srednja: 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced' }[z.tezavnost] || 't-chain'} znacka-tezavnosti`);
+  assert.match(prva.textContent, new RegExp(`^${z.tezavnost} .*dodana .* · danih števk: ${81 - praznih}$`));
+  assert.equal(druga.textContent, run(`zbirkaOznakaTehnik(zbirkaBeri().find(x => x.danosti === ${D}))`));
+  assert.match(druga.textContent, /^tehnike: /);
+  // Uganka brez težavnosti: brez značke.
+  run(`(() => { const zb = zbirkaBeri(); zb.find(x => x.danosti === ${D}).tezavnost = ''; zbirkaPisi(zb); izrisi(); })()`);
+  assert.match(dom.el('opisUganke').children[0].textContent, /^težavnost ni določena · /);
+  assert.ok(!dom.el('opisUganke').children[0].children.some(c => /\btag\b/.test(c.className)), 'brez značke');
 });
 
 test('samo odstranjen kandidat: uganka je v teku (0/57), gumb "Nadaljuj"', () => {
@@ -527,7 +550,9 @@ test('ponovno reševanje rešene uganke: "rešena … · znova v teku", gumb "Na
   assert.equal(gumb(run), 'Nadaljuj');
   const li = vrsticaSeznama(run);
   assert.match(li, new RegExp(`rešena \\d+\\. \\d+\\. \\d{4} ob \\d{2}:\\d{2} · znova v teku \\(3/${praznih}\\)`), li);
-  assert.match(dom.el('opisUganke').textContent, new RegExp(`\\nrešena .* · znova v teku \\(3/${praznih}\\)`));
+  // Kartica »Uganka«: čas prve rešitve brez stanja (stanje je v vrstici pod kartico).
+  assert.match(vrsticeKartice(dom).slice(-1)[0], /^rešena \d+\. \d+\. \d{4} ob \d{2}:\d{2}$/);
+  assert.equal(dom.el('status').textContent, `V teku (3/${praznih}).`);
   // Zapis v zbirki (in izvoz) ostane zamrznjen.
   assert.equal(stanjeZapisa(run), 'rešena');
   assert.ok(run('zbirkaIzvozi().besedilo').includes('- **Stanje:** rešena'));
@@ -903,8 +928,9 @@ test('stikalo kandidatov: enojček na tretji stopnji - števka za vpis v celici,
 });
 
 // Faza 6 (docs/uskladitev.md 5.2): opisi stopenj so samo v STOPNJE_UGANK (shared/generator.js);
-// okno "Nova uganka" izpiše merilo generatorja, Pomoč merilo ocene vseh stopenj in merilo
-// generatorja tam, kjer je ožje; namig miške na gumbu stopnje je merilo generatorja.
+// okno "Nova uganka" izpiše merilo generatorja, Pomoč merilo ocene vseh stopenj in eno poved o
+// strožjem generatorju (OPIS_STROZJEGA_ISKANJA - popravek po ročnem pregledu faze 6: en seznam);
+// namig miške na gumbu stopnje je merilo generatorja.
 test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih ni', () => {
   const { dom, run } = zacni();
   const seznam = id => dom.el(id).children.map(li => li.textContent);
@@ -913,12 +939,17 @@ test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih
   // Ekstrem (ekspertna tehnika) je v seznamu šele, ko jo motor pozna (faza 6, odločitev D).
   assert.deepEqual(seznam('stopnjeOcena'), opisi("STOPNJE_UGANK.filter(s => s.kljuc !== 'ekstrem')", 'opis'));
   assert.equal(run('GEN_EKSPERTNE.length'), 0);
-  assert.deepEqual(seznam('stopnjeIskanje'), opisi('STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis)', 'opisIskanja'));
-  assert.equal(seznam('stopnjeIskanje').length, 3, 'lahka ima isto merilo ocene in generatorja');
+  assert.equal(dom.el('stopnjeStrozje').textContent, run('OPIS_STROZJEGA_ISKANJA'));
+  assert.match(dom.el('stopnjeStrozje').textContent, /^Generator je strožji od ocene/);
   assert.deepEqual([...run('stopnjeGumbi.map(g => g.el.title)')], [...run('STOPNJE_GENERATORJA.map(s => s.opisIskanja)')]);
   const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'igra', 'index.html'), 'utf8');
   for (const s of run('STOPNJE_UGANK')) {
     for (const o of [s.opis, s.opisIskanja].filter(Boolean)) assert.ok(!html.includes(o), `opis stopnje ${s.kljuc} je v HTML`);
   }
-  for (const id of ['stopnjeNova', 'stopnjeOcena', 'stopnjeIskanje']) assert.match(html, new RegExp(`<ul id="${id}"[^>]*></ul>`));
+  assert.ok(!html.includes(run('OPIS_STROZJEGA_ISKANJA').slice(0, 40)), 'poved o generatorju je v HTML');
+  for (const id of ['stopnjeNova', 'stopnjeOcena']) assert.match(html, new RegExp(`<ul id="${id}"[^>]*></ul>`));
+  assert.match(html, /<p id="stopnjeStrozje"><\/p>/);
+  // En seznam stopenj v Pomoči (prej dva).
+  const pomoc = html.slice(html.indexOf('<div id="navodilaDialog"'), html.indexOf('<div id="novaDialog"'));
+  assert.equal((pomoc.match(/class="navodila-stopnje"><\/ul>/g) || []).length, 1);
 });

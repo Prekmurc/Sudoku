@@ -146,6 +146,34 @@ function renderGridInto(container, stepLike, cellSizePx) {
   }
 }
 
+// En napotek za povečavo - pod rešeno mrežo (app/index.html) in pod malo mrežo koraka.
+const NAPOTEK_POVECAVA = 'Tapni mrežo za povečavo.';
+
+// Legenda pod malo mrežo koraka (popravek po ročnem pregledu faze 6): isti izrazi kot v treningu
+// in samo postavke, ki so na mreži - celice vzorca (jantarne, prazne celice vzorca brez vpisa),
+// izbrisani kandidati (vzorček s prečrtano števko prvega izbrisa), vpis (vzorček s števko vpisa).
+// Pogoji so isti kot v renderGridInto(): polna celica pokaže samo števko.
+function legendaKoraka(s) {
+  const prazna = i => s.snapshotGrid[i] === 0;
+  const vpisi = s.assign.filter(([c]) => prazna(c));
+  const vpisane = new Set(vpisi.map(([c]) => c));
+  const legend = document.createElement('div');
+  legend.className = 'mini-legend';
+  const postavka = (razred, stevka, besedilo) => {
+    const p = document.createElement('span');
+    const sw = document.createElement('span');
+    sw.className = razred;
+    sw.textContent = stevka;
+    p.append(sw, besedilo);
+    legend.appendChild(p);
+  };
+  if (s.cells.some(c => prazna(c) && !vpisane.has(c))) postavka('sw sw-vzorec', '', 'celice vzorca');
+  const izbris = s.eliminate.find(([c]) => prazna(c) && !vpisane.has(c));
+  if (izbris) postavka('sw-stevka sw-izbris', String(izbris[1]), 'izbrisani kandidati');
+  if (vpisi.length) postavka('sw-stevka sw-vpis', String(vpisi[0][1]), 'vpis');
+  return legend;
+}
+
 function updateProgress() {
   const total = stepsEl.children.length;
   const done = stepsEl.querySelectorAll('li.done').length;
@@ -216,14 +244,11 @@ function renderStepsList() {
             });
           });
           miniContainer.appendChild(gridDiv);
-          const legend = document.createElement('div');
-          legend.className = 'mini-legend';
-          legend.innerHTML = `
-            <span><span class="sw" style="background:var(--amber-bg);border-color:var(--amber)"></span>vpletene celice</span>
-            <span><span class="sw" style="background:var(--red-bg);border-color:var(--red)"></span>izbrisan kandidat</span>
-            <span><span class="sw" style="background:var(--green-bg);border-color:var(--green)"></span>se postavi</span>
-            <span>· tapni mrežo za povečavo</span>`;
-          miniContainer.appendChild(legend);
+          miniContainer.appendChild(legendaKoraka(s));
+          const povecava = document.createElement('p');
+          povecava.className = 'cand-hint mini-povecava';
+          povecava.textContent = NAPOTEK_POVECAVA;
+          miniContainer.appendChild(povecava);
           miniContainer.dataset.rendered = '1';
         }
         miniContainer.style.display = 'block';
@@ -381,7 +406,7 @@ candBtn.addEventListener('click', () => {
   }
   const filled = inputs.filter(inp => inp.value).length;
   if (filled === 0) {
-    statusEl.textContent = 'Najprej vnesi vsaj nekaj začetnih števk.';
+    statusEl.textContent = 'Najprej vnesi vsaj nekaj danih števk.';
     statusEl.className = 'err';
     return;
   }
@@ -395,7 +420,7 @@ document.getElementById('solveBtn').addEventListener('click', () => {
   resultsEl.style.display = 'none';
   const filled = inputs.filter(inp => inp.value).length;
   if (filled === 0) {
-    statusEl.textContent = 'Najprej vnesi vsaj nekaj začetnih števk.';
+    statusEl.textContent = 'Najprej vnesi vsaj nekaj danih števk.';
     statusEl.className = 'err';
     return;
   }

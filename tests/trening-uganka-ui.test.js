@@ -764,18 +764,15 @@ test('»Spoznaj« E1/E2 pri vajah 1-6: okvir območja in temne oznake roba, pri 
 });
 
 
-/* ---------- točka 18: »več celic« privzeto po tehniki ---------- */
+/* ---------- »več celic« privzeto vklopljen (popravek po ročnem pregledu faze 6) ---------- */
 
-test('»več celic« privzeto po deležu tehnike v banki, sprememba velja do konca kroga, Ctrl+klik vedno', () => {
+test('»več celic« pri 1–12 privzeto vklopljen, sprememba velja do konca kroga, Ctrl+klik vedno', () => {
   const kljukica = dom => poRazredu(dom, 'glava-s-kljukico')[0].children[1].children[0];
-  // Delež iz banke: mečarica nad 50 % (vklop), edinstveni pravokotnik 0 % (izklop).
-  for (const [mode, vklop] of [['swordfish', true], ['unique-rectangle', false]]) {
-    const { dom, run, izprazni } = zacni(mode);
+  // Prej po deležu v banki (edinstveni pravokotnik 0 % - izklop); zdaj pri vseh vklopljen.
+  for (const mode of ['pointing', 'swordfish', 'xy-wing', 'unique-rectangle']) {
+    const { dom, izprazni } = zacni(mode);
     izprazni();
-    const d = run(`delezVecCelic(VAJE_BANKA, TEHNIKA_VAJE[${JSON.stringify(mode)}])`);
-    assert.equal(d > 0.5, vklop, `${mode}: delež ${d}`);
-    assert.equal(kljukica(dom).checked, vklop, `${mode}: privzeto`);
-    assert.equal(run('vecCelicPrivzeto(vadi.v.kljuc)'), vklop);
+    assert.equal(kljukica(dom).checked, true, `${mode}: privzeto`);
   }
   // Vklopljena kljukica: navaden klik doda celico.
   const { dom, run, izprazni } = zacni('swordfish');

@@ -117,6 +117,13 @@ const STOPNJE_UGANK = [
 // Stopnje, ki jih generator ponuja (gumbi v oknu "Nova uganka").
 const STOPNJE_GENERATORJA = STOPNJE_UGANK.filter(s => s.ustrezaIskanju);
 
+// Ena poved o tem, v čem je generator strožji od ocene (Pomoč igre pod seznamom stopenj -
+// popravek po ročnem pregledu faze 6: en seznam stopenj, ne dva). Števili morata ustrezati
+// GEN_NAJMANJ_SREDNJIH in GEN_TEZKA_NAJVEC, tako kot opisIskanja zgoraj.
+const OPIS_STROZJEGA_ISKANJA = 'Generator je strožji od ocene, ker ponudi samo uganke, ki so za svojo '
+  + 'stopnjo tipične: pri srednji, težki in zelo težki zahteva vsaj dve različni srednji tehniki, pri '
+  + 'težki pa še, da je vseh tehnik nad enojčki največ štiri.';
+
 function stopnjaUganke(kljuc) {
   return STOPNJE_UGANK.find(s => s.kljuc === kljuc) || null;
 }

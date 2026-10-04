@@ -52,7 +52,7 @@ for (const ime of Object.keys(APLIKACIJE)) {
     assert.equal(okno.classList.contains('odprt'), false, 'Escape ga zapre');
   });
 
-  test(`${ime}: razdelek »Tehnike« – poved o ravneh, E1, E2, 1-12, značka ravni, razlaga in posledica`, () => {
+  test(`${ime}: razdelek »Tehnike« – poved o ravneh, E1, E2, 1-12, značka ravni, razlaga in posledica v svojih odstavkih`, () => {
     const { dom, run } = nalozi(ime);
     const [uvod, ul] = dom.el(APLIKACIJE[ime].tehnike).children;
     assert.match(uvod.textContent, /^Tehnike so v treh ravneh: lahke \(E1, E2\), srednje \(1–6\) in napredne \(7–12\)/);
@@ -60,13 +60,18 @@ for (const ime of Object.keys(APLIKACIJE)) {
     assert.equal(ul.children.length, 14);
     ul.children.forEach((li, i) => {
       const [kljuc, tehnika] = vaje[i];
-      const [oznaka, ime, , raven, opis] = li.children;
+      const [oznaka, ime, , raven, razlaga, posledica] = li.children;
       const o = run('oznakaTehnike')(kljuc);
       assert.equal(oznaka.textContent, `${o} · `);
       assert.equal(ime.textContent, run('imeTehnike')(tehnika));
       assert.equal(raven.textContent, RAVNI[o], `${o}: raven`);
       assert.equal(raven.className, `tag ${run('tagClass')(tehnika)} tehnika-raven`);
-      assert.equal(opis.textContent, `${run('TEHNIKE_OPISI')[kljuc].razlaga} ${run('TEHNIKE_OPISI')[kljuc].posledica}`);
+      // Posledica je svoj odstavek, ne zlita z razlago (popravek po ročnem pregledu faze 6).
+      assert.equal(razlaga.tagName, 'P');
+      assert.equal(razlaga.textContent, run('TEHNIKE_OPISI')[kljuc].razlaga);
+      assert.equal(posledica.tagName, 'P');
+      assert.equal(posledica.textContent, run('TEHNIKE_OPISI')[kljuc].posledica);
+      assert.equal(li.children.length, 6);
     });
   });
 }

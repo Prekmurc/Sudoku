@@ -206,6 +206,21 @@ legenda in razdelek »Razlaga« v `tests/trening-legenda.test.js` in
 | 3 | igra, okno Pomoč in kartica »Kako«, kandidati izklopljeni | V kartici »Prikaz« izklopi »Kandidati v celicah«, preberi »Kako igrati«, »Pomoč pri reševanju« in kartico »Kako« ter preizkusi, kar opisujejo: »Vpiši« z vsemi števkami, Shift+števka, »več celic«, Poudari, »Naslednji korak« do »Pokaži rešitev« in »Vklopi kandidate«. | Opis se ujema z obnašanjem; ni več trditev, ki pri izklopljenih kandidatih ne držijo. (nepotrjeno) – ni avtomatsko: ujemanje besedila z obnašanjem je vsebinska presoja (obnašanje samo preverjajo testi naloge 5a). |
 | 4 | reševalec in trening, okno Pomoč, pravi telefon in računalnik | Odpri »Pomoč«, podrsaj do »Tehnike«, zapri s ✕, s klikom ob oknu in z Esc. Preberi besedila (`docs/faza6-pomoc.md`). | Okno je berljivo in ni predolgo, drsenje deluje, zapiranje na vse tri načine; vsebina je pravilna. (nepotrjeno) – ni avtomatsko: drsenje z dotikom in občutek za dolžino na pravi napravi; brskalnik brez glave skrije drsnike in nima dotika. |
 
+### Popravki po ročnem pregledu faze 6
+
+Samodejno preverjeno: izrazi (»dane števke«, »kljukica«, brez razvijalskih podrobnosti) v
+`tests/izrazi.test.js`; podnaslovi, en seznam stopenj, posledica v svojem odstavku, kartica
+»Uganka«, legenda male mreže v reševalcu (vsi koraki štirih ugank), »več celic« in opis zaznamkov v
+treningu v `tests/igra-ui.test.js`, `tests/pomoc.test.js`, `tests/trening-uganka-ui.test.js` in
+`tools/preveri-pregled6-brskalnik.js` (375 in 1280 px).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | igra, okno Pomoč | Preberi »Kako igrati« in »Zbirka ugank« s podnaslovi ter seznam stopenj s povedjo o generatorju. | Podnaslovi ustrezajo temu, kar je na zaslonu, in olajšajo iskanje; poved o generatorju je razumljiva. (nepotrjeno) – ni avtomatsko: ustreznost razdelitve je vsebinska presoja. |
+| 2 | igra, kartica »Uganka«, telefon in računalnik | Odpri uganko iz zbirke, naredi potezo. | Značka težavnosti je berljiva, tehnike so v svoji vrstici, stanje (»V teku …«) je izpisano enkrat. (nepotrjeno) – ni avtomatsko: berljivost in videz presodi oko; scenarij preveri barvo, vrstice in besedilo. |
+| 3 | reševalec, koraki, telefon | Odpri »Pokaži na mreži« pri enojčku, pri koraku z izbrisom (npr. par) in pri koraku z vpisom. | Legenda našteje samo to, kar je na mali mreži (»celice vzorca«, »izbrisani kandidati«, »vpis«), vzorčki so berljivi. (nepotrjeno) – ni avtomatsko: velikost vzorčkov na pravem zaslonu. |
+| 4 | trening, »Vadi v uganki« 9–12 | Reši vajo z vklopljeno kljukico »več celic« in uporabi »Označi izbrane« po opisu pod gumboma. | Opis poteka je razumljiv; privzeto vklopljena kljukica ne moti tudi pri tehnikah, kjer se števka izbriše iz ene celice. (nepotrjeno) – ni avtomatsko: občutek pri reševanju. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

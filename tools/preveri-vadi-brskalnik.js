@@ -650,11 +650,12 @@ async function oznakeIgra(b) {
   preveri('igra: podlagi #F1E5C9 / #F3DEDA, male števke brez z-index', p.podlagi === 'rgb(241, 229, 201) / rgb(243, 222, 218)' && p.stevke === 'static auto', p);
 }
 
-// "Več celic" privzeto po tehniki (točka 18): izklopljen pri edinstvenem pravokotniku.
+// "Več celic" pri 1-12 privzeto vklopljen (popravek po ročnem pregledu faze 6; prej po tehniki -
+// točka 18 - pri edinstvenem pravokotniku izklopljen).
 async function vecCelicPrivzeto(b) {
-  console.log('»Več celic« privzeto po tehniki');
+  console.log('»Več celic« privzeto vklopljen');
   await vadi(b, 'unique-rectangle', 375, { banka: true });
-  preveri('»več celic« pri edinstvenem pravokotniku privzeto izklopljen', (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) === false);
+  preveri('»več celic« pri edinstvenem pravokotniku privzeto vklopljen', (await b.izvedi(`document.querySelector('.vaja-uganka .glava-s-kljukico input').checked`)) === true);
 }
 
 async function banka(b) {

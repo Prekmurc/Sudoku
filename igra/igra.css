@@ -40,6 +40,10 @@ header.top, footer.note{ max-width: 960px; }
 .card:first-child{ margin-top: 0; }
 @media (max-width: 899px){ .card:first-child{ margin-top: 4px; } }
 .opis-uganke{ font-size:13.5px; color:var(--ink2); line-height:1.5; white-space: pre-line; }
+/* vrstice kartice "Uganka": značka težavnosti, tehnike, čas reševanja, opomba */
+.opis-uganke .opis-vrstica + .opis-vrstica{ margin-top:3px; }
+.opis-uganke .znacka-tezavnosti{ font-size:10.5px; padding:2px 7px; vertical-align:1px; }
+.opis-uganke .opis-opomba{ font-style:italic; }
 #status{
   font-size:13px;
   color: var(--pencil);

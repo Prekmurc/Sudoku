@@ -449,6 +449,15 @@
   }
   .mini-legend span{ display:inline-flex; align-items:center; gap:5px; }
   .mini-legend .sw{ width:11px; height:11px; border-radius:3px; border:1px solid rgba(0,0,0,0.15); }
+  /* vzorčki legende kot celice male mreže (hl-source, mcand-elim na hl-elimonly, willset) */
+  .mini-legend .sw-vzorec{ background:var(--amber-bg); border-color:var(--amber); }
+  .mini-legend .sw-stevka{
+    justify-content:center; min-width:15px; height:15px; border-radius:3px;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:11px;
+  }
+  .mini-legend .sw-izbris{ background:var(--red-bg); color:var(--red); text-decoration:line-through; }
+  .mini-legend .sw-vpis{ background:var(--green-bg); color:var(--green); }
+  .mini-container .mini-povecava{ text-align:center; margin:4px 0 0; }
 
   /* ---------- zbirka ugank ---------- */
 

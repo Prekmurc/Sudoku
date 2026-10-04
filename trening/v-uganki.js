@@ -19,15 +19,12 @@ let vadiIskanje=0;
 const vadiUporabljene={};
 // Kljukica "pokaži prečrtane" ostane med vajami kroga (ne shranjuje se).
 let precrtaniKrog=false;
-// Kljukica "več celic" (točka 18 načrta): privzeto po tehniki - vklopljena, če je v banki
-// pri več kot polovici korakov tehnike ista števka izbrisana iz 2+ celic (delezVecCelic()
-// v shared/vaje-uganka.js). Igralčeva sprememba velja do konca kroga (null = privzeto).
-const VADI_VEC_CELIC_PRAG=0.5;
+// Kljukica "več celic": pri 1-12 privzeto vklopljena (popravek po ročnem pregledu faze 6; prej po
+// deležu korakov z isto števko iz 2+ celic v banki - točka 18 načrta, delezVecCelic() ostane v
+// shared/vaje-uganka.js). Igralčeva sprememba velja do konca kroga (null = privzeto).
 let vecCelicKrog=null;
-function vecCelicPrivzeto(kljuc){
-  const d=delezVecCelic(VAJE_BANKA,kljuc);
-  return d!==null&&d>VADI_VEC_CELIC_PRAG;
-}
+// Kljukica je samo pri 1-12 (E1/E2 imata niz »Vpiši«), zato je privzeto vedno vklopljena.
+function vecCelicPrivzeto(){return true;}
 
 function vadiPrekini(){vadiIskanje++;vadi=null;}
 
@@ -255,10 +252,8 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     const poj=vEl('span','niz-pojasnilo','· ');poj.append(vEl('span','vzorec-vrni','↺'),' = vrni');
     o.appendChild(poj);
     vc=vKljukica(' več celic');vc.l.className='vec-hkrati';
-    const vecPrivzeto=vecCelicPrivzeto(kljuc);
-    vc.l.title='Izberi več celic in izbriši isto števko iz vseh (na računalniku tudi Ctrl+klik)'
-      +(vecPrivzeto?'. Pri tej tehniki se v večini korakov ista števka izbriše iz več celic.':'');
-    vc.i.checked=vecCelicKrog!==null?vecCelicKrog:vecPrivzeto;
+    vc.l.title='Izberi več celic in izbriši isto števko iz vseh (na računalniku tudi Ctrl+klik)';
+    vc.i.checked=vecCelicKrog!==null?vecCelicKrog:vecCelicPrivzeto();
     vc.i.addEventListener('change',()=>{vecCelicKrog=vc.i.checked;});
     g.append(o,vc.l);wrap.appendChild(g);
     nizO=vEl('div','niz niz-odstrani');nizO.setAttribute('role','group');nizO.setAttribute('aria-label','Izbriši kandidata');
@@ -269,13 +264,16 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     pon=vEl('button',null,'↷ Ponovi');pon.type='button';pon.title='Ponovi (Ctrl+Y)';
     zn=vEl('button',null,'↺ Začni znova');zn.type='button';zn.title='Vrni na začetek vaje (poteze ostanejo v »Ponovi«)';
     akcije.append(raz,pon,zn);wrap.appendChild(akcije);
-    // Zaznamki (točka 17.2): izbrane celice dobijo obstojno oranžno črtkano obrobo, izbira
-    // je nato spet prosta; niso poteze in ne štejejo kot pomoč; nova vaja jih pobriše.
+    // Zaznamki (točka 17.2): izbrane celice dobijo obstojen vijoličen črtkan okvir, izbira je
+    // nato spet prosta; niso poteze in ne štejejo kot pomoč; nova vaja jih pobriše. Pod gumboma
+    // kratek opis poteka - oznake so samo pripomoček (popravek po ročnem pregledu faze 6).
     zaznamki=vEl('div','zaznamki');
     zaznBtn=vEl('button',null,'◩ Označi izbrane (O)');zaznBtn.type='button';
-    zaznBtn.title='Izbrane celice označi (ali odznači) z obrobo – izbira je nato spet prosta';
+    zaznBtn.title='Izbrane celice označi z vijoličnim okvirjem, da si zapomniš vzorec (če so že označene, oznako pobriše); izbira je nato spet prosta. Oznake niso obvezne – »Preveri« jih ne gleda.';
     zaznPoc=vEl('button',null,'Počisti oznake');zaznPoc.type='button';
-    zaznamki.append(zaznBtn,zaznPoc);wrap.appendChild(zaznamki);
+    zaznPoc.title='Pobriši vse oznake';
+    const potek=vEl('p','zaznamki-potek','Pripomoček, ni obvezen: izberi celice vzorca in jih označi, nato izberi celice izbrisa, izbriši števko in pritisni »Preveri«. Oznak »Preveri« ne gleda.');
+    zaznamki.append(zaznBtn,zaznPoc,potek);wrap.appendChild(zaznamki);
   }
   const stikalaEl=vEl('div','seznami-stikala');stikalaEl.setAttribute('role','group');stikalaEl.setAttribute('aria-label','Prikaz seznamov');
   const kV=vKljukica(' Vrstice'),kS=vKljukica(' Stolpci'),kB=vKljukica(' Bloki');

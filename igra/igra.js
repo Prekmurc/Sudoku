@@ -234,7 +234,7 @@ function izrisiStanje() {
     nastaviStatus(sporocilo ? sporocilo.besedilo : 'Izberi uganko v zbirki ali vnesi novo (gumba zgoraj).', sporocilo ? sporocilo.razred : '');
     return;
   }
-  opisUgankeEl.textContent = opisUganke(igra.danosti);
+  izrisiOpisUganke(igra.danosti);
   if (sporocilo) nastaviStatus(sporocilo.besedilo, sporocilo.razred);
   else if (jeResena(stanje)) nastaviStatus('Uganka je rešena. Čestitam! Mreža je zaklenjena – za novo reševanje klikni »Začni znova«.', 'ok');
   else nastaviStatus(statusNapredka(zbirkaStanjeUganke(igra.danosti, null, povzetekTrenutne())), '');
@@ -254,18 +254,47 @@ function nastaviStatus(besedilo, razred) {
   statusEl.className = razred || '';
 }
 
-function opisUganke(danosti) {
+// Značka težavnosti v kartici "Uganka": barva ravni najtežje tehnike, kot oznaka koraka (.tag.t-* v
+// shared/base.css) - lahka zelena, srednja jantarna, težka in zelo težka vijolična; drugo (Ekstrem,
+// Presega tehnike, Več rešitev, Brez rešitve) rdeča.
+const ZNACKA_TEZAVNOSTI = { 'Lahka': 't-single', 'Srednja': 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced' };
+
+// Kartica "Uganka" (popravek po ročnem pregledu faze 6): 1. vrstica značka težavnosti, izvor, kdaj je
+// bila dodana in število danih števk; 2. vrstica tehnike; 3. vrstica čas mojega reševanja (stanje -
+// »v teku (12/57)« - je samo v vrstici pod kartico, statusNapredka()); 4. vrstica opomba.
+function izrisiOpisUganke(danosti) {
   const danih = danosti.replace(/0/g, '').length;
   const z = zbirkaBeri().find(x => x.danosti === danosti);
   const primer = zbirkaPrimerZa(danosti);
+  opisUgankeEl.textContent = '';
   // Vgrajeni primer v zbirki nikoli ni.
-  if (!z) return primer ? `Vgrajeni primer »${primer.ime}«. Danih števk: ${danih}.` : `Danih števk: ${danih}. Uganke ni v zbirki.`;
-  const casi = zbirkaPrikazCasov(z);
-  const deli = [z.tezavnost || 'težavnost ni določena', zbirkaOpisIzvora(z), casi.dodana,
-    `danih števk: ${danih}`, zbirkaOznakaTehnik(z)].filter(Boolean);
-  // Moje reševanje je v svoji vrstici pod prvo (.opis-uganke ima white-space: pre-line).
-  const igranje = zbirkaVrsticaIgranja(z, povzetekTrenutne());
-  return deli.join(' · ') + (igranje ? `\n${igranje}` : '') + (z.opomba ? ` – ${z.opomba}` : '');
+  if (!z) {
+    opisUgankeEl.textContent = primer ? `Vgrajeni primer »${primer.ime}«. Danih števk: ${danih}.` : `Danih števk: ${danih}. Uganke ni v zbirki.`;
+    return;
+  }
+  const vrstica = (razred, ...deli) => {
+    const v = document.createElement('div');
+    v.className = razred;
+    v.append(...deli);
+    opisUgankeEl.appendChild(v);
+    return v;
+  };
+  const prva = [zbirkaOpisIzvora(z), zbirkaPrikazCasov(z).dodana, `danih števk: ${danih}`].filter(Boolean).join(' · ');
+  if (z.tezavnost) {
+    const znacka = document.createElement('span');
+    znacka.className = `tag ${ZNACKA_TEZAVNOSTI[z.tezavnost] || 't-chain'} znacka-tezavnosti`;
+    znacka.textContent = z.tezavnost;
+    vrstica('opis-vrstica', znacka, ' ' + prva);
+  } else {
+    vrstica('opis-vrstica', `težavnost ni določena · ${prva}`);
+  }
+  vrstica('opis-vrstica', zbirkaOznakaTehnik(z));
+  // Čas mojega reševanja brez stanja: pri rešeni uganki »rešena 21. 9. 2026 ob 17:48«, sicer
+  // »zadnje reševanje …« ali pri ponovnem reševanju čas prve rešitve.
+  const igranje = zbirkaPrikazCasov(z, povzetekTrenutne()).igranje;
+  const cas = igranje ? (igranje.kljuc === 'resena' ? igranje.besedilo : igranje.predpona) : '';
+  if (cas) vrstica('opis-vrstica', cas);
+  if (z.opomba) vrstica('opis-vrstica opis-opomba', z.opomba);
 }
 
 /* ---------- pomoč: Naslednji korak, Preveri ---------- */
@@ -999,12 +1028,12 @@ try {
 
 // Opisi stopenj so samo v STOPNJE_UGANK (shared/generator.js, docs/uskladitev.md 5.2), v HTML
 // jih ni: okno "Nova uganka" pove merilo generatorja, Pomoč merilo ocene stopenj, ki jih uganka
-// lahko dobi (stopnjeZaPomoc() - Ekstrem šele, ko motor pozna ekspertno tehniko), in merilo
-// generatorja tam, kjer je ožje. izpisiStopnje() je v shared/pomoc.js.
+// lahko dobi (stopnjeZaPomoc() - Ekstrem šele, ko motor pozna ekspertno tehniko), in eno poved o
+// tem, v čem je generator strožji (OPIS_STROZJEGA_ISKANJA - popravek po ročnem pregledu faze 6:
+// en seznam, ne dva). izpisiStopnje() je v shared/pomoc.js.
 izpisiStopnje(document.getElementById('stopnjeNova'), STOPNJE_GENERATORJA, 'opisIskanja');
 izpisiStopnje(document.getElementById('stopnjeOcena'), stopnjeZaPomoc(), 'opis');
-izpisiStopnje(document.getElementById('stopnjeIskanje'),
-  STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis), 'opisIskanja');
+document.getElementById('stopnjeStrozje').textContent = OPIS_STROZJEGA_ISKANJA;
 
 // Samo stopnje, ki jih generator ustvarja (Ekstrem ne - ekspertne tehnike še ni).
 const stopnjeGumbi = STOPNJE_GENERATORJA.map(s => {
@@ -1233,7 +1262,7 @@ document.getElementById('novaPocisti').addEventListener('click', () => {
 
 novaZacniBtn.addEventListener('click', () => {
   const danosti = vneseneDanosti();
-  if (!/[1-9]/.test(danosti)) { novaStatus('Najprej vnesi danosti.', true); return; }
+  if (!/[1-9]/.test(danosti)) { novaStatus('Najprej vnesi dane števke.', true); return; }
   if (!oznaciKonflikte()) { novaStatus('Popravi rdeče označene celice – ista števka se ponavlja v vrstici, stolpcu ali bloku.', true); return; }
   novaStatus('Preverjam, ali ima uganka natanko eno rešitev …');
   novaZacniBtn.disabled = true;
@@ -1241,7 +1270,7 @@ novaZacniBtn.addEventListener('click', () => {
     try {
       const n = countSolutions(danosti);
       if (n !== 1) {
-        novaStatus(n === 0 ? 'Uganka nima rešitve – preveri danosti.'
+        novaStatus(n === 0 ? 'Uganka nima rešitve – preveri dane števke.'
           : n === 'unknown' ? 'Enoličnosti ni bilo mogoče preveriti v razumnem času, zato uganke ne morem ponuditi za igro.'
           : 'Uganka ima več kot eno rešitev – za igro potrebujem uganko z natanko eno rešitvijo.', true);
         return;

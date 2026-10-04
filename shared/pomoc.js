@@ -32,8 +32,9 @@ function ustvariPomoc(okno, gumbi) {
 const POMOC_RAVNI = { 't-single': 'lahka', 't-pair': 'srednja', 't-advanced': 'napredna' };
 
 // Razdelek »Tehnike« v okno Pomoč (element el): poved o ravneh in seznam E1, E2, 1-12 z oznako,
-// imenom (angleško ime v oklepaju), značko ravni ter razlago in posledico (opisTehnike()) - vse
-// iz shared/engine.js, zato je enako v vseh treh aplikacijah.
+// imenom (angleško ime v oklepaju), značko ravni ter razlago in posledico v dveh odstavkih
+// (TEHNIKE_OPISI - popravek po ročnem pregledu faze 6) - vse iz shared/engine.js, zato je enako
+// v vseh treh aplikacijah.
 function izrisiTehnike(el) {
   const uvod = document.createElement('p');
   uvod.textContent = 'Tehnike so v treh ravneh: lahke (E1, E2), srednje (1–6) in napredne (7–12) – '
@@ -51,9 +52,11 @@ function izrisiTehnike(el) {
     const raven = document.createElement('span');
     raven.className = `tag ${razred} tehnika-raven`;
     raven.textContent = POMOC_RAVNI[razred];
-    const opis = document.createElement('p');
-    opis.textContent = opisTehnike(kljuc);
-    li.append(oznaka, ime, ' ', raven, opis);
+    const razlaga = document.createElement('p');
+    razlaga.textContent = TEHNIKE_OPISI[kljuc].razlaga;
+    const posledica = document.createElement('p');
+    posledica.textContent = TEHNIKE_OPISI[kljuc].posledica;
+    li.append(oznaka, ime, ' ', raven, razlaga, posledica);
     ul.appendChild(li);
   }
   el.append(uvod, ul);
