@@ -9,12 +9,16 @@
 <link rel="stylesheet" href="../shared/base.css">
 <link rel="stylesheet" href="../shared/mreza.css">
 <link rel="stylesheet" href="../shared/plosca.css">
+<link rel="stylesheet" href="../shared/pomoc.css">
 <link rel="stylesheet" href="trening.css">
 </head>
 <body>
 <header class="top">
   <div class="top-row">
     <p class="eyebrow">Trening &middot; spoznaš in vadiš tehnike</p>
+    <div class="top-actions">
+      <button type="button" id="pomocBtn" class="top-btn">Pomoč</button>
+    </div>
   </div>
   <h1>Sudoku trening tehnik</h1>
   <p>Izberi tehniko in jo vadi – v kratkih vajah (»Spoznaj«) ali v pravi uganki (»Vadi v uganki«).</p>
@@ -99,6 +103,33 @@
   </div>
 </div>
 
+<div id="pomocDialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="pomocNaslov">
+  <div class="dialog-panel dialog-navodila">
+    <div class="dialog-glava">
+      <h2 id="pomocNaslov">Pomoč</h2>
+      <button type="button" class="dialog-zapri" data-zapri aria-label="Zapri">✕</button>
+    </div>
+
+    <h3 class="navodila-razdelek">Spoznaj in Vadi v uganki</h3>
+    <p>Vsako tehniko vadiš na dva načina. <b>Spoznaj</b> (tudi klik na kartico) da kratke vaje, v katerih je vzorec tehnike vedno na mreži. <b>Vadi v uganki</b> da stanje prave uganke, v katerem je naslednji korak prav ta tehnika – poiščeš ga sam, kot med reševanjem.</p>
+    <p>Krog ima devet vaj. Zgoraj je rezultat, na koncu kroga povzetek; z <b>Nazaj na izbiro</b> izbereš drugo tehniko.</p>
+
+    <h3 class="navodila-razdelek">Postopnost</h3>
+    <p>Pri E1 in E2 v »Spoznaj« je v prvih treh vajah označena celica (E1) ali vrstica, stolpec ali blok skupaj s števko (E2), v naslednjih treh samo vrstica, stolpec ali blok, v zadnjih treh nič. V »Vadi v uganki« je v prvih šestih vajah označeno območje koraka – vrstica, stolpec, blok, števka, par ali pivot; v zadnjih treh iščeš po vsej uganki. Pravilen je tudi korak zunaj območja.</p>
+
+    <h3 class="navodila-razdelek">Namig, Rešitev in Razlaga</h3>
+    <p>V »Spoznaj« <b>Namig (drži)</b> in <b>Rešitev (drži)</b> pokažeta pomoč, dokler gumb držiš; v »Vadi v uganki« <b>Namig</b> in <b>Rešitev</b> odpreš s klikom in zapreš s <b>Skrij</b>. Vaja, pri kateri si pogledal namig ali rešitev, se ne šteje – ne med pravilne ne med napačne. Razdelek <b>Razlaga</b> pod nalogo (razlaga tehnike) ne šteje kot pomoč.</p>
+    <p>Izbrana celica je modra. Ob rešitvi in po pravilnem odgovoru so na mreži oznake koraka; kaj pomeni katera barva, pove legenda pod vajo.</p>
+
+    <h3 class="navodila-razdelek">Tipkovnica</h3>
+    <p>Pri E1 in E2: puščice premikajo izbiro, števka izbere števko za vpis (v »Vadi v uganki« jo predlaga), <kbd>Backspace</kbd> predlog pobriše, <kbd>Esc</kbd> počisti izbiro. Pri 1–12 v »Vadi v uganki«: <kbd>Shift</kbd>+števka izbriše ali vrne kandidata, <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> razveljavi / ponovi, <kbd>O</kbd> označi izbrane celice.</p>
+
+    <h3 class="navodila-razdelek">Tehnike</h3>
+    <p>Značka na kartici pove raven tehnike. Oznake so iste kot v igri in reševalcu – tam pri uganki piše npr. <b>tehnike: 1, 3, 7</b>.</p>
+    <div id="pomocTehnike"></div>
+  </div>
+</div>
+
 <script src="../shared/engine.js"></script>
 <script src="../shared/generator.js"></script>
 <script src="../shared/stanje.js"></script>
@@ -106,6 +137,7 @@
 <script src="../shared/vaje-banka.js"></script>
 <script src="../shared/mreza.js"></script>
 <script src="../shared/plosca.js"></script>
+<script src="../shared/pomoc.js"></script>
 <script src="generators.js"></script>
 <script src="v-uganki.js"></script>
 <script src="trening.js"></script>

@@ -132,7 +132,9 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   (LAHKA zelena, SREDNJA jantarna, NAPREDNA vijolična; rdeča ostane poskusu). `tagClass()`
   barve že deli po ravneh (enojčka `t-single`, 1–6 `t-pair`, 7–12 `t-advanced`), zato vidne
   razlike ni več. **Ostanek:** raven kot polje tehnike in `tagClass()` iz ravni namesto iz imen
-  → faza 7 (koda, brez vidne spremembe); poved o ravneh v pomoči igre → faza 6.
+  → faza 7 (koda, brez vidne spremembe); poved o ravneh v pomoči igre → faza 6. **Poved narejena
+  2026-10-04** (faza 6, korak c): razdelek »Tehnike« v oknih Pomoč vseh treh aplikacij
+  (`izrisiTehnike()` v `shared/pomoc.js`) ima poved o ravneh in pri vsaki tehniki značko ravni.
 - **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
   `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 
@@ -870,6 +872,9 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   besedil (test v `tests/besedila-html.test.js`), »hitri svinčnik v aplikaciji« je zamenjal »(brez
   tehnik)«, »naključne vaje« v glavi treninga in v Pomoči igre so popravljene. Okno Pomoč v
   reševalcu in treningu → faza 6, korak c.
+- **Narejeno 2026-10-04** (faza 6, korak c): reševalec in trening imata okno Pomoč s kratko vsebino in
+  skupnim razdelkom »Tehnike« (`shared/pomoc.js`, `shared/pomoc.css`); besedila v `docs/faza6-pomoc.md`.
+  Povezav med aplikacijami (4.3) ni – ostanejo v »Kasneje«.
 - **Obseg:** srednje.
 
 ### 5.6 Zastarela besedila v kodi in dokumentaciji
@@ -1005,6 +1010,9 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
   `body`, glava, kartica, gumbi, noga in oznake korakov. **Ostanek → faza 7:** okno
   (`#library`/`.lib-panel` proti `.dialog`/`.dialog-panel` – videz je že enak) in vnosna
   mreža (skupaj s 6.4).
+- **Faza 6 (korak c, 2026-10-04):** okno `.dialog` (z oknom Pomoč) je preseljeno v `shared/pomoc.css`,
+  ker ga zdaj uporabljajo vse tri aplikacije; okno zbirke v reševalcu (`#library`) in vnosna mreža
+  ostaneta v fazi 7.
 - **Obseg:** srednje.
 
 ### 6.9 Ime tehnike in opis na kartici
@@ -1212,7 +1220,7 @@ komponente, na koncu videz in pomoč.
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** (zaključeno 2026-10-03, ročni pregled potrjen istega dne, N9 ostane; `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
 | **5a – stikalo »Kandidati« v igri** (izvedeno 2026-10-03, ročni pregled potrjen istega dne; `docs/kandidati-stikalo-nacrt.md`: načrt `4048df5`, korak 2 `3097473`, korak 3 `5b9ff90`, korak 4 – scenarij v brskalniku in ročni pregled) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
-| **6 – pomoč** (v teku, načrt `docs/faza6-nacrt.md` potrjen 2026-10-04; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c čaka) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
+| **6 – pomoč** (v teku, načrt `docs/faza6-nacrt.md` potrjen 2026-10-04; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c – zadnji commit faze 6; ročni pregled čaka – `docs/rocni-test.md`) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
 | **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno in vnosna mreža – iz faze 5) | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu

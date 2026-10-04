@@ -17,7 +17,7 @@ const JS = [
   'igra/igra.js', 'igra/shramba.js', 'igra/generator-worker.js', 'igra/oceni-worker.js',
   'trening/trening.js', 'trening/generators.js', 'trening/v-uganki.js',
   'shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
-  'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/mreza.js', 'shared/plosca.js',
+  'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js',
 ];
 const HTML = ['app/index.html', 'igra/index.html', 'trening/index.html'];
 

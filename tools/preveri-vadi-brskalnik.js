@@ -31,20 +31,21 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko, PRIMERJALNI_IZRIS } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-vadi'));
-const izhodisce = arg('--izhodisce', '4e1e4dc');
+const izhodisce = arg('--izhodisce', '4c47cc0');
 // Vaji 1 in 2 v "Spoznaj" sta od izbire uganke po stopnji (načrt, točka 16) iz drugih ugank
 // banke, zato sta imeli svoje izhodišče (dd316bd; prazno = ne primerjata se); od faze 5 je
-// to zadnji commit faze 5.
-const IZHODISCE_PRESEK = '4e1e4dc';
+// to zadnji commit faze 5, od faze 6 (korak c) zadnji commit koraka b.
+const IZHODISCE_PRESEK = '4c47cc0';
 const izhodiscePresek = arg('--izhodisce-presek', IZHODISCE_PRESEK);
 // E1 in E2 v "Spoznaj" imata od točke 17 (okvir območja pri vajah 1-6) svoje izhodišče
-// (0d457e8; prazno = ne primerjata se); od faze 5 je to zadnji commit faze 5.
-const IZHODISCE_ENOJCKI = '4e1e4dc';
+// (0d457e8; prazno = ne primerjata se); od faze 5 je to zadnji commit faze 5, od faze 6 (korak c)
+// zadnji commit koraka b.
+const IZHODISCE_ENOJCKI = '4c47cc0';
 const izhodisceEnojcki = arg('--izhodisce-enojcki', IZHODISCE_ENOJCKI);
 const PRESEK = ['pointing', 'box-line'];
 const KOREN = path.join(__dirname, '..');
@@ -680,8 +681,8 @@ async function izris(b, mode, sirina) {
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     const a = document.getElementById('exerciseArea');
-    const p = (${PRIMERJALNI_IZRIS})(a, ${JSON.stringify(SLOGI)});
-    return { html: p.html, slogi: p.slogi };
+    const slogi = [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    return { html: a.innerHTML, slogi };
   })()`);
 }
 

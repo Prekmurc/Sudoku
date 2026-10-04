@@ -27,7 +27,10 @@ uporabiBarvePoudarka(barvePoudarkaIzNastavitev(POUD_KLJUC_IGRE));
 // izbiro po celicah, ki jih je mogoče izbrati, Escape izbiro počisti.
 // Pri »Vadi v uganki« tipke obdela plošča vaje (1-12: Shift+števka, puščice, Escape, Ctrl+Z/Y;
 // E1/E2: števka postavi predlog, Backspace/Delete ga pobriše, puščice, Escape).
-document.addEventListener('keydown',e=>{if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode)vadi.plosca.obTipki(e);});
+// Okno Pomoč (shared/pomoc.js, faza 6): ko je odprto, tipke ne gredo v ploščo (Escape ga zapre).
+const oknoPomoc=ustvariPomoc(document.getElementById('pomocDialog'),[document.getElementById('pomocBtn')]);
+izrisiTehnike(document.getElementById('pomocTehnike'));
+document.addEventListener('keydown',e=>{if(oknoPomoc.odprto())return;if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode)vadi.plosca.obTipki(e);});
 
 // Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
 // (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,

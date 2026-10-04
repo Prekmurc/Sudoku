@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/base.css">
 <link rel="stylesheet" href="../shared/zbirka.css">
+<link rel="stylesheet" href="../shared/pomoc.css">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
@@ -15,7 +16,10 @@
 <header class="top">
   <div class="top-row">
     <p class="eyebrow">Reševalec &middot; z razlago vsakega koraka</p>
-    <button type="button" id="libraryBtn" class="top-btn">Zbirka (0)</button>
+    <div class="top-actions">
+      <button type="button" id="pomocBtn" class="top-btn">Pomoč</button>
+      <button type="button" id="libraryBtn" class="top-btn">Zbirka (0)</button>
+    </div>
   </div>
   <h1>Sudoku reševalec</h1>
   <p>Vtipkaj začetne števke naravnost v mrežo (samo pojdi od celice do celice) ali prilepi niz 81 znakov v polje Niz (<code>0</code> ali <code>.</code> = prazna celica), nato pritisni »Reši«. Podvojene števke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
@@ -96,6 +100,35 @@
   </div>
 </div>
 
+<div id="pomocDialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="pomocNaslov">
+  <div class="dialog-panel dialog-navodila">
+    <div class="dialog-glava">
+      <h2 id="pomocNaslov">Pomoč</h2>
+      <button type="button" class="dialog-zapri" data-zapri aria-label="Zapri">✕</button>
+    </div>
+
+    <h3 class="navodila-razdelek">Kako deluje</h3>
+    <p>Vtipkaj danosti v mrežo (s puščicami se premikaš med celicami) ali prilepi niz 81 znakov v polje <b>Niz</b> – prazna celica je <code>0</code> ali <code>.</code>. Vgrajeno uganko izbereš v seznamu <b>Primer</b>. Če je ista števka dvakrat v vrstici, stolpcu ali bloku, se obarva rdeče.</p>
+    <p><b>Reši</b> uganko reši po korakih, kot bi jo reševal človek: v vsakem koraku uporabi najlažjo tehniko, ki kaj najde. <b>Pokaži kandidate</b> pokaže števke, ki so v praznih celicah še mogoče glede na vrstico, stolpec in blok – brez tehnik. <b>Počisti</b> izprazni mrežo.</p>
+
+    <h3 class="navodila-razdelek">Rešitev in koraki</h3>
+    <p>Pod rešeno mrežo je povzetek: katere tehnike je reševalec uporabil in kolikokrat. Dana števka je temna, izpeljana modra. Dotik mreže jo poveča.</p>
+    <p><b>Pokaži korake reševanja</b> našteje korake z razlago. <b>Pokaži na mreži</b> pri koraku pokaže malo mrežo z oznakami koraka (pomen barv je pod njo); dotik male mreže jo poveča. S kljukico ob koraku označiš, da si ga že naredil, <b>Počisti kljukice</b> jih pobriše.</p>
+
+    <h3 class="navodila-razdelek">Zbirka ugank</h3>
+    <p>Uganko z natanko eno rešitvijo reševalec po reševanju shrani v zbirko in ji izračuna težavnost; težavnost in opombo lahko spremeniš v kartici <b>Rešitev</b>. Zbirka je ista kot v igri – isti seznam in isto število na gumbu <b>Zbirka</b>. V oknu <b>Zbirka ugank</b> uganko odpreš ali izbrišeš, z <b>Izvozi</b> in <b>Uvozi</b> zbirko preneseš na drugo napravo. Vgrajeni primeri niso del zbirke.</p>
+
+    <h3 class="navodila-razdelek">Težavnost</h3>
+    <p>Težavnost uganke je raven njene najtežje tehnike:</p>
+    <ul id="pomocStopnje" class="navodila-stopnje"></ul>
+    <p>Uganka, ki potrebuje tehnike, ki jih reševalec še ne pozna (brez ugibanja je ne reši), dobi <b>Presega tehnike</b>; reševalec jo reši s poskusom in protislovjem.</p>
+
+    <h3 class="navodila-razdelek">Tehnike</h3>
+    <p>Oznake tehnik so iste kot v treningu in igri. Pri koraku je tehnika napisana z oznako, npr. <b>4 · Skriti par</b> (angleško ime pokaže namig miške).</p>
+    <div id="pomocTehnike"></div>
+  </div>
+</div>
+
 <footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor), tudi zbirka ugank se hrani samo v njem. V rešeni mreži je dana števka temna, izpeljana modra.</footer>
 
 <script src="../shared/engine.js"></script>
@@ -103,6 +136,7 @@
 <script src="../shared/zbirka.js"></script>
 <script src="../shared/zbirka-ui.js"></script>
 <script src="../shared/generator.js"></script>
+<script src="../shared/pomoc.js"></script>
 <script src="app.js"></script>
 <script src="zbirka.js"></script>
 </body>

@@ -594,7 +594,7 @@ function ustvariPlosco(o) {
         x.classList.toggle('odstrani', !!(a.odstrani & bit));
         x.classList.toggle('vrni', !!(a.vrni & bit));
         x.disabled = !((a.odstrani | a.vrni) & bit);
-        x.title = (a.odstrani & bit) ? `Odstrani kandidata ${d}` : (a.vrni & bit) ? `Vrni kandidata ${d}` : '';
+        x.title = (a.odstrani & bit) ? `Izbriši kandidata ${d}` : (a.vrni & bit) ? `Vrni kandidata ${d}` : '';
         x.setAttribute('aria-label', x.title || String(d));
       }
     }
@@ -631,7 +631,7 @@ function ustvariPlosco(o) {
       const polna = izbrane.find(c => stanje.grid[c]);
       if (polna !== undefined) return `V ${cellLabel(polna)} je vpis – odstrani jo iz izbire.`;
       if (!a.odstrani) return 'Izbrane celice nimajo skupnega kandidata.';
-      return `Izbrane celice: ${izbrane.length} – odstrani števko, ki je kandidat v vseh.`;
+      return `Izbrane celice: ${izbrane.length} – izbriši števko, ki je kandidat v vseh.`;
     }
     const izbrana = izbrane[0];
     const ime = cellLabel(izbrana);
@@ -642,7 +642,7 @@ function ustvariPlosco(o) {
     if (v) return `V ${ime} je tvoj vpis (${v}) – za spremembo ga najprej zbriši.`;
     if (zavrnjen && zavrnjen.celica === izbrana) return razlogZavrnitve(stanje, izbrana, zavrnjen.stevka);
     if (!a.vpis) {
-      return a.vrni ? `V ${ime} ni več kandidatov – vrni odstranjenega (↺) ali razveljavi.`
+      return a.vrni ? `V ${ime} ni več kandidatov – vrni izbrisanega (↺) ali razveljavi.`
         : `V ${ime} ni več kandidatov – razveljavi zadnje poteze.`;
     }
     return '';
@@ -654,7 +654,7 @@ function ustvariPlosco(o) {
   function razlogZavrnitve(stanje, celica, d) {
     const enota = UNITS_OF[celica].find(u => u.some(c => stanje.grid[c] === d));
     if (enota) return `Števka ${d} je v ${unitNameLoc(enota)} že vpisana (${cellLabel(enota.find(c => stanje.grid[c] === d))}).`;
-    return `Kandidat ${d} je v ${cellLabel(celica)} odstranjen – vrneš ga pri vklopljenih kandidatih (↺) ali z »Razveljavi«.`;
+    return `Kandidat ${d} je v ${cellLabel(celica)} izbrisan – vrneš ga pri vklopljenih kandidatih (↺) ali z »Razveljavi«.`;
   }
 
   function izrisi() {

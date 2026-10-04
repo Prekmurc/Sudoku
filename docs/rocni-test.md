@@ -188,6 +188,24 @@ prej (tudi »Preveri« in prekrivanje okvirja z malimi števkami), preverijo
 | 2 | trening, »Spoznaj«, tvoj zaslon | 12 · Edinstveni pravokotnik: drži »Rešitev (drži)«. | Vogal z izbrisom ostane jantaren kot drugi trije, njegovi števki para pa sta rdeče prečrtani – jasno je, da se izbrišeta iz tega vogala. Potrjeno (ročni pregled 4. 10. 2026; monitor, tablica, telefon). – ni avtomatsko: presoja razumljivosti (vogal je hkrati vzorec in izbris); scenarij preveri slog in da so prečrtane iste števke kot po odgovoru. |
 | 3 | trening, »Spoznaj« | 3 · Očitni par: drži »Rešitev (drži)«; nato 4 · Skriti par: drži »Rešitev (drži)«. | Pri 3 so celice izbrisa rožnate, števke para v njih rdeče prečrtane (kot po pravilnem odgovoru); pri 4 ostanejo celice vzorca jantarne, prečrtane so njihove druge števke. Razlika med 3 in 4 je razumljiva. Potrjeno (ročni pregled 4. 10. 2026; monitor, tablica, telefon). – ni avtomatsko: presoja razumljivosti (pravilnost preverita test in scenarij). |
 
+## Faza 6 – pomoč (vse tri aplikacije)
+
+Iz `docs/faza6-nacrt.md` (koraki a–c). Besedila tehnik so v `docs/faza6-besedila.md`, besedila oken
+Pomoč v `docs/faza6-pomoc.md`. Samodejno preverjeno: pravila besedil (»izbriši«, druga oseba,
+števila z besedo, pari {x, y}, ločila, brez poti in Oakevra) v `tests/trening-tehnike.test.js`,
+`tests/besedila-html.test.js` in `tests/locila.test.js`; okno Pomoč v vseh treh aplikacijah
+(odpre, zapre s ✕, klikom ob oknu in Escape, pokrije zaslon, brez vodoravnega drsnika, 14 tehnik z
+značko ravni) v `tests/pomoc.test.js` in `tools/preveri-pomoc-brskalnik.js` (375 in 1280 px);
+legenda in razdelek »Razlaga« v `tests/trening-legenda.test.js` in
+`tools/preveri-izbira-brskalnik.js` (barve vzorčkov = barve celic).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, meni in vaje | Preberi kartice v meniju; pri 4 · Skriti par, 9 · Veriga ene števke in E2 odpri »Spoznaj« in »Vadi v uganki«, preberi nalogo, besedilo pod njo in razdelek »Razlaga«. Primerjaj z `docs/faza6-besedila.md`. | Besedila so razumljiva, ujemajo se z mrežo in pravila iz koraka b držijo. (nepotrjeno) – ni avtomatsko: razumljivost presodi bralec; testi preverijo samo, da je besedilo na mestu in brez prepovedanih izrazov. |
+| 2 | trening, »Spoznaj« 3–12, pravi telefon | Pri 3 · Očitni par izberi eno pravilno in eno napačno celico, drži »Rešitev (drži)« s prstom; nato reši pravilno. | Legenda pod »Rešitvijo« našteje natanko oznake na mreži (pravilno izbrana, spregledana, napačno izbrana celica izbrisa …) in je berljiva; po odgovoru našteje izbrane celice in izbrisane kandidate. (nepotrjeno) – ni avtomatsko: scenarij preveri postavke in barve pri gostoti 1x z miško; berljivosti in pravega dotika ne preveri. |
+| 3 | igra, okno Pomoč in kartica »Kako«, kandidati izklopljeni | V kartici »Prikaz« izklopi »Kandidati v celicah«, preberi »Kako igrati«, »Pomoč pri reševanju« in kartico »Kako« ter preizkusi, kar opisujejo: »Vpiši« z vsemi števkami, Shift+števka, »več celic«, Poudari, »Naslednji korak« do »Pokaži rešitev« in »Vklopi kandidate«. | Opis se ujema z obnašanjem; ni več trditev, ki pri izklopljenih kandidatih ne držijo. (nepotrjeno) – ni avtomatsko: ujemanje besedila z obnašanjem je vsebinska presoja (obnašanje samo preverjajo testi naloge 5a). |
+| 4 | reševalec in trening, okno Pomoč, pravi telefon in računalnik | Odpri »Pomoč«, podrsaj do »Tehnike«, zapri s ✕, s klikom ob oknu in z Esc. Preberi besedila (`docs/faza6-pomoc.md`). | Okno je berljivo in ni predolgo, drsenje deluje, zapiranje na vse tri načine; vsebina je pravilna. (nepotrjeno) – ni avtomatsko: drsenje z dotikom in občutek za dolžino na pravi napravi; brskalnik brez glave skrije drsnike in nima dotika. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

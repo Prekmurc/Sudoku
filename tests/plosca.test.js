@@ -145,7 +145,7 @@ test('plošča: nizi, poteze, Zbriši vpis, Razveljavi/Ponovi, vrstica pod nizi 
   p.klik(p2, { ctrlKey: true });
   assert.deepEqual(p.izbrane(), [p1, p2]);
   const skupni = p.run('skupniKandidati(stanje, plosca.izbrane)');
-  assert.equal(p.razlog(), skupni ? 'Izbrane celice: 2 – odstrani števko, ki je kandidat v vseh.' : 'Izbrane celice nimajo skupnega kandidata.');
+  assert.equal(p.razlog(), skupni ? 'Izbrane celice: 2 – izbriši števko, ki je kandidat v vseh.' : 'Izbrane celice nimajo skupnega kandidata.');
   assert.ok(STEVKE.every(d => p.gumb('nizVpisi', d).disabled), 'pri več celicah ni vpisa');
   const sd = STEVKE.find(d => (skupni & (1 << d)) && d !== resitev[p1] && d !== resitev[p2]);
   assert.ok(sd, 'celici imata skupnega kandidata, ki ni prava števka');
@@ -759,7 +759,7 @@ test('plošča: stikalo kandidatov - izklop in vklop, shramba, Vpiši vseh 9, za
   // Ročno odstranjen kandidat (tipka na številčnici): ni poteze, razlog.
   p.tipka({ key: String(x), code: `Numpad${x}` });
   assert.equal(p.grid(q), 0);
-  assert.equal(p.razlog(), `Kandidat ${x} je v ${oznaka(q)} odstranjen – vrneš ga pri vklopljenih kandidatih (↺) ali z »Razveljavi«.`);
+  assert.equal(p.razlog(), `Kandidat ${x} je v ${oznaka(q)} izbrisan – vrneš ga pri vklopljenih kandidatih (↺) ali z »Razveljavi«.`);
   // Kandidat se vpiše (poteza), sporočilo izgine.
   p.klik(c);
   p.tipka({ key: String(resitev[c]), code: `Digit${resitev[c]}` });

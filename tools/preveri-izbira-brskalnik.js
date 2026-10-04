@@ -35,13 +35,13 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko, PRIMERJALNI_IZRIS } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-izbira'));
 // zadnji commit pred nalogo prečrtanja (docs/precrtanje-resitev-nacrt.md; pred nalogo izbire 85adb6b)
-const izhodisce = arg('--izhodisce', '06e64e5');
+const izhodisce = arg('--izhodisce', '4c47cc0');
 const KOREN = path.join(__dirname, '..');
 
 let napak = 0;
@@ -168,10 +168,10 @@ const STEVKE_SKRITE = '#exerciseArea .cd, #exerciseArea .xw-cell { color: transp
 // števke izgubijo peek-izbris (prejšnji slog, tudi .hl pri 9), celica X-krila in mečarice brez
 // rdeče črte - brez !important, da STEVKE_SKRITE še velja; v izhodišču brez učinka.
 const PRECRTANE_NAVADNE = '#exerciseArea .xw-cell.peek-elim { color: var(--ink); text-decoration: none; }';
-// Med meritvijo je besedilo nad mrežo (naslov, opis, razdelek »Razlaga«) skrito v obeh brskalnikih: mreža
+// Med meritvijo sta glava strani in besedilo nad mrežo (naslov, opis, razdelek »Razlaga«) skrita v obeh brskalnikih: mreža
 // je tako na istem mestu, sicer drugačna višina besedila (faza 6) premakne mrežo za del piksla in
 // spremeni glajenje robov na posnetku - meritev naj meri okvir in števke, ne besedila.
-const BESEDILO_SKRITO = '#exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike { display: none !important; }';
+const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike { display: none !important; }';
 async function prekrivanje(b) {
   await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-izbris').forEach(e => { e.classList.remove('peek-izbris'); e.dataset.pi = 1; }); true`);
   try { return await prekrivanjeMeritev(b); } finally {
@@ -209,20 +209,22 @@ async function prekrivanjeMeritev(b) {
 // currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo.
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
-const izris = (b, mode) => b.izvedi(`(() => { const a = document.getElementById('exerciseArea'), p = (${PRIMERJALNI_IZRIS})(a, []), vsi = p.elementi, ocitni = ${OCITNI.includes(mode)};
+const izris = (b, mode) => b.izvedi(`(() => { const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')], ocitni = ${OCITNI.includes(mode)};
   const dovoljeno = {};
   vsi.forEach((e, i) => {
     if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl)')) dovoljeno[i] = ['background-color'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl) .cd')) dovoljeno[i] = ['color', 'border-top-color'];
   });
-  return { html: p.html.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno,
+  return { html: a.innerHTML.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno,
     slogi: vsi.map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); }) }; })()`);
-// Razlike nove kode od izhodišča razen dovoljenih: v novem izrisu razreda peek-izbris (pri 3 in 5
-// še peek-elim - izhodišče ga tam nima) ni, dovoljene lastnosti so kot v izhodišču.
+// Razlike nove kode od izhodišča razen dovoljenih: razred peek-izbris (pri 3 in 5 še peek-elim) se
+// odstrani v obeh izrisih, dovoljene lastnosti so kot v izhodišču - tako primerjava velja z
+// izhodiščem pred nalogo prečrtanja (06e64e5) in po njej (od faze 6 privzeto 4c47cc0).
 function razlikeBrezPrecrtanja(star, nov, mode) {
-  let html = nov.html.replace(/ peek-izbris(?=[ "])/g, '');
-  if (OCITNI.includes(mode)) html = html.replace(/ peek-elim(?=[ "])/g, '');
+  const brez = h => { let x = h.replace(/ peek-izbris(?=[ "])/g, ''); if (OCITNI.includes(mode)) x = x.replace(/ peek-elim(?=[ "])/g, ''); return x; };
+  const html = brez(nov.html);
+  star = { ...star, html: brez(star.html) };
   const slogi = nov.slogi.map((s, i) => {
     const d = nov.dovoljeno[i];
     if (!d || star.slogi[i] === undefined) return s;
@@ -284,10 +286,11 @@ async function preveriVajo(bNov, bStar, mode, sirina, ref) {
   const rb = razlikeBrezPrecrtanja(star.resitevBrez, nov.resitevBrez, mode);
   preveri('»Rešitev« brez izbire enaka izhodišču razen prečrtanja (in pri 3, 5 celic izbrisa)', rb.length === 0, rb);
   preveriSlogPrecrtanih('»Rešitev« brez izbire', nov.resitevBrez.precrtane, ref);
-  preveri(`»Rešitev« brez izbire: v izhodišču ni bilo prečrtanih števk (${star.resitevBrez.precrtane.length})`, star.resitevBrez.precrtane.length === 0);
+  preveri(`»Rešitev« brez izbire: prečrtane iste števke kot v izhodišču (ali izhodišče pred prečrtanjem brez njih: ${star.resitevBrez.precrtane.length})`,
+    star.resitevBrez.precrtane.length === 0 || kljuci(star.resitevBrez.precrtane) === kljuci(nov.resitevBrez.precrtane));
   if (OCITNI.includes(mode)) {
     const iz = nov.vzorec.izbris;
-    preveri(`3, 5: »Rešitev« brez izbire pokaže ${iz} rožnatih celic izbrisa (izhodišče ${star.vzorec.izbris})`, iz > 0 && star.vzorec.izbris === 0);
+    preveri(`3, 5: »Rešitev« brez izbire pokaže ${iz} rožnatih celic izbrisa (izhodišče ${star.vzorec.izbris})`, iz > 0 && (star.vzorec.izbris === 0 || star.vzorec.izbris === iz));
   }
   preveri('po spustu ni prečrtanih števk (brez izbire in z izbiro)', nov.poSpustuBrez.length === 0 && nov.poSpustu.length === 0, [nov.poSpustuBrez, nov.poSpustu]);
   const izbrane = nov.pred.filter(c => c.izb);
@@ -386,7 +389,8 @@ async function pravilenOdgovor(bNov, bStar, mode, sirina, ref) {
   preveri(`${mode}: »Rešitev« po odgovoru in spust prečrtanih ne spremenita`, kljuci(nov.resitev.precrtane) === po && kljuci(nov.poSpustu) === po,
     { resitev: kljuci(nov.resitev.precrtane), poSpustu: kljuci(nov.poSpustu), po });
   if (['x-wing', 'swordfish'].includes(mode)) {
-    preveri(`${mode}: v izhodišču po odgovoru števka izbrisa ni bila prečrtana (${star.precrtanePo.length})`, star.precrtanePo.length === 0);
+    preveri(`${mode}: po odgovoru prečrtane kot v izhodišču (ali izhodišče pred prečrtanjem brez njih: ${star.precrtanePo.length})`,
+      star.precrtanePo.length === 0 || kljuci(star.precrtanePo) === kljuci(nov.precrtanePo));
   }
   if (mode === 'swordfish') {
     const zelene = nov.celice.filter(c => c.bg === 'rgb(220, 238, 229)');

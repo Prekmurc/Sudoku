@@ -1,0 +1,58 @@
+/* shared/pomoc.css — okno Pomoč, skupno igri, reševalcu in treningu (faza 6, korak c): okno
+   (.dialog - prej v igra/igra.css; isti slog imata v igri tudi okni »Zbirka ugank« in »Nova
+   uganka«), panel z razdelki, seznam tehnik in barve oznak v besedilu. Odpiranje in zapiranje ter
+   seznam »Tehnike« sta v shared/pomoc.js. Naloži se za shared/base.css in pred slogi aplikacije. */
+
+/* okno */
+.dialog{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:1500;
+  background: rgba(36,48,61,0.6);
+  overflow:auto;
+  padding: 24px 16px;
+}
+.dialog.odprt{ display:block; }
+.dialog-panel{
+  max-width:480px;
+  margin:0 auto;
+  background: var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:18px;
+}
+.dialog-glava{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+.dialog-glava h2{ font-family:'Source Serif 4', serif; font-size:18px; margin:0; }
+.dialog-zapri{ width:36px; height:36px; padding:0; border-radius:18px; font-size:16px; }
+
+/* okno Pomoč: širši panel, razdelki, seznam tehnik */
+.dialog-navodila{ max-width:660px; }
+.navodila-razdelek{
+  font-family:'Source Serif 4', serif;
+  font-size:16px;
+  margin:18px 0 8px;
+  padding-top:12px;
+  border-top:1px solid var(--line);
+}
+.dialog-navodila p, .dialog-navodila li{ font-size:13px; color:var(--ink2); line-height:1.6; }
+.dialog-navodila p{ margin:0 0 9px; }
+.navodila-stopnje, .tehnike{ margin:0 0 9px; padding-left:22px; }
+.navodila-stopnje li{ margin-bottom:4px; }
+/* Seznam tehnik: oznaka (E1, E2, 1..12) je izrecna, ker je <ol> ne zna izpisati; značka ravni
+   ima barve oznake koraka (.tag.t-* v shared/base.css). */
+.tehnike{ list-style:none; padding-left:0; }
+.tehnike li{ margin-bottom:12px; }
+.tehnike .tehnika-oznaka{ display:inline-block; min-width:3em; font-family:'JetBrains Mono', monospace; font-weight:700; color: var(--blue); }
+.tehnike b{ font-family:'Source Serif 4', serif; font-size:14px; color: var(--ink); }
+.tehnike .tehnika-raven{ font-size:10px; vertical-align:1px; }
+.tehnike p{ margin:2px 0 0; }
+/* barve oznak v besedilu (kot na mreži) */
+.vzorec-vzorec{ background: var(--amber-bg); color: var(--amber); padding:0 3px; border-radius:3px; }
+.vzorec-izbris{ background: var(--red-bg); color: var(--red); padding:0 3px; border-radius:3px; text-decoration: line-through; }
+.vzorec-vpis{ background: var(--green-bg); color: var(--green); padding:0 3px; border-radius:3px; }

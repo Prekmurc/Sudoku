@@ -73,6 +73,11 @@ solvedGridEl.addEventListener('click', () => {
   }, '48px'));
 });
 const summaryEl = document.getElementById('summary');
+
+// Okno Pomoč (shared/pomoc.js, faza 6): težavnost (stopnje, ki jih uganka lahko dobi) in seznam tehnik.
+izpisiStopnje(document.getElementById('pomocStopnje'), stopnjeZaPomoc(), 'opis');
+izrisiTehnike(document.getElementById('pomocTehnike'));
+ustvariPomoc(document.getElementById('pomocDialog'), [document.getElementById('pomocBtn')]);
 let lastSolve = null; // { givens, grid, log } - napolnjeno po uspešnem "Reši"
 
 const stepsCard = document.getElementById('stepsCard');

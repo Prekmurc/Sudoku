@@ -24,7 +24,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v igra/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'igra/shramba.js', 'igra/igra.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'igra/shramba.js', 'igra/igra.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 const D = JSON.stringify(danosti);
 
@@ -97,7 +97,7 @@ test('rešena uganka: mreža se zaklene takoj po zadnji potezi', () => {
   assert.equal(dom.el('zbrisiBtn').disabled, true, 'Zbriši vpis je onemogočen');
   assert.equal(dom.el('znovaBtn').disabled, false, '"Začni znova" ostane na voljo');
   assert.equal(run('gumbiVpisi.every(b => b.disabled)'), true, 'niz "Vpiši" je onemogočen');
-  assert.equal(run('gumbiOdstrani.every(b => b.disabled)'), true, 'niz "Odstrani kandidata" je onemogočen');
+  assert.equal(run('gumbiOdstrani.every(b => b.disabled)'), true, 'niz "Izbriši kandidata" je onemogočen');
 
   // Poteze se ne sprejemajo več (tipkovnica gre skozi isti izvedi()).
   const potez = run('igra.poteze.length');

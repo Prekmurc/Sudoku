@@ -29,6 +29,36 @@ test('HTML: »Pokaži«, ne »Prikaži«', () => {
   for (const f of STRANI) assert.doesNotMatch(beri(f), /prikaži/i, f);
 });
 
+// Faza 6, korak c: besedila oken Pomoč (igra, reševalec, trening) in kartice »Kako« v igri imajo ista
+// pravila kot opisi tehnik - glagol »izbriši« (ime »Izločitev …« je dovoljeno), druga oseba ednine,
+// števila z besedo, pari v zavitih oklepajih s presledkom; niz v igri je »Izbriši kandidata«.
+const POMOC = { 'app/index.html': ['pomocDialog'], 'trening/index.html': ['pomocDialog'], 'igra/index.html': ['navodilaDialog'] };
+function besediloOkna(html, id) {
+  const od = html.indexOf(`<div id="${id}"`);
+  assert.ok(od >= 0, `okno ${id}`);
+  // Okno se konča pri naslednjem oknu ali skripti.
+  const konci = ['\n<div id=', '\n<footer', '\n<script'].map(k => html.indexOf(k, od + 1)).filter(i => i > 0);
+  return html.slice(od, Math.min(...konci)).replace(/<[^>]*>/g, ' ');
+}
+test('HTML: besedila oken Pomoč in kartice »Kako« po pravilih faze 6', () => {
+  for (const [f, okna] of Object.entries(POMOC)) {
+    const html = beri(f);
+    const deli = okna.map(id => besediloOkna(html, id));
+    if (f === 'igra/index.html') {
+      const kako = html.slice(html.indexOf('<div class="card pomoc-tipke">'), html.indexOf('</aside>'));
+      assert.ok(kako.length > 50, 'kartica »Kako«');
+      deli.push(kako.replace(/<[^>]*>/g, ' '));
+      assert.doesNotMatch(html, /Odstrani kandidata/, 'niz »Izbriši kandidata«');
+    }
+    for (const t of deli) {
+      assert.doesNotMatch(t, /odstran|izloč(?!itev)/i, `${f}: »odstrani« ali »izloči«`);
+      assert.doesNotMatch(t, /izbrišemo/, `${f}: »izbrišemo«`);
+      assert.doesNotMatch(t, /\b[2-9] (celic|vrstic|stolp|števk|kandidat)/, `${f}: število s številko`);
+      assert.doesNotMatch(t, /\{[^}]*,\S[^}]*\}/, `${f}: par brez presledka`);
+    }
+  }
+});
+
 // Faza 6 (odločitev 2): v vmesniku ni omembe drugih aplikacij (sopomenke so v docs/tehnike.md).
 test('HTML: brez omembe aplikacije Oakever', () => {
   for (const f of STRANI) {

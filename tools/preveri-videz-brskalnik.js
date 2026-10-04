@@ -112,6 +112,10 @@ async function resevalec(b, sirina) {
   await b.klikni('.mini-container .mini-grid');
   await okno(b, '#lightbox', 'reševalec, povečan prikaz koraka', sirina);
   await b.klikni('#lightboxClose');
+  // okno Pomoč (shared/pomoc.js, faza 6)
+  await b.klikni('#pomocBtn');
+  await okno(b, '#pomocDialog.odprt', 'reševalec, okno pomoč', sirina);
+  await b.izvedi(`document.querySelector('#pomocDialog [data-zapri]').click()`);
   await meri(b, 'reševalec po zaprtju oken', sirina);
 }
 
@@ -143,6 +147,10 @@ async function trening(b, sirina) {
   console.log(`Trening, ${sirina} px`);
   await b.odpri('trening/index.html', { sirina, visina: 800, mobilno: sirina < 500 });
   await meri(b, 'trening meni', sirina);
+  // okno Pomoč (shared/pomoc.js, faza 6)
+  await b.klikni('#pomocBtn');
+  await okno(b, '#pomocDialog.odprt', 'trening, okno pomoč', sirina);
+  await b.izvedi(`document.querySelector('#pomocDialog [data-zapri]').click()`);
   for (const m of TEHNIKE) {
     await b.izvedi(SEME(4242));
     await b.izvedi(`zacniKrog('${m}', 'spoznaj')`);

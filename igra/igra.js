@@ -330,7 +330,7 @@ preveriBtn.addEventListener('click', () => {
   if (n === null) {
     return nastaviPomoc(jeResena(stanje)
       ? { besedilo: 'Uganka je rešena brez napak.', razred: 'ok', znak: 'ok' }
-      : { besedilo: 'Med vpisanimi števkami in odstranjenimi kandidati ni napake.', razred: 'ok', znak: 'ok' });
+      : { besedilo: 'Med vpisanimi števkami in izbrisanimi kandidati ni napake.', razred: 'ok', znak: 'ok' });
   }
   nastaviPomoc({
     besedilo: `Na mreži je napaka. Nastala je pri potezi ${n} (od ${igra.kazalec}) – od takrat je na mreži ves čas vsaj ena napaka.`,
@@ -547,7 +547,8 @@ function zapriDialog(el) {
   if (el === zbirkaDialog) { ustaviOcenjevanje(); ocenaPocisti(); }
 }
 
-document.querySelectorAll('.dialog').forEach(el => {
+// Okno Pomoč odpira in zapira shared/pomoc.js (ustvariPomoc spodaj).
+document.querySelectorAll('.dialog:not(#navodilaDialog)').forEach(el => {
   el.addEventListener('click', (e) => {
     if (e.target === el || e.target.closest('[data-zapri]')) zapriDialog(el);
   });
@@ -555,27 +556,11 @@ document.querySelectorAll('.dialog').forEach(el => {
 
 /* ---------- navodila (okno Pomoč) ---------- */
 
+// Okno in razdelek "Tehnike" (poved o ravneh, oznake, imena, raven, razlaga in posledica) sta v
+// shared/pomoc.js - enako v igri, reševalcu in treningu (faza 6, korak c).
 const navodilaDialog = document.getElementById('navodilaDialog');
-// Razdelek "Tehnike": oznake (E1, E2, 1..12), imena in razlage so v shared/engine.js
-// (TRENING_ENOJCKA + TRENING_TEHNIKE, oznakaTehnike(), imeTehnike(), TEHNIKE_OPISI),
-// zato so iste kot v treningu.
-const tehnikeSeznamEl = document.getElementById('tehnikeSeznam');
-for (const [kljuc, tehnika] of [...TRENING_ENOJCKA, ...TRENING_TEHNIKE]) {
-  const li = document.createElement('li');
-  const oznaka = document.createElement('span');
-  oznaka.className = 'tehnika-oznaka';
-  oznaka.textContent = oznakaTehnike(kljuc) + ' · ';
-  const ime = document.createElement('b');
-  ime.textContent = imeTehnike(tehnika);
-  const razlaga = document.createElement('p');
-  razlaga.textContent = opisTehnike(kljuc);
-  li.append(oznaka, ime, razlaga);
-  tehnikeSeznamEl.appendChild(li);
-}
-
-for (const el of [document.getElementById('navodilaBtn'), document.getElementById('navodilaKarticaBtn')]) {
-  el.addEventListener('click', () => odpriDialog(navodilaDialog));
-}
+izrisiTehnike(document.getElementById('tehnikeSeznam'));
+ustvariPomoc(navodilaDialog, [document.getElementById('navodilaBtn'), document.getElementById('navodilaKarticaBtn')]);
 
 /* ---------- zbirka ---------- */
 
@@ -1013,21 +998,11 @@ try {
 } catch (e) { /* privzeta stopnja */ }
 
 // Opisi stopenj so samo v STOPNJE_UGANK (shared/generator.js, docs/uskladitev.md 5.2), v HTML
-// jih ni: okno "Nova uganka" pove merilo generatorja, Pomoč merilo ocene vseh stopenj in
-// merilo generatorja tam, kjer je ožje.
-function izpisiStopnje(el, stopnje, polje) {
-  for (const s of stopnje) {
-    const li = document.createElement('li');
-    const b = document.createElement('b');
-    b.textContent = s.ime.toLowerCase();
-    li.append(b, ' ' + s[polje]);
-    el.appendChild(li);
-  }
-}
+// jih ni: okno "Nova uganka" pove merilo generatorja, Pomoč merilo ocene stopenj, ki jih uganka
+// lahko dobi (stopnjeZaPomoc() - Ekstrem šele, ko motor pozna ekspertno tehniko), in merilo
+// generatorja tam, kjer je ožje. izpisiStopnje() je v shared/pomoc.js.
 izpisiStopnje(document.getElementById('stopnjeNova'), STOPNJE_GENERATORJA, 'opisIskanja');
-// Ekstrem (ekspertna tehnika) je v seznamu šele, ko jo motor pozna - zdaj ga ne dobi nobena uganka.
-izpisiStopnje(document.getElementById('stopnjeOcena'),
-  STOPNJE_UGANK.filter(s => s.kljuc !== 'ekstrem' || GEN_EKSPERTNE.length), 'opis');
+izpisiStopnje(document.getElementById('stopnjeOcena'), stopnjeZaPomoc(), 'opis');
 izpisiStopnje(document.getElementById('stopnjeIskanje'),
   STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis), 'opisIskanja');
 
