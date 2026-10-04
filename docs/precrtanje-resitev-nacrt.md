@@ -3,7 +3,8 @@
 Opaženo ob ročnem pregledu naloge »enotna izbira« (`docs/izbira-spoznaj-nacrt.md`, točka 2 v
 `docs/rocni-test.md`, 2026-10-04): pri 11 · XY-krilo »Rešitev (drži)« pokaže celico izbrisa samo z
 rožnato podlago, števka, ki se izbriše, ni prečrtana. Pri 2 · Izločitev v bloku je prečrtana.
-Izvedeno 2026-10-04 (razdelek 5).
+Izvedeno 2026-10-04 (razdelek 5, commit `fe96e14`); ročni pregled (3 točke v `docs/rocni-test.md`)
+potrjen istega dne na monitorju, tablici in telefonu – naloga zaprta.
 
 ## Odločitve (Darko, 2026-10-04)
 

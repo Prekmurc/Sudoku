@@ -1247,6 +1247,8 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
   »oznake«, `docs/oznake-nacrt.md`, O4): v legendi po pravilnem odgovoru v »Vadi v uganki«
   (`legendaKoraka()` v `trening/v-uganki.js`) še črtkan vijoličen kvadratek »tvoje oznake«.
   Ni samo slog.
+- **Oznaka različice pri nalaganju skript in slogov** (zapisano 2026-10-04 ob zaprtju naloge
+  »prečrtanje«), da brskalnik po spremembi ne kaže stare različice iz predpomnilnika.
 
 ## Opombe k delom
 
@@ -1313,6 +1315,11 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   pregledu naloge »enotna izbira«; stara zasnova, kode nisem spreminjal): »Rešitev« pri 3–12
   števke izbrisa ne prečrta (pri 3–6 izbrisa sploh ne pokaže), pri 1, 2 in v »Vadi v uganki« jo.
   Nova naloga v novem pogovoru – načrt z odločitvami: `docs/precrtanje-resitev-nacrt.md`.
+  **Izvedeno 2026-10-04** (`fe96e14`): ob »Rešitvi« je pri vseh vajah 3–12 celica izbrisa rožnata in
+  števka izbrisa rdeče prečrtana kot pri 2 (pri 4 in 6 ostanejo celice vzorca jantarne, prečrtane
+  so njihove druge števke); pri 7 in 8 je števka izbrisa prečrtana tudi po pravilnem odgovoru.
+  Izbris pri 3–6 računa ena funkcija za »Preveri« in »Rešitev«, »Preveri« se obnaša enako.
+  Ročni pregled (3 točke) potrjen 2026-10-04 (monitor, tablica, telefon), naloga zaprta.
 
 ### Faza 6 – pomoč
 
@@ -1333,8 +1340,10 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   - **ob »Rešitvi (drži)«** okvir pove, ali je izbira pravilna – pravilno izbrana celica vzorca
     jantarna #EFD8A0 z zelenim okvirjem (`--green` #2E7D5C), napačno izbrana bela s temno rdečim
     okvirjem #8E1B1B, napačno izbrana celica izbrisa rožnata s temno rdečim, spregledana celica
-    vzorca jantarna z zlatim okvirjem #C8A020, izbris rožnat #F0B4AA brez okvirja (pri 3–6
-    celic izbrisa ni; pri 12 je izbris vogal vzorca in se kaže kot vzorec);
+    vzorca jantarna z zlatim okvirjem #C8A020, izbris rožnat #F0B4AA brez okvirja, števka izbrisa rdeče
+    prečrtana (od naloge »prečrtanje«, 2026-10-04, `docs/precrtanje-resitev-nacrt.md`; pri 4 in 6
+    ostanejo celice vzorca jantarne, prečrtane so njihove druge števke; pri 12 je izbris vogal
+    vzorca in se kaže kot vzorec s prečrtanima števkama);
   - **po pravilnem odgovoru** – izbrane celice zelene (`.gc.correct`, `.xw-correct`,
     `.xw-sf-correct` – vse `--green-bg` z obrobo `--green`), celice izbrisa rožnate (pri 9–12 z
     rdečo obrobo `--red` – `.gc.elimcell`, pri 7 in 8 brez – `.xw-elim`; pri 3–6 celica izbrisa

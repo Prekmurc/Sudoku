@@ -175,7 +175,7 @@ vzorec pri 8 preveri `tools/preveri-izbira-brskalnik.js`; izbiro vzorca pri 3, 5
 
 ## Trening: prečrtanje izbrisa ob »Rešitvi« v »Spoznaj« 3–12
 
-Iz `docs/precrtanje-resitev-nacrt.md`. Da so ob »Rešitvi (drži)« rdeče prečrtane natanko števke,
+Iz `docs/precrtanje-resitev-nacrt.md` (commit `fe96e14`). Da so ob »Rešitvi (drži)« rdeče prečrtane natanko števke,
 ki so prečrtane po pravilnem odgovoru (pri 4 in 6 po 2. fazi), da je slog enak kot pri 2, da po
 spustu ni prečrtanih, da sta pri 7 in 8 prečrtani tudi po odgovoru in da je vse drugo enako kot
 prej (tudi »Preveri« in prekrivanje okvirja z malimi števkami), preverijo
@@ -184,9 +184,9 @@ prej (tudi »Preveri« in prekrivanje okvirja z malimi števkami), preverijo
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: drži »Rešitev (drži)« s prstom. | V rožnati celici izbrisa je mala števka izbrisa rdeče prečrtana in berljiva (kot pri 2 · Izločitev v bloku). **(nepotrjeno)** – ni avtomatsko: scenarij izmeri barvo, debelino in črto (kontrast rdeče na rožnati 3,3) pri gostoti 1x; telefon riše pri 2–3x z drugim glajenjem, dotika v brskalniku brez glave ni. |
-| 2 | trening, »Spoznaj«, tvoj zaslon | 12 · Edinstveni pravokotnik: drži »Rešitev (drži)«. | Vogal z izbrisom ostane jantaren kot drugi trije, njegovi števki para pa sta rdeče prečrtani – jasno je, da se izbrišeta iz tega vogala. **(nepotrjeno)** – ni avtomatsko: presoja razumljivosti (vogal je hkrati vzorec in izbris); scenarij preveri slog in da so prečrtane iste števke kot po odgovoru. |
-| 3 | trening, »Spoznaj« | 3 · Očitni par: drži »Rešitev (drži)«; nato 4 · Skriti par: drži »Rešitev (drži)«. | Pri 3 so celice izbrisa rožnate, števke para v njih rdeče prečrtane (kot po pravilnem odgovoru); pri 4 ostanejo celice vzorca jantarne, prečrtane so njihove druge števke. Razlika med 3 in 4 je razumljiva. **(nepotrjeno)** – ni avtomatsko: presoja razumljivosti (pravilnost preverita test in scenarij). |
+| 1 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: drži »Rešitev (drži)« s prstom. | V rožnati celici izbrisa je mala števka izbrisa rdeče prečrtana in berljiva (kot pri 2 · Izločitev v bloku). Potrjeno (ročni pregled 4. 10. 2026; monitor, tablica, telefon). – ni avtomatsko: scenarij izmeri barvo, debelino in črto (kontrast rdeče na rožnati 3,3) pri gostoti 1x; telefon riše pri 2–3x z drugim glajenjem, dotika v brskalniku brez glave ni. |
+| 2 | trening, »Spoznaj«, tvoj zaslon | 12 · Edinstveni pravokotnik: drži »Rešitev (drži)«. | Vogal z izbrisom ostane jantaren kot drugi trije, njegovi števki para pa sta rdeče prečrtani – jasno je, da se izbrišeta iz tega vogala. Potrjeno (ročni pregled 4. 10. 2026; monitor, tablica, telefon). – ni avtomatsko: presoja razumljivosti (vogal je hkrati vzorec in izbris); scenarij preveri slog in da so prečrtane iste števke kot po odgovoru. |
+| 3 | trening, »Spoznaj« | 3 · Očitni par: drži »Rešitev (drži)«; nato 4 · Skriti par: drži »Rešitev (drži)«. | Pri 3 so celice izbrisa rožnate, števke para v njih rdeče prečrtane (kot po pravilnem odgovoru); pri 4 ostanejo celice vzorca jantarne, prečrtane so njihove druge števke. Razlika med 3 in 4 je razumljiva. Potrjeno (ročni pregled 4. 10. 2026; monitor, tablica, telefon). – ni avtomatsko: presoja razumljivosti (pravilnost preverita test in scenarij). |
 
 ## Zakaj ročno
 
