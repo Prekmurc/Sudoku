@@ -47,4 +47,23 @@ async function odmakniMisko(b) {
   await b.izvedi('new Promise(r => setTimeout(r, 300))');
 }
 
-module.exports = { razlikeIzrisa, odmakniMisko };
+// Izris območja vaje za primerjavo z izhodiščem (koda za stran - vstavi se v b.izvedi()): klon
+// brez elementov, ki jih je faza 6 (korak b, docs/faza6-besedila.md) spremenila namenoma - naslov
+// (h3) in opis naloge (.desc), razdelek »Razlaga«, legenda -, in z izpraznjenim besedilom sporočil
+// (.fb, .peek-overlay: sporočila korakov imajo zdaj »izbrišeš«, pare {x, y}). Vrne { html,
+// elementi, slogi }: elementi so živi elementi zunaj izpuščenih, slogi njihove izračunane vrednosti
+// lastnosti (niz "vrednost|vrednost|...") - elementu, ki vsebuje izpuščen element (kartica vaje),
+// višina ne šteje, ker je opis pod nalogo druge dolžine. Izhodišče teh elementov nima ali ima drugo
+// besedilo, zato bi primerjava sicer javila namerne spremembe.
+const PRIMERJALNI_IZRIS = `((a, lastnosti) => {
+  const izpusti = '.desc, h3, details.razlaga-tehnike, .legenda-vaje', brez = '.fb, .peek-overlay';
+  const k = a.cloneNode(true);
+  k.querySelectorAll(izpusti).forEach(e => e.remove());
+  k.querySelectorAll(brez).forEach(e => { e.textContent = ''; });
+  const elementi = [...a.querySelectorAll('*')].filter(e => !e.closest(izpusti) && !(e.parentElement && e.parentElement.closest(brez)));
+  const slogi = elementi.map(e => { const s = getComputedStyle(e), vsebnik = !!e.querySelector(izpusti);
+    return (lastnosti || []).map(p => (vsebnik && p === 'height' ? '' : s.getPropertyValue(p))).join('|'); });
+  return { html: k.innerHTML, elementi, slogi };
+})`;
+
+module.exports = { razlikeIzrisa, odmakniMisko, PRIMERJALNI_IZRIS };

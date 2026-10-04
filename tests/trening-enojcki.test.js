@@ -171,7 +171,8 @@ test('E1 vaje 1-3: označena je celica koraka (očitni enojček), izbereš samo 
     assert.equal(E.preveriEnojcek(ex, c, d).izid, 'prav');
     const lbl = E.cellLabel(c);
     assert.equal(ex.unitLabel, `Katera števka je edina mogoča v označeni celici ${lbl}?`);
-    assert.ok(ex.desc.startsWith(E.TEHNIKE_OPISI['naked-single'].razlaga));
+    // Opis stopnje je brez razlage - trening.js pred njim izpiše povzetek tehnike (faza 6).
+    assert.equal(ex.desc, 'Celica je že izbrana – izberi samo števko, ki jo vpišeš.');
     assert.match(ex.desc, /Celica je že izbrana – izberi samo števko/);
     assert.equal(ex.namig, `Preglej vrstico, stolpec in blok celice ${lbl}: katera števka ni v nobenem od njih?`);
   }
@@ -201,7 +202,7 @@ test('E2 vaje 1-3: označena sta enota in števka, v enoti je zanjo eno samo mes
     assert.equal(u, ex.korak.hint.unit);
     const mesta = u.filter(x => ex.boardGrid[x] === 0 && (ex.boardCand[x] & (1 << d)));
     assert.deepEqual([...mesta], [c], 'edino mesto za števko v enoti je celica koraka');
-    assert.match(ex.unitLabel, new RegExp(`^V označen(i vrstici|em stolpcu|em bloku) \\d poišči edino mesto za števko ${d}$`));
+    assert.match(ex.unitLabel, new RegExp(`^V označen(i vrstici|em stolpcu|em bloku) \\d poišči edino celico, kjer je mogoča števka ${d}$`));
     assert.match(ex.desc, /Števka je že izbrana – izberi samo celico/);
     assert.match(ex.namig, new RegExp(`^Kje v (vrstici|stolpcu|bloku) \\d števka ${d} ni mogoča\\? `));
     assert.doesNotMatch(ex.namig, /V\dS\d/);
@@ -218,7 +219,7 @@ test('E2 vaje 4-6: označena je samo enota koraka, namig našteje manjkajoče š
     const nastej = manjka.length === 2 ? `${manjka[0]} in ${manjka[1]}` : `${manjka.slice(0, -1).join(', ')} in ${manjka[manjka.length - 1]}`;
     assert.ok(ex.namig.includes(nastej + '. Za vsako preveri, na koliko praznih mestih'), ex.namig);
     assert.doesNotMatch(ex.namig, /V\dS\d/);
-    assert.match(ex.unitLabel, /^V označen(i vrstici|em stolpcu|em bloku) \d poišči števko z enim samim mestom$/);
+    assert.match(ex.unitLabel, /^V označen(i vrstici|em stolpcu|em bloku) \d poišči števko, ki je mogoča samo v eni celici$/);
   }
 });
 
@@ -226,7 +227,7 @@ test('vaje 7-9: cela mreža brez oznake, navodilo in namig kot doslej', () => {
   for (const ex of [...poStopnji(K1, 3), ...poStopnji(K2, 3)]) {
     assert.equal(ex.oznaka, null);
     assert.equal(ex.desc, undefined, 'opis iz MODES');
-    assert.match(ex.unitLabel, /^Poišči (celico, v kateri je mogoča samo ena števka|števko z enim samim mestom v enoti)$/);
+    assert.match(ex.unitLabel, /^Poišči (celico, v kateri je mogoča samo ena števka|števko, ki je v vrstici, stolpcu ali bloku mogoča samo v eni celici)$/);
     assert.match(ex.namig, /^(V mreži|Poglej) /);
   }
 });

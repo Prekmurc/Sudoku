@@ -35,7 +35,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, PRIMERJALNI_IZRIS } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -147,6 +147,14 @@ async function izberi(b, mode, dani) {
   await odmakniMisko(b);
   return izb;
 }
+// Legenda oznak (faza 6, korak b) v elementu kje (okvir »Rešitve« ali sporočilo): za vsako
+// postavko besedilo in izračunani slog vzorčka; vznotraj = legenda ne sega čez kartico vaje.
+const legendaSlogi = (b, kje) => b.izvedi(`(() => { const l = document.querySelector('#exerciseArea ' + ${JSON.stringify(kje)} + ' .legenda-vaje');
+  if (!l) return null; const ex = document.querySelector('#exerciseArea .exercise').getBoundingClientRect(), r = l.getBoundingClientRect();
+  return { vznotraj: r.left >= ex.left - 0.5 && r.right <= ex.right + 0.5, postavke: [...l.children].map(p => { const sw = p.children[0], st = getComputedStyle(sw);
+    return { besedilo: p.textContent.slice(sw.textContent.length), bg: st.backgroundColor, obroba: st.borderTopColor, barva: st.color, crta: st.textDecorationLine }; }) }; })()`);
+// Barva okvirja celice iz box-shadow (»rgb(…) 0px 0px 0px 2.5px inset«) ali null.
+const barvaOkvirja = bs => (bs.match(/^rgba?\([^)]*\)/) || [null])[0];
 // Slogi celic: izbrana (data-izb), med »Rešitvijo« tudi razreda peek-hl / peek-elim.
 const slogiCelic = b => b.izvedi(`[...document.querySelectorAll(${JSON.stringify(CELICE)})].map(e => { const s = getComputedStyle(e);
   return { i: e.dataset.i, izb: !!e.dataset.izb, vz: e.classList.contains('peek-hl'), iz: e.classList.contains('peek-elim'), xw: e.classList.contains('xw-cell'), bg: s.backgroundColor, bs: s.boxShadow }; })`);
@@ -160,6 +168,10 @@ const STEVKE_SKRITE = '#exerciseArea .cd, #exerciseArea .xw-cell { color: transp
 // števke izgubijo peek-izbris (prejšnji slog, tudi .hl pri 9), celica X-krila in mečarice brez
 // rdeče črte - brez !important, da STEVKE_SKRITE še velja; v izhodišču brez učinka.
 const PRECRTANE_NAVADNE = '#exerciseArea .xw-cell.peek-elim { color: var(--ink); text-decoration: none; }';
+// Med meritvijo je besedilo nad mrežo (naslov, opis, razdelek »Razlaga«) skrito v obeh brskalnikih: mreža
+// je tako na istem mestu, sicer drugačna višina besedila (faza 6) premakne mrežo za del piksla in
+// spremeni glajenje robov na posnetku - meritev naj meri okvir in števke, ne besedila.
+const BESEDILO_SKRITO = '#exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike { display: none !important; }';
 async function prekrivanje(b) {
   await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-izbris').forEach(e => { e.classList.remove('peek-izbris'); e.dataset.pi = 1; }); true`);
   try { return await prekrivanjeMeritev(b); } finally {
@@ -169,7 +181,7 @@ async function prekrivanje(b) {
 async function prekrivanjeMeritev(b) {
   const pos = async slog => {
     await b.izvedi(`(() => { let s = document.getElementById('meritev'); if (!s) { s = document.createElement('style'); s.id = 'meritev'; document.head.appendChild(s); }
-      s.textContent = ${JSON.stringify(PRECRTANE_NAVADNE)} + ${JSON.stringify(slog)}; return new Promise(r => setTimeout(() => r(true), 250)); })()`);
+      s.textContent = ${JSON.stringify(PRECRTANE_NAVADNE + BESEDILO_SKRITO)} + ${JSON.stringify(slog)}; return new Promise(r => setTimeout(() => r(true), 250)); })()`);
     const r = await b.izvedi(`(() => { const q = document.querySelector('#exerciseArea :is(.layout-row, .layout-col, .layout-block, .xw-grid, .g9)').getBoundingClientRect();
       return { x: Math.floor(q.left + scrollX), y: Math.floor(q.top + scrollY), w: Math.ceil(q.width), h: Math.ceil(q.height) }; })()`);
     return (await b.cdp.poslji('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 1 } })).data;
@@ -197,14 +209,14 @@ async function prekrivanjeMeritev(b) {
 // currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo.
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
-const izris = (b, mode) => b.izvedi(`(() => { const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')], ocitni = ${OCITNI.includes(mode)};
+const izris = (b, mode) => b.izvedi(`(() => { const a = document.getElementById('exerciseArea'), p = (${PRIMERJALNI_IZRIS})(a, []), vsi = p.elementi, ocitni = ${OCITNI.includes(mode)};
   const dovoljeno = {};
   vsi.forEach((e, i) => {
     if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl)')) dovoljeno[i] = ['background-color'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl) .cd')) dovoljeno[i] = ['color', 'border-top-color'];
   });
-  return { html: a.innerHTML.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno,
+  return { html: p.html.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno,
     slogi: vsi.map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); }) }; })()`);
 // Razlike nove kode od izhodišča razen dovoljenih: v novem izrisu razreda peek-izbris (pri 3 in 5
 // še peek-elim - izhodišče ga tam nima) ni, dovoljene lastnosti so kot v izhodišču.
@@ -253,6 +265,7 @@ async function vaja(bNov, bStar, mode, sirina) {
       s.sirina = await b.izvedi('document.documentElement.scrollWidth');
       if (ime === 'nov') await b.posnetek(path.join(mapa, `${mode}-resitev-${sirina}.png`), { vsaStran: false });
       s.seVedno = await b.izvedi('!!document.querySelector("#exerciseArea .peek-hl")');
+      s.legenda = await legendaSlogi(b, '.peek-overlay.visible');
       return s;
     });
     await pocakaj(b);
@@ -302,6 +315,24 @@ async function preveriVajo(bNov, bStar, mode, sirina, ref) {
   for (const c of [...(poVrsti.napacna || []), ...(poVrsti.napacnaIzbris || [])]) {
     preveri(`rdeči okvir na ${c.bg === BELA ? 'beli' : 'rožnati'} podlagi: kontrast ${kontrast(RDECA, c.bg).toFixed(2)} ≥ 3`, kontrast(RDECA, c.bg) >= 3);
   }
+  // Legenda (faza 6): postavke so natanko vrste celic na mreži, vzorček ima barvo celice.
+  const OZNAKA = { pravilna: 'pravilno izbrana celica', spregledana: 'spregledana celica vzorca', napacna: 'napačno izbrana celica',
+    napacnaIzbris: 'napačno izbrana celica izbrisa', izbris: 'celica izbrisa' };
+  const leg = nov.med.legenda;
+  preveri('med »Rešitvijo«: legenda je v okvirju in v kartici', !!leg && leg.vznotraj, leg);
+  if (leg) {
+    const brezStevke = leg.postavke.filter(p => p.besedilo !== 'kandidat za izbris').map(p => p.besedilo).sort();
+    const vrste = Object.keys(OZNAKA).filter(v => poVrsti[v]);
+    preveri(`med »Rešitvijo«: legenda našteje natanko vrste na mreži (${vrste.join(', ')})`,
+      JSON.stringify(brezStevke) === JSON.stringify(vrste.map(v => OZNAKA[v]).sort()), leg.postavke.map(p => p.besedilo));
+    for (const v of vrste) {
+      const p = leg.postavke.find(x => x.besedilo === OZNAKA[v]), c = poVrsti[v][0];
+      const ok = p && p.bg === c.bg && (v === 'izbris' || p.obroba === barvaOkvirja(c.bs));
+      preveri(`legenda »${OZNAKA[v]}«: barva kot celica (${c.bg}, ${barvaOkvirja(c.bs) || 'brez okvirja'})`, ok, p);
+    }
+    const st = leg.postavke.find(p => p.besedilo === 'kandidat za izbris');
+    preveri('legenda »kandidat za izbris«: rdeče prečrtana kot števka izbrisa', !!st && st.barva === ref.barva && st.crta.includes('line-through'), st);
+  }
   preveri('brez vodoravnega drsnika', nov.med.sirina === sirina, nov.med.sirina);
   preveri('»Rešitev« prikazana ves čas pritiska (tudi po posnetku)', nov.med.seVedno === true);
   const poSpustu = nov.po.filter(c => c.izb);
@@ -339,6 +370,8 @@ async function pravilenOdgovor(bNov, bStar, mode, sirina, ref) {
       await pocakaj(b);
     }
     r.ok = await b.izvedi(`!!document.querySelector('#exerciseArea .fb.ok') && document.querySelector('#exerciseArea .fb.ok').textContent.startsWith('Pravilno!')`);
+    r.legenda = await legendaSlogi(b, '.fb');
+    r.pravilne = await b.izvedi(`[...document.querySelectorAll('#exerciseArea :is(.gc.correct, .xw-cell.xw-correct, .xw-cell.xw-sf-correct)')].map(e => { const s = getComputedStyle(e); return { bg: s.backgroundColor, bs: s.boxShadow }; })`);
     r.po = await izris(b, mode);
     r.celice = await slogiCelic(b);
     r.precrtanePo = await precrtane(b);
@@ -359,6 +392,24 @@ async function pravilenOdgovor(bNov, bStar, mode, sirina, ref) {
     const zelene = nov.celice.filter(c => c.bg === 'rgb(220, 238, 229)');
     preveri(`${mode}: po pravilnem odgovoru ${zelene.length} celic zelenih kot pri X-krilu (--green-bg, obroba --green)`,
       zelene.length >= 6 && zelene.every(c => c.bs === okvir(ZELENA, 2)), nov.celice.filter(c => c.bg !== 'rgb(255, 255, 255)'));
+  }
+  // Legenda po odgovoru (faza 6): izbrane celice (zelene), celice z izbrisom (pri 3-6 brez
+  // podlage), izbrisani kandidati - barve kot celice na mreži.
+  const lp = nov.legenda;
+  preveri(`${mode}, ${sirina} px: legenda pod »Pravilno!« v kartici`, !!lp && lp.vznotraj, lp);
+  if (lp) {
+    const zSCelico = !['naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple'].includes(mode);
+    preveri(`${mode}: legenda po odgovoru`, JSON.stringify(lp.postavke.map(p => p.besedilo))
+      === JSON.stringify(zSCelico ? ['izbrane celice', 'celica z izbrisom', 'izbrisani kandidati'] : ['izbrane celice', 'izbrisani kandidati']), lp.postavke.map(p => p.besedilo));
+    const pravilna = nov.pravilne.find(c => c.bg === 'rgb(220, 238, 229)');
+    const pi = lp.postavke.find(p => p.besedilo === 'izbrane celice');
+    preveri(`${mode}: legenda »izbrane celice« kot celica odgovora`, !!pravilna && !!pi && pi.bg === pravilna.bg && pi.obroba === barvaOkvirja(pravilna.bs), { pi, pravilna });
+    if (zSCelico) {
+      const izb = nov.celice.find(c => c.bg === IZBRIS_BG), pz = lp.postavke.find(p => p.besedilo === 'celica z izbrisom');
+      preveri(`${mode}: legenda »celica z izbrisom« kot celica izbrisa`, !!izb && !!pz && pz.bg === izb.bg && (barvaOkvirja(izb.bs) === null || pz.obroba === barvaOkvirja(izb.bs)), { pz, izb });
+    }
+    const pk = lp.postavke.find(p => p.besedilo === 'izbrisani kandidati');
+    preveri(`${mode}: legenda »izbrisani kandidati« rdeče prečrtana`, !!pk && pk.barva === ref.barva && pk.crta.includes('line-through'), pk);
   }
   const r1 = razlikeBrezPrecrtanja(star.po, nov.po, mode), r2 = razlikeBrezPrecrtanja(star.resitev, nov.resitev, mode);
   preveri(`${mode}, ${sirina} px: po pravilnem odgovoru enako izhodišču razen prečrtanja`, r1.length === 0, r1);

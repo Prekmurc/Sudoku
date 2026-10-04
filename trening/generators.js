@@ -68,8 +68,8 @@ function vajaPreseka(mode,v,korak){
     solutionCells:korak.cells,solutionEliminate:korak.eliminate,solutionMessage:korak.message,
     unitLabel:pointingVaja?`${boxLabel} → ${lineLabel}`:`${lineLabel} → ${boxLabel}`,
     desc:pointingVaja
-      ? `Števka ${d}: v bloku ${blok+1} je mogoča samo v celicah ene vrstice ali stolpca – izberi te celice.`
-      : `Števka ${d}: v ${jeVrstica?'vrstici':'stolpcu'} ${st+1} je mogoča samo v celicah enega bloka – izberi te celice.`,
+      ? `Števka ${d}: v bloku ${blok+1} je mogoča samo v celicah ${jeVrstica?'vrstice':'stolpca'} ${st+1} – izberi te celice. Iz ${jeVrstica?'vrstice':'stolpca'} ${st+1} zunaj bloka jo potem lahko izbrišeš.`
+      : `Števka ${d}: v ${jeVrstica?'vrstici':'stolpcu'} ${st+1} je mogoča samo v celicah bloka ${blok+1} – izberi te celice. Iz bloka ${blok+1} zunaj ${jeVrstica?'vrstice':'stolpca'} jo potem lahko izbrišeš.`,
   };
 }
 
@@ -444,7 +444,7 @@ function genXWing(n){
       baseName,crossName,baseLabels,crossLabels,
       mode:'x-wing',
       unitLabel:`X-krilo za števko ${digit}`,
-      desc:`Števka ${digit}: najdi pravokotnik – 4 celice, kjer se ${digit} v dveh ${baseName} pojavi na istih dveh mestih.`
+      desc:`Števka ${digit}: poišči ${baseIsRow?'dve vrstici':'dva stolpca'}, v katerih je ${digit} mogoča samo v istih dveh ${crossName}, in izberi štiri vogale.`
     };
   }
   return genXWing(n+10);
@@ -536,7 +536,7 @@ function genSwordfish(n){
       baseName,crossName,baseLabels,crossLabels,
       mode:'swordfish',
       unitLabel:`Mečarica za števko ${digit}`,
-      desc:`Števka ${digit}: najdi 3 ${baseIsRow?'vrstice':'stolpce'}, kjer se ${digit} pojavi samo na istih 3 ${crossName}. Klikni vse celice s ${digit} v teh treh ${baseName}.`
+      desc:`Števka ${digit}: poišči tri ${baseIsRow?'vrstice':'stolpce'}, v katerih je ${digit} mogoča samo v istih treh ${crossName}, in izberi vse celice ${predlogSZ(digit)} ${digit} v teh treh ${baseName}.`
     };
   }
   return genSwordfish(n+10);
@@ -663,7 +663,7 @@ function genUniqueRectangle(n){
       slots:slotsFromBoard(board),
       boardGrid:board.grid,boardCand:board.cand,
       solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
-      unitLabel:'Edinstveni pravokotnik: smrtonosni vzorec',
+      unitLabel:'Edinstveni pravokotnik: štirje vogali',
     };
   }
   return genUniqueRectangle(n+7);
@@ -900,6 +900,8 @@ function addLabels(slots,ut,ui){
     else{const br=((ui-1)/3|0)*3,bc=((ui-1)%3)*3;slots[i].pos=`V${br+(i/3|0)+1}S${bc+i%3+1}`;}
   }
 }
+// Predlog pred števko: z 1, z 2, s 3 ... s 7, z 8, z 9 (po izgovoru: ena, dve, tri ... osem, devet).
+function predlogSZ(d){return d>=3&&d<=7?'s':'z';}
 function unitLbl(ut,ui){return ut==='row'?`Vrstica ${ui}`:ut==='col'?`Stolpec ${ui}`:`Blok ${ui}`;}
 
 /* --- Enojčka (E1 Očitni enojček, E2 Skriti enojček) ---
@@ -934,28 +936,27 @@ function oznacenaEnota(unit){
 // kot doslej, opis iz MODES).
 function postopnostEnojcka(gol,stopnja,korak){
   const [celica,stevka]=korak.assign[0];
-  const razlaga=TEHNIKE_OPISI[gol?'naked-single':'hidden-single'].razlaga;
   if(stopnja===1&&gol) return{
     oznaka:{celica,enota:null,stevka:null},
     unitLabel:`Katera števka je edina mogoča v označeni celici ${cellLabel(celica)}?`,
-    desc:`${razlaga} Celica je že izbrana – izberi samo števko, ki jo vpišeš.`,
+    desc:'Celica je že izbrana – izberi samo števko, ki jo vpišeš.',
   };
   if(stopnja===1) return{
     oznaka:{celica:null,enota:korak.hint.unit,stevka},
-    unitLabel:`V ${oznacenaEnota(korak.hint.unit)} poišči edino mesto za števko ${stevka}`,
-    desc:`${razlaga} Števka je že izbrana – izberi samo celico, v katero jo vpišeš.`,
+    unitLabel:`V ${oznacenaEnota(korak.hint.unit)} poišči edino celico, kjer je mogoča števka ${stevka}`,
+    desc:'Števka je že izbrana – izberi samo celico, v katero jo vpišeš.',
   };
   if(stopnja===2){
     const enota=gol?UNITS_OF[celica][randInt(0,UNITS_OF[celica].length-1)]:korak.hint.unit;
     return{
       oznaka:{celica:null,enota,stevka:null},
-      unitLabel:`V ${oznacenaEnota(enota)} poišči ${gol?'celico, v kateri je mogoča samo ena števka':'števko z enim samim mestom'}`,
-      desc:`${razlaga} Izberi celico v označeni enoti in nato števko, ki jo vpišeš.`,
+      unitLabel:`V ${oznacenaEnota(enota)} poišči ${gol?'celico, v kateri je mogoča samo ena števka':'števko, ki je mogoča samo v eni celici'}`,
+      desc:`Izberi celico v ${oznacenaEnota(enota)} in nato števko, ki jo vpišeš.`,
     };
   }
   return{
     oznaka:null,
-    unitLabel:gol?'Poišči celico, v kateri je mogoča samo ena števka':'Poišči števko z enim samim mestom v enoti',
+    unitLabel:gol?'Poišči celico, v kateri je mogoča samo ena števka':'Poišči števko, ki je v vrstici, stolpcu ali bloku mogoča samo v eni celici',
     desc:undefined,
   };
 }
@@ -1024,6 +1025,7 @@ const MODES={
   'xy-wing':{gen:genXYWing,selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true},
   'unique-rectangle':{gen:genUniqueRectangle,selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true},
 };
-// Besedilo vaje (razlaga tehnike + navodilo za vajo) je v TEHNIKE_OPISI v
-// shared/engine.js; X-Wing in Swordfish ga zamenjata s svojim (z označeno števko).
+// Besedilo pod nalogo (povzetek tehnike + navodilo za vajo) je v TEHNIKE_OPISI v
+// shared/engine.js (opisVaje()). Vaje z lastnim opisom naloge (ex.desc: 1, 2, 7, 8 in E1/E2 v
+// vajah 1-6) ga zamenjajo s povzetkom in tem opisom (trening.js).
 for(const k of Object.keys(MODES)) MODES[k].desc=opisVaje(k);

@@ -1025,7 +1025,9 @@ function izpisiStopnje(el, stopnje, polje) {
   }
 }
 izpisiStopnje(document.getElementById('stopnjeNova'), STOPNJE_GENERATORJA, 'opisIskanja');
-izpisiStopnje(document.getElementById('stopnjeOcena'), STOPNJE_UGANK, 'opis');
+// Ekstrem (ekspertna tehnika) je v seznamu šele, ko jo motor pozna - zdaj ga ne dobi nobena uganka.
+izpisiStopnje(document.getElementById('stopnjeOcena'),
+  STOPNJE_UGANK.filter(s => s.kljuc !== 'ekstrem' || GEN_EKSPERTNE.length), 'opis');
 izpisiStopnje(document.getElementById('stopnjeIskanje'),
   STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis), 'opisIskanja');
 

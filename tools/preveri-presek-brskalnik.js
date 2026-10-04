@@ -24,7 +24,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, PRIMERJALNI_IZRIS } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -138,8 +138,8 @@ async function izris(b, mode, sirina) {
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     const a = document.getElementById('exerciseArea');
-    const slogi = [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
-    return { html: a.innerHTML, slogi };
+    const p = (${PRIMERJALNI_IZRIS})(a, ${JSON.stringify(SLOGI)});
+    return { html: p.html, slogi: p.slogi };
   })()`);
 }
 

@@ -125,9 +125,9 @@ test('stepHint(): besedila namigov', () => {
   assert.equal(hint('X-Wing', { digits: [9], lines: 'stolpcih', lineCount: 2 }), 'Števka 9, v dveh stolpcih.');
   assert.equal(hint('Swordfish', { digits: [5], lines: 'vrsticah', lineCount: 3 }), 'Števka 5, v treh vrsticah.');
   assert.equal(hint('Turbot Fish', { digits: [4] }), 'Števka 4.');
-  assert.equal(hint('XY-Wing', { digits: [3, 8] }), 'Pivot ima kandidata 3 in 8.');
-  assert.equal(hint('W-Wing', { digits: [1, 6] }), 'Celici para imata kandidata 1 in 6.');
-  assert.equal(hint('Unique Rectangle', { digits: [2, 7] }), 'Pravokotnik tvorita števki 2 in 7.');
+  assert.equal(hint('XY-Wing', { digits: [3, 8] }), 'Pivot ima kandidata {3, 8}.');
+  assert.equal(hint('W-Wing', { digits: [1, 6] }), 'Celici para imata kandidata {1, 6}.');
+  assert.equal(hint('Unique Rectangle', { digits: [2, 7] }), 'Pravokotnik tvori par {2, 7}.');
   assert.equal(hint('Gol enojček', { count: 1 }), 'V mreži je 1 celica z enim samim kandidatom.');
   assert.equal(hint('Gol enojček', { count: 2 }), 'V mreži sta 2 celici z enim samim kandidatom.');
   assert.equal(hint('Gol enojček', { count: 4 }), 'V mreži so 4 celice z enim samim kandidatom.');

@@ -84,7 +84,7 @@ function elimLabel(elim) {
     byCell.get(cell).push(d);
   }
   return [...byCell.keys()].sort((a, b) => a - b)
-    .map(c => `${cellLabel(c)} (${byCell.get(c).sort((a, b) => a - b).join(',')})`).join(', ');
+    .map(c => `${cellLabel(c)} (${byCell.get(c).sort((a, b) => a - b).join(', ')})`).join(', ');
 }
 
 class Board {
@@ -200,7 +200,7 @@ function pointing(b) {
           technique: 'Pointing pair/triple', cells: spots, assign: [], eliminate: elim,
           // Samo blok: blok in števka skupaj takoj pokažeta vzorec.
           hint: { unit: box },
-          message: `V ${unitNameLoc(box)} je kandidat ${d} mogoč samo v ${cellsLabel(spots)}, ${spots.length === 2 ? 'ki obe ležita' : 'ki vse ležijo'} v ${unitNameLoc(target)} → ${d} lahko izbrišemo iz preostanka te enote zunaj bloka (${cellsLabel(elim.map(e => e[0]))}).`
+          message: `V ${unitNameLoc(box)} je kandidat ${d} mogoč samo v ${cellsLabel(spots)}, ${spots.length === 2 ? 'ki obe ležita' : 'ki vse ležijo'} v ${unitNameLoc(target)} → ${d} lahko izbrišeš iz preostanka te enote zunaj bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
     }
@@ -224,7 +224,7 @@ function boxLineReduction(b) {
           technique: 'Box-line reduction', cells: spots, assign: [], eliminate: elim,
           // Samo enota: enota in števka skupaj takoj pokažeta vzorec.
           hint: { unit },
-          message: `V ${unitNameLoc(unit)} je kandidat ${d} mogoč samo znotraj enega bloka (${cellsLabel(spots)}) → ${d} lahko izbrišemo iz preostanka tega bloka (${cellsLabel(elim.map(e => e[0]))}).`
+          message: `V ${unitNameLoc(unit)} je kandidat ${d} mogoč samo znotraj enega bloka (${cellsLabel(spots)}) → ${d} lahko izbrišeš iz preostanka tega bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
     }
@@ -253,7 +253,7 @@ function nakedSubsets(b, size, name) {
             // ki leži tudi v istem bloku), zato je enota del identitete koraka.
             technique: name, cells: combo.slice(), unit, assign: [], eliminate: elim,
             hint: { unit },
-            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'števki' : 'števke'}) → te števke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
+            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} {${bitsOf(union).join(', ')}} (${size === 2 ? 'dve celici, dve števki' : 'tri celice, tri števke'}) → te števke lahko izbrišeš iz preostanka enote: ${elimLabel(elim)}.`
           });
         }
       }
@@ -289,7 +289,7 @@ function hiddenSubsets(b, size, name) {
           // unit: glej opombo pri nakedSubsets.
           technique: name, cells: [...spots], unit, assign: [], eliminate: elim,
           hint: { unit },
-          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta števki' : 'so števke'} ${digits.join(',')} ${size === 2 ? 'mogoči' : 'mogoče'} samo v celicah ${cellsLabel(spots)} → vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
+          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta števki' : 'so števke'} {${digits.join(', ')}} ${size === 2 ? 'mogoči' : 'mogoče'} samo v celicah ${cellsLabel(spots)} → vse druge kandidate v teh celicah lahko izbrišeš: ${elimLabel(elim)}.`
         });
       }
     }
@@ -332,7 +332,7 @@ function xWing(b) {
             technique: 'X-Wing', cells: [...s1, ...s2], assign: [], eliminate: elim,
             // Števka in smer: naštete vrstice/stolpci bi takoj pokazali vzorec.
             hint: { digits: [d], lines: baseName, lineCount: 2 },
-            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} → tvori X-krilo. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} → tvori X-krilo. ${d} lahko izbrišeš iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -370,7 +370,7 @@ function swordfish(b) {
           steps.push({
             technique: 'Swordfish', cells: [...s1, ...s2, ...s3], assign: [], eliminate: elim,
             hint: { digits: [d], lines: baseName, lineCount: 3 },
-            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} → tvori mečarico. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} → tvori mečarico. ${d} lahko izbrišeš iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -433,7 +433,7 @@ function turbotFish(b) {
             technique: 'Turbot Fish', variant, cells: pattern, assign: [], eliminate: elim,
             // Samo števka: enoti povezav bi takoj pokazali vzorec.
             hint: { digits: [d] },
-            message: `Kandidat ${d} je v ${unitNameLoc(L1.unit)} mogoč samo v celicah ${cellsLabel(L1.cells)}, v ${unitNameLoc(L2.unit)} pa samo v celicah ${cellsLabel(L2.cells)}. Celici ${cellLabel(bc1)} in ${cellLabel(bc2)} ležita v ${unitNameLoc(linkUnit)}, zato je vsaj ena od celic ${cellsLabel([aEnd, dEnd])} enaka ${d} → tvori ${patternName}. ${d} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${unitNameLoc(L1.unit)} mogoč samo v celicah ${cellsLabel(L1.cells)}, v ${unitNameLoc(L2.unit)} pa samo v celicah ${cellsLabel(L2.cells)}. Celici ${cellLabel(bc1)} in ${cellLabel(bc2)} ležita v ${unitNameLoc(linkUnit)}, zato je vsaj ena od celic ${cellsLabel([aEnd, dEnd])} enaka ${d} → tvori ${patternName}. ${d} lahko izbrišeš iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -481,7 +481,7 @@ function wWing(b) {
           steps.push({
             technique: 'W-Wing', cells: [p1, p2, x, y], assign: [], eliminate: elim,
             hint: { digits },
-            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} → tvori W-krilo in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata {${digits.join(', ')}} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} → tvori W-krilo in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišeš iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -516,7 +516,7 @@ function xyWing(b) {
             steps.push({
               technique: 'XY-Wing', cells: [pivot, w1, w2], assign: [], eliminate: elim,
               hint: { digits: [x, y] },
-              message: `Pivot ${cellLabel(pivot)} {${x},${y}} ima dve krili: ${cellLabel(w1)} in ${cellLabel(w2)}, ki obe delita kandidata ${z} → ${z} lahko izbrišemo iz celic, ki vidijo obe krili (${cellsLabel(elim.map(e => e[0]))}).`
+              message: `Pivot ${cellLabel(pivot)} {${x}, ${y}} ima dve krili: ${cellLabel(w1)} in ${cellLabel(w2)}, ki obe delita kandidata ${z} → ${z} lahko izbrišeš iz celic, ki vidijo obe krili (${cellsLabel(elim.map(e => e[0]))}).`
             });
           }
         }
@@ -559,7 +559,7 @@ function uniqueRectangle(b) {
       steps.push({
         technique: 'Unique Rectangle', cells: [...trio, fourth], assign: [], eliminate: elim,
         hint: { digits: bitsOf(digitsMask) },
-        message: `Celice ${cellsLabel(trio)} imajo natanko kandidata ${bitsOf(digitsMask).join(',')}, ${cellLabel(fourth)} pa poleg njiju še dodatne. Če bi imela tudi ${cellLabel(fourth)} samo ${bitsOf(digitsMask).join(',')}, bi uganka imela dve rešitvi → ${bitsOf(digitsMask).join(',')} lahko izbrišemo iz ${cellLabel(fourth)}.`
+        message: `Celice ${cellsLabel(trio)} imajo natanko kandidata {${bitsOf(digitsMask).join(', ')}}, ${cellLabel(fourth)} pa poleg njiju še dodatne. Če bi imela tudi ${cellLabel(fourth)} samo {${bitsOf(digitsMask).join(', ')}}, bi uganka imela dve rešitvi → ${numsLabel(bitsOf(digitsMask))} lahko izbrišeš iz ${cellLabel(fourth)}.`
       });
     }
   }
@@ -650,113 +650,132 @@ function oznakaTehnike(kljuc) {
   return i >= 0 ? String(i + 1) : '';
 }
 
-// Opisi tehnik - edini vir teh besedil (trening in okno "Pomoč" v igri):
+// Opisi tehnik - edini vir teh besedil (trening in okno "Pomoč" v igri; docs/faza6-besedila.md):
 // - ime: slovensko ime, anglesko: angleško ime (docs/uskladitev.md 1.3) - za prikaz
 //   ju sestavi imeTehnike() ("Skriti par (Hidden Pair)" = naslov kartice v
 //   trening/index.html),
-// - razlaga: kaj tehnika pove (uporabljata jo oba),
-// - navodilo: kaj naredi v vaji (samo trening),
-// - posledica: kaj iz vzorca sledi (samo igra, kjer je razlaga sama prekratka).
-// MODES.desc v trening/generators.js je opisVaje(), okno Pomoč izpiše opisTehnike().
-// Izraz je povsod "števka" (glej razpredelnico izrazov v CLAUDE.md).
+// - povzetek: ena kratka poved - kartica v meniju treninga in besedilo pod nalogo
+//   (trening/index.html ima nadomestek, enak polju; izpolni ga trening.js),
+// - razlaga: kako vzorec prepoznaš,
+// - posledica: kaj izbrišeš (pri enojčkih vpišeš) in zakaj,
+// - navodilo: kaj izbereš v vaji "Spoznaj".
+// Razlaga in posledica sta v treningu v zložljivem razdelku "Razlaga" pod nalogo, v igri v
+// oknu Pomoč (opisTehnike()); pod nalogo je povzetek z navodilom (opisVaje()).
+// Pravila besedil (faza 6): glagol "izbriši" (ne "odstrani", "izloči"), druga oseba ednine,
+// števila z besedo, pari v zavitih oklepajih {x, y}, "enota" in "vidi" razložena ob prvi
+// omembi. Izraz je povsod "števka" (glej razpredelnico izrazov v CLAUDE.md).
 const TEHNIKE_OPISI = {
   'naked-single': {
     ime: 'Očitni enojček',
     anglesko: 'Naked Single',
-    razlaga: 'Poišči prazno celico, v kateri je mogoča samo še ena števka: njena vrstica, stolpec in blok skupaj že vsebujejo vseh drugih osem števk.',
+    povzetek: 'Poišči prazno celico, v kateri je mogoča samo še ena števka, in jo vpiši.',
+    razlaga: 'Za prazno celico preglej njeno vrstico, stolpec in blok. Če je v njih skupaj vpisanih osem različnih števk, je v celici mogoča samo še deveta.',
+    posledica: 'To števko vpišeš v celico, ker nobena druga tam ni mogoča. Če imaš zapisane kandidate, je to celica z enim samim kandidatom.',
     navodilo: 'Izberi celico in nato števko, ki jo vpišeš.',
-    posledica: 'To števko vpišeš v celico; v igri je to celica z enim samim kandidatom.',
   },
   'hidden-single': {
     ime: 'Skriti enojček',
     anglesko: 'Hidden Single',
-    razlaga: 'Izberi vrstico, stolpec ali blok in števko, ki je v njem še ni. Če je števka v tej enoti mogoča samo v eni celici, mora biti tam – četudi bi bile v celici sicer mogoče tudi druge števke.',
+    povzetek: 'Poišči števko, ki je v vrstici, stolpcu ali bloku mogoča samo v eni celici, in jo vpiši.',
+    razlaga: 'Poglej vrstico, stolpec ali blok – vsak od njih je enota – in števko, ki v enoti še ni vpisana. Za vsako prazno celico enote preveri, ali je ta števka že v vrstici, stolpcu ali bloku celice. Če ostane ena sama celica, kjer je števka mogoča, si našel skriti enojček.',
+    posledica: 'Števko vpišeš v to celico: v enoti mora biti, drugje pa ne more. Druge števke, ki bi bile v celici sicer mogoče, tam zato ne morejo biti.',
     navodilo: 'Izberi celico in nato števko, ki jo vpišeš.',
-    posledica: 'To števko vpišeš v celico.',
   },
   'naked-pair': {
     ime: 'Očitni par',
     anglesko: 'Naked Pair',
-    razlaga: 'Najdi 2 celici z natanko istima dvema kandidatoma.',
-    navodilo: '',
-    posledica: 'Ti dve števki morata zasesti prav ti dve celici, zato ju izbrišeš iz vseh drugih celic skupne enote (vrstice, stolpca ali bloka).',
+    povzetek: 'Dve celici v isti vrstici, stolpcu ali bloku imata natanko ista dva kandidata {x, y} – x in y izbrišeš iz drugih celic te vrstice, stolpca ali bloka.',
+    razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej dve celici, ki imata natanko ista dva kandidata {x, y} in nobenega drugega.',
+    posledica: 'V eni celici bo x, v drugi y – drugih možnosti nimata. Zato x in y v enoti ne moreta biti nikjer drugje: iz vseh drugih celic enote ju izbrišeš.',
+    navodilo: 'Izberi obe celici para.',
   },
   'hidden-pair': {
     ime: 'Skriti par',
     anglesko: 'Hidden Pair',
-    razlaga: 'Najdi 2 celici, ki skrivata par.',
-    navodilo: 'Nato izberi, kateri 2 števki tvorita par.',
-    posledica: 'Par sta dve števki, ki sta v enoti mogoči samo v teh dveh celicah; ker morata biti v njiju, iz obeh celic izbrišeš vse druge kandidate.',
+    povzetek: 'Dve števki sta v vrstici, stolpcu ali bloku mogoči samo v istih dveh celicah – iz teh dveh celic izbrišeš vse druge kandidate.',
+    razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej dve števki, ki sta mogoči samo v istih dveh celicah. V teh celicah so lahko še drugi kandidati, zato se par na prvi pogled ne vidi – je skrit.',
+    posledica: 'Obe števki morata biti v enoti, mogoči pa sta samo v teh dveh celicah – torej ju zasedeta. Za druge števke v teh dveh celicah ni prostora: iz obeh celic izbrišeš vse druge kandidate.',
+    navodilo: 'Izberi obe celici, nato še obe števki para.',
   },
   'pointing': {
     ime: 'Izločitev izven bloka',
     anglesko: 'Pointing Pair/Triple',
-    razlaga: 'Pogledaš blok. Če je kandidat v njem mogoč samo v celicah ene vrstice (ali stolpca), ga izbrišeš iz preostanka te vrstice zunaj bloka. Smer: iz bloka v vrstico.',
-    navodilo: '',
-    posledica: '',
+    povzetek: 'Če je števka v bloku mogoča samo v eni vrstici (ali stolpcu), jo izbrišeš iz te vrstice (ali stolpca) zunaj bloka.',
+    razlaga: 'Poglej blok in v njem eno števko. Če ležijo vse celice bloka, kjer je ta števka še kandidat, v isti vrstici (ali v istem stolpcu), si našel vzorec – dve ali tri celice. Smer: iz bloka v vrstico.',
+    posledica: 'V bloku mora biti števka v eni od teh celic, torej v tej vrstici. Zato v vrstici zunaj bloka ne more biti – tam jo izbrišeš. Pri stolpcu enako.',
+    navodilo: 'Izberi celice vzorca – dve ali tri.',
   },
   'box-line': {
     ime: 'Izločitev v bloku',
     anglesko: 'Box-Line Reduction',
-    razlaga: 'Pogledaš vrstico (ali stolpec). Če je kandidat v njej mogoč samo v celicah enega bloka, ga izbrišeš iz preostanka tega bloka zunaj vrstice. Smer: iz vrstice v blok.',
-    navodilo: '',
-    posledica: '',
+    povzetek: 'Če je števka v vrstici (ali stolpcu) mogoča samo v enem bloku, jo izbrišeš iz preostanka tega bloka.',
+    razlaga: 'Poglej vrstico (ali stolpec) in v njej eno števko. Če ležijo vse celice vrstice, kjer je ta števka še kandidat, v istem bloku, si našel vzorec – dve ali tri celice. Smer: iz vrstice v blok.',
+    posledica: 'V vrstici mora biti števka v eni od teh celic, torej v tem bloku. Zato drugje v bloku ne more biti – iz celic bloka zunaj vrstice jo izbrišeš. Pri stolpcu enako.',
+    navodilo: 'Izberi celice vzorca – dve ali tri.',
   },
   'naked-triple': {
     ime: 'Očitna trojica',
     anglesko: 'Naked Triple',
-    razlaga: 'Najdi 3 celice, ki skupaj pokrijejo natanko 3 kandidate.',
-    navodilo: '',
-    posledica: 'Te tri števke zasedejo prav te tri celice, zato jih izbrišeš iz vseh drugih celic skupne enote. Posamezna celica ima lahko tudi samo dva od teh treh kandidatov.',
+    povzetek: 'Tri celice v isti vrstici, stolpcu ali bloku imajo skupaj samo tri različne kandidate – te tri števke izbrišeš iz drugih celic te vrstice, stolpca ali bloka.',
+    razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej tri celice, ki imajo skupaj samo tri različne kandidate {x, y, z}. Posamezna celica ima lahko vse tri ali samo dva od njih, npr. {x, y}, {y, z} in {x, z}.',
+    posledica: 'Tri celice potrebujejo tri različne števke, na voljo pa imajo samo x, y in z – torej jih zasedejo. Zato teh treh števk v enoti ni nikjer drugje: iz vseh drugih celic enote jih izbrišeš.',
+    navodilo: 'Izberi vse tri celice trojice.',
   },
   'hidden-triple': {
     ime: 'Skrita trojica',
     anglesko: 'Hidden Triple',
-    razlaga: 'Najdi 3 celice, ki skrivajo trojico.',
-    navodilo: 'Nato izberi, katere 3 števke jo tvorijo.',
-    posledica: 'Trojica so tri števke, ki so v enoti mogoče samo v teh treh celicah; iz njih izbrišeš vse druge kandidate, vsaka od celic pa ima lahko tudi samo dve od teh treh števk.',
+    povzetek: 'Tri števke so v vrstici, stolpcu ali bloku mogoče samo v istih treh celicah – iz teh celic izbrišeš vse druge kandidate.',
+    razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej tri števke, ki so mogoče samo v istih treh celicah. Posamezna števka je lahko mogoča tudi samo v dveh od teh celic, v celicah pa so lahko še drugi kandidati – zato je trojica skrita.',
+    posledica: 'Vse tri števke morajo biti v enoti, mogoče pa so samo v teh treh celicah – torej jih zasedejo. Za druge števke v njih ni prostora: iz teh treh celic izbrišeš vse druge kandidate.',
+    navodilo: 'Izberi vse tri celice, nato še vse tri števke trojice.',
   },
   'x-wing': {
     ime: 'X-krilo',
     anglesko: 'X-Wing',
-    razlaga: 'Najdi pravokotnik – 4 celice, kjer se števka v dveh vrsticah pojavi na istih dveh mestih (ali v dveh stolpcih v istih dveh vrsticah).',
-    navodilo: '',
-    posledica: 'V vsaki od obeh vrstic je števka v enem od teh dveh stolpcev, zato jo iz teh dveh stolpcev izbrišeš v vseh drugih celicah.',
+    povzetek: 'Če je števka v dveh vrsticah mogoča samo v istih dveh stolpcih, jo izbrišeš iz teh dveh stolpcev v vseh drugih vrsticah (ali z zamenjanimi vrsticami in stolpci).',
+    razlaga: 'Poišči dve vrstici, v katerih je števka mogoča samo v dveh celicah – v obeh vrsticah v istih dveh stolpcih. Te štiri celice so vogali pravokotnika. Enako deluje z zamenjanimi vlogami: dva stolpca, v katerih je števka mogoča samo v istih dveh vrsticah.',
+    posledica: 'V vsaki od obeh vrstic mora biti števka v enem od dveh vogalov. V istem stolpcu ne moreta biti obe, zato je ena v prvem, druga v drugem stolpcu – oba stolpca imata števko že v vogalih. Iz vseh drugih celic obeh stolpcev jo izbrišeš. Pri dveh stolpcih (vlogi zamenjani) jo enako izbrišeš iz obeh vrstic zunaj vogalov.',
+    navodilo: 'Izberi vse štiri vogale.',
   },
   'swordfish': {
     ime: 'Mečarica',
     anglesko: 'Swordfish',
-    razlaga: 'Najdi 3 vrstice (ali stolpce), kjer se števka pojavi samo na istih 3 stolpcih (ali vrsticah).',
-    navodilo: '',
-    posledica: 'Števka zasede po eno celico v vsaki od teh vrstic, vse v teh treh stolpcih, zato jo iz stolpcev izbrišeš v vseh drugih celicah. Vrstica ima lahko tudi samo dve od treh mest.',
+    povzetek: 'Razširjeno X-krilo: če je števka v treh vrsticah mogoča samo v istih treh stolpcih, jo iz teh stolpcev izbrišeš v vseh drugih vrsticah.',
+    razlaga: 'Poišči tri vrstice, v katerih je števka mogoča samo v istih treh stolpcih. V posamezni vrstici je lahko mogoča v vseh treh ali samo v dveh od teh stolpcev. Enako deluje z zamenjanimi vlogami: trije stolpci, v katerih je števka mogoča samo v istih treh vrsticah.',
+    posledica: 'V vsaki od treh vrstic mora biti števka v enem od teh treh stolpcev, in to vsakič v drugem – torej ima vsak od treh stolpcev števko že v vzorcu. Iz vseh drugih celic teh treh stolpcev jo izbrišeš. Pri treh stolpcih (vlogi zamenjani) jo enako izbrišeš iz treh vrstic zunaj vzorca.',
+    navodilo: 'Izberi vse celice vzorca.',
   },
   'turbot-fish': {
     ime: 'Veriga ene števke',
     anglesko: 'Turbot Fish',
-    razlaga: 'Za eno števko poišči dve vrstici ali stolpca, kjer je mogoča v natanko dveh celicah (močni povezavi). En konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok). Potem je vsaj eden od preostalih dveh koncev ta števka, zato jo izbrišemo iz celic, ki vidijo oba. Vzporedni povezavi s koncema v isti vrstici ali stolpcu tvorita Nebotičnik (Skyscraper), vrstica in stolpec s koncema v istem bloku pa Zmaj z dvema vrvicama (2-String Kite).',
-    navodilo: 'V vaji je števka označena; izberi vse štiri celice vzorca.',
-    posledica: '',
+    povzetek: 'Dve povezavi iste števke se z enim koncem vidita – števko izbrišeš iz celic, ki vidijo oba druga konca. (Povezava je vrstica ali stolpec, kjer je števka mogoča samo v dveh celicah; celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku.)',
+    razlaga: 'Za eno števko poišči dve povezavi. Povezava je vrstica ali stolpec, v katerem je števka mogoča samo v dveh celicah – to sta konca povezave. Povezavi sta lahko dve vrstici, dva stolpca ali vrstica in stolpec. En konec prve povezave mora videti en konec druge: celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Če sta povezavi dve vrstici (ali dva stolpca) in sta konca, ki se vidita, v istem stolpcu (ali vrstici), je to Nebotičnik (Skyscraper). Če sta povezavi vrstica in stolpec in sta konca, ki se vidita, v istem bloku, je to Zmaj z dvema vrvicama (2-String Kite).',
+    posledica: 'Konca, ki se vidita, ne moreta imeti števke oba. Če je ni na enem od njiju, je na drugem koncu njegove povezave – zato je števka vsaj na enem od preostalih dveh koncev. Iz celic, ki vidijo oba ta konca, jo izbrišeš.',
+    navodilo: 'Števka je označena. Izberi vse štiri konce obeh povezav.',
   },
   'w-wing': {
     ime: 'W-krilo',
     anglesko: 'W-Wing',
-    razlaga: 'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah – nobena ne sme biti celica para – pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.',
-    navodilo: 'Izberi obe celici para in obe celici povezave (4 celice).',
-    posledica: '',
+    povzetek: 'Dve celici z istim parom {a, b}, ki se ne vidita (nista v isti vrstici, stolpcu ali bloku), povezuje vrstica, stolpec ali blok, kjer je b mogoč samo v dveh celicah – a izbrišeš iz celic, ki vidijo obe celici para.',
+    razlaga: 'Poišči dve celici z natanko istima kandidatoma {a, b}, ki se ne vidita – celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Nato poišči enoto (vrstico, stolpec ali blok), v kateri je b mogoč samo v dveh celicah, ki nista celici para. To je povezava: ena njena celica mora videti prvo celico para, druga drugo.',
+    posledica: 'Celici para ne moreta biti obe b: obe celici povezave bi takrat videli b in v povezavi b ne bi bil mogoč nikjer. Torej je vsaj v eni celici para a. Iz vseh celic, ki vidijo obe celici para, a izbrišeš.',
+    navodilo: 'Izberi obe celici para in obe celici povezave (štiri celice).',
   },
   'xy-wing': {
     ime: 'XY-krilo',
     anglesko: 'XY-Wing, Y-Wing',
-    razlaga: 'Poišči pivota – celico z natanko dvema kandidatoma (x, y) – in njegovi dve krili: krilo 1 si s pivotom deli x (in ima poleg tega še skupno števko z), krilo 2 si deli y (in ima tudi z). Obe krili morata pivota videti (ista vrstica, stolpec ali blok).',
-    navodilo: 'Med prikazanimi celicami izberi pivota in obe krili (3 celice).',
-    posledica: 'Če je v pivotu x, je z v krilu 2, če je y, je z v krilu 1 – z zato izbrišeš iz vseh celic, ki vidijo obe krili.',
+    povzetek: 'Pivot (osrednja celica) {x, y} vidi krili {x, z} in {y, z} – z izbrišeš iz celic, ki vidijo obe krili.',
+    razlaga: 'Poišči pivot (osrednjo celico) z natanko dvema kandidatoma {x, y}. Nato poišči dve krili – celici z natanko dvema kandidatoma, ki ju pivot vidi (sta z njim v isti vrstici, stolpcu ali bloku): eno krilo ima {x, z}, drugo {y, z}. Krili si delita števko z, ki je pivot nima.',
+    posledica: 'Če je v pivotu x, krilo {x, z} ne more biti x, zato je z. Če je v pivotu y, je z v krilu {y, z}. V enem od kril je torej z – iz vseh celic, ki vidijo obe krili, z izbrišeš.',
+    navodilo: 'Izberi pivot in obe krili (tri celice).',
   },
   'unique-rectangle': {
     ime: 'Edinstveni pravokotnik',
     anglesko: 'Unique Rectangle',
-    razlaga: 'Poišči pravokotnik štirih celic (2 vrstici × 2 stolpca, v natanko dveh blokih): trije vogali imajo natanko isti par kandidatov {x, y}, četrti pa poleg x in y še vsaj en dodaten kandidat. Ker ima uganka natanko eno rešitev, četrti vogal ne sme ostati samo na {x, y} (to bi dopuščalo dve rešitvi) – iz njega zato izbrišemo x in y.',
-    navodilo: 'Izberi vse štiri celice pravokotnika.',
-    posledica: '',
+    povzetek: 'Trije vogali pravokotnika v dveh blokih imajo isti par {x, y}: iz četrtega vogala izbrišeš x in y, sicer bi imela uganka dve rešitvi.',
+    razlaga: 'Poišči štiri celice, ki so vogali pravokotnika: ležijo v dveh vrsticah in dveh stolpcih, vse skupaj pa v natanko dveh blokih. Trije vogali imajo natanko ista kandidata {x, y}, četrti pa ima poleg x in y še vsaj enega kandidata.',
+    posledica: 'Če bi bila v četrtem vogalu x ali y, bi v vseh štirih vogalih ostala samo x in y. Potem bi ju lahko po vogalih zamenjal in dobil drugo rešitev, uganka pa ima natanko eno. Zato četrti vogal ne more biti ne x ne y – oba izbrišeš iz njega.',
+    navodilo: 'Izberi vse štiri vogale pravokotnika.',
   },
 };
 
@@ -789,11 +808,11 @@ function redTehnike(kljuc) {
   return ALL_TECHNIQUES.length + 1;
 }
 
-// Besedilo za vajo v treningu (razlaga + navodilo) in za okno Pomoč v igri
-// (razlaga + posledica).
+// Besedilo pod nalogo v treningu (povzetek + navodilo) in razlaga tehnike (razlaga +
+// posledica) - razdelek "Razlaga" v treningu in okno Pomoč v igri.
 function opisVaje(kljuc) {
   const o = TEHNIKE_OPISI[kljuc];
-  return [o.razlaga, o.navodilo].filter(Boolean).join(' ');
+  return [o.povzetek, o.navodilo].filter(Boolean).join(' ');
 }
 function opisTehnike(kljuc) {
   const o = TEHNIKE_OPISI[kljuc];
@@ -827,9 +846,10 @@ function stepHint(step) {
   }
   if (h.unit) return `V ${unitNameLoc(h.unit)}.`;
   const stevke = numsLabel(h.digits);
-  if (step.technique === 'XY-Wing') return `Pivot ima kandidata ${stevke}.`;
-  if (step.technique === 'W-Wing') return `Celici para imata kandidata ${stevke}.`;
-  if (step.technique === 'Unique Rectangle') return `Pravokotnik tvorita števki ${stevke}.`;
+  const par = `{${[...h.digits].sort((a, b) => a - b).join(', ')}}`;
+  if (step.technique === 'XY-Wing') return `Pivot ima kandidata ${par}.`;
+  if (step.technique === 'W-Wing') return `Celici para imata kandidata ${par}.`;
+  if (step.technique === 'Unique Rectangle') return `Pravokotnik tvori par ${par}.`;
   if (h.lines) return `Števka ${stevke}, v ${h.lineCount === 2 ? 'dveh' : 'treh'} ${h.lines}.`;
   return `Števka ${stevke}.`;
 }
@@ -897,7 +917,7 @@ function tryBifurcation(b, budgetPerTry = 20000) {
       if (!hasSolution(trial, budget)) {
         return {
           technique: 'Poskus in protislovje (forcing chain)', cells: [cell], assign: [], eliminate: [[cell, d]],
-          message: `Če bi ${cellLabel(cell)} = ${d}, iz tega po verigi sklepanj ne obstaja nobena veljavna rešitev (pride do protislovja) → ${d} v ${cellLabel(cell)} ni mogoč in ga izbrišemo.`
+          message: `Če bi ${cellLabel(cell)} = ${d}, iz tega po verigi sklepanj ne obstaja nobena veljavna rešitev (pride do protislovja) → ${d} v ${cellLabel(cell)} ni mogoč in ga izbrišeš.`
         };
       }
     }

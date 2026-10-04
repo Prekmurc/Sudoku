@@ -89,6 +89,10 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
       assert.equal(ex.unitLabel, mode === 'pointing' ? `Blok ${ex.blok + 1} → ${lineLabel}` : `${lineLabel} → Blok ${ex.blok + 1}`);
       assert.ok(ex.desc.startsWith(`Števka ${ex.digit}: v `), ex.desc);
       assert.ok(ex.desc.includes(mode === 'pointing' ? `bloku ${ex.blok + 1}` : `${ex.jeVrstica ? 'vrstici' : 'stolpcu'} ${ex.enotaSt + 1}`), ex.desc);
+      // Opis pove, iz česa se števka izbriše (faza 6): pri 1 iz vrstice/stolpca zunaj bloka, pri 2 iz bloka.
+      const vrsta = `${ex.jeVrstica ? 'vrstice' : 'stolpca'} ${ex.enotaSt + 1}`;
+      assert.ok(ex.desc.endsWith(mode === 'pointing' ? `Iz ${vrsta} zunaj bloka jo potem lahko izbrišeš.`
+        : `Iz bloka ${ex.blok + 1} zunaj ${ex.jeVrstica ? 'vrstice' : 'stolpca'} jo potem lahko izbrišeš.`), ex.desc);
     }
     // Raznolikost: več različnih ugank, vrstice in stolpci.
     assert.ok(new Set(vaje.map(v => v.danosti)).size > vaje.length / 2, 'različne uganke');
@@ -218,12 +222,12 @@ for (const mode of Object.keys(MODE)) {
     celice[skrita].sprozi('click');
     celice[dana].sprozi('click');
     assert.deepEqual(izbrane(), [], 'skrita in dana celica se ne izbereta');
-    // Ena sama celica → "Izberi 2 ali 3 celice."; ponoven klik izbiro prekliče; največ tri.
+    // Ena sama celica → "Izberi dve ali tri celice."; ponoven klik izbiro prekliče; največ tri.
     const prazne = ex.vidne.filter(i => !ex.grid[i]);
     celice[prazne[0]].sprozi('click');
     assert.deepEqual(izbrane(), [prazne[0]]);
     gumbUI(dom, 'Preveri').sprozi('click');
-    assert.equal(fbUI(dom).textContent, 'Izberi 2 ali 3 celice.');
+    assert.equal(fbUI(dom).textContent, 'Izberi dve ali tri celice.');
     celice[prazne[0]].sprozi('click');
     assert.deepEqual(izbrane(), [], 'ponoven klik izbiro prekliče');
     prazne.slice(0, 4).forEach(i => celice[i].sprozi('click'));

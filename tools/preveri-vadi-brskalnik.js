@@ -31,7 +31,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, PRIMERJALNI_IZRIS } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -129,7 +129,7 @@ async function vaja1do12(b, mode, sirina) {
       const s = e.length ? getComputedStyle(e[0]) : null;
       return { n: e.length, barva: s && s.color, crta: s && s.textDecorationLine }; })()`);
     preveri('prečrtani: število in slog', p.n === n && p.barva === 'rgb(169, 178, 188)' && p.crta === 'line-through', p);
-    preveri('besedilo: prečrtani niso del naloge', /^Prečrtane kandidate \(\d+\) so odstranili prejšnji koraki – niso del naloge\.$/.test(await b.izvedi(`document.querySelector('.prej-odstranjeni').textContent`)));
+    preveri('besedilo: prečrtani niso del naloge', /^Prečrtane kandidate \(\d+\) so izbrisali prejšnji koraki – niso del naloge\.$/.test(await b.izvedi(`document.querySelector('.prej-odstranjeni').textContent`)));
   }
   for (const k of ['Vrstice', 'Stolpci', 'Bloki']) {
     await b.izvedi(`[...document.querySelectorAll('.vaja-uganka .seznami-stikala label')].find(l => l.textContent.trim() === '${k}').setAttribute('data-k', '${k}'); true`);
@@ -273,7 +273,7 @@ async function odgovor1do12(b, sirina) {
   })()`);
   preveri('pravilen odgovor', p.fb === 'fb ok', p.fb);
   const leg = await b.izvedi(`(() => { const l = document.querySelector('.fb .legenda-vaje'); return l ? { besedilo: l.textContent, visina: l.getBoundingClientRect().height } : null; })()`);
-  preveri('legenda: celice vzorca, izbrisani kandidati', leg && leg.visina > 0 && /celice vzorca.*izbrisani kandidati \(odstranjeni\)/.test(leg.besedilo), leg);
+  preveri('legenda: celice vzorca, izbrisani kandidati', leg && leg.visina > 0 && /celice vzorca.*izbrisani kandidati$/.test(leg.besedilo), leg);
   preveri('Razveljavi/Ponovi/Začni znova skriti', p.akcije === 0, p.akcije);
   preveri('izbrisi koraka rdeče prečrtani', p.kIzbris === 'kand precrtan k-izbris' && p.barva === 'rgb(178, 58, 46)' && p.crta === 'line-through', p);
   preveri('vzorec koraka jantarno, brez zelene obrobe', p.vzorec && p.obroba === 'none', p);
@@ -322,11 +322,11 @@ async function obmocje(b, sirina) {
     const o = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice, ob = vadi.ob;
       const ozn = c.filter(x => x.classList.contains('oznacena'));
       const poud = ob.stevke ? ob.stevke.map(d => [...document.querySelectorAll('.vaja-uganka .niz-poudari button')][d - 1].getAttribute('aria-pressed')) : [];
-      return { vrsta: ob.vrsta, navodilo: document.querySelector('.exercise h3').textContent, oznacenih: ozn.length, pricakovanih: ob.celice ? ob.celice.length : 0,
+      return { vrsta: ob.vrsta, opis: ob.opis, navodilo: document.querySelector('.exercise h3').textContent, oznacenih: ozn.length, pricakovanih: ob.celice ? ob.celice.length : 0,
         barva: ozn.length ? getComputedStyle(ozn.find(x => !x.classList.contains('dana') && !x.classList.contains('vpis')) || ozn[0]).backgroundColor : null, poud,
         sirina: document.documentElement.scrollWidth }; })()`);
     preveri(`${mode}: vrsta območja ${vrsta}`, o.vrsta === vrsta, o.vrsta);
-    preveri(`${mode}: navodilo pove območje`, !/^Poišči korak tehnike/.test(o.navodilo), o.navodilo);
+    preveri(`${mode}: navodilo pove območje`, o.navodilo.toLowerCase().includes(o.opis.toLowerCase()), o.navodilo);
     if (vrsta === 'stevke') preveri(`${mode}: števka poudarjena`, o.poud.length && o.poud.every(x => x === 'true'), o.poud);
     else preveri(`${mode}: območje modrikasto`, o.oznacenih === o.pricakovanih && o.barva === 'rgb(227, 238, 251)', o);
     // Točka 17: okvir ob robu območja (::before, 3 px temen) in temne oznake roba; pri
@@ -680,8 +680,8 @@ async function izris(b, mode, sirina) {
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     const a = document.getElementById('exerciseArea');
-    const slogi = [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
-    return { html: a.innerHTML, slogi };
+    const p = (${PRIMERJALNI_IZRIS})(a, ${JSON.stringify(SLOGI)});
+    return { html: p.html, slogi: p.slogi };
   })()`);
 }
 

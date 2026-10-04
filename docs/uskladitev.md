@@ -803,6 +803,10 @@ Glej 0.2 (vzrok je CSS, ne logika).
   sporočil korakov (`shared/engine.js`), naloga in namig E1 (»celico, v kateri je mogoča samo ena
   števka«). Opis kartice iz polja `povzetek` (odločitev 1) in odstranitev Oakevra (odločitev 2) →
   faza 6, korak b.
+- **Narejeno 2026-10-04** (faza 6, korak b, `docs/faza6-besedila.md`): opis na kartici je polje
+  `povzetek` v `TEHNIKE_OPISI` (izpolni ga `trening.js`, nadomestek v HTML preverja test), Oakevra v
+  vmesniku ni več; nova besedila vseh 14 tehnik (povzetek, razlaga, posledica, navodilo) po pravilih
+  »izbriši«, druga oseba, števila z besedo, pari {x, y}.
 - **Obseg:** majhno.
 
 ### 5.2 Opis stopenj ugank v treh različicah
@@ -1376,3 +1380,8 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   uganki«). Pozor pri legendi: rožnata celica z rdečim okvirjem pomeni ob »Rešitvi« napačno
   izbrano celico izbrisa (temno rdeča #8E1B1B), po pravilnem odgovoru pri 9–12 pa celico izbrisa
   (`--red` #B23A2E) – podobna oznaka v dveh stanjih.
+
+  **Obe opombi narejeni 2026-10-04** (faza 6, korak b): opisi tehnik po novih pravilih, pod vajo
+  povzetek z navodilom, razlaga in posledica v zložljivem razdelku »Razlaga«; legenda v »Spoznaj« pri
+  1–12 pod »Rešitvijo« in pod »Pravilno!« našteje samo vrste celic, ki so takrat na mreži (dvoumnost
+  rožnate celice z rdečim okvirjem zato ne nastane).

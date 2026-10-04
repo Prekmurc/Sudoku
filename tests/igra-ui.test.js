@@ -910,7 +910,9 @@ test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih
   const seznam = id => dom.el(id).children.map(li => li.textContent);
   const opisi = (stopnje, polje) => [...run(`${stopnje}.map(s => s.ime.toLowerCase() + ' ' + s.${polje})`)];
   assert.deepEqual(seznam('stopnjeNova'), opisi('STOPNJE_GENERATORJA', 'opisIskanja'));
-  assert.deepEqual(seznam('stopnjeOcena'), opisi('STOPNJE_UGANK', 'opis'));
+  // Ekstrem (ekspertna tehnika) je v seznamu šele, ko jo motor pozna (faza 6, odločitev D).
+  assert.deepEqual(seznam('stopnjeOcena'), opisi("STOPNJE_UGANK.filter(s => s.kljuc !== 'ekstrem')", 'opis'));
+  assert.equal(run('GEN_EKSPERTNE.length'), 0);
   assert.deepEqual(seznam('stopnjeIskanje'), opisi('STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis)', 'opisIskanja'));
   assert.equal(seznam('stopnjeIskanje').length, 3, 'lahka ima isto merilo ocene in generatorja');
   assert.deepEqual([...run('stopnjeGumbi.map(g => g.el.title)')], [...run('STOPNJE_GENERATORJA.map(s => s.opisIskanja)')]);

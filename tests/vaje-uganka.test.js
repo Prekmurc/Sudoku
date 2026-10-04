@@ -239,7 +239,7 @@ test('preveriVajo(): prazno, pravilno za vsak korak KT', () => {
   for (const v of vaje112) {
     const r0 = E.preveriVajo(v, v.S0);
     assert.equal(r0.izid, 'prazno');
-    assert.equal(r0.sporocilo, 'Odstrani kandidate, ki jih tehnika izloči.');
+    assert.equal(r0.sporocilo, 'Izbriši kandidate, ki zaradi iskanega koraka odpadejo.');
     for (const k of v.KT) {
       const r = preveri(v, k.eliminate);
       assert.equal(r.izid, 'pravilno', `${v.kljuc}: ${k.message}`);
@@ -292,7 +292,7 @@ test('preveriVajo(): napacno - odstranjena prava števka', () => {
     const e = pravaStevka(v);
     const r = preveri(v, [e]);
     assert.equal(r.izid, 'napacno');
-    assert.equal(r.sporocilo, `Števka ${e[1]} je v ${E.cellLabel(e[0])} prava – tega kandidata ne smeš odstraniti.`);
+    assert.equal(r.sporocilo, `Števka ${e[1]} je v ${E.cellLabel(e[0])} prava – tega kandidata ne smeš izbrisati.`);
     assert.equal(r.razveljavi.length, 0);
   }
 });

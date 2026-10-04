@@ -288,7 +288,8 @@ test('navodilo nad mrežo in opis sledita stopnji', () => {
     const { dom, run } = zacni(t, n);
     const html = vsi(dom.el('exerciseArea'))[0].innerHTML;
     assert.ok(html.includes(`<h3>${run('zadnja.unitLabel')}</h3>`), html);
-    assert.ok(html.includes(`<p class="desc">${run('zadnja.desc || MODES[mode].desc')}</p>`), html);
+    // Pod nalogo povzetek tehnike in opis stopnje (vaje 1-6) ali navodilo (vaje 7-9) - faza 6.
+    assert.ok(html.includes(`<p class="desc">${run('zadnja.desc ? TEHNIKE_OPISI[mode].povzetek + " " + zadnja.desc : MODES[mode].desc')}</p>`), html);
   }
 });
 

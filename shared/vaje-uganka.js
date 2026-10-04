@@ -220,7 +220,7 @@ function preveriVajo(vaja, stanje, predlog = null) {
   const kljucIzbrisa = ([c, d]) => c * 10 + d;
   const vR = new Set(R.map(kljucIzbrisa));
   if (!R.length) {
-    return { izid: 'prazno', sporocilo: 'Odstrani kandidate, ki jih tehnika izloči.', korak: null, razveljavi: [] };
+    return { izid: 'prazno', sporocilo: 'Izbriši kandidate, ki zaradi iskanega koraka odpadejo.', korak: null, razveljavi: [] };
   }
 
   const napaka = R.find(([c, d]) => vaja.resitev[c] === d);
@@ -228,7 +228,7 @@ function preveriVajo(vaja, stanje, predlog = null) {
     const [c, d] = napaka;
     return {
       izid: 'napacno',
-      sporocilo: `Števka ${d} je v ${cellLabel(c)} prava – tega kandidata ne smeš odstraniti.`,
+      sporocilo: `Števka ${d} je v ${cellLabel(c)} prava – tega kandidata ne smeš izbrisati.`,
       korak: null, razveljavi: [],
     };
   }
@@ -375,11 +375,11 @@ function obmocjeKoraka(korak, rnd = Math.random) {
   if (u) return { vrsta: 'enota', enota: u, celice: u, opis: `v ${unitNameLoc(u)}` };
   if (t === 'X-Wing' || t === 'Swordfish' || t === 'Turbot Fish') {
     const d = korak.hint.digits[0];
-    return { vrsta: 'stevke', stevke: [d], celice: null, opis: `na števki ${d}` };
+    return { vrsta: 'stevke', stevke: [d], celice: null, opis: `za števko ${d}` };
   }
   if (t === 'W-Wing') {
     const s = [...korak.hint.digits].sort((a, b) => a - b);
-    return { vrsta: 'stevke', stevke: s, celice: null, opis: `s parom ${s[0]} in ${s[1]}` };
+    return { vrsta: 'stevke', stevke: s, celice: null, opis: `za par {${s[0]}, ${s[1]}}` };
   }
   if (t === 'XY-Wing') {
     const p = korak.cells[0];
@@ -446,9 +446,9 @@ function namigEnojcka(gol, koraki, korak, oznaka, grid) {
   }
   if (!gol && o.enota && o.stevka) {
     const loc = unitNameLoc(o.enota), vrsta = loc.split(' ')[0];
-    const [izlocijo, rod] = vrsta === 'vrstici' ? ['Stolpci in bloki', 'vrstice']
-      : vrsta === 'stolpcu' ? ['Vrstice in bloki', 'stolpca'] : ['Vrstice in stolpci', 'bloka'];
-    return `Kje v ${loc} števka ${o.stevka} ni mogoča? ${izlocijo}, v katerih je ${o.stevka} že vpisana, izločijo celice ${rod} – ostane ena sama.`;
+    const [kjer, rod] = vrsta === 'vrstici' ? ['stolpcih in blokih', 'vrstice']
+      : vrsta === 'stolpcu' ? ['vrsticah in blokih', 'stolpca'] : ['vrsticah in stolpcih', 'bloka'];
+    return `Kje v ${loc} števka ${o.stevka} ni mogoča? Celice ${rod} v ${kjer}, kjer je ${o.stevka} že vpisana, odpadejo – ostane ena sama.`;
   }
   if (!gol && o.enota) {
     return `V ${unitNameLoc(o.enota)} ${manjkaStevk(manjkajoceStevke(grid, o.enota))}. Za vsako preveri, na koliko praznih mestih ${enotaZaNamig(o.enota).vNjej} je mogoča.`;

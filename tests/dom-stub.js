@@ -22,8 +22,11 @@ function makeClassList(el) {
   };
 }
 
+// Tekstovno vozlišče (append z nizom): brez razredov, otrok in podatkov - da pomožne funkcije
+// testov, ki hodijo po drevesu, ne padejo na njem.
 class Besedilo {
-  constructor(s) { this.textContent = String(s); }
+  constructor(s) { this.textContent = String(s); this.className = ''; this.children = []; this.dataset = {}; }
+  get classList() { return makeClassList(this); }
 }
 
 class Element {

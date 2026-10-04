@@ -70,10 +70,15 @@ test('iskanje: "Iščem vajo …", nato vaja; ob preseženi meji iz banke', () =
   assert.equal(poRazredu(dom, 'ex-label')[0].textContent, '4 · Skriti par (Hidden Pair) · Vadi v uganki · Vaja 1 / 9');
   // V S0 je naslednji korak motorja izbrana tehnika.
   assert.equal(run('nextStep(vadi.v.S0.deska).technique'), 'Hidden pair');
-  // Vaja 1: navodilo pove enoto koraka (območje), razlaga pove, da je označena.
+  // Vaja 1: navodilo pove enoto koraka (območje), pod njim povzetek tehnike in poved, da je
+  // območje označeno; razlaga in posledica sta v zaprtem razdelku "Razlaga" (faza 6).
   assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent,
-    /^V (vrstici|stolpcu|bloku) \d poišči skriti par in odstrani kandidate, ki jih izloči\.$/);
-  assert.equal(poRazredu(dom, 'desc')[0].textContent, run('TEHNIKE_OPISI["hidden-pair"].razlaga') + ' Območje je na mreži uokvirjeno.');
+    /^V (vrstici|stolpcu|bloku) \d poišči skriti par in izbriši kandidate, ki zaradi njega odpadejo\.$/);
+  assert.equal(poRazredu(dom, 'desc')[0].textContent, run('TEHNIKE_OPISI["hidden-pair"].povzetek') + ' Območje je na mreži uokvirjeno.');
+  const razlaga = poRazredu(dom, 'razlaga-tehnike')[0];
+  assert.equal(razlaga.open, false, 'razdelek Razlaga je privzeto zaprt');
+  assert.deepEqual(razlaga.children.map(c => c.textContent),
+    ['Razlaga', run('TEHNIKE_OPISI["hidden-pair"].razlaga'), run('TEHNIKE_OPISI["hidden-pair"].posledica')]);
   // Stopnja uganke (informacija), izvor v title.
   const info = poRazredu(dom, 'vaja-info')[0];
   assert.equal(info.children[0].textContent, `Uganka: ${run('vadi.v.stopnja')}`);
@@ -162,16 +167,16 @@ test('1-12: mreža s kandidati S0, vpisi poti, prej odstranjeni in "pokaži pre�
 test('sklanjanje števila prej odstranjenih kandidatov', () => {
   const { run } = zacni('hidden-pair');
   const b = n => run(`prejOdstranjenihBesedilo(${n})`);
-  assert.equal(b(0), 'Prejšnji koraki niso odstranili nobenega kandidata.');
-  assert.equal(b(1), 'Prejšnji koraki so že odstranili 1 kandidata – niso del naloge.');
-  assert.equal(b(2), 'Prejšnji koraki so že odstranili 2 kandidata – niso del naloge.');
-  assert.equal(b(3), 'Prejšnji koraki so že odstranili 3 kandidate – niso del naloge.');
-  assert.equal(b(4), 'Prejšnji koraki so že odstranili 4 kandidate – niso del naloge.');
-  assert.equal(b(5), 'Prejšnji koraki so že odstranili 5 kandidatov – niso del naloge.');
-  assert.equal(b(11), 'Prejšnji koraki so že odstranili 11 kandidatov – niso del naloge.');
-  assert.equal(b(101), 'Prejšnji koraki so že odstranili 101 kandidata – niso del naloge.');
-  assert.equal(b(102), 'Prejšnji koraki so že odstranili 102 kandidata – niso del naloge.');
-  assert.equal(run('prejOdstranjenihBesedilo(5, true)'), 'Prečrtane kandidate (5) so odstranili prejšnji koraki – niso del naloge.');
+  assert.equal(b(0), 'Prejšnji koraki niso izbrisali nobenega kandidata.');
+  assert.equal(b(1), 'Prejšnji koraki so že izbrisali 1 kandidata – niso del naloge.');
+  assert.equal(b(2), 'Prejšnji koraki so že izbrisali 2 kandidata – niso del naloge.');
+  assert.equal(b(3), 'Prejšnji koraki so že izbrisali 3 kandidate – niso del naloge.');
+  assert.equal(b(4), 'Prejšnji koraki so že izbrisali 4 kandidate – niso del naloge.');
+  assert.equal(b(5), 'Prejšnji koraki so že izbrisali 5 kandidatov – niso del naloge.');
+  assert.equal(b(11), 'Prejšnji koraki so že izbrisali 11 kandidatov – niso del naloge.');
+  assert.equal(b(101), 'Prejšnji koraki so že izbrisali 101 kandidata – niso del naloge.');
+  assert.equal(b(102), 'Prejšnji koraki so že izbrisali 102 kandidata – niso del naloge.');
+  assert.equal(run('prejOdstranjenihBesedilo(5, true)'), 'Prečrtane kandidate (5) so izbrisali prejšnji koraki – niso del naloge.');
 });
 
 for (const [mode, kljuc] of [['naked-single', 'Gol enojček'], ['hidden-single', 'Skriti enojček']]) {
@@ -295,7 +300,7 @@ test('1-12: šest izidov "Preveri", samodejna razveljavitev, "Poskusi znova", pr
   // prazno
   preveriBtn().sprozi('click');
   assert.equal(fb(dom).className, 'fb info');
-  assert.equal(fb(dom).innerHTML, 'Odstrani kandidate, ki jih tehnika izloči.');
+  assert.equal(fb(dom).innerHTML, 'Izbriši kandidate, ki zaradi iskanega koraka odpadejo.');
   assert.equal(preveriBtn().disabled, true, 'Preveri onemogočen do spremembe');
   assert.equal(rezultat(dom), '0/0');
 
@@ -331,7 +336,7 @@ test('1-12: šest izidov "Preveri", samodejna razveljavitev, "Poskusi znova", pr
   odstrani(dom, run, I.prava);
   preveriBtn().sprozi('click');
   assert.equal(fb(dom).className, 'fb err');
-  assert.match(fb(dom).innerHTML, /^<b>Ni pravilno\.<\/b> Števka \d je v V\dS\d prava – tega kandidata ne smeš odstraniti\. $/);
+  assert.match(fb(dom).innerHTML, /^<b>Ni pravilno\.<\/b> Števka \d je v V\dS\d prava – tega kandidata ne smeš izbrisati\. $/);
   assert.equal(rezultat(dom), '0/1');
   preveriBtn().sprozi('click');
   assert.equal(rezultat(dom), '0/1', 'isti odgovor se ne šteje dvakrat');
@@ -578,13 +583,13 @@ test('E2: senčenje ob eni poudarjeni števki je pomoč, pri E1 ne; namig in re�
 
 test('območje po tehnikah (vaja 1): navodilo, oznaka na mreži ali poudarek števk; Namig in Rešitev iz območja', () => {
   const PRICAKOVANO = {
-    'naked-triple': /^V (vrstici|stolpcu|bloku) \d poišči očitno trojico in odstrani kandidate, ki jih izloči\.$/,
-    'box-line': /^V (vrstici|stolpcu) \d poišči izločitev v bloku in odstrani /,
-    'x-wing': /^Na števki \d poišči X-krilo in odstrani /,
-    'swordfish': /^Na števki \d poišči mečarico in odstrani /,
-    'w-wing': /^Kandidata para sta \d in \d: poišči W-krilo in odstrani /,
-    'xy-wing': /^Poišči XY-krilo s pivotom V\dS\d in odstrani /,
-    'unique-rectangle': /^V blokih \d in \d poišči edinstveni pravokotnik in odstrani /,
+    'naked-triple': /^V (vrstici|stolpcu|bloku) \d poišči očitno trojico in izbriši kandidate, ki zaradi nje odpadejo\.$/,
+    'box-line': /^V (vrstici|stolpcu) \d poišči izločitev v bloku in izbriši kandidate, ki zaradi nje odpadejo\.$/,
+    'x-wing': /^Za števko \d poišči X-krilo in izbriši kandidate, ki zaradi njega odpadejo\.$/,
+    'swordfish': /^Za števko \d poišči mečarico in izbriši kandidate, ki zaradi nje odpadejo\.$/,
+    'w-wing': /^Za par \{\d, \d\} poišči W-krilo in izbriši kandidate, ki zaradi njega odpadejo\.$/,
+    'xy-wing': /^Poišči XY-krilo s pivotom V\dS\d in izbriši kandidate, ki zaradi njega odpadejo\.$/,
+    'unique-rectangle': /^V blokih \d in \d poišči edinstveni pravokotnik in izbriši kandidate, ki zaradi njega odpadejo\.$/,
   };
   for (const [mode, vzorec] of Object.entries(PRICAKOVANO)) {
     const { dom, run, izprazni } = zacni(mode);
@@ -610,7 +615,8 @@ test('območje po tehnikah (vaja 1): navodilo, oznaka na mreži ali poudarek št
     run('exNum = 6; renderExercise()');
     izprazni();
     assert.equal(run('vadi.ob'), null);
-    assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent, /^Poišči korak tehnike /);
+    assert.equal(najdi(dom, e => e.tagName === 'H3')[0].textContent, run('navodiloVadi(vadi.v.kljuc, null)'));
+    assert.match(najdi(dom, e => e.tagName === 'H3')[0].textContent, /^Poišči \S+.* in izbriši kandidate, ki zaradi (nje|njega) odpadejo\.$/);
     assert.equal(celice(dom).filter(e => e.classList.contains('oznacena')).length, 0);
   }
 });
@@ -725,7 +731,7 @@ test('zaznamki: gumb in tipka O, izbira prosta, ostanejo ob »Začni znova«, no
   assert.equal(poRazredu(dom, 'zaznamki').length, 1);
 });
 
-test('legenda: po pravilnem odgovoru »izbrisani kandidati (odstranjeni)«, v Rešitvi »kandidat za izbris«', () => {
+test('legenda: po pravilnem odgovoru »izbrisani kandidati«, v Rešitvi »kandidat za izbris«', () => {
   const { dom, run } = vajaZ('hidden-pair', 'true');
   gumb(dom, 'Rešitev').sprozi('click');
   const vRes = poRazredu(dom, 'vadi-pomoc')[0];
@@ -736,7 +742,7 @@ test('legenda: po pravilnem odgovoru »izbrisani kandidati (odstranjeni)«, v Re
   gumb(dom, 'Preveri').sprozi('click');
   const leg = vsi(fb(dom)).find(e => e.className === 'legenda-vaje');
   assert.ok(leg, 'legenda pod sporočilom');
-  assert.equal(leg.textContent, `celice vzorca${run('vadi.KTob[0].eliminate[0][1]')}izbrisani kandidati (odstranjeni)`);
+  assert.equal(leg.textContent, `celice vzorca${run('vadi.KTob[0].eliminate[0][1]')}izbrisani kandidati`);
   assert.equal(poRazredu(dom, 'zaznamki')[0].hidden, true, 'gumba zaznamkov po pravilnem odgovoru skrita');
 });
 

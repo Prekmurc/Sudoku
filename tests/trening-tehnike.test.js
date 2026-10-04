@@ -134,16 +134,34 @@ test('zbirkaOznakaTehnik() na ugankah iz docs/uganke.md: vsaka uporabljena tehni
 
 /* ---------- opisi tehnik (TEHNIKE_OPISI v shared/engine.js) ---------- */
 
-test('TEHNIKE_OPISI: vsaka tehnika iz treninga ima ime in razlago, besedili za vajo in za pomoč nista prazni', () => {
+// Faza 6 (docs/faza6-besedila.md): povzetek (kartica in besedilo pod nalogo), razlaga (kako
+// vzorec prepoznaš), posledica (kaj izbrišeš ali vpišeš in zakaj) in navodilo (kaj izbereš v
+// »Spoznaj«) so izpolnjeni pri vseh 14 tehnikah. Pravila besedil: glagol »izbriši«, druga oseba
+// ednine, števila z besedo, pari v zavitih oklepajih, brez omembe drugih aplikacij.
+const POLJA_OPISA = ['povzetek', 'razlaga', 'posledica', 'navodilo'];
+test('TEHNIKE_OPISI: vsaka tehnika ima ime, povzetek, razlago, posledico in navodilo', () => {
   assert.deepEqual(Object.keys(E.TEHNIKE_OPISI).sort(), [...vseVaje].sort());
   for (const kljuc of vseVaje) {
     const o = E.TEHNIKE_OPISI[kljuc];
-    assert.ok(o.ime && o.razlaga, `${kljuc}: ime in razlaga`);
-    assert.equal(o.razlaga.trim(), o.razlaga, `${kljuc}: razlaga brez odvečnih presledkov`);
-    assert.ok(E.opisVaje(kljuc).startsWith(o.razlaga), `${kljuc}: besedilo vaje se začne z razlago`);
-    assert.ok(E.opisTehnike(kljuc).startsWith(o.razlaga), `${kljuc}: besedilo pomoči se začne z razlago`);
-    // V oknu Pomoč mora razlaga povedati tudi, kaj iz vzorca sledi (izbris ali vpis).
-    assert.match(E.opisTehnike(kljuc), /izbriš|izbrišemo|vpišeš/, `${kljuc}: pomoč pove, kaj se izbriše ali vpiše`);
+    for (const polje of ['ime', ...POLJA_OPISA]) {
+      assert.ok(o[polje], `${kljuc}: ${polje}`);
+      assert.equal(o[polje].trim(), o[polje], `${kljuc}: ${polje} brez odvečnih presledkov`);
+    }
+    // Pod nalogo povzetek z navodilom, v razdelku "Razlaga" in v oknu Pomoč razlaga s posledico.
+    assert.equal(E.opisVaje(kljuc), `${o.povzetek} ${o.navodilo}`, `${kljuc}: opisVaje()`);
+    assert.equal(E.opisTehnike(kljuc), `${o.razlaga} ${o.posledica}`, `${kljuc}: opisTehnike()`);
+    assert.match(o.posledica, /izbrišeš|vpišeš/, `${kljuc}: posledica pove, kaj izbrišeš ali vpišeš`);
+  }
+});
+
+test('TEHNIKE_OPISI: pravila besedil (izbriši, druga oseba, števila z besedo, pari {x, y})', () => {
+  for (const kljuc of vseVaje) {
+    for (const polje of POLJA_OPISA) {
+      const t = E.TEHNIKE_OPISI[kljuc][polje];
+      preveriBesedilo(t, `${kljuc}.${polje}`);
+      assert.doesNotMatch(t, /\b[2-9] (celic|vrstic|stolp|števk|kandidat|vogal|blok)/, `${kljuc}.${polje}: število s številko`);
+      assert.doesNotMatch(t, /Oakever|aplikacij/i, `${kljuc}.${polje}: omemba druge aplikacije`);
+    }
   }
 });
 
@@ -151,9 +169,12 @@ test('TEHNIKE_OPISI: vsaka tehnika iz treninga ima ime in razlago, besedili za v
 // (tega nadomestni DOM ne preveri, querySelector() vrne null). Privzeta oblika
 // imeTehnike() je brez številke, zato enakost preveri tudi, da je številka samo v
 // data-stevilka.
-test('naslov kartice v trening/index.html je imeTehnike(), MODES.desc je opisVaje()', () => {
+test('naslov kartice v trening/index.html je imeTehnike(), opis povzetek, MODES.desc je opisVaje()', () => {
+  // Opis na kartici je (kot naslov) nadomestek - trening.js ga prepiše s povzetkom (faza 6).
+  const opisi = new Map([...treningHtml.matchAll(/data-mode="([^"]+)"[\s\S]*?<\/h3>\s*<p>([^<]*)<\/p>/g)].map(m => [m[1], m[2]]));
   for (const [m, kljuc] of [...E.TRENING_ENOJCKA, ...E.TRENING_TEHNIKE]) {
     assert.equal(naslovi.get(m), E.imeTehnike(kljuc), `${m}: naslov kartice`);
+    assert.equal(opisi.get(m), E.TEHNIKE_OPISI[m].povzetek, `${m}: opis kartice`);
     assert.equal(E.MODES[m].desc, E.opisVaje(m), `${m}: MODES.desc`);
     assert.equal(E.MODES[m].name, undefined, `${m}: MODES.name ne obstaja več (ime da imeTehnike())`);
   }
@@ -259,6 +280,11 @@ const ANGLESKA = [
 const OPUSCENA = /Two-String|Forcing Chain/i;
 function preveriBesedilo(t, kje) {
   assert.doesNotMatch(t, /številk/i, `${kje}: »številk«`);
+  // Faza 6: glagol »izbriši« (ime tehnike »Izločitev …« je dovoljeno), druga oseba ednine, pari
+  // v zavitih oklepajih s presledkom za vejico.
+  assert.doesNotMatch(t, /odstran|izloč(?!itev)/i, `${kje}: »odstrani« ali »izloči«: ${t}`);
+  assert.doesNotMatch(t, /izbrišemo/, `${kje}: »izbrišemo«: ${t}`);
+  assert.doesNotMatch(t, /\{[^}]*,\S[^}]*\}/, `${kje}: par brez presledka za vejico: ${t}`);
   assert.doesNotMatch(t, OPUSCENA, `${kje}: opuščeno angleško ime`);
   const brezOklepajev = t.replace(/\([^)]*\)/g, '');
   for (const a of ANGLESKA) assert.ok(!brezOklepajev.includes(a), `${kje}: angleško ime »${a}« zunaj oklepaja: ${t}`);

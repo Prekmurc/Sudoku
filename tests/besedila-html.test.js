@@ -29,6 +29,14 @@ test('HTML: »Pokaži«, ne »Prikaži«', () => {
   for (const f of STRANI) assert.doesNotMatch(beri(f), /prikaži/i, f);
 });
 
+// Faza 6 (odločitev 2): v vmesniku ni omembe drugih aplikacij (sopomenke so v docs/tehnike.md).
+test('HTML: brez omembe aplikacije Oakever', () => {
+  for (const f of STRANI) {
+    const besedilo = beri(f).replace(/<(script|style)\b[\s\S]*?<\/\1>|<!--[\s\S]*?-->/g, '');
+    assert.doesNotMatch(besedilo, /Oakever/i, f);
+  }
+});
+
 // Faza 6 (docs/uskladitev.md 5.5): besedila za uporabnika ne kažejo razvojnih podatkov -
 // poti in imen datotek, `localStorage`, `file://` (aplikacije se imenujejo z imeni).
 test('HTML: besedilo brez poti, imen datotek in razvojnih izrazov', () => {

@@ -396,7 +396,8 @@ ročni pregled.
 |---|---|---|
 | načrt | `23e35f8` | načrt z odgovori, `docs/faza6-besedila.md`, 5.3 označena v `uskladitev.md` |
 | a | `37a5f3f` | ločila (4.6; 21 vezajev, 3 dolgi pomišljaji, 5 ravnih narekovajev, 3 tri pike), »→« v 13 sporočilih korakov (4b), povsod »mogoč« (4a – tudi naloga in namig E1 »celico, v kateri je mogoča samo ena števka«), sklon pri Mečarici, »12 · Edinstveni pravokotnik« v sporočilih reševalca, »naključne vaje«, razvojne poti in »hitri svinčnik«, `opis` + `opisIskanja` v `STOPNJE_UGANK` z izpisom v igri (5.2); testi `locila.test.js` (nov), `besedila-html`, `generator`, `igra-ui` in popravljena dobesedna besedila v petih testih; posnetek igre – razlike samo v besedilih 10 korakov, novo izhodišče `tools/posnetki/igra-po-6a.json` |
-| izpis | (ta commit) | `docs/faza6-besedila.md` osvežen na stanje po koraku a, z razdelkom »Spremembe v koraku a« |
+| izpis | `3f64a94` | `docs/faza6-besedila.md` osvežen na stanje po koraku a, z razdelkom »Spremembe v koraku a« |
+| b | (ta commit) | nova besedila tehnik in polje `povzetek` (kartica, besedilo pod nalogo), razdelek »Razlaga« v »Spoznaj« in »Vadi v uganki«, legenda v »Spoznaj« pri 1–12, Oakever odstranjen; E1 (»izbriši« v »Vadi v uganki«, niz »Izbriši kandidata«), E2 (sporočila korakov: »izbrišeš«, pari {x, y}, števila z besedo), E3 (namigi in sporočila v »Spoznaj«), E4 (namig pri 7 in 8 po vrsticah in stolpcih); Ekstrem iz seznama stopenj v Pomoči igre, »Presega tehnike« razložen; testi `trening-legenda.test.js` (nov) in pravila besedil v `trening-tehnike.test.js`; primerjave »Spoznaj« z izhodiščem izpustijo namerno spremenjene dele (`PRIMERJALNI_IZRIS`), legenda v `preveri-izbira-brskalnik.js`; posnetek igre – novo izhodišče `tools/posnetki/igra-po-6b.json` |
 
 **Korak a – preverjanje:** testi 473/473 (468 + 5 novih). Posnetek igre proti `igra-po-5a.json`:
 razlike v 10 korakih, vse v besedilih (sporočila korakov z »mogoč« in »→«, »Začel si znova –«,

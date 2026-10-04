@@ -91,10 +91,10 @@ function najdiVajo(kljuc,obNajdeni){
 // Kandidati, ki so jih odstranili prejšnji koraki poti (niso del naloge); besedilo je
 // odvisno od kljukice "pokaži jih prečrtane" (prikazano).
 function prejOdstranjenihBesedilo(n,prikazano=false){
-  if(!n) return 'Prejšnji koraki niso odstranili nobenega kandidata.';
-  if(prikazano) return `Prečrtane kandidate (${n}) so odstranili prejšnji koraki – niso del naloge.`;
+  if(!n) return 'Prejšnji koraki niso izbrisali nobenega kandidata.';
+  if(prikazano) return `Prečrtane kandidate (${n}) so izbrisali prejšnji koraki – niso del naloge.`;
   const m=n%100,sam=m===1||m===2?'kandidata':m===3||m===4?'kandidate':'kandidatov';
-  return `Prejšnji koraki so že odstranili ${n} ${sam} – niso del naloge.`;
+  return `Prejšnji koraki so že izbrisali ${n} ${sam} – niso del naloge.`;
 }
 
 // Postopnost v krogu (docs/vadi-v-uganki-nacrt.md, točka 15): vaje 1-6 imajo območje
@@ -121,7 +121,7 @@ function legendaKoraka(korak,odstranjeni){
   const l=vEl('div','legenda-vaje');
   const vz=vEl('span');vz.append(vEl('span','sw sw-vzorec'),'celice vzorca');
   const iz=vEl('span');iz.append(vEl('span','izbris-vzorec',String(korak.eliminate[0][1])),
-    odstranjeni?'izbrisani kandidati (odstranjeni)':'kandidat za izbris');
+    odstranjeni?'izbrisani kandidati':'kandidat za izbris');
   l.append(vz,iz);
   return l;
 }
@@ -131,19 +131,20 @@ const VADI_TOZILNIK={'Pointing pair/triple':'izločitev izven bloka','Box-line r
   'Naked pair':'očitni par','Hidden pair':'skriti par','Naked triple':'očitno trojico','Hidden triple':'skrito trojico',
   'X-Wing':'X-krilo','Swordfish':'mečarico','Turbot Fish':'verigo ene števke','W-Wing':'W-krilo','XY-Wing':'XY-krilo',
   'Unique Rectangle':'edinstveni pravokotnik'};
+// Tehnike ženskega spola ("izbriši kandidate, ki zaradi nje odpadejo"), druge "zaradi njega".
+const VADI_ZENSKI=new Set(['Pointing pair/triple','Box-line reduction','Naked triple','Hidden triple','Swordfish','Turbot Fish']);
 const velika=s=>s[0].toUpperCase()+s.slice(1);
-// Navodilo nad mrežo; z območjem ga pove ("V vrstici 7 poišči skriti par ...").
+// Navodilo nad mrežo; z območjem ga pove ("V vrstici 7 poišči skriti par ...", "Za števko 7
+// poišči X-krilo ...").
 function navodiloVadi(kljuc,ob){
-  if(kljuc==='Gol enojček'||kljuc==='Skriti enojček'){
-    const kaj=kljuc==='Gol enojček'?'celico, v kateri je mogoča samo ena števka,':'števko z enim samim mestom';
-    return ob?`${velika(ob.opis)} poišči ${kaj} in jo vpiši.`:kljuc==='Gol enojček'?`Poišči ${kaj} in jo vpiši.`:`Poišči ${kaj} v enoti in jo vpiši.`;
-  }
-  const odstrani='odstrani kandidate, ki jih izloči.';
-  if(!ob) return `Poišči korak tehnike ${imeTehnike(kljuc,{anglesko:false})} in ${odstrani}`;
+  if(kljuc==='Gol enojček') return `${ob?velika(ob.opis)+' poišči':'Poišči'} celico, v kateri je mogoča samo ena števka, in jo vpiši.`;
+  if(kljuc==='Skriti enojček') return ob?`${velika(ob.opis)} poišči števko, ki je mogoča samo v eni celici, in jo vpiši.`
+    :'Poišči števko, ki je v vrstici, stolpcu ali bloku mogoča samo v eni celici, in jo vpiši.';
   const t=VADI_TOZILNIK[kljuc];
-  if(ob.vrsta==='stevke'&&ob.stevke.length===2) return `Kandidata para sta ${ob.stevke[0]} in ${ob.stevke[1]}: poišči ${t} in ${odstrani}`;
-  if(ob.vrsta==='pivot') return `Poišči ${t} ${ob.opis} in ${odstrani}`;
-  return `${velika(ob.opis)} poišči ${t} in ${odstrani}`;
+  const izbrisi=`izbriši kandidate, ki zaradi ${VADI_ZENSKI.has(kljuc)?'nje':'njega'} odpadejo.`;
+  if(!ob) return `Poišči ${t} in ${izbrisi}`;
+  if(ob.vrsta==='pivot') return `Poišči ${t} ${ob.opis} in ${izbrisi}`;
+  return `${velika(ob.opis)} poišči ${t} in ${izbrisi}`;
 }
 
 function vadiOznaka(kljuc){
@@ -184,8 +185,9 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   const div=vEl('div','exercise');
   div.appendChild(vadiOznaka(kljuc));
   div.appendChild(vEl('h3',null,navodiloVadi(kljuc,ob)));
-  div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].razlaga+(!ob?'':ob.celice?' Območje je na mreži uokvirjeno.'
+  div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].povzetek+(!ob?'':ob.celice?' Območje je na mreži uokvirjeno.'
     :ob.stevke.length>1?' Števki sta poudarjeni.':' Števka je poudarjena.')));
+  div.appendChild(razdelekRazlaga(mode));
 
   // Stopnja uganke (samo informacija, tudi "Presega tehnike"), izvor vaje v title.
   const info=vEl('div','vaja-info');
@@ -203,7 +205,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     info.appendChild(prejEl);
     if(v.prejOdstranjenih){
       pk=vKljukica(' pokaži jih prečrtane');pk.l.className='vec-hkrati';
-      pk.l.title='Kandidate so odstranili koraki na poti do te vaje. Niso del odgovora – odstrani samo kandidate, ki jih izloči iskani korak.';
+      pk.l.title='Kandidate so izbrisali koraki na poti do te vaje. Niso del odgovora – izbriši samo kandidate, ki zaradi iskanega koraka odpadejo.';
       pk.i.checked=precrtaniKrog;
       info.appendChild(pk.l);
     }
@@ -249,17 +251,17 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     razlogEl=vEl('div','niz-razlog');razlogEl.setAttribute('aria-live','polite');wrap.appendChild(razlogEl);
   }else{
     const g=vEl('div','niz-oznaka glava-s-kljukico');
-    const o=vEl('span');o.append('Odstrani kandidata ');
+    const o=vEl('span');o.append('Izbriši kandidata ');
     const poj=vEl('span','niz-pojasnilo','· ');poj.append(vEl('span','vzorec-vrni','↺'),' = vrni');
     o.appendChild(poj);
     vc=vKljukica(' več celic');vc.l.className='vec-hkrati';
     const vecPrivzeto=vecCelicPrivzeto(kljuc);
-    vc.l.title='Izberi več celic in odstrani isto števko iz vseh (na računalniku tudi Ctrl+klik)'
+    vc.l.title='Izberi več celic in izbriši isto števko iz vseh (na računalniku tudi Ctrl+klik)'
       +(vecPrivzeto?'. Pri tej tehniki se v večini korakov ista števka izbriše iz več celic.':'');
     vc.i.checked=vecCelicKrog!==null?vecCelicKrog:vecPrivzeto;
     vc.i.addEventListener('change',()=>{vecCelicKrog=vc.i.checked;});
     g.append(o,vc.l);wrap.appendChild(g);
-    nizO=vEl('div','niz niz-odstrani');nizO.setAttribute('role','group');nizO.setAttribute('aria-label','Odstrani kandidata');
+    nizO=vEl('div','niz niz-odstrani');nizO.setAttribute('role','group');nizO.setAttribute('aria-label','Izbriši kandidata');
     wrap.appendChild(nizO);
     razlogEl=vEl('div','niz-razlog');razlogEl.setAttribute('aria-live','polite');wrap.appendChild(razlogEl);
     akcije=vEl('div','akcije');
