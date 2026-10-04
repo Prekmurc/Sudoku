@@ -1216,15 +1216,37 @@ komponente, na koncu videz in pomoč.
 | **1 – stanje uganke** | 6.2, 6.3, 1.6, 1.5, 2.3 | pokrije opažanja 1–3; najprej en vir podatkov (6.2), nato števec »12/57« in tri stanja (1.6), besedila (1.5) in ponovno reševanje (2.3); na tem gradita fazi 2 in 3 | srednje |
 | **2 – kartica zbirke** (narejeno 2026-09-24, z izvorom `primer` iz 2.5 in težavnostjo primerov iz 3; od 1.7 samo gumb »Odpri«) | 6.1, 2.1, 2.2, 2.4, 1.7 | ko so podatki enotni, se izris združi v eno funkcijo za obe aplikaciji in za primere | srednje |
 | **3 – primeri in težavnost** | 3, 2.5, 1.2 | primeri dobijo težavnost s testom in obliko s piko, ročni vnos dobi pravo stopnjo; primeri niso del zbirke (odločitev spremenjena 2026-09-24, narejeno: ena zbirka, brisanje v obeh aplikacijah, dogodek `storage`) | majhno–srednje |
-| **3a – dopolnitev primerov** (ločena naloga) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
+| **3a – dopolnitev primerov** (ločena naloga; po fazi 6 naloga 2 – glej »Vrstni red po fazi 6«) | 3 | nove uganke z orodji v `tools/` za vse stopnje in tehnike; šele ko imajo primeri polje `tezavnost` in test iz faze 3 | srednje |
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** (zaključeno 2026-10-03, ročni pregled potrjen istega dne, N9 ostane; `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
 | **5a – stikalo »Kandidati« v igri** (izvedeno 2026-10-03, ročni pregled potrjen istega dne; `docs/kandidati-stikalo-nacrt.md`: načrt `4048df5`, korak 2 `3097473`, korak 3 `5b9ff90`, korak 4 – scenarij v brskalniku in ročni pregled) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
-| **6 – pomoč** (v teku, načrt `docs/faza6-nacrt.md` potrjen 2026-10-04; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c – zadnji commit faze 6; ročni pregled čaka – `docs/rocni-test.md`) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
-| **7 – ostala koda** | 6.4, 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno in vnosna mreža – iz faze 5) | čiščenje brez vidne spremembe; lahko kadarkoli vmes (polje »Niz« v reševalcu iz 2.5 je narejeno posebej – `a348672`, `7e04cb4`; skupna vnosna mreža 6.4 še ni) | majhno–srednje |
+| **6 – pomoč** (izvedeno 2026-10-04, ročni pregled čaka – `docs/rocni-test.md`; načrt `docs/faza6-nacrt.md`; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c `bc87b22`) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
+| **7 – ostala koda** (po fazi 6 naloga 3) | 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno zbirke v reševalcu – iz faze 5; okno Pomoč je preseljeno v fazi 6); počasni testi razdeljeni, če tek vseh testov preseže 2 minuti | čiščenje brez vidne spremembe; skupna vnosna mreža (6.4 in vnosna mreža iz 6.8) je od 2026-10-04 v nalogi 9 (povezave) – polje »Niz« v reševalcu iz 2.5 je narejeno posebej (`a348672`, `7e04cb4`) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu
 spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne spremeni.
+
+### Vrstni red po fazi 6 (odločitev 2026-10-04)
+
+Naloge po fazi 6, v tem vrstnem redu. Vsaka dobi svoj načrt (in potrditev), preden se začne;
+podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
+
+| # | Skupina | Naloga | Kaj obsega |
+|---|---|---|---|
+| 1 | po fazi 6 | **Oznaka različice pri nalaganju skript in slogov** | da brskalnik po spremembi ne kaže stare različice iz predpomnilnika (prej v »Kasneje«) |
+| 2 | po fazi 6 | **Faza 3a – dopolnitev primerov** | vgrajeni primeri za vse stopnje in tehnike, uganke samo z orodji v `tools/` (točka 3, vrstica 3a zgoraj) |
+| 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); počasne teste razdeli, če tek vseh testov (`node --test "tests/*.test.js"`) preseže 2 minuti |
+| 4 | nove tehnike | **XY-veriga** (ekspertna raven, tehnika 13) | nova tehnika na koncu `ALL_TECHNIQUES`, v `GEN_EKSPERTNE`, `TECHNIQUE_GROUPS`, trening (vaja, kartica, značka EKSPERTNA); stopnja Ekstrem (odločitev 2026-09-24, razdelek 7) se vrne v seznam stopenj v Pomoči (`stopnjeZaPomoc()` v `shared/pomoc.js` jo pokaže sama, ko je `GEN_EKSPERTNE` neprazen); banka vaj znova (`tools/ustvari-banko-vaj.js`) |
+| 5 | nove tehnike | **BUG+1** | nova tehnika (raven in mesto v vrstnem redu določi načrt) |
+| 6 | videz | **Podlage, legenda, Escape** | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; postavka »tvoje oznake« v legendi »Vadi v uganki«; Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«) |
+| 7 | igra | **Označevanje celic** | zaznamki celic v igri (v treningu že so – »Označi izbrane (O)«, `shared/plosca.js`) |
+| 8 | igra | **Brez kandidatov** | ročni zapiski, senčenje, opozorilo pri uganki s tehniko 3 ali višjo (vse tri prej v »Kasneje«) |
+| 9 | povezave | **Navigacija in skupni vnos** | navigacija med aplikacijami (4.3, prej v »Kasneje«), nadaljevanje v igri iz treninga, skupna vnosna mreža (6.4 – prej v fazi 7) |
+| 10 | zbirka | **Filtri in katalog** | filtri v seznamu zbirke, katalog ugank s 17 danimi števkami |
+| 11 | na koncu | **Preklop jezika SI/EN** | |
+
+**Samo če bo potreba** (ni v vrstnem redu – glej »Kasneje«): gumb »Izvedi izbris«, gumb »drži«
+na dnu strani, reševalec v dveh stolpcih, oblika vzorca po označenih celicah.
 
 **Vpliv odločitev 2026-09-23 na vrstni red:** zaporedje faz ostane. Spremembe:
 
@@ -1241,26 +1263,27 @@ spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne
 ## Kasneje
 
 Ideje in manjše težave, ki niso v nobeni fazi (zapisano ob fazi 5, 2026-10-03; podrobnosti
-za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
+za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postavk je uvrščena v
+»Vrstni red po fazi 6« (pri postavki je številka naloge); postavke »samo če bo potreba« so na koncu.
 
-- **Navigacija med aplikacijami (4.3)** – povezave »Igra · Reševalec · Trening« v skupni
+- **Navigacija med aplikacijami (4.3)** (→ naloga 9) – povezave »Igra · Reševalec · Trening« v skupni
   glavi; nova funkcija.
-- **Povečan prikaz v reševalcu se z Escape ne zapre** (zapisano 2026-10-03 ob ročnem pregledu
+- **Povečan prikaz v reševalcu se z Escape ne zapre** (→ naloga 6; zapisano 2026-10-03 ob ročnem pregledu
   faze 5; ni popravljeno). Okno »Zbirka ugank« se z Escape zapre (`app/zbirka.js`, poslušalec
   `keydown`), povečan prikaz mreže (`#lightbox`, `openLightbox()`/`closeLightbox()` v
   `app/app.js`) pa samo s klikom na mrežo, ozadje ali gumb ✕ – poslušalca za Escape nima.
-- **Reševalec na širokem zaslonu v dveh stolpcih** (vnos levo, rešitev in koraki desno), kot
-  igra.
-- **Senčenje pri izklopljenih kandidatih** (zapisano 2026-10-03 ob nalogi 5a,
+- **Reševalec na širokem zaslonu v dveh stolpcih** (samo če bo potreba; vnos levo, rešitev in
+  koraki desno), kot igra.
+- **Senčenje pri izklopljenih kandidatih** (→ naloga 8; zapisano 2026-10-03 ob nalogi 5a,
   `docs/kandidati-stikalo-nacrt.md`, opomba pri O1): v igri pri izklopljenih kandidatih
   kljukica »senči« kot pri E1/E2 v treningu – ob eni poudarjeni števki so šrafirane celice,
   kamor ne more (samo iz vpisov). Plošča ga že zna (`senci`, `sencenjeVidno()`).
-- **Ročni zapiski** (zapisano 2026-10-03 ob nalogi 5a): lastno vpisovanje malih števk v
+- **Ročni zapiski** (→ naloga 8; zapisano 2026-10-03 ob nalogi 5a): lastno vpisovanje malih števk v
   celice, ločeno od samodejnih kandidatov. Pri nalogi 5a namenoma izpuščeno.
-- **Opozorilo pri izklopljenih kandidatih, če uganka zahteva tehniko 3 ali višjo** (zapisano
+- **Opozorilo pri izklopljenih kandidatih, če uganka zahteva tehniko 3 ali višjo** (→ naloga 8; zapisano
   2026-10-03 ob nalogi 5a): brez kandidatov gredo E1, E2, 1 in 2; pri težji uganki bi igra
   ob izklopu (ali ob odprtju uganke pri izklopu) povedala, da bo brez kandidatov težko.
-- **Uskladitev podlag vzorca in izbrisa v igri in reševalcu s treningom** (zapisano
+- **Uskladitev podlag vzorca in izbrisa v igri in reševalcu s treningom** (→ naloga 6; zapisano
   2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`, O2): trening ima v vseh mrežah
   močnejši podlagi celic vzorca (#EFD8A0) in izbrisa (#F0B4AA) – spremenljivki
   `--k-vzorec-bg` in `--k-izbris-bg` v `shared/mreza.css`, ki ju nastavi
@@ -1268,7 +1291,7 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
   reševalec (mala mreža koraka `.mcell.hl-source`/`.hl-elimonly` v `app/app.css`) imata bledi
   `--amber-bg` in `--red-bg`.
 - **»Namig (drži)« in »Rešitev (drži)« v »Spoznaj« se ob pritisku z miško takoj skrijeta, če je
-  stran pomaknjena do konca** (zapisano 2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`,
+  stran pomaknjena do konca** (samo če bo potreba – »gumb ›drži‹ na dnu strani«; zapisano 2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`,
   razdelek 8; ni popravljeno). Ob pritisku se pod gumbom pokaže okvir z besedilom, stran se
   zamakne za njegovo višino (izmerjeno pri 11 · XY-krilo, okno 1280 × 1000: `scrollY` 59 →
   129), gumb uide izpod miške, `mouseleave` pokliče `peekOff()` in okvir izgine – rešitve ni
@@ -1276,12 +1299,20 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
   `tools/preveri-vadi-brskalnik.js` se temu izogne s prostorom pod vsebino. Darko napake pri
   sebi ne vidi, ne z miško ne na dotik (ročni pregled 2026-10-03) – zapis ostane, ker se
   zanesljivo pokaže v brskalniku brez glave (okno 1280 × 1000, stran pomaknjena do konca).
-- **Postavka »tvoje oznake« v legendi pod »Pravilno!«** (zapisano 2026-10-03 ob nalogi
+- **Postavka »tvoje oznake« v legendi pod »Pravilno!«** (→ naloga 6; zapisano 2026-10-03 ob nalogi
   »oznake«, `docs/oznake-nacrt.md`, O4): v legendi po pravilnem odgovoru v »Vadi v uganki«
   (`legendaKoraka()` v `trening/v-uganki.js`) še črtkan vijoličen kvadratek »tvoje oznake«.
   Ni samo slog.
-- **Oznaka različice pri nalaganju skript in slogov** (zapisano 2026-10-04 ob zaprtju naloge
+- **Oznaka različice pri nalaganju skript in slogov** (→ naloga 1; zapisano 2026-10-04 ob zaprtju naloge
   »prečrtanje«), da brskalnik po spremembi ne kaže stare različice iz predpomnilnika.
+
+**Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
+
+- **Gumb »Izvedi izbris«**.
+- **Gumb »drži« na dnu strani** – »Namig (drži)« in »Rešitev (drži)«, ko je stran pomaknjena do
+  konca (zgoraj).
+- **Reševalec v dveh stolpcih** (zgoraj).
+- **Oblika vzorca po označenih celicah**.
 
 ## Opombe k delom
 
