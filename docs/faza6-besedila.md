@@ -1,7 +1,8 @@
 # Faza 6 – sedanja besedila tehnik (za pregled)
 
-Izpis vseh besedil tehnik E1, E2 in 1–12, kot so v kodi **zdaj** (commit `03a815d`,
-2026-10-04). Besedila niso spremenjena. Načrt faze 6 je v `docs/faza6-nacrt.md`.
+Izpis vseh besedil tehnik E1, E2 in 1–12, kot so v kodi **po koraku a** faze 6 (commit `37a5f3f`,
+2026-10-04). Prvi izpis je bil na commitu `03a815d`; kaj je korak a spremenil, je v razdelku
+»Spremembe v koraku a« spodaj. Načrt faze 6 je v `docs/faza6-nacrt.md`.
 
 Izpis je narejen samodejno iz kode (skripta naloži `shared/engine.js`, `trening/generators.js`
 in `trening/v-uganki.js` v Node in pokliče iste funkcije kot trening), zato je besedilo
@@ -31,6 +32,21 @@ Ni izpisano (ni del naloge, lahko dodam): namigi (»Namig (drži)« v »Spoznaj�
 uganki«, »Pokaži več« v igri), sporočila korakov (»Pravilno!« v treningu, razlaga koraka v
 reševalcu in igri), sporočila ob napačnem odgovoru.
 
+## Spremembe v koraku a
+
+Samo mehanski popravki (`docs/faza6-nacrt.md`, korak a) – vsebina opisov se ni spremenila:
+
+- **1 in 2, opis na kartici:** »možen« → »mogoč« (odločitev 4a).
+- **E1, naloga v »Spoznaj« (vaje 4–9) in v »Vadi v uganki«:** »celico z eno samo možno števko« →
+  »celico, v kateri je mogoča samo ena števka« (4a); enako v namigu E1 (namigi niso izpisani).
+- **8 · Mečarica, naloga v »Spoznaj«:** sklon – »najdi 3 vrsticah« → »najdi 3 vrstice« (in
+  »stolpce«).
+- **10 · W-krilo, razlaga:** dolgi pomišljaj »—« → » – « (4.6).
+
+Zunaj tega izpisa so se spremenila še sporočila korakov (»Pravilno!« v treningu, razlaga koraka v
+reševalcu in igri): »->« → »→« (4b) in »možen« → »mogoč« pri očitnem in skritem enojčku, 1, 2 ter
+skritem paru in trojici.
+
 ---
 
 ## E1 · Očitni enojček (Naked Single)
@@ -57,16 +73,16 @@ Ključ: `naked-single` (`Gol enojček`).
 
 - vaja 1 – naslov: »Katera števka je edina mogoča v označeni celici V6S9?«
   - opis: »Poišči prazno celico, v kateri je mogoča samo še ena števka: njena vrstica, stolpec in blok skupaj že vsebujejo vseh drugih osem števk. Celica je že izbrana – izberi samo števko, ki jo vpišeš.«
-- vaja 4 – naslov: »V označenem stolpcu 9 poišči celico z eno samo možno števko«
+- vaja 4 – naslov: »V označenem stolpcu 9 poišči celico, v kateri je mogoča samo ena števka«
   - opis: »Poišči prazno celico, v kateri je mogoča samo še ena števka: njena vrstica, stolpec in blok skupaj že vsebujejo vseh drugih osem števk. Izberi celico v označeni enoti in nato števko, ki jo vpišeš.«
-- vaja 7 – naslov: »Poišči celico z eno samo možno števko«
+- vaja 7 – naslov: »Poišči celico, v kateri je mogoča samo ena števka«
   - opis: »Poišči prazno celico, v kateri je mogoča samo še ena števka: njena vrstica, stolpec in blok skupaj že vsebujejo vseh drugih osem števk. Izberi celico in nato števko, ki jo vpišeš.«
 - vir opisa: vaje 1–6: lasten opis po stopnji (razlaga + poved stopnje), vaje 7–9: razlaga + navodilo
 
 **Naloga v »Vadi v uganki«** (naslov nad mrežo; opis pod njim je razlaga, vajam 1–6 se doda poved o območju):
 
-- vaje 7–9 (brez območja): »Poišči celico z eno samo možno števko in jo vpiši.«
-- vaje 1–6 (z območjem, primer): »V vrstici 7 poišči celico z eno samo možno števko in jo vpiši.«
+- vaje 7–9 (brez območja): »Poišči celico, v kateri je mogoča samo ena števka, in jo vpiši.«
+- vaje 1–6 (z območjem, primer): »V vrstici 7 poišči celico, v kateri je mogoča samo ena števka, in jo vpiši.«
   - pripis k razlagi: »Območje je na mreži uokvirjeno.«
 
 ## E2 · Skriti enojček (Hidden Single)
@@ -111,7 +127,7 @@ Ključ: `pointing` (`Pointing pair/triple`).
 
 **Opis na kartici** (meni treninga, `trening/index.html`):
 
-> Kandidat je v bloku možen samo v eni vrstici ali stolpcu – izbrišeš ga iz preostanka te vrstice/stolpca.
+> Kandidat je v bloku mogoč samo v eni vrstici ali stolpcu – izbrišeš ga iz preostanka te vrstice/stolpca.
 
 **Razlaga** (`TEHNIKE_OPISI.razlaga`):
 
@@ -146,7 +162,7 @@ Ključ: `box-line` (`Box-line reduction`).
 
 **Opis na kartici** (meni treninga, `trening/index.html`):
 
-> Kandidat je v vrstici ali stolpcu možen samo v enem bloku – izbrišeš ga iz preostanka tega bloka.
+> Kandidat je v vrstici ali stolpcu mogoč samo v enem bloku – izbrišeš ga iz preostanka tega bloka.
 
 **Razlaga** (`TEHNIKE_OPISI.razlaga`):
 
@@ -381,11 +397,11 @@ Ključ: `swordfish` (`Swordfish`).
 **Naloga v »Spoznaj«** (naslov nad mrežo in opis pod njim; primeri iz generatorja):
 
 - vaja 1 – naslov: »Mečarica za števko 6«
-  - opis: »Števka 6: najdi 3 vrsticah, kjer se 6 pojavi samo na istih 3 stolpcih. Klikni vse celice s 6 v teh treh vrsticah.«
+  - opis: »Števka 6: najdi 3 vrstice, kjer se 6 pojavi samo na istih 3 stolpcih. Klikni vse celice s 6 v teh treh vrsticah.«
 - vaja 2 – naslov: »Mečarica za števko 8«
-  - opis: »Števka 8: najdi 3 stolpcih, kjer se 8 pojavi samo na istih 3 vrsticah. Klikni vse celice s 8 v teh treh stolpcih.«
+  - opis: »Števka 8: najdi 3 stolpce, kjer se 8 pojavi samo na istih 3 vrsticah. Klikni vse celice s 8 v teh treh stolpcih.«
 - vaja 3 – naslov: »Mečarica za števko 7«
-  - opis: »Števka 7: najdi 3 vrsticah, kjer se 7 pojavi samo na istih 3 stolpcih. Klikni vse celice s 7 v teh treh vrsticah.«
+  - opis: »Števka 7: najdi 3 vrstice, kjer se 7 pojavi samo na istih 3 stolpcih. Klikni vse celice s 7 v teh treh vrsticah.«
 - vir opisa: lasten opis generatorja – razlaga in navodilo iz `TEHNIKE_OPISI` se tu ne pokažeta
 - nad mrežo še »Označena števka: N«
 
@@ -443,7 +459,7 @@ Ključ: `w-wing` (`W-Wing`).
 
 **Razlaga** (`TEHNIKE_OPISI.razlaga`):
 
-> Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.
+> Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah – nobena ne sme biti celica para – pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.
 
 **Navodilo** (`TEHNIKE_OPISI.navodilo`):
 
@@ -456,11 +472,11 @@ Ključ: `w-wing` (`W-Wing`).
 **Naloga v »Spoznaj«** (naslov nad mrežo in opis pod njim; primeri iz generatorja):
 
 - vaja 1 – naslov: »W-krilo: celici para in celici povezave«
-  - opis: »Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).«
+  - opis: »Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah – nobena ne sme biti celica para – pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).«
 - vaja 2 – naslov: »W-krilo: celici para in celici povezave«
-  - opis: »Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).«
+  - opis: »Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah – nobena ne sme biti celica para – pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).«
 - vaja 3 – naslov: »W-krilo: celici para in celici povezave«
-  - opis: »Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).«
+  - opis: »Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah – nobena ne sme biti celica para – pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe. Izberi obe celici para in obe celici povezave (4 celice).«
 - vir opisa: razlaga + navodilo (`opisVaje()`)
 - pod mrežo »Sive celice so že rešene; prikazani so kandidati praznih celic.«
 
