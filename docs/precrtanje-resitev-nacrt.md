@@ -3,7 +3,7 @@
 Opaženo ob ročnem pregledu naloge »enotna izbira« (`docs/izbira-spoznaj-nacrt.md`, točka 2 v
 `docs/rocni-test.md`, 2026-10-04): pri 11 · XY-krilo »Rešitev (drži)« pokaže celico izbrisa samo z
 rožnato podlago, števka, ki se izbriše, ni prečrtana. Pri 2 · Izločitev v bloku je prečrtana.
-Izvedba bo v novem pogovoru.
+Izvedeno 2026-10-04 (razdelek 5).
 
 ## Odločitve (Darko, 2026-10-04)
 
@@ -112,3 +112,55 @@ Node test vidi.
   --primerjaj` (igra ostane enaka).
 - Ročni pregled: največ 3 točke (npr. prečrtana števka pri 11 na telefonu, pri 12 v jantarnem
   vogalu, pri 3 rožnate celice izbrisa).
+
+## 5. Izvedba (2026-10-04)
+
+Izvedeno vse po razdelku 3 – vse tri skupine (7–8, 9–12, 3–6) in stanje po pravilnem odgovoru
+pri 7 in 8.
+
+- **`trening/trening.js`**
+  - `izbrisPodmnozice(ex, M, ps, ds)` – **ena funkcija** za izbris pri 3–6 (pari `[si, števka]`):
+    pri očitnem paru/trojici števke `ds` v drugih celicah enote, pri skritem (`M.hasPhase2`) druge
+    števke v celicah vzorca. Kličejo jo `checkPhase1` (očitni), `checkPhase2` (skriti) in
+    »Rešitev« (`vzorecPodmnozice()` v `veljavniVzorci()` in v privzetem vzorcu `vzorecResitve()`
+    pri 3 in 5, neposredno v `peekOn()` pri 4 in 6). `veljavniVzorci()` ima zato pri paru in
+    trojici `elim` (celice) in `izbris` (pari).
+  - `maleStevke(gc)` / `malaStevka(gc, d)` / `oznaciStevke(cellEls, pari, razred)` – male števke
+    prek otrok celice (`.candgrid` → `.cd`, nadomestni DOM nima `querySelector`). Uporabljajo jih
+    `peekOn()`, `peekOff()` in prečrtanje po pravilnem odgovoru pri 3–6 in 9–12 (prej
+    `querySelector`/`querySelectorAll('.cd')` – v brskalniku isti elementi; obarvanje števk vzorca
+    `hl` pri 3–6 je ostalo nespremenjeno).
+  - `peekOn()`: 9–12 – `peek-izbris` iz `step.eliminate`; 3, 5 – `peek-elim` na celicah izbrisa in
+    `peek-izbris` na števkah vzorca, ki ga »Rešitev« pokaže (tudi drug veljaven vzorec); 4, 6 –
+    `peek-izbris` na drugih števkah celic vzorca (celice ostanejo jantarne). `peekOff()` odstrani
+    `peek-izbris`, `elim` po pravilnem odgovoru ostane.
+  - **»Preveri« se obnaša enako:** DOM po pravilnem odgovoru je enak izhodišču (scenarij, spodaj),
+    obstoječi testi preverjanja so nespremenjeni in gredo skozi.
+- **`trening/trening.css`**: `.cd:is(.elim,.peek-izbris)` (rdeča, krepko, `line-through`),
+  `.cd.hl-plum:is(.elim,.peek-izbris)` (rdeča prevlada pri 9), `.xw-cell:is(.peek-elim,.xw-elim)`
+  (za `.xw-cell.has-digit`, da prevlada nad njegovo barvo); mrtvi pravili `.xd` sta odstranjeni.
+- **Testi:** nov `tests/trening-precrtanje.test.js` (po tri vaje vsake tehnike 3–6 in 9–12 ter
+  drug veljaven vzorec pri 5; pri 3 drugega vzorca ni – generator para ga v 2000 vajah ne da).
+  V `tests/trening-resitev.test.js` je spremenjeno samo pričakovano `elim` pri očitnem paru in
+  trojici (`VZOREC`, `DRUGI`): prej `[]` – zapis stare zasnove »izbrisa ne pokaže« –, zdaj druge
+  celice enote s katero od števk vzorca (izračun neodvisno od `trening.js`); preverbe »Preveri« v
+  tej datoteki so ostale.
+- **Scenarij** `tools/preveri-izbira-brskalnik.js` po razdelku 4: izhodišče `06e64e5`, izbira je v
+  obeh brskalnikih ista (izbere jo nova koda – pri 3 in 5 so zdaj celice izbrisa, zato bi bila
+  izbira v izhodišču drugačna), »neodvisno merilo« z 2. fazo pri 4 in 6 (števke iz besedila
+  »Rešitve«), slog primerjan s `.kand.k-izbris` pri 2, pri meritvi prekrivanja prečrtane števke
+  kot navadne (razred `peek-izbris` za čas meritve odstranjen, pri 7 in 8 vbrizgan slog celice).
+
+### Izid preverjanja
+
+- `node --test "tests/*.test.js"`: 468 testov, vsi gredo skozi (od tega 25 v novem
+  `tests/trening-precrtanje.test.js`).
+- `tools/preveri-izbira-brskalnik.js`: 476 preverb, vse drži. Pri semenu 4242 je ob »Rešitvi«
+  prečrtanih 6 / 3 / 5 / 8 / 2 / 6 / 2 / 2 / 1 / 2 števk (3–12), po pravilnem odgovoru iste; slog
+  pri obeh širinah rgb(178, 58, 46), 700, `line-through` – enak kot pri 2. Prekrivanje okvirja z
+  malimi števkami pri 375 px je pri vseh desetih vajah enako izhodišču (pred »Preveri« in med
+  »Rešitvijo«).
+- Drugi scenariji brez razlik: `preveri-vadi-` (364 preverb – tudi »Spoznaj 3–12«: kontrast besedila v
+  celicah vzorca in izbrisa ob »Rešitvi« vsaj 3), `preveri-enojcki-` (328), `preveri-presek-` (77),
+  `preveri-videz-` (315), `preveri-kandidati-` (44), `preveri-niz-brskalnik.js` (34); posnetek igre
+  (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-5a.json`): enako, 99 posnetkov.

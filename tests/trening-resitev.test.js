@@ -18,6 +18,9 @@ const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2
   let t = Math.imul(seme ^ (seme >>> 15), 1 | seme); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
 
+// Celice izbrisa očitnega para/trojice (celice cells, števke ds): druge celice enote s katero od
+// števk ds - od naloge docs/precrtanje-resitev-nacrt.md jih »Rešitev« pokaže (prej elim: []).
+const IZBRIS_OCITNIH = '(ex, cells, ds) => ex.slots.map((s, i) => i).filter(i => !cells.includes(i) && ex.slots[i].c && ex.slots[i].c.some(d => ds.includes(d)))';
 // Neodvisno naštevanje drugih veljavnih vzorcev (koda v kontekstu; vrne [{ cells, elim }]).
 const DRUGI = {
   // X-krilo: dve vrstici (stolpca) s števko na natanko istih dveh mestih; izbris = druge celice s
@@ -34,14 +37,15 @@ const DRUGI = {
     .map(s => ({ cells: s.cells, elim: s.eliminate.map(([c]) => c) }))`,
   'naked-triple': `ex => { const out = [], p = ex.slots.map((s, i) => s.c ? i : -1).filter(i => i >= 0);
     for (let a = 0; a < p.length; a++) for (let b = a + 1; b < p.length; b++) for (let c = b + 1; c < p.length; c++)
-      if (new Set([p[a], p[b], p[c]].flatMap(i => ex.slots[i].c)).size === 3) out.push({ cells: [p[a], p[b], p[c]], elim: [] });
+      if (new Set([p[a], p[b], p[c]].flatMap(i => ex.slots[i].c)).size === 3) out.push({ cells: [p[a], p[b], p[c]],
+        elim: (${IZBRIS_OCITNIH})(ex, [p[a], p[b], p[c]], [...new Set([p[a], p[b], p[c]].flatMap(i => ex.slots[i].c))]) });
     return out; }`,
 };
 const VZOREC = {
   'x-wing': 'ex => ({ cells: ex.rect.map(([r, c]) => r * 9 + c), elim: ex.elimCells.map(([r, c]) => r * 9 + c) })',
   'swordfish': 'ex => ({ cells: ex.sfCells.map(([r, c]) => r * 9 + c), elim: ex.elimCells.map(([r, c]) => r * 9 + c) })',
-  'naked-triple': 'ex => ({ cells: ex.targetSlots, elim: [] })',
-  'naked-pair': 'ex => ({ cells: ex.targetSlots, elim: [] })',
+  'naked-triple': `ex => ({ cells: ex.targetSlots, elim: (${IZBRIS_OCITNIH})(ex, ex.targetSlots, ex.targetDigits) })`,
+  'naked-pair': `ex => ({ cells: ex.targetSlots, elim: (${IZBRIS_OCITNIH})(ex, ex.targetSlots, ex.targetDigits) })`,
   'hidden-pair': 'ex => ({ cells: ex.targetSlots, elim: [] })',
 };
 const kljuc = a => [...a].sort((x, y) => x - y).join(',');

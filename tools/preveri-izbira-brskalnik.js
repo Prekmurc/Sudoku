@@ -10,14 +10,23 @@
 //     rdeče na beli in rožnati vsaj 3; po spustu spet modra;
 //   - pri 375 px se okvir z malimi števkami ne prekriva bolj kot v izhodišču (meritev na
 //     posnetkih po vzoru docs/oznake-nacrt.md: piksli, ki jih spremenita okvir in števka, in
-//     piksli števke, ki se na okvirju ne vidijo);
+//     piksli števke, ki se na okvirju ne vidijo; prečrtane števke so med meritvijo navadne -
+//     krepkejša števka bi štela kot več prekrivanja, čeprav je okvir enak); izbira je v obeh
+//     brskalnikih ista (izbere jo nova koda);
+//   - prečrtanje števke izbrisa (docs/precrtanje-resitev-nacrt.md): ob »Rešitvi« brez izbire so
+//     rdeče prečrtane natanko števke, ki so prečrtane po pravilnem odgovoru (celice vzorca s
+//     pravimi kliki, pri 4 in 6 še 2. faza s števkami iz besedila »Rešitve«) - neodvisno merilo;
+//     slog (barva, debelina pisave, črta) je enak kot pri 2 (.kand.k-izbris); po spustu ni
+//     prečrtane števke, po pravilnem odgovoru ostanejo (tudi ob »Rešitvi« po njem in spustu); pri
+//     7 in 8 je števka izbrisa prečrtana tudi po pravilnem odgovoru;
 //   - izris brez izbire, »Rešitev« brez izbire, pravilen odgovor in »Rešitev« po njem so enaki
-//     izhodišču (pri 8 · Mečarica so celice po pravilnem odgovoru zelene kot pri X-krilu namesto
-//     rožnatih - v izhodišču je pravilo izbire prekrilo zeleno, glej načrt);
+//     izhodišču (zadnji commit pred nalogo prečrtanja) - razlike so dovoljene samo pri prečrtanih
+//     števkah (barva, črta) in pri 3, 5 v celicah izbrisa (rožnata podlaga, temnejše male števke);
+//     pri 8 · Mečarica so celice po pravilnem odgovoru zelene kot pri X-krilu;
 //   - pri 8 · Mečarica (»Rešitev« pokaže veljaven vzorec, ki se ujema z izbiro): drug veljaven
 //     vzorec, izbran s pravimi kliki, je ob »Rešitvi« ves zelen, »Preveri« ga sprejme;
 //   - brez vodoravnega drsnika in brez napak JS.
-// Zagon iz korena projekta (pribl. 2 min):
+// Zagon iz korena projekta (pribl. 3 min):
 //   node tools/preveri-izbira-brskalnik.js [--mapa <mapa za posnetke>] [--izhodisce <commit>]
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
@@ -31,8 +40,8 @@ const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-izbira'));
-// zadnji commit pred nalogo
-const izhodisce = arg('--izhodisce', '85adb6b');
+// zadnji commit pred nalogo prečrtanja (docs/precrtanje-resitev-nacrt.md; pred nalogo izbire 85adb6b)
+const izhodisce = arg('--izhodisce', '06e64e5');
 const KOREN = path.join(__dirname, '..');
 
 let napak = 0;
@@ -97,19 +106,42 @@ async function klikniGumb(b, napis) {
   await b.klikni('#exerciseArea button[data-klik="1"]');
   await b.izvedi(`document.querySelectorAll('[data-klik]').forEach(e => e.removeAttribute('data-klik')); true`);
 }
-// Celice vzorca in izbrisa, ki jih pokaže »Rešitev« brez izbire: data-vz / data-iz.
+// Prečrtane števke v mreži vaje (izračunan slog: text-decoration-line vsebuje line-through):
+// male števke .cd in pri X-krilu in mečarici celica sama (števka je njeno besedilo). Ključ je
+// "indeks celice:števka" (indeks med vsemi .gc in .xw-cell - ti se ne dodajajo in ne odstranjujejo).
+const precrtane = b => b.izvedi(`(() => { const out = [];
+  [...document.querySelectorAll('#exerciseArea .gc, #exerciseArea .xw-cell')].forEach((cel, i) => {
+    for (const e of cel.classList.contains('xw-cell') ? [cel] : cel.querySelectorAll('.cd:not(.hide)')) {
+      const s = getComputedStyle(e); if (!s.textDecorationLine.includes('line-through')) continue;
+      out.push({ k: i + ':' + e.textContent.trim(), barva: s.color, debelina: s.fontWeight, crta: s.textDecorationLine }); } });
+  return out.sort((a, b) => (a.k < b.k ? -1 : 1)); })()`);
+const kljuci = p => p.map(x => x.k).join(' ');
+// Slog prečrtane števke pri 2 · Izločitev v bloku ob »Rešitvi« (.kand.k-izbris v shared/mreza.css).
+async function slogIzbrisa2(b, sirina) {
+  await odpri(b, 'box-line', sirina);
+  return drziResitev(b, () => b.izvedi(`(() => { const e = document.querySelector('#exerciseArea .kand.k-izbris'); if (!e) return null;
+    const s = getComputedStyle(e); return { barva: s.color, debelina: s.fontWeight, crta: s.textDecorationLine }; })()`));
+}
+// Celice vzorca in izbrisa, ki jih pokaže »Rešitev« brez izbire: data-vz / data-iz; še prečrtane
+// števke in besedilo »Rešitve« (pri skritih števke vzorca za 2. fazo).
 async function oznaciVzorec(b) {
-  return drziResitev(b, () => b.izvedi(`(() => { const c = [...document.querySelectorAll(${JSON.stringify(CELICE)})];
-    c.forEach((e, i) => { e.dataset.i = i; if (e.classList.contains('peek-hl')) e.dataset.vz = 1; if (e.classList.contains('peek-elim')) e.dataset.iz = 1; });
-    return { vzorec: c.filter(e => e.dataset.vz).length, izbris: c.filter(e => e.dataset.iz && !e.dataset.vz).length, vseh: c.length }; })()`));
+  return drziResitev(b, async () => {
+    const r = await b.izvedi(`(() => { const c = [...document.querySelectorAll(${JSON.stringify(CELICE)})];
+      c.forEach((e, i) => { e.dataset.i = i; if (e.classList.contains('peek-hl')) e.dataset.vz = 1; if (e.classList.contains('peek-elim')) e.dataset.iz = 1; });
+      return { vzorec: c.filter(e => e.dataset.vz).length, izbris: c.filter(e => e.dataset.iz && !e.dataset.vz).length, vseh: c.length,
+        besedilo: [...document.querySelectorAll('#exerciseArea .peek-overlay.visible')].map(e => e.innerHTML).join('') }; })()`);
+    r.precrtane = await precrtane(b);
+    return r;
+  });
 }
 // Izbira s pravimi kliki: pravilna celica vzorca (pri 12 vogal z izbrisom), napačna celica zunaj
-// vzorca in izbrisa ter - kjer je prostor (pickN) - napačno izbrana celica izbrisa.
-async function izberi(b, mode) {
+// vzorca in izbrisa ter - kjer je prostor (pickN) - napačno izbrana celica izbrisa. Z dani
+// (indeksi data-i) izbere te celice - izhodišče dobi isto izbiro kot nova koda.
+async function izberi(b, mode, dani) {
   const izb = await b.izvedi(`(() => { const c = [...document.querySelectorAll(${JSON.stringify(CELICE)})];
     const vz = c.filter(e => e.dataset.vz), iz = c.filter(e => e.dataset.iz && !e.dataset.vz), pr = c.filter(e => !e.dataset.vz && !e.dataset.iz);
-    const n = MODES[${JSON.stringify(mode)}].pickN;
-    const izbrane = [vz.find(e => e.dataset.iz) || vz[0], pr[0], iz[0]].filter(Boolean).slice(0, n);
+    const n = MODES[${JSON.stringify(mode)}].pickN, dani = ${JSON.stringify(dani || null)};
+    const izbrane = dani ? c.filter(e => dani.includes(e.dataset.i)) : [vz.find(e => e.dataset.iz) || vz[0], pr[0], iz[0]].filter(Boolean).slice(0, n);
     izbrane.forEach(e => e.dataset.izb = 1); return izbrane.map(e => e.dataset.i); })()`);
   for (const i of izb) await b.klikni(`#exerciseArea [data-i="${i}"]`);
   await odmakniMisko(b);
@@ -124,10 +156,20 @@ const slogiCelic = b => b.izvedi(`[...document.querySelectorAll(${JSON.stringify
 // obojega, brez števk.
 const OKVIR_SKRIT = '#exerciseArea .gc, #exerciseArea .xw-cell { box-shadow: none !important; }';
 const STEVKE_SKRITE = '#exerciseArea .cd, #exerciseArea .xw-cell { color: transparent !important; }';
+// Prečrtana števka med meritvijo kot navadna (docs/precrtanje-resitev-nacrt.md, razdelek 4): male
+// števke izgubijo peek-izbris (prejšnji slog, tudi .hl pri 9), celica X-krila in mečarice brez
+// rdeče črte - brez !important, da STEVKE_SKRITE še velja; v izhodišču brez učinka.
+const PRECRTANE_NAVADNE = '#exerciseArea .xw-cell.peek-elim { color: var(--ink); text-decoration: none; }';
 async function prekrivanje(b) {
+  await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-izbris').forEach(e => { e.classList.remove('peek-izbris'); e.dataset.pi = 1; }); true`);
+  try { return await prekrivanjeMeritev(b); } finally {
+    await b.izvedi(`document.querySelectorAll('#exerciseArea [data-pi]').forEach(e => { e.classList.add('peek-izbris'); delete e.dataset.pi; }); true`);
+  }
+}
+async function prekrivanjeMeritev(b) {
   const pos = async slog => {
     await b.izvedi(`(() => { let s = document.getElementById('meritev'); if (!s) { s = document.createElement('style'); s.id = 'meritev'; document.head.appendChild(s); }
-      s.textContent = ${JSON.stringify(slog)}; return new Promise(r => setTimeout(() => r(true), 250)); })()`);
+      s.textContent = ${JSON.stringify(PRECRTANE_NAVADNE)} + ${JSON.stringify(slog)}; return new Promise(r => setTimeout(() => r(true), 250)); })()`);
     const r = await b.izvedi(`(() => { const q = document.querySelector('#exerciseArea :is(.layout-row, .layout-col, .layout-block, .xw-grid, .g9)').getBoundingClientRect();
       return { x: Math.floor(q.left + scrollX), y: Math.floor(q.top + scrollY), w: Math.ceil(q.width), h: Math.ceil(q.height) }; })()`);
     return (await b.cdp.poslji('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 1 } })).data;
@@ -136,7 +178,7 @@ async function prekrivanje(b) {
   const F = await pos(''); resitev.push(await b.izvedi('!!document.querySelector("#exerciseArea .peek-hl")'));
   const A = await pos(OKVIR_SKRIT), B = await pos(OKVIR_SKRIT + STEVKE_SKRITE), C = await pos(STEVKE_SKRITE);
   resitev.push(await b.izvedi('!!document.querySelector("#exerciseArea .peek-hl")'));
-  await pos('');
+  await b.izvedi(`document.getElementById('meritev').textContent = ''; new Promise(r => setTimeout(() => r(true), 250))`);
   const r = await b.izvedi(`(async () => {
     const slika = async b64 => { const bm = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
       const c = new OffscreenCanvas(bm.width, bm.height); const x = c.getContext('2d'); x.drawImage(bm, 0, 0); return x.getImageData(0, 0, bm.width, bm.height); };
@@ -149,10 +191,40 @@ async function prekrivanje(b) {
   return { ...r, resitev: resitev.every(Boolean) ? true : resitev.some(Boolean) ? 'delno' : false };
 }
 
-// Izris območja vaje (innerHTML in izračunani slogi) za primerjavo z izhodiščem.
+// Izris območja vaje (innerHTML in izračunani slogi) za primerjavo z izhodiščem. dovoljeno: za
+// element (indeks) lastnosti, ki se od izhodišča smejo razlikovati (docs/precrtanje-resitev-nacrt.md):
+// prečrtana števka (peek-izbris, pri 7 in 8 celica izbrisa) barvo in črto (border-top-color je
+// currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo.
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
-const izris = b => b.izvedi(`(() => { const a = document.getElementById('exerciseArea');
-  return { html: a.innerHTML.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), slogi: [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); }) }; })()`);
+const OCITNI = ['naked-pair', 'naked-triple'];
+const izris = (b, mode) => b.izvedi(`(() => { const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')], ocitni = ${OCITNI.includes(mode)};
+  const dovoljeno = {};
+  vsi.forEach((e, i) => {
+    if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];
+    else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl)')) dovoljeno[i] = ['background-color'];
+    else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl) .cd')) dovoljeno[i] = ['color', 'border-top-color'];
+  });
+  return { html: a.innerHTML.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno,
+    slogi: vsi.map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); }) }; })()`);
+// Razlike nove kode od izhodišča razen dovoljenih: v novem izrisu razreda peek-izbris (pri 3 in 5
+// še peek-elim - izhodišče ga tam nima) ni, dovoljene lastnosti so kot v izhodišču.
+function razlikeBrezPrecrtanja(star, nov, mode) {
+  let html = nov.html.replace(/ peek-izbris(?=[ "])/g, '');
+  if (OCITNI.includes(mode)) html = html.replace(/ peek-elim(?=[ "])/g, '');
+  const slogi = nov.slogi.map((s, i) => {
+    const d = nov.dovoljeno[i];
+    if (!d || star.slogi[i] === undefined) return s;
+    const a = s.split('|'), z = star.slogi[i].split('|');
+    for (const p of d) a[SLOGI.indexOf(p)] = z[SLOGI.indexOf(p)];
+    return a.join('|');
+  });
+  return razlikeIzrisa(star, { html, slogi }, SLOGI);
+}
+// Prečrtane števke: neprazno, slog kot pri 2 (ref).
+function preveriSlogPrecrtanih(kdaj, p, ref) {
+  const slab = p.filter(x => x.barva !== ref.barva || x.debelina !== ref.debelina || x.crta !== ref.crta);
+  preveri(`${kdaj}: ${p.length} prečrtanih števk, slog kot pri 2 (${ref.barva}, ${ref.debelina}, ${ref.crta})`, p.length > 0 && slab.length === 0, slab.length ? slab : p);
+}
 
 // Izvleček commita v začasno mapo in brskalnik nad njim.
 async function izhodisceBrskalnik(commit) {
@@ -162,16 +234,17 @@ async function izhodisceBrskalnik(commit) {
   return { star, b: await zazeni({ koren: star }) };
 }
 
-// Vaja v obeh brskalnikih (izhodišče, nova koda): izbira, »Rešitev«, meritev.
+// Vaja v obeh brskalnikih (nova koda, izhodišče - z isto izbiro): izbira, »Rešitev«, meritev.
 async function vaja(bNov, bStar, mode, sirina) {
   const rez = {};
-  for (const [ime, b] of [['star', bStar], ['nov', bNov]]) {
+  for (const [ime, b] of [['nov', bNov], ['star', bStar]]) {
     await odpri(b, mode, sirina);
     const r = rez[ime] = {};
-    r.prazen = await izris(b);
+    r.prazen = await izris(b, mode);
     r.vzorec = await oznaciVzorec(b);
-    r.resitevBrez = await drziResitev(b, () => izris(b));
-    r.izbrane = await izberi(b, mode);
+    r.resitevBrez = await drziResitev(b, async () => ({ ...(await izris(b, mode)), precrtane: await precrtane(b) }));
+    r.poSpustuBrez = await precrtane(b);
+    r.izbrane = await izberi(b, mode, ime === 'star' ? rez.nov.izbrane : null);
     await pocakaj(b);
     r.pred = await slogiCelic(b);
     if (sirina < 500) r.prekrivanjePred = await prekrivanje(b);
@@ -184,16 +257,26 @@ async function vaja(bNov, bStar, mode, sirina) {
     });
     await pocakaj(b);
     r.po = await slogiCelic(b);
+    r.poSpustu = await precrtane(b);
     if (sirina < 500) r.prekrivanjeMed = await resitevBrezMiske(b, () => prekrivanje(b));
   }
   return rez;
 }
 
-async function preveriVajo(bNov, bStar, mode, sirina) {
+// ref: slog prečrtane števke pri 2 (slogIzbrisa2).
+async function preveriVajo(bNov, bStar, mode, sirina, ref) {
   console.log(`${mode}, ${sirina} px`);
   const { star, nov } = await vaja(bNov, bStar, mode, sirina);
   preveri('izris brez izbire enak izhodišču', razlikeIzrisa(star.prazen, nov.prazen, SLOGI).length === 0, razlikeIzrisa(star.prazen, nov.prazen, SLOGI));
-  preveri('»Rešitev« brez izbire enaka izhodišču', razlikeIzrisa(star.resitevBrez, nov.resitevBrez, SLOGI).length === 0, razlikeIzrisa(star.resitevBrez, nov.resitevBrez, SLOGI));
+  const rb = razlikeBrezPrecrtanja(star.resitevBrez, nov.resitevBrez, mode);
+  preveri('»Rešitev« brez izbire enaka izhodišču razen prečrtanja (in pri 3, 5 celic izbrisa)', rb.length === 0, rb);
+  preveriSlogPrecrtanih('»Rešitev« brez izbire', nov.resitevBrez.precrtane, ref);
+  preveri(`»Rešitev« brez izbire: v izhodišču ni bilo prečrtanih števk (${star.resitevBrez.precrtane.length})`, star.resitevBrez.precrtane.length === 0);
+  if (OCITNI.includes(mode)) {
+    const iz = nov.vzorec.izbris;
+    preveri(`3, 5: »Rešitev« brez izbire pokaže ${iz} rožnatih celic izbrisa (izhodišče ${star.vzorec.izbris})`, iz > 0 && star.vzorec.izbris === 0);
+  }
+  preveri('po spustu ni prečrtanih števk (brez izbire in z izbiro)', nov.poSpustuBrez.length === 0 && nov.poSpustu.length === 0, [nov.poSpustuBrez, nov.poSpustu]);
   const izbrane = nov.pred.filter(c => c.izb);
   const px = c => (c.xw ? 2 : 2.5);
   preveri(`pred »Preveri«: ${izbrane.length} izbrane celice modre (${IZBIRA_BG}, obroba ${MODRA})`,
@@ -232,33 +315,54 @@ async function preveriVajo(bNov, bStar, mode, sirina) {
   }
 }
 
-// Pravilen odgovor (celice vzorca s pravimi kliki) in »Rešitev« po njem - enako izhodišču; pri 8
-// po odgovoru zelena kot pri 7 (v izhodišču rožnata).
-async function pravilenOdgovor(bNov, bStar, mode, sirina) {
+// Pravilen odgovor (celice vzorca s pravimi kliki; pri 4 in 6 še 2. faza s števkami iz besedila
+// »Rešitve«) in »Rešitev« po njem - enako izhodišču razen prečrtanja. Neodvisno merilo prečrtanja:
+// po pravilnem odgovoru so prečrtane iste števke kot ob »Rešitvi« brez izbire; ostanejo ob
+// »Rešitvi« po odgovoru in po spustu. Pri 8 so celice po odgovoru zelene kot pri 7.
+async function pravilenOdgovor(bNov, bStar, mode, sirina, ref) {
   const rez = {};
   for (const [ime, b] of [['star', bStar], ['nov', bNov]]) {
     await odpri(b, mode, sirina);
-    await oznaciVzorec(b);
+    const vzorec = await oznaciVzorec(b);
     const vz = await b.izvedi(`[...document.querySelectorAll('#exerciseArea [data-vz]')].map(e => e.dataset.i)`);
     for (const i of vz) await b.klikni(`#exerciseArea [data-i="${i}"]`);
     await odmakniMisko(b);
     await klikniGumb(b, 'Preveri');
     await pocakaj(b);
-    rez[ime] = { ok: await b.izvedi(`!!document.querySelector('#exerciseArea .fb.ok')`), po: await izris(b), celice: await slogiCelic(b) };
-    rez[ime].resitev = await drziResitev(b, () => izris(b));
+    const r = rez[ime] = { vzorec };
+    if (await b.izvedi(`MODES[${JSON.stringify(mode)}].hasPhase2 === true`)) {
+      const m = vzorec.besedilo.match(/Števke:<\/b> \{([\d, ]+)\}/);
+      r.stevke = m ? m[1].split(', ') : [];
+      for (const d of r.stevke) await b.klikni(`#exerciseArea .phase2 .digit-btns button[data-d="${d}"]`);
+      await odmakniMisko(b);
+      await klikniGumb(b, r.stevke.length === 2 ? 'Preveri dve števki' : 'Preveri tri števke');
+      await pocakaj(b);
+    }
+    r.ok = await b.izvedi(`!!document.querySelector('#exerciseArea .fb.ok') && document.querySelector('#exerciseArea .fb.ok').textContent.startsWith('Pravilno!')`);
+    r.po = await izris(b, mode);
+    r.celice = await slogiCelic(b);
+    r.precrtanePo = await precrtane(b);
+    r.resitev = await drziResitev(b, async () => ({ ...(await izris(b, mode)), precrtane: await precrtane(b) }));
+    r.poSpustu = await precrtane(b);
   }
   const { star, nov } = rez;
-  preveri(`${mode}, ${sirina} px: pravilen odgovor sprejet`, star.ok && nov.ok);
+  preveri(`${mode}, ${sirina} px: pravilen odgovor sprejet${nov.stevke ? ` (2. faza: ${nov.stevke.join(', ')})` : ''}`, star.ok && nov.ok);
+  const res = kljuci(nov.vzorec.precrtane), po = kljuci(nov.precrtanePo);
+  preveri(`${mode}: po pravilnem odgovoru prečrtane iste števke kot ob »Rešitvi« brez izbire (${nov.precrtanePo.length})`, res !== '' && res === po, { resitev: res, po });
+  preveriSlogPrecrtanih(`${mode}: po pravilnem odgovoru`, nov.precrtanePo, ref);
+  preveri(`${mode}: »Rešitev« po odgovoru in spust prečrtanih ne spremenita`, kljuci(nov.resitev.precrtane) === po && kljuci(nov.poSpustu) === po,
+    { resitev: kljuci(nov.resitev.precrtane), poSpustu: kljuci(nov.poSpustu), po });
+  if (['x-wing', 'swordfish'].includes(mode)) {
+    preveri(`${mode}: v izhodišču po odgovoru števka izbrisa ni bila prečrtana (${star.precrtanePo.length})`, star.precrtanePo.length === 0);
+  }
   if (mode === 'swordfish') {
     const zelene = nov.celice.filter(c => c.bg === 'rgb(220, 238, 229)');
-    const rozneStaro = star.celice.filter(c => c.bg === 'rgb(252, 228, 236)');
-    preveri(`${mode}: po pravilnem odgovoru ${zelene.length} celic zelenih kot pri X-krilu (--green-bg, obroba --green), v izhodišču rožnate (${rozneStaro.length})`,
-      zelene.length >= 6 && zelene.every(c => c.bs === okvir(ZELENA, 2)) && rozneStaro.length === zelene.length, nov.celice.filter(c => c.izb !== undefined && c.bg !== 'rgb(255, 255, 255)'));
-    return;
+    preveri(`${mode}: po pravilnem odgovoru ${zelene.length} celic zelenih kot pri X-krilu (--green-bg, obroba --green)`,
+      zelene.length >= 6 && zelene.every(c => c.bs === okvir(ZELENA, 2)), nov.celice.filter(c => c.bg !== 'rgb(255, 255, 255)'));
   }
-  const r1 = razlikeIzrisa(star.po, nov.po, SLOGI), r2 = razlikeIzrisa(star.resitev, nov.resitev, SLOGI);
-  preveri(`${mode}, ${sirina} px: po pravilnem odgovoru enako izhodišču`, r1.length === 0, r1);
-  preveri(`${mode}, ${sirina} px: »Rešitev« po pravilnem odgovoru enaka izhodišču`, r2.length === 0, r2);
+  const r1 = razlikeBrezPrecrtanja(star.po, nov.po, mode), r2 = razlikeBrezPrecrtanja(star.resitev, nov.resitev, mode);
+  preveri(`${mode}, ${sirina} px: po pravilnem odgovoru enako izhodišču razen prečrtanja`, r1.length === 0, r1);
+  preveri(`${mode}, ${sirina} px: »Rešitev« po pravilnem odgovoru enaka izhodišču razen prečrtanja (in pri 3, 5 celic izbrisa)`, r2.length === 0, r2);
 }
 
 // 8 · Mečarica: drug veljaven vzorec (swordfish() na mreži iz celic s števko - kot »Preveri«),
@@ -298,9 +402,17 @@ async function main() {
   const izh = await izhodisceBrskalnik(izhodisce);
   const bNov = await zazeni();
   try {
-    for (const sirina of SIRINE) for (const m of TEHNIKE) await preveriVajo(bNov, izh.b, m, sirina);
+    // Slog prečrtane števke pri 2 · Izločitev v bloku (.kand.k-izbris) - merilo za 3-12.
+    const ref = {};
+    for (const sirina of SIRINE) {
+      const r = await slogIzbrisa2(bNov, sirina);
+      preveri(`2 · Izločitev v bloku, ${sirina} px: »Rešitev« prečrta števko izbrisa (${JSON.stringify(r)})`,
+        !!r && r.barva === 'rgb(178, 58, 46)' && r.crta === 'line-through' && r.debelina === '700', r);
+      ref[sirina] = r || { barva: 'rgb(178, 58, 46)', debelina: '700', crta: 'line-through' };
+    }
+    for (const sirina of SIRINE) for (const m of TEHNIKE) await preveriVajo(bNov, izh.b, m, sirina, ref[sirina]);
     console.log(`Pravilen odgovor (izhodišče ${izhodisce})`);
-    for (const sirina of SIRINE) for (const m of TEHNIKE) await pravilenOdgovor(bNov, izh.b, m, sirina);
+    for (const sirina of SIRINE) for (const m of TEHNIKE) await pravilenOdgovor(bNov, izh.b, m, sirina, ref[sirina]);
     for (const sirina of SIRINE) await drugVzorec(bNov, sirina);
   } finally {
     for (const b of [izh.b, bNov]) {

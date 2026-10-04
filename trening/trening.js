@@ -314,12 +314,39 @@ function buildSingleLayout(div,ex,M){
   return{cellEls:[],countEls:[],stevkeEl};
 }
 
+// Male števke celice vaje (.candgrid > .cd) prek otrok - nadomestni DOM v testih nima
+// querySelector. malaStevka(gc, d) je števka d ali null.
+function maleStevke(gc){
+  const cg=[...gc.children].find(e=>e.classList&&e.classList.contains('candgrid'));
+  return cg?[...cg.children]:[];
+}
+function malaStevka(gc,d){return maleStevke(gc).find(cd=>+cd.dataset.d===d)||null;}
+// Male števke [si, števka] dobijo razred (elim po pravilnem odgovoru, peek-izbris med "Rešitvijo").
+function oznaciStevke(cellEls,pari,razred){
+  pari.forEach(([si,d])=>{const cd=malaStevka(cellEls[si],d);if(cd)cd.classList.add(razred);});
+}
+
+// Izbris vzorca pri 3-6 kot pari [si, števka] (indeksi v ex.slots): pri očitnem paru/trojici
+// (celice ps s števkami ds) števke ds v drugih celicah enote, pri skritem (M.hasPhase2) druge
+// števke v celicah vzorca. Isti izračun prečrta izbris po pravilnem odgovoru (checkPhase1,
+// checkPhase2) in ob "Rešitvi (drži)" (peekOn) - docs/precrtanje-resitev-nacrt.md.
+function izbrisPodmnozice(ex,M,ps,ds){
+  if(M.hasPhase2) return ps.flatMap(si=>ex.slots[si].c.filter(d=>!ds.has(d)).map(d=>[si,d]));
+  return ex.slots.flatMap((slot,si)=>ps.includes(si)||!slot.c?[]:slot.c.filter(d=>ds.has(d)).map(d=>[si,d]));
+}
+// Vzorec očitnega para/trojice za "Rešitev": celice, celice izbrisa (elim) in izbris po števkah.
+function vzorecPodmnozice(ex,M,ps,ds){
+  const izbris=izbrisPodmnozice(ex,M,ps,ds);
+  return{cells:ps,elim:[...new Set(izbris.map(([si])=>si))],izbris};
+}
+
 // Vzorci, ki jih sprejme "Preveri" (checkPhase1), za prikaz "Rešitve" pri očitnem paru in
 // trojici, X-krilu in mečarici - pri teh je lahko veljaven tudi drug vzorec kot tisti, ki ga
 // je sestavil generator (docs/izbira-spoznaj-nacrt.md, razdelek 6). Vrne [{ cells, elim }]:
-// pri paru in trojici nabori pickN celic z natanko pickN kandidati (indeksi v ex.slots, brez
-// izbrisa), pri X-krilu dve vrstici (stolpca) s števko na istih dveh mestih in izbris kot v
-// checkPhase1, pri mečarici swordfish() kot v checkPhase1 (celice 0-80).
+// pri paru in trojici nabori pickN celic z natanko pickN kandidati (indeksi v ex.slots) z
+// izbrisom kot v checkPhase1 (vzorecPodmnozice - še izbris po števkah), pri X-krilu dve vrstici
+// (stolpca) s števko na istih dveh mestih in izbris kot v checkPhase1, pri mečarici swordfish()
+// kot v checkPhase1 (celice 0-80).
 function veljavniVzorci(ex,M){
   if(M.isSwordfish){
     const bit=1<<ex.digit;
@@ -345,7 +372,8 @@ function veljavniVzorci(ex,M){
   const prosti=ex.slots.map((s,si)=>s.c?si:-1).filter(si=>si>=0);
   (function nabori(od,nabor){
     if(nabor.length===M.pickN){
-      if(new Set(nabor.flatMap(si=>ex.slots[si].c)).size===M.pickN) vzorci.push({cells:nabor,elim:[]});
+      const ds=new Set(nabor.flatMap(si=>ex.slots[si].c));
+      if(ds.size===M.pickN) vzorci.push(vzorecPodmnozice(ex,M,nabor,ds));
       return;
     }
     for(let k=od;k<prosti.length;k++) nabori(k+1,[...nabor,prosti[k]]);
@@ -505,7 +533,7 @@ function renderExercise(){
     const xy=([r,c])=>r*9+c;
     const privzet=M.isXWing||M.isSwordfish
       ?{cells:(ex.rect||ex.sfCells).map(xy),elim:ex.elimCells.map(xy),privzet:true}
-      :{cells:ex.targetSlots,elim:[],privzet:true};
+      :{...vzorecPodmnozice(ex,M,ex.targetSlots,new Set(ex.targetDigits)),privzet:true};
     const izbranih=v=>v.cells.filter(c=>selected.includes(c)).length;
     const ves=v=>izbranih(v)===v.cells.length;
     const boljsi=(v,naj)=>izbranih(v)>izbranih(naj)||izbranih(v)===izbranih(naj)&&ves(v)&&!ves(naj);
@@ -626,6 +654,10 @@ function renderExercise(){
   const hintOverlay=document.createElement('div');hintOverlay.className='peek-overlay';
   const solOverlay=document.createElement('div');solOverlay.className='peek-overlay';
 
+  // Izbris je ob "Rešitvi" kot pri 1 in 2 (docs/precrtanje-resitev-nacrt.md): celica izbrisa
+  // rožnata (peek-elim), števka izbrisa rdeče prečrtana (peek-izbris na .cd - ne elim, ki ga
+  // ima števka po pravilnem odgovoru in ga peekOff ne sme pobrisati). Pri X-krilu in mečarici
+  // ima celica eno samo števko, zato prečrta peek-elim sam (trening.css).
   function peekOn(overlay,text,showHL){
     oznaciPomoc();
     overlay.innerHTML=text;
@@ -643,13 +675,17 @@ function renderExercise(){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
           step.cells.forEach(cidx=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-hl');});
           step.eliminate.forEach(([cidx])=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-elim');});
+          oznaciStevke(cellEls,step.eliminate.filter(([cidx])=>idxToSi.has(cidx)).map(([cidx,d])=>[idxToSi.get(cidx),d]),'peek-izbris');
         }
       } else if(M.isXWing||M.isSwordfish||!M.hasPhase2){
         const v=vzorecResitve();
         v.cells.forEach(c=>cellEls[c].classList.add('peek-hl'));
         v.elim.forEach(c=>cellEls[c].classList.add('peek-elim'));
+        if(v.izbris) oznaciStevke(cellEls,v.izbris,'peek-izbris');
       } else {
+        // Skriti par/trojica: celice vzorca ostanejo jantarne, prečrtane so njihove druge števke.
         ex.targetSlots.forEach(si=>cellEls[si].classList.add('peek-hl'));
+        oznaciStevke(cellEls,izbrisPodmnozice(ex,M,ex.targetSlots,new Set(ex.targetDigits)),'peek-izbris');
       }
     }
   }
@@ -657,7 +693,7 @@ function renderExercise(){
     overlay.classList.remove('visible');
     if(presek&&!vajaResena) presek.pokaziKorak(false);
     if(enojcek) enojcek.pokazi(false);
-    cellEls.forEach(c=>c.classList.remove('peek-hl','peek-elim','peek-enota'));
+    cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris'));});
   }
 
   const hintBtn=document.createElement('button');hintBtn.className='peek-btn';hintBtn.textContent='Namig (drži)';
@@ -736,7 +772,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       match.eliminate.forEach(([cidx,dig])=>{
         const si=idxToSi.get(cidx);if(si===undefined)return;
         cellEls[si].classList.add('elimcell');
-        const cd=cellEls[si].querySelector(`.cd[data-d="${dig}"]`);
+        const cd=malaStevka(cellEls[si],dig);
         if(cd) cd.classList.add('elim');
       });
       checkBtn.style.display='none';nextBtn.style.display='inline-block';
@@ -894,7 +930,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
       ? ex.solutionMessage
       : `{${[...ds].sort((a,b)=>a-b).join(', ')}} v ${ps.map(p=>ex.slots[p].pos).join(', ')}.`}`;
     ps.forEach(si=>{cellEls[si].classList.add('correct');cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(ds.has(+cd.dataset.d)&&!cd.classList.contains('hide'))cd.classList.add('hl',M.hlClass);});});
-    ex.slots.forEach((slot,si)=>{if(ps.includes(si)||!slot.c)return;cellEls[si].querySelectorAll('.cd').forEach(cd=>{const d=+cd.dataset.d;if(ds.has(d)&&slot.c.includes(d))cd.classList.add('elim');});});
+    oznaciStevke(cellEls,izbrisPodmnozice(ex,M,ps,ds),'elim');
     checkBtn.style.display='none';nextBtn.style.display='inline-block';
   } else if(!allOk){
     fb.className='fb err';fb.textContent='Ena od izbranih celic je fiksna.';cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
@@ -950,7 +986,8 @@ function checkPhase2(ex,M,cellEls,ch2,nextBtn,fb){
     // mora uporabnik šele izbrati.
     fb.innerHTML=`<b>Pravilno!</b> ${ex.solutionMessage
       || `{${t.join(', ')}} se v enoti pojavljajo samo v ${cellNames}. Iz teh celic izbrišeš vse ostale kandidate.`}`;
-    ex.targetSlots.forEach(si=>{cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(cd.classList.contains('hide'))return;if(ds.has(+cd.dataset.d))cd.classList.add('hl',M.hlClass);else cd.classList.add('elim');});});
+    ex.targetSlots.forEach(si=>{cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(cd.classList.contains('hide'))return;if(ds.has(+cd.dataset.d))cd.classList.add('hl',M.hlClass);});});
+    oznaciStevke(cellEls,izbrisPodmnozice(ex,M,ex.targetSlots,ds),'elim');
     ch2.style.display='none';nextBtn.style.display='inline-block';
   } else {
     fb.className='fb err';fb.innerHTML=`<b>Ni pravilno.</b> Išči ${p2n} ${p2n===2?'števki, ki sta v celotni enoti prisotni':'števke, ki so v celotni enoti prisotne'} v natanko istih ${p2n} celicah.`;

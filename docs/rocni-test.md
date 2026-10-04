@@ -173,6 +173,21 @@ vzorec pri 8 preveri `tools/preveri-izbira-brskalnik.js`; izbiro vzorca pri 3, 5
 | 2 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: izberi pivot in celico izbrisa, drži »Rešitev (drži)« s prstom. | Okvirji ne motijo branja malih števk v kotih celic; »Rešitev« ostane, dokler držiš. Potrjeno (ročni pregled 4. 10. 2026) – okvirji v redu; ob tem opaženo, da »Rešitev« pri 3–12 števke izbrisa ne prečrta (stara zasnova, nova naloga: `docs/precrtanje-resitev-nacrt.md`). – ni avtomatsko: meritev prekrivanja je pri gostoti 1x (telefon riše pri 2–3x z drugim glajenjem), dotika v brskalniku brez glave ni. |
 | 3 | trening, »Spoznaj« | 8 · Mečarica: drži »Rešitev (drži)« in v besedilu poglej »Vse veljavne kombinacije«; če jih je več, izberi celice kombinacije, ki je mreža ne pokaže, in znova drži »Rešitev«; nato »Preveri«. | »Rešitev« zdaj pokaže tvojo kombinacijo (vse tvoje celice jantarne z zelenim okvirjem), »Preveri« reče »Pravilno!«; po odgovoru so celice zelene. Razumljivo je, zakaj mreža pokaže drug vzorec kot brez izbire. Potrjeno (ročni pregled 4. 10. 2026). – ni avtomatsko: presoja razumljivosti (pravilnost preverita test in scenarij). |
 
+## Trening: prečrtanje izbrisa ob »Rešitvi« v »Spoznaj« 3–12
+
+Iz `docs/precrtanje-resitev-nacrt.md`. Da so ob »Rešitvi (drži)« rdeče prečrtane natanko števke,
+ki so prečrtane po pravilnem odgovoru (pri 4 in 6 po 2. fazi), da je slog enak kot pri 2, da po
+spustu ni prečrtanih, da sta pri 7 in 8 prečrtani tudi po odgovoru in da je vse drugo enako kot
+prej (tudi »Preveri« in prekrivanje okvirja z malimi števkami), preverijo
+`tools/preveri-izbira-brskalnik.js` (pravi pritisk miške, 375 in 1280 px) in
+`tests/trening-precrtanje.test.js`.
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: drži »Rešitev (drži)« s prstom. | V rožnati celici izbrisa je mala števka izbrisa rdeče prečrtana in berljiva (kot pri 2 · Izločitev v bloku). **(nepotrjeno)** – ni avtomatsko: scenarij izmeri barvo, debelino in črto (kontrast rdeče na rožnati 3,3) pri gostoti 1x; telefon riše pri 2–3x z drugim glajenjem, dotika v brskalniku brez glave ni. |
+| 2 | trening, »Spoznaj«, tvoj zaslon | 12 · Edinstveni pravokotnik: drži »Rešitev (drži)«. | Vogal z izbrisom ostane jantaren kot drugi trije, njegovi števki para pa sta rdeče prečrtani – jasno je, da se izbrišeta iz tega vogala. **(nepotrjeno)** – ni avtomatsko: presoja razumljivosti (vogal je hkrati vzorec in izbris); scenarij preveri slog in da so prečrtane iste števke kot po odgovoru. |
+| 3 | trening, »Spoznaj« | 3 · Očitni par: drži »Rešitev (drži)«; nato 4 · Skriti par: drži »Rešitev (drži)«. | Pri 3 so celice izbrisa rožnate, števke para v njih rdeče prečrtane (kot po pravilnem odgovoru); pri 4 ostanejo celice vzorca jantarne, prečrtane so njihove druge števke. Razlika med 3 in 4 je razumljiva. **(nepotrjeno)** – ni avtomatsko: presoja razumljivosti (pravilnost preverita test in scenarij). |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
