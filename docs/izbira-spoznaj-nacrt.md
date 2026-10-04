@@ -160,3 +160,7 @@ s `swordfish()`, ki ga uporablja »Preveri«.
 
 **Testi in orodja:** `tests/trening-resitev.test.js` (12 testov; trije za drug vzorec padejo na
 kodi pred nalogo), `tools/preveri-izbira-brskalnik.js` (338 preverjanj).
+
+Commit `7b4632e`. Ročni pregled (3 točke v `docs/rocni-test.md`) potrjen 2026-10-04 – naloga
+zaprta. Ob točki 2 opaženo, da »Rešitev« pri 3–12 števke izbrisa ne prečrta (stara zasnova):
+nova naloga, `docs/precrtanje-resitev-nacrt.md`.

@@ -1307,7 +1307,12 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   okvir pove, ali je izbira pravilna (zelen / temno rdeč / zlat za spregledano); pri 3, 5, 7 in 8
   »Rešitev« pokaže veljaven vzorec, ki se najbolj ujema z izbiro (»Preveri« tam sprejme več
   vzorcev – različica B). Ob tem popravljeno: pri 8 · Mečarica so celice po pravilnem odgovoru
-  zelene (prej jih je prekrila rožnata izbira).
+  zelene (prej jih je prekrila rožnata izbira). Ročni pregled (3 točke) potrjen 2026-10-04,
+  naloga zaprta.
+- **Prečrtanje števke izbrisa ob »Rešitvi« v »Spoznaj« 3–12** (zapisano 2026-10-04 ob ročnem
+  pregledu naloge »enotna izbira«; stara zasnova, kode nisem spreminjal): »Rešitev« pri 3–12
+  števke izbrisa ne prečrta (pri 3–6 izbrisa sploh ne pokaže), pri 1, 2 in v »Vadi v uganki« jo.
+  Nova naloga v novem pogovoru – načrt z odločitvami: `docs/precrtanje-resitev-nacrt.md`.
 
 ### Faza 6 – pomoč
 
