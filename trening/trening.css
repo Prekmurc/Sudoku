@@ -143,18 +143,13 @@ header.top{max-width:560px}
 .gc{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;border:2px solid #D0D5DA;border-radius:6px;background:#fff;transition:background .12s,box-shadow .12s;flex-shrink:0}
 .gc.selectable{cursor:pointer}
 .gc.selectable:hover{background:#EDF2F7}
-.gc.selected-amber{background:var(--amber-bg)!important;box-shadow:inset 0 0 0 2.5px var(--amber)}
-.gc.selected-purple{background:var(--purple-bg)!important;box-shadow:inset 0 0 0 2.5px var(--purple)}
-.gc.selected-teal{background:var(--teal-bg)!important;box-shadow:inset 0 0 0 2.5px var(--teal)}
-.gc.selected-steel{background:#DCE8F8!important;box-shadow:inset 0 0 0 2.5px #2956A0}
-.gc.selected-rose{background:#FCE4EC!important;box-shadow:inset 0 0 0 2.5px #A02050}
-.gc.selected-forest{background:#E8F5E9!important;box-shadow:inset 0 0 0 2.5px #2E7D32}
-.gc.selected-blue{background:var(--blue-bg)!important;box-shadow:inset 0 0 0 2.5px var(--blue)}
-.gc.selected-indigo{background:var(--indigo-bg)!important;box-shadow:inset 0 0 0 2.5px var(--indigo)}
-.gc.selected-cyan{background:var(--cyan-bg)!important;box-shadow:inset 0 0 0 2.5px var(--cyan)}
-.gc.selected-orange{background:var(--orange-bg)!important;box-shadow:inset 0 0 0 2.5px var(--orange)}
-.gc.selected-plum{background:var(--plum-bg)!important;box-shadow:inset 0 0 0 2.5px var(--plum)}
-.gc.selected-olive{background:var(--olive-bg)!important;box-shadow:inset 0 0 0 2.5px var(--olive)}
+/* Izbira pri 3-12 (Spoznaj): modra kot drugod (--izbira-bg, --izbira; faza 5, A2), pri vseh
+   tehnikah enaka (docs/izbira-spoznaj-nacrt.md). Razredi so MODES[].selClass iz generators.js
+   (imena so zgodovinska - nekoč barva tehnike) in .xw-selected pri X-krilu in mečarici.
+   Obroba ostane 2,5 px (pri .xw-cell 2 px), da ne prekrije malih števk bolj kot prej. Pred
+   pravili "Rešitve" spodaj - podlaga vzorca in izbrisa ima prednost. */
+.gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange){background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2.5px var(--izbira)}
+.xw-cell.xw-selected{background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
 .gc.correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--green)}
 .gc.elimcell{background:var(--k-izbris-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
 .gc.peek-elim{background:var(--k-izbris-bg)!important}
@@ -210,7 +205,22 @@ button.peek-btn:active{background:#F0F2F5}
 .xw-cell.peek-elim{background:var(--k-izbris-bg)!important}
 :where(.gc.peek-hl,.gc.peek-elim,.gc.elimcell) .cd{color:var(--kand-ink)}
 .xw-cell.peek-elim .xd{text-decoration:line-through}
-.xw-cell.xw-sf-correct{background:#E8F5E9!important;box-shadow:inset 0 0 0 2px #2E7D32}
+/* pravilen odgovor pri mečarici - ista zelena kot pri X-krilu (.xw-correct); do naloge
+   docs/izbira-spoznaj-nacrt.md je bilo pravilo izbire za tem in je zeleno prekrilo z rožnato */
+.xw-cell.xw-sf-correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2px var(--green)}
+/* Med "Rešitvijo (drži)" okvir pove, ali je izbira pravilna (docs/izbira-spoznaj-nacrt.md):
+   pravilno izbrana celica vzorca jantarna z zelenim okvirjem (zelena pravilnega odgovora),
+   napačno izbrana bela s temno rdečim okvirjem (kontrast 5,1 na podlagi izbrisa in 9,0 na beli;
+   izbrana celica izbrisa ostane rožnata), spregledana celica vzorca jantarna z zlatim okvirjem in
+   izbris rožnat brez okvirja (pravila zgoraj). Da je "Rešitev" prikazana, pove
+   .exercise:has(.peek-hl) - celice vzorca dobijo peek-hl samo med držanjem. Celice pravilnega
+   odgovora (.correct, .xw-correct, .xw-sf-correct) ostanejo, kot so. */
+.gc.peek-hl:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange):not(.correct),
+.xw-cell.peek-hl.xw-selected:not(.xw-correct,.xw-sf-correct){box-shadow:inset 0 0 0 2.5px var(--green)!important}
+.exercise:has(.peek-hl) .gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange):not(.peek-hl,.correct),
+.exercise:has(.peek-hl) .xw-cell.xw-selected:not(.peek-hl,.xw-correct,.xw-sf-correct){box-shadow:inset 0 0 0 2.5px #8E1B1B!important}
+.exercise:has(.peek-hl) .gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange):not(.peek-hl,.peek-elim,.correct),
+.exercise:has(.peek-hl) .xw-cell.xw-selected:not(.peek-hl,.peek-elim,.xw-correct,.xw-sf-correct){background:#fff!important}
 
 /* Oba mrežna prikaza 9x9 (X-Wing/Swordfish in XY-Wing/Unique Rectangle) uporabljata
    manjšo celico --gs, da se mreža v celoti vidi tudi v ožjem oknu. Vse notranje mere
@@ -224,7 +234,6 @@ button.peek-btn:active{background:#F0F2F5}
 .xw-cell{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;border:1px solid #E0E3E7;background:#F8F9FA;font-family:'JetBrains Mono',monospace;font-size:calc(var(--cs)*.38);color:#CCC;transition:background .12s,box-shadow .12s}
 .xw-cell.has-digit{color:var(--ink);background:#fff;font-weight:700;cursor:pointer}
 .xw-cell.has-digit:hover{background:#EDF2F7}
-.xw-cell.xw-selected{background:#FCE4EC!important;box-shadow:inset 0 0 0 2px #A02050}
 .xw-cell.xw-correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2px var(--green)}
 .xw-cell.xw-elim{background:var(--k-izbris-bg)!important}
 .xw-cell.xw-elim .xd{text-decoration:line-through;color:var(--red)}

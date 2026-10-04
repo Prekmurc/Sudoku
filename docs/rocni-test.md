@@ -159,6 +159,20 @@ barvah poudarka (kontrast, viden na posnetku), podlagi v treningu – tudi v mre
 | 6 | trening, »Spoznaj«, tvoj zaslon | 3 · Očitni par: izberi dve celici, ki nista par, nato drži »Rešitev (drži)«. | Celici vzorca (močnejša jantarna, zlata obroba) ločiš od svoje izbire (bleda jantarna, temno jantarna obroba); kandidati v označenih celicah so temnejši in berljivi. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: scenarij izmeri barve (podlagi se ločita s kontrastom 1,1, obrobi 1,9 – prej podlagi 1,2), ne pa, ali ju ločiš ti. |
 | 7 | trening, »Spoznaj« | 7 · X-krilo in 8 · Mečarica: drži »Rešitev (drži)«, nato odgovori pravilno. Če se rešitev ob pritisku takoj skrije, stran malo pomakni navzgor (znana napaka, ni del naloge – »Kasneje«). | Vzorec je zdaj jantaren (prej zelen), celice izbrisa rožnate; po pravilnem odgovoru so tvoje celice zelene, izbris rožnat z rdečo obrobo – sprememba barve vzorca je razumljiva. Potrjeno (ročni pregled 3. 10. 2026). – ni avtomatsko: presoja, ali je nova barva vzorca pri 7 in 8 jasna. |
 
+## Trening: enotna izbira v »Spoznaj« 3–12
+
+Iz `docs/izbira-spoznaj-nacrt.md`. Modro izbiro, vseh pet vrst celic med »Rešitvijo (drži)«
+(pravi pritisk miške), kontrast rdeče, prekrivanje okvirja z malimi števkami pri 375 px (enako kot
+prej), pravilen odgovor in »Rešitev« po njem (enako kot prej, pri 8 zeleno) ter drug veljaven
+vzorec pri 8 preveri `tools/preveri-izbira-brskalnik.js`; izbiro vzorca pri 3, 5, 7 in 8
+`tests/trening-resitev.test.js`.
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, »Spoznaj«, tvoj zaslon | 3 · Očitni par in 9 · Veriga ene števke: izberi eno celico vzorca in eno zunaj njega (pri 9 celico izbrisa – tisto, ki ob »Rešitvi« postane rožnata), nato drži »Rešitev (drži)«. | Pred pritiskom sta obe izbiri modri. Med »Rešitvijo«: pravilna celica jantarna z zelenim okvirjem, napačna bela (pri 9 rožnata) s temno rdečim, neizbrana celica vzorca jantarna z zlatim; zelen in zlat okvir ločiš na prvi pogled. (nepotrjeno) – ni avtomatsko: scenarij izmeri barve (zelena proti jantarni podlagi 3,6, zlata 1,8), ne pa, ali zelen in zlat okvir enake debeline ločiš na svojem zaslonu. |
+| 2 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: izberi pivot in celico izbrisa, drži »Rešitev (drži)« s prstom. | Okvirji ne motijo branja malih števk v kotih celic; »Rešitev« ostane, dokler držiš. (nepotrjeno) – ni avtomatsko: meritev prekrivanja je pri gostoti 1x (telefon riše pri 2–3x z drugim glajenjem), dotika v brskalniku brez glave ni. |
+| 3 | trening, »Spoznaj« | 8 · Mečarica: drži »Rešitev (drži)« in v besedilu poglej »Vse veljavne kombinacije«; če jih je več, izberi celice kombinacije, ki je mreža ne pokaže, in znova drži »Rešitev«; nato »Preveri«. | »Rešitev« zdaj pokaže tvojo kombinacijo (vse tvoje celice jantarne z zelenim okvirjem), »Preveri« reče »Pravilno!«; po odgovoru so celice zelene. Razumljivo je, zakaj mreža pokaže drug vzorec kot brez izbire. (nepotrjeno) – ni avtomatsko: presoja razumljivosti (pravilnost preverita test in scenarij). |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

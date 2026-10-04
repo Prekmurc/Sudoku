@@ -1243,14 +1243,6 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6).
   `tools/preveri-vadi-brskalnik.js` se temu izogne s prostorom pod vsebino. Darko napake pri
   sebi ne vidi, ne z miško ne na dotik (ročni pregled 2026-10-03) – zapis ostane, ker se
   zanesljivo pokaže v brskalniku brez glave (okno 1280 × 1000, stran pomaknjena do konca).
-- **Izbira v vajah 3–12 v »Spoznaj« naj bo modra kot drugod** (zapisano 2026-10-03 ob nalogi
-  »oznake«): zdaj jantarna, od vzorca se loči le po svetlosti. Opomba: barva izbire je zdaj po
-  tehniki (`MODES[].selClass` v `trening/generators.js`, `.gc.selected-*` v
-  `trening/trening.css`) – jantarna je pri 3 · Očitni par (#F1E5C9, obroba #9C6B12; vzorec ob
-  »Rešitvi« #EFD8A0, obroba #C8A020 – kontrast podlag 1,1), druge tehnike imajo svoje barve,
-  mreža X-krila in mečarice (`.xw-cell.xw-selected`) pa je vedno rožnata z rdečkasto obrobo.
-  Drugod (»Vadi v uganki«, »Spoznaj« E1, E2, 1 in 2, igra) je izbira modrikasta podlaga in
-  3 px modra obroba (`--izbira-bg`, `--izbira`, odločitev A2 v fazi 5).
 - **Postavka »tvoje oznake« v legendi pod »Pravilno!«** (zapisano 2026-10-03 ob nalogi
   »oznake«, `docs/oznake-nacrt.md`, O4): v legendi po pravilnem odgovoru v »Vadi v uganki«
   (`legendaKoraka()` v `trening/v-uganki.js`) še črtkan vijoličen kvadratek »tvoje oznake«.
@@ -1306,6 +1298,17 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
   stopnji koraka kandidati v celicah koraka in gumb »Vklopi kandidate«. Ročni pregled (4 točke)
   v `docs/rocni-test.md`, potrjen 2026-10-03.
 
+### Naloga »enotna izbira v Spoznaj 3–12« (pred fazo 6)
+
+- Postavka iz »Kasneje« (»Izbira v vajah 3–12 v »Spoznaj« naj bo modra kot drugod«, zapisana
+  2026-10-03 ob nalogi »oznake«). Pred fazo 6, ker bo legenda opisovala končne barve. Načrt,
+  meritve in slika: `docs/izbira-spoznaj-nacrt.md`.
+  **Izvedeno 2026-10-04:** izbira pred »Preveri« modra pri vseh vajah 3–12; ob »Rešitvi (drži)«
+  okvir pove, ali je izbira pravilna (zelen / temno rdeč / zlat za spregledano); pri 3, 5, 7 in 8
+  »Rešitev« pokaže veljaven vzorec, ki se najbolj ujema z izbiro (»Preveri« tam sprejme več
+  vzorcev – različica B). Ob tem popravljeno: pri 8 · Mečarica so celice po pravilnem odgovoru
+  zelene (prej jih je prekrila rožnata izbira).
+
 ### Faza 6 – pomoč
 
 - **Opisi tehnik so ponekod prekratki** (zapisano 2026-10-03 ob ročnem pregledu »Vadi v
@@ -1318,22 +1321,23 @@ Tu so opombe k fazam aplikacij (tabela »Vrstni red popravkov«); opombe k nalog
 - **Barve oznak pri vajah 3–12 v »Spoznaj« niso nikjer razložene** (zapisano 2026-10-03 ob
   nalogi »oznake«, `docs/oznake-nacrt.md`; kode nisem spreminjal). Legende ni – ima jo samo
   »Vadi v uganki« (`legendaKoraka()` v `trening/v-uganki.js`); besedilo »Rešitve (drži)« barv
-  ne omenja. Pomen barv:
-  - **izbira** – barva tehnike (podlaga in obroba, `.gc.selected-*`); pri 7 · X-krilo in
-    8 · Mečarica rožnata podlaga #FCE4EC z rdečkasto obrobo #A02050 (`.xw-cell.xw-selected`);
-  - **ob »Rešitvi (drži)«** – celice vzorca jantarna podlaga #EFD8A0 z zlato obrobo #C8A020
-    (`peek-hl`), celice izbrisa rožnata #F0B4AA brez obrobe (`peek-elim`; pri 3–6 jih ni);
-  - **po pravilnem odgovoru** – izbrane celice zelene (`.gc.correct`, `.xw-correct`), celice
-    izbrisa rožnate (pri 9–12 z rdečo obrobo – `.gc.elimcell`, pri 7 in 8 brez – `.xw-elim`;
-    pri 3–6 celica izbrisa nima podlage), izbrisana števka rdeče prečrtana.
+  ne omenja. Pomen barv (od naloge »enotna izbira«, 2026-10-04, `docs/izbira-spoznaj-nacrt.md` –
+  pri vseh vajah 3–12 enako):
+  - **izbira** pred »Preveri« – modrikasta podlaga #DDE7F3 in modra obroba #4A86D8, kot drugod
+    (`--izbira-bg`, `--izbira`);
+  - **ob »Rešitvi (drži)«** okvir pove, ali je izbira pravilna – pravilno izbrana celica vzorca
+    jantarna #EFD8A0 z zelenim okvirjem (`--green` #2E7D5C), napačno izbrana bela s temno rdečim
+    okvirjem #8E1B1B, napačno izbrana celica izbrisa rožnata s temno rdečim, spregledana celica
+    vzorca jantarna z zlatim okvirjem #C8A020, izbris rožnat #F0B4AA brez okvirja (pri 3–6
+    celic izbrisa ni; pri 12 je izbris vogal vzorca in se kaže kot vzorec);
+  - **po pravilnem odgovoru** – izbrane celice zelene (`.gc.correct`, `.xw-correct`,
+    `.xw-sf-correct` – vse `--green-bg` z obrobo `--green`), celice izbrisa rožnate (pri 9–12 z
+    rdečo obrobo `--red` – `.gc.elimcell`, pri 7 in 8 brez – `.xw-elim`; pri 3–6 celica izbrisa
+    nima podlage), izbrisana števka rdeče prečrtana.
 
   Napačen odgovor celic ne obarva: »Preveri« izpiše, zakaj ni prav, in izbiro počisti; nato
   izbereš znova in znova preveriš (vsak poskus brez pomoči se šteje, po ogledu namiga ali
-  rešitve nobeden). Kar je videti kot ocena, je izbira pod oznakami »Rešitve (drži)« – in ni
-  enako pri vseh vajah: pri 7 in 8 ostane na celici vzorca podlaga izbire (izbrana celica vzorca
-  rožnata z zlato obrobo, neizbrana jantarna z zlato, izbrana celica zunaj vzorca rožnata z
-  rdečkasto obrobo izbire – videti kot napaka, čeprav to ni), pri 3–6 in 9–12 pa vzorec prekrije
-  izbiro (izbrana in neizbrana celica vzorca sta enaki), izbrana celica izbrisa pri 9–12 ima
-  podlago izbrisa in obrobo izbire. Ob fazi 6: legenda pod »Rešitvijo« in po pravilnem odgovoru
-  (kot v »Vadi v uganki«); ob tem odloči, ali naj bo prikaz izbire ob »Rešitvi« pri vseh vajah
-  enak (povezano s postavko »Izbira v vajah 3–12 … naj bo modra« v »Kasneje«).
+  rešitve nobeden). Ob fazi 6: legenda pod »Rešitvijo« in po pravilnem odgovoru (kot v »Vadi v
+  uganki«). Pozor pri legendi: rožnata celica z rdečim okvirjem pomeni ob »Rešitvi« napačno
+  izbrano celico izbrisa (temno rdeča #8E1B1B), po pravilnem odgovoru pri 9–12 pa celico izbrisa
+  (`--red` #B23A2E) – podobna oznaka v dveh stanjih.

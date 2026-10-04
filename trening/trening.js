@@ -314,6 +314,45 @@ function buildSingleLayout(div,ex,M){
   return{cellEls:[],countEls:[],stevkeEl};
 }
 
+// Vzorci, ki jih sprejme "Preveri" (checkPhase1), za prikaz "Rešitve" pri očitnem paru in
+// trojici, X-krilu in mečarici - pri teh je lahko veljaven tudi drug vzorec kot tisti, ki ga
+// je sestavil generator (docs/izbira-spoznaj-nacrt.md, razdelek 6). Vrne [{ cells, elim }]:
+// pri paru in trojici nabori pickN celic z natanko pickN kandidati (indeksi v ex.slots, brez
+// izbrisa), pri X-krilu dve vrstici (stolpca) s števko na istih dveh mestih in izbris kot v
+// checkPhase1, pri mečarici swordfish() kot v checkPhase1 (celice 0-80).
+function veljavniVzorci(ex,M){
+  if(M.isSwordfish){
+    const bit=1<<ex.digit;
+    return swordfish({grid:new Array(81).fill(0),cand:ex.grid.map(has=>has?bit:0)})
+      .map(s=>({cells:s.cells,elim:s.eliminate.map(([c])=>c)}));
+  }
+  const vzorci=[];
+  if(M.isXWing){
+    const devet=[...Array(9).keys()];
+    for(const vrstice of [true,false]){
+      const idx=(b,i)=>vrstice?b*9+i:i*9+b;
+      const mesta=devet.map(b=>devet.filter(i=>ex.grid[idx(b,i)]));
+      for(let a=0;a<9;a++)for(let b=a+1;b<9;b++){
+        if(mesta[a].length!==2||mesta[a].join()!==mesta[b].join()) continue;
+        vzorci.push({
+          cells:[a,b].flatMap(x=>mesta[a].map(i=>idx(x,i))),
+          elim:mesta[a].flatMap(i=>devet.filter(x=>x!==a&&x!==b&&ex.grid[idx(x,i)]).map(x=>idx(x,i))),
+        });
+      }
+    }
+    return vzorci;
+  }
+  const prosti=ex.slots.map((s,si)=>s.c?si:-1).filter(si=>si>=0);
+  (function nabori(od,nabor){
+    if(nabor.length===M.pickN){
+      if(new Set(nabor.flatMap(si=>ex.slots[si].c)).size===M.pickN) vzorci.push({cells:nabor,elim:[]});
+      return;
+    }
+    for(let k=od;k<prosti.length;k++) nabori(k+1,[...nabor,prosti[k]]);
+  })(0,[]);
+  return vzorci;
+}
+
 function renderExercise(){
   const M=MODES[mode];
   enojcek=null;vadiPrekini();
@@ -457,6 +496,22 @@ function renderExercise(){
     return {cells:ex.solutionCells,eliminate:ex.solutionEliminate,message:ex.solutionMessage};
   }
 
+  // Vzorec, ki ga pokaže "Rešitev" pri očitnem paru in trojici, X-krilu in mečarici: med
+  // vzorci, ki jih sprejme "Preveri", tisti z največ izbranimi celicami, pri enakem številu tisti,
+  // ki je izbran ves (mečarica je lahko del večje) - brez izbire ali ob izenačenju vzorec
+  // generatorja (privzet). Tako se okvir izbire ob "Rešitvi" (pravilno / napačno izbrana,
+  // trening.css) ujema s "Preveri", tudi če je izbran drug veljaven vzorec.
+  function vzorecResitve(){
+    const xy=([r,c])=>r*9+c;
+    const privzet=M.isXWing||M.isSwordfish
+      ?{cells:(ex.rect||ex.sfCells).map(xy),elim:ex.elimCells.map(xy),privzet:true}
+      :{cells:ex.targetSlots,elim:[],privzet:true};
+    const izbranih=v=>v.cells.filter(c=>selected.includes(c)).length;
+    const ves=v=>izbranih(v)===v.cells.length;
+    const boljsi=(v,naj)=>izbranih(v)>izbranih(naj)||izbranih(v)===izbranih(naj)&&ves(v)&&!ves(naj);
+    return veljavniVzorci(ex,M).reduce((naj,v)=>boljsi(v,naj)?v:naj,privzet);
+  }
+
   // Besedilo namiga glede na tip
   function buildHintText(){
     if(M.isSingle) return ex.namig;
@@ -553,8 +608,16 @@ function renderExercise(){
       return `<b>Vse veljavne kombinacije za ${techName} (${combos.length}):</b><br>${combos.join('<br>')}`;
     }
     // Očitna para/trojica: sporočilo motorja (pove tudi celice izbrisa). Pri skritih
-    // vzorcih ga ne kažemo - tam se pokaže šele po 2. fazi (glej checkPhase2).
-    if(!M.hasPhase2&&ex.solutionMessage) return ex.solutionMessage;
+    // vzorcih ga ne kažemo - tam se pokaže šele po 2. fazi (glej checkPhase2). Če "Rešitev"
+    // pokaže drug veljaven vzorec (vzorecResitve), besedilo kot pri "Preveri" za tak vzorec.
+    if(!M.hasPhase2){
+      const v=vzorecResitve();
+      if(!v.privzet){
+        const ds=[...new Set(v.cells.flatMap(si=>ex.slots[si].c))].sort((a,b)=>a-b);
+        return `{${ds.join(', ')}} v ${[...v.cells].sort((a,b)=>a-b).map(p=>ex.slots[p].pos).join(', ')}.`;
+      }
+      if(ex.solutionMessage) return ex.solutionMessage;
+    }
     const cells=ex.targetSlots.map(p=>ex.slots[p].pos).join(', ');
     const digits=ex.targetDigits.join(', ');
     return `<b>Celice:</b> ${cells} · <b>Števke:</b> {${digits}}`;
@@ -581,10 +644,10 @@ function renderExercise(){
           step.cells.forEach(cidx=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-hl');});
           step.eliminate.forEach(([cidx])=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-elim');});
         }
-      } else if(M.isXWing||M.isSwordfish){
-        const hlCells=ex.rect||ex.sfCells||[];
-        hlCells.forEach(([r,c])=>cellEls[r*9+c].classList.add('peek-hl'));
-        (ex.elimCells||[]).forEach(([r,c])=>cellEls[r*9+c].classList.add('peek-elim'));
+      } else if(M.isXWing||M.isSwordfish||!M.hasPhase2){
+        const v=vzorecResitve();
+        v.cells.forEach(c=>cellEls[c].classList.add('peek-hl'));
+        v.elim.forEach(c=>cellEls[c].classList.add('peek-elim'));
       } else {
         ex.targetSlots.forEach(si=>cellEls[si].classList.add('peek-hl'));
       }
