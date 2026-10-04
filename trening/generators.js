@@ -536,7 +536,7 @@ function genSwordfish(n){
       baseName,crossName,baseLabels,crossLabels,
       mode:'swordfish',
       unitLabel:`Mečarica za števko ${digit}`,
-      desc:`Števka ${digit}: najdi 3 ${baseName}, kjer se ${digit} pojavi samo na istih 3 ${crossName}. Klikni vse celice s ${digit} v teh treh ${baseName}.`
+      desc:`Števka ${digit}: najdi 3 ${baseIsRow?'vrstice':'stolpce'}, kjer se ${digit} pojavi samo na istih 3 ${crossName}. Klikni vse celice s ${digit} v teh treh ${baseName}.`
     };
   }
   return genSwordfish(n+10);
@@ -949,13 +949,13 @@ function postopnostEnojcka(gol,stopnja,korak){
     const enota=gol?UNITS_OF[celica][randInt(0,UNITS_OF[celica].length-1)]:korak.hint.unit;
     return{
       oznaka:{celica:null,enota,stevka:null},
-      unitLabel:`V ${oznacenaEnota(enota)} poišči ${gol?'celico z eno samo možno števko':'števko z enim samim mestom'}`,
+      unitLabel:`V ${oznacenaEnota(enota)} poišči ${gol?'celico, v kateri je mogoča samo ena števka':'števko z enim samim mestom'}`,
       desc:`${razlaga} Izberi celico v označeni enoti in nato števko, ki jo vpišeš.`,
     };
   }
   return{
     oznaka:null,
-    unitLabel:gol?'Poišči celico z eno samo možno števko':'Poišči števko z enim samim mestom v enoti',
+    unitLabel:gol?'Poišči celico, v kateri je mogoča samo ena števka':'Poišči števko z enim samim mestom v enoti',
     desc:undefined,
   };
 }

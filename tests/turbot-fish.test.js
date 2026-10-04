@@ -65,7 +65,7 @@ test('Two-String Kite (Zmaj z dvema vrvicama)', () => {
   assert.equal(steps[0].technique, 'Turbot Fish');
   assert.equal(steps[0].message,
     'Kandidat 4 je v vrstici 4 mogoč samo v celicah V4S2, V4S5, v stolpcu 6 pa samo v celicah V5S6, V9S6. ' +
-    'Celici V4S5 in V5S6 ležita v bloku 5, zato je vsaj ena od celic V4S2, V9S6 enaka 4 -> tvori vzorec ' +
+    'Celici V4S5 in V5S6 ležita v bloku 5, zato je vsaj ena od celic V4S2, V9S6 enaka 4 → tvori vzorec ' +
     'Zmaj z dvema vrvicama (2-String Kite, veriga ene števke). 4 lahko izbrišemo iz celic, ki vidijo obe: V9S2.');
 });
 
@@ -78,7 +78,7 @@ test('Skyscraper', () => {
   ]);
   assert.equal(steps[1].message,
     'Kandidat 7 je v vrstici 5 mogoč samo v celicah V5S5, V5S9, v vrstici 8 pa samo v celicah V8S6, V8S9. ' +
-    'Celici V5S9 in V8S9 ležita v stolpcu 9, zato je vsaj ena od celic V5S5, V8S6 enaka 7 -> tvori vzorec ' +
+    'Celici V5S9 in V8S9 ležita v stolpcu 9, zato je vsaj ena od celic V5S5, V8S6 enaka 7 → tvori vzorec ' +
     'Nebotičnik (Skyscraper, veriga ene števke). 7 lahko izbrišemo iz celic, ki vidijo obe: V6S6, V9S5.');
 });
 

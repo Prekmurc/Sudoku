@@ -416,7 +416,9 @@ function enotaZaNamig(unit) {
   return { tozilnik: `${vrsta === 'stolpcu' ? 'stolpec' : 'blok'} ${st}`, vNjej: 'v njem' };
 }
 function celicZEnoStevko(n) {
-  return n === 1 ? 'je 1 celica' : n === 2 ? 'sta 2 celici' : n <= 4 ? `so ${n} celice` : `je ${n} celic`;
+  const v = n === 1 ? 'v kateri' : 'v katerih';
+  return (n === 1 ? 'je 1 celica' : n === 2 ? 'sta 2 celici' : n <= 4 ? `so ${n} celice` : `je ${n} celic`)
+    + `, ${v} je mogoča samo ena števka`;
 }
 
 // Števke 1-9, ki v enoti še niso vpisane.
@@ -440,7 +442,7 @@ function namigEnojcka(gol, koraki, korak, oznaka, grid) {
   }
   if (gol && o.enota) {
     const celic = new Set(koraki.map(s => s.assign[0][0]).filter(c => o.enota.includes(c))).size;
-    return `V ${unitNameLoc(o.enota)} ${celicZEnoStevko(celic)} z eno samo možno števko. Za vsako prazno celico ${enotaZaNamig(o.enota).vNjej} preglej, katere števke so že v njeni vrstici, stolpcu in bloku.`;
+    return `V ${unitNameLoc(o.enota)} ${celicZEnoStevko(celic)}. Za vsako prazno celico ${enotaZaNamig(o.enota).vNjej} preglej, katere števke so že v njeni vrstici, stolpcu in bloku.`;
   }
   if (!gol && o.enota && o.stevka) {
     const loc = unitNameLoc(o.enota), vrsta = loc.split(' ')[0];
@@ -453,7 +455,7 @@ function namigEnojcka(gol, koraki, korak, oznaka, grid) {
   }
   if (gol) {
     const celic = new Set(koraki.map(s => s.assign[0][0])).size;
-    return `V mreži ${celicZEnoStevko(celic)} z eno samo možno števko. Ena je v bloku ${boxOf(korak.assign[0][0]) + 1}.`;
+    return `V mreži ${celicZEnoStevko(celic)}. Ena je v bloku ${boxOf(korak.assign[0][0]) + 1}.`;
   }
   const e = enotaZaNamig(korak.hint.unit);
   return `Poglej ${e.tozilnik}: katera števka, ki je ${e.vNjej} še ni, je mogoča samo na enem mestu?`;

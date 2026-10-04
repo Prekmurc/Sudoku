@@ -85,7 +85,7 @@ const plosca = ustvariPlosco({
   pogled: () => pogledKoraka(),
   vir: () => ({ igra, stanje }),
   obSpremembi: (vrsta) => {
-    sporocilo = vrsta === 'znova' ? { besedilo: 'Začel si znova - prejšnje poteze so na voljo s »Ponovi«.', razred: '' } : null;
+    sporocilo = vrsta === 'znova' ? { besedilo: 'Začel si znova – prejšnje poteze so na voljo s »Ponovi«.', razred: '' } : null;
     osvezi();
   },
   izrisi: () => izrisi(),
@@ -128,7 +128,7 @@ function osvezi(jePoteza = true) {
   // Napredek trenutne igre (sudoku.igra.v1) se shrani VEDNO in neodvisno od zapisa
   // v zbirki (sudoku.zbirka.v1) - tudi pri rešeni uganki, ki se rešuje znova.
   if (!igraShrani(igra)) {
-    sporocilo = { besedilo: 'Napredka ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja) - ob osvežitvi strani bodo poteze izgubljene.', razred: 'err' };
+    sporocilo = { besedilo: 'Napredka ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja) – ob osvežitvi strani bodo poteze izgubljene.', razred: 'err' };
   }
   if (jePoteza) shraniIgranje();
   izrisi();
@@ -265,7 +265,7 @@ function opisUganke(danosti) {
     `danih števk: ${danih}`, zbirkaOznakaTehnik(z)].filter(Boolean);
   // Moje reševanje je v svoji vrstici pod prvo (.opis-uganke ima white-space: pre-line).
   const igranje = zbirkaVrsticaIgranja(z, povzetekTrenutne());
-  return deli.join(' · ') + (igranje ? `\n${igranje}` : '') + (z.opomba ? ` — ${z.opomba}` : '');
+  return deli.join(' · ') + (igranje ? `\n${igranje}` : '') + (z.opomba ? ` – ${z.opomba}` : '');
 }
 
 /* ---------- pomoč: Naslednji korak, Preveri ---------- */
@@ -291,14 +291,14 @@ korakBtn.addEventListener('click', () => {
     if (pomoc.stopnja < 3) nastaviPomoc({ ...pomoc, stopnja: pomoc.stopnja + 1 });
     return;
   }
-  if (jeResena(stanje)) return nastaviPomoc({ besedilo: 'Uganka je rešena - ni več korakov.', razred: 'ok' });
+  if (jeResena(stanje)) return nastaviPomoc({ besedilo: 'Uganka je rešena – ni več korakov.', razred: 'ok' });
   const res = resitev();
   if (!res) return nastaviPomoc({ besedilo: 'Rešitve uganke ni bilo mogoče izračunati.', razred: 'err' });
   // Korak na napačni mreži bi temeljil na napačnih kandidatih - ne pokažemo ga.
   if (prvaNapaka(igra, res) !== null) {
     return nastaviPomoc({ besedilo: 'Na mreži je napaka, zato korak ne bi bil zanesljiv. Pritisni »Preveri«.', razred: 'err' });
   }
-  const iskanje = { besedilo: 'Iščem korak ...', razred: '' };
+  const iskanje = { besedilo: 'Iščem korak …', razred: '' };
   nastaviPomoc(iskanje);
   // Prednost ima poudarjena števka, sicer števka prejšnjega koraka (sidro).
   // Poudarek je izrecna izbira igralca, zato prebije skupine tehnik (dobi korak
@@ -929,7 +929,7 @@ function ocenjevanjeVGlavniNiti() {
 oceniBtn.addEventListener('click', () => {
   if (ocenjevanje) return;
   const zbirka = zbirkaBeri();
-  if (!zbirka.length) { zbirkaStatus('Zbirka je prazna - ni česa oceniti.'); return; }
+  if (!zbirka.length) { zbirkaStatus('Zbirka je prazna – ni česa oceniti.'); return; }
   ocene.clear();
   ocenjevanje = {
     danosti: zbirka.map(z => z.danosti),
@@ -1012,13 +1012,30 @@ try {
   if (STOPNJE_GENERATORJA.includes(stopnjaUganke(shranjena))) izbranaStopnja = shranjena;
 } catch (e) { /* privzeta stopnja */ }
 
+// Opisi stopenj so samo v STOPNJE_UGANK (shared/generator.js, docs/uskladitev.md 5.2), v HTML
+// jih ni: okno "Nova uganka" pove merilo generatorja, Pomoč merilo ocene vseh stopenj in
+// merilo generatorja tam, kjer je ožje.
+function izpisiStopnje(el, stopnje, polje) {
+  for (const s of stopnje) {
+    const li = document.createElement('li');
+    const b = document.createElement('b');
+    b.textContent = s.ime.toLowerCase();
+    li.append(b, ' ' + s[polje]);
+    el.appendChild(li);
+  }
+}
+izpisiStopnje(document.getElementById('stopnjeNova'), STOPNJE_GENERATORJA, 'opisIskanja');
+izpisiStopnje(document.getElementById('stopnjeOcena'), STOPNJE_UGANK, 'opis');
+izpisiStopnje(document.getElementById('stopnjeIskanje'),
+  STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis), 'opisIskanja');
+
 // Samo stopnje, ki jih generator ustvarja (Ekstrem ne - ekspertne tehnike še ni).
 const stopnjeGumbi = STOPNJE_GENERATORJA.map(s => {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'stopnja';
   b.textContent = s.ime;
-  b.title = s.opis;
+  b.title = s.opisIskanja;
   b.addEventListener('click', () => {
     if (iskanje) return;
     izbranaStopnja = s.kljuc;
@@ -1081,7 +1098,7 @@ function obdelajIskanje(m) {
   ustaviIskanje();
   if (m.tip === 'obup') {
     ustvariBtn.textContent = 'Poskusi znova';
-    ustvariStatus(`V ${Math.round(MEJA_ISKANJA / 1000)} s nisem našel uganke stopnje »${s.ime}« (poskusov ${poskusi}). Poskusi znova - vsak poskus začne z drugo mrežo.`, true);
+    ustvariStatus(`V ${Math.round(MEJA_ISKANJA / 1000)} s nisem našel uganke stopnje »${s.ime}« (poskusov ${poskusi}). Poskusi znova – vsak poskus začne z drugo mrežo.`, true);
   } else {
     ustvariStatus('Iskanje ni uspelo: ' + (m.sporocilo || 'neznana napaka'), true);
   }
@@ -1240,16 +1257,16 @@ document.getElementById('novaPocisti').addEventListener('click', () => {
 novaZacniBtn.addEventListener('click', () => {
   const danosti = vneseneDanosti();
   if (!/[1-9]/.test(danosti)) { novaStatus('Najprej vnesi danosti.', true); return; }
-  if (!oznaciKonflikte()) { novaStatus('Popravi rdeče označene celice - ista števka se ponavlja v vrstici, stolpcu ali bloku.', true); return; }
-  novaStatus('Preverjam, ali ima uganka natanko eno rešitev ...');
+  if (!oznaciKonflikte()) { novaStatus('Popravi rdeče označene celice – ista števka se ponavlja v vrstici, stolpcu ali bloku.', true); return; }
+  novaStatus('Preverjam, ali ima uganka natanko eno rešitev …');
   novaZacniBtn.disabled = true;
   setTimeout(() => {
     try {
       const n = countSolutions(danosti);
       if (n !== 1) {
-        novaStatus(n === 0 ? 'Uganka nima rešitve - preveri danosti.'
+        novaStatus(n === 0 ? 'Uganka nima rešitve – preveri danosti.'
           : n === 'unknown' ? 'Enoličnosti ni bilo mogoče preveriti v razumnem času, zato uganke ne morem ponuditi za igro.'
-          : 'Uganka ima več kot eno rešitev - za igro potrebujem uganko z natanko eno rešitvijo.', true);
+          : 'Uganka ima več kot eno rešitev – za igro potrebujem uganko z natanko eno rešitvijo.', true);
         return;
       }
       dodajVZbirko(danosti, '', 'rocno');

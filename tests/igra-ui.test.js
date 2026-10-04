@@ -901,3 +901,22 @@ test('stikalo kandidatov: enojček na tretji stopnji - števka za vpis v celici,
   assert.equal(run(`stanje.grid[${ce}]`), de);
   assert.match(dom.el('pomocVsebina').textContent, /Korak je izveden\./);
 });
+
+// Faza 6 (docs/uskladitev.md 5.2): opisi stopenj so samo v STOPNJE_UGANK (shared/generator.js);
+// okno "Nova uganka" izpiše merilo generatorja, Pomoč merilo ocene vseh stopenj in merilo
+// generatorja tam, kjer je ožje; namig miške na gumbu stopnje je merilo generatorja.
+test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih ni', () => {
+  const { dom, run } = zacni();
+  const seznam = id => dom.el(id).children.map(li => li.textContent);
+  const opisi = (stopnje, polje) => [...run(`${stopnje}.map(s => s.ime.toLowerCase() + ' ' + s.${polje})`)];
+  assert.deepEqual(seznam('stopnjeNova'), opisi('STOPNJE_GENERATORJA', 'opisIskanja'));
+  assert.deepEqual(seznam('stopnjeOcena'), opisi('STOPNJE_UGANK', 'opis'));
+  assert.deepEqual(seznam('stopnjeIskanje'), opisi('STOPNJE_GENERATORJA.filter(s => s.opisIskanja !== s.opis)', 'opisIskanja'));
+  assert.equal(seznam('stopnjeIskanje').length, 3, 'lahka ima isto merilo ocene in generatorja');
+  assert.deepEqual([...run('stopnjeGumbi.map(g => g.el.title)')], [...run('STOPNJE_GENERATORJA.map(s => s.opisIskanja)')]);
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'igra', 'index.html'), 'utf8');
+  for (const s of run('STOPNJE_UGANK')) {
+    for (const o of [s.opis, s.opisIskanja].filter(Boolean)) assert.ok(!html.includes(o), `opis stopnje ${s.kljuc} je v HTML`);
+  }
+  for (const id of ['stopnjeNova', 'stopnjeOcena', 'stopnjeIskanje']) assert.match(html, new RegExp(`<ul id="${id}"[^>]*></ul>`));
+});

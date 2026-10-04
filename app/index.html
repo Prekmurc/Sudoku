@@ -18,7 +18,7 @@
     <button type="button" id="libraryBtn" class="top-btn">Zbirka (0)</button>
   </div>
   <h1>Sudoku reševalec</h1>
-  <p>Vtipkaj začetne števke naravnost v mrežo (samo pojdi od celice do celice) ali prilepi niz 81 znakov v polje Niz (<code>0</code> ali <code>.</code> = prazna celica), nato pritisni "Reši". Podvojene števke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
+  <p>Vtipkaj začetne števke naravnost v mrežo (samo pojdi od celice do celice) ali prilepi niz 81 znakov v polje Niz (<code>0</code> ali <code>.</code> = prazna celica), nato pritisni »Reši«. Podvojene števke se takoj obarvajo rdeče, da ujameš napake pri vnosu.</p>
 </header>
 
 <main>
@@ -39,7 +39,7 @@
 
   <div class="card" id="candSection" style="display:none;">
     <h2>Možni kandidati</h2>
-    <p class="cand-hint">Krepke temne števke so dane. Ostalo so vse števke, ki jih glede na vrstico/stolpec/blok še ni mogoče izključiti (brez naprednih tehnik - enako kot "hitri svinčnik" v aplikaciji).</p>
+    <p class="cand-hint">Krepke temne števke so dane. Ostalo so vse števke, ki jih glede na vrstico/stolpec/blok še ni mogoče izključiti (brez tehnik).</p>
     <div id="candidateGrid"></div>
   </div>
 
@@ -84,7 +84,7 @@
       <h2 id="libTitle">Zbirka ugank</h2>
       <button type="button" id="libClose" aria-label="Zapri">✕</button>
     </div>
-    <p class="cand-hint">Zbirka je ista kot v igri. Izvoz zapiše vse uganke v datoteko Markdown (enaka oblika kot docs/uganke.md). Uvoz jih doda obstoječim - pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Brisanje odstrani uganko skupaj s shranjenim napredkom v igri. Vgrajeni primeri (izbira »Primer«) niso del zbirke in se vanjo ne shranijo.</p>
+    <p class="cand-hint">Zbirka je ista kot v igri. Izvoz zapiše vse uganke v datoteko Markdown. Uvoz jih doda obstoječim – pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Brisanje odstrani uganko skupaj s shranjenim napredkom v igri. Vgrajeni primeri (izbira »Primer«) niso del zbirke in se vanjo ne shranijo.</p>
     <div class="lib-tools">
       <button type="button" id="libExport">Izvozi</button>
       <button type="button" id="libImport">Uvozi</button>

@@ -135,7 +135,7 @@ const velika=s=>s[0].toUpperCase()+s.slice(1);
 // Navodilo nad mrežo; z območjem ga pove ("V vrstici 7 poišči skriti par ...").
 function navodiloVadi(kljuc,ob){
   if(kljuc==='Gol enojček'||kljuc==='Skriti enojček'){
-    const kaj=kljuc==='Gol enojček'?'celico z eno samo možno števko':'števko z enim samim mestom';
+    const kaj=kljuc==='Gol enojček'?'celico, v kateri je mogoča samo ena števka,':'števko z enim samim mestom';
     return ob?`${velika(ob.opis)} poišči ${kaj} in jo vpiši.`:kljuc==='Gol enojček'?`Poišči ${kaj} in jo vpiši.`:`Poišči ${kaj} v enoti in jo vpiši.`;
   }
   const odstrani='odstrani kandidate, ki jih izloči.';
@@ -271,7 +271,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     // je nato spet prosta; niso poteze in ne štejejo kot pomoč; nova vaja jih pobriše.
     zaznamki=vEl('div','zaznamki');
     zaznBtn=vEl('button',null,'◩ Označi izbrane (O)');zaznBtn.type='button';
-    zaznBtn.title='Izbrane celice označi (ali odznači) z obrobo - izbira je nato spet prosta';
+    zaznBtn.title='Izbrane celice označi (ali odznači) z obrobo – izbira je nato spet prosta';
     zaznPoc=vEl('button',null,'Počisti oznake');zaznPoc.type='button';
     zaznamki.append(zaznBtn,zaznPoc);wrap.appendChild(zaznamki);
   }

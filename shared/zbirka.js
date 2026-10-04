@@ -301,7 +301,7 @@ function zbirkaNamigCasov(z, povzetek) {
     `Zadnje reševanje: ${zbirkaPrikazDatuma(z.igrano)}`,
     `Stanje: ${st.kljuc === 'v-teku' && st.resena ? `rešena, znova ${st.besedilo}` : st.besedilo}`,
     `Ocenjeno: ${zbirkaPrikazDatuma(z.nazadnje)}`,
-    `Program rešil: ${zbirkaProgramResil(z) || '—'}`,
+    `Program rešil: ${zbirkaProgramResil(z) || '–'}`,
   ].join(' · ');
 }
 
@@ -768,7 +768,7 @@ const ZBIRKA_DATOTEKA = 'zbirka-ugank.md';
 // zbirkaPrenesi().
 function zbirkaIzvozi() {
   const zbirka = zbirkaBeri();
-  if (!zbirka.length) return { besedilo: null, sporocilo: 'Zbirka je prazna - ni česa izvoziti.', napaka: true };
+  if (!zbirka.length) return { besedilo: null, sporocilo: 'Zbirka je prazna – ni česa izvoziti.', napaka: true };
   return {
     besedilo: zbirkaVMarkdown(zbirka),
     sporocilo: `Izvoženih ugank: ${zbirka.length} (datoteka ${ZBIRKA_DATOTEKA}).`,
@@ -784,7 +784,7 @@ function zbirkaIzvozi() {
 function zbirkaUvozi(besedilo) {
   const { zapisi, neveljavni, primerov } = zbirkaIzMarkdowna(besedilo);
   if (!zapisi.length && !neveljavni && !primerov) {
-    return { sporocilo: 'V datoteki ni nobene uganke (pričakujem vrstice oblike "- **Danosti:** `...`").', napaka: true, spremenjeno: false };
+    return { sporocilo: 'V datoteki ni nobene uganke (pričakujem vrstice oblike »- **Danosti:** `…`«).', napaka: true, spremenjeno: false };
   }
   const zbirka = zbirkaBeri();
   const p = zbirkaZdruzi(zbirka, zapisi, zbirkaZdaj());
@@ -799,7 +799,7 @@ function zbirkaUvozi(besedilo) {
     return { sporocilo: 'Uvoza ni bilo mogoče shraniti (brskalnik ne dovoli shranjevanja).', napaka: true, spremenjeno: false };
   }
   return {
-    sporocilo: `Uvoz končan - novih: ${p.novi} · dopolnjenih: ${p.dopolnjeni} · že obstoječih brez sprememb: ${p.nespremenjeni}` +
+    sporocilo: `Uvoz končan – novih: ${p.novi} · dopolnjenih: ${p.dopolnjeni} · že obstoječih brez sprememb: ${p.nespremenjeni}` +
       (ocenjenih ? ` · težavnost izračunana: ${ocenjenih}` : '') +
       (neveljavni ? ` · neveljavnih (preskočenih): ${neveljavni}` : '') +
       (primerov ? ` · vgrajenih primerov (niso del zbirke, preskočenih): ${primerov}` : '') + '.',

@@ -235,7 +235,7 @@ function renderStepsList() {
 
 document.getElementById('openStepsBtn').addEventListener('click', () => {
   if (!lastSolve) {
-    statusEl.textContent = 'Najprej pritisni "Reši".';
+    statusEl.textContent = 'Najprej pritisni »Reši«.';
     statusEl.className = 'err';
     return;
   }
@@ -308,7 +308,7 @@ nizDanostiEl.addEventListener('input', () => {
   const niz = zbirkaNizDanosti(nizDanostiEl.value);
   if (niz.danosti) {
     const danih = niz.danosti.replace(/0/g, '').length;
-    naloziDanosti(niz.danosti, `Niz je vpisan v mrežo - danih števk: ${danih}.`, { izNiza: true });
+    naloziDanosti(niz.danosti, `Niz je vpisan v mrežo – danih števk: ${danih}.`, { izNiza: true });
   } else {
     nizStatus(niz.sporocilo, niz.napaka);
   }
@@ -328,7 +328,7 @@ exampleSelect.addEventListener('change', () => {
   exampleSelect.selectedIndex = 0; // nazaj na "Primer", da gre isti primer izbrati znova
   if (!p) return;
   const danih = p.danosti.replace(/[.0]/g, '').length;
-  naloziDanosti(p.danosti, `Naložen je ${p.ime} - danih števk: ${danih}.`);
+  naloziDanosti(p.danosti, `Naložen je ${p.ime} – danih števk: ${danih}.`);
 });
 
 const candBtn = document.getElementById('candBtn');
@@ -395,11 +395,11 @@ document.getElementById('solveBtn').addEventListener('click', () => {
     return;
   }
   if (!checkConflicts()) {
-    statusEl.textContent = 'Popravi rdeče označene celice - ista števka se ponavlja v isti vrstici, stolpcu ali bloku.';
+    statusEl.textContent = 'Popravi rdeče označene celice – ista števka se ponavlja v isti vrstici, stolpcu ali bloku.';
     statusEl.className = 'err';
     return;
   }
-  statusEl.textContent = 'Rešujem ...';
+  statusEl.textContent = 'Rešujem …';
   statusEl.className = '';
 
   setTimeout(() => {
@@ -438,13 +438,13 @@ document.getElementById('solveBtn').addEventListener('click', () => {
     zbirkaPoResevanju(givens, board, log, solutionCount); // app/zbirka.js
 
     if (solutionCount === 0) {
-      statusEl.textContent = 'Uganka nima rešitve - preveri vnesene števke.';
+      statusEl.textContent = 'Uganka nima rešitve – preveri vnesene števke.';
       statusEl.className = 'err';
     } else if (solutionCount === 'unknown') {
-      statusEl.textContent = 'Enoličnosti uganke ni bilo mogoče preveriti v razumnem času - tehnika Unique Rectangle zato ni bila uporabljena, prikazana rešitev morda ni edina.';
+      statusEl.textContent = `Enoličnosti uganke ni bilo mogoče preveriti v razumnem času – tehnika ${imeTehnike('Unique Rectangle', { stevilka: true, anglesko: false })} zato ni bila uporabljena, prikazana rešitev morda ni edina.`;
       statusEl.className = 'warn';
     } else if (solutionCount !== 1) {
-      statusEl.textContent = 'Uganka nima natanko ene rešitve (najdenih je več kot ena) - prikazana rešitev je le ena od možnih, tehnika Unique Rectangle zato ni bila uporabljena.';
+      statusEl.textContent = `Uganka nima natanko ene rešitve (najdenih je več kot ena) – prikazana rešitev je le ena od možnih, tehnika ${imeTehnike('Unique Rectangle', { stevilka: true, anglesko: false })} zato ni bila uporabljena.`;
       statusEl.className = 'warn';
     } else if (board.isSolved()) {
       statusEl.textContent = `Rešeno v ${log.length} korakih.`;

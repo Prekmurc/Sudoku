@@ -262,6 +262,9 @@ kbd{
 .dialog-glava h2{ font-family:'Source Serif 4', serif; font-size:18px; margin:0; }
 .dialog-zapri{ width:36px; height:36px; padding:0; border-radius:18px; font-size:16px; }
 .namig{ font-size:12.5px; color: var(--pencil); line-height:1.5; margin:0 0 10px; }
+/* opisi stopenj v oknu Nova uganka (iz STOPNJE_UGANK, izpiše igra.js) */
+.opis-stopenj{ margin-top:-6px; padding-left:20px; }
+.opis-stopenj li{ margin-bottom:2px; }
 .dialog-status{ font-size:13px; color: var(--pencil); min-height:18px; margin:8px 0 0; line-height:1.5; }
 .dialog-status.err{ color: var(--red); }
 .dialog-gumbi{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }

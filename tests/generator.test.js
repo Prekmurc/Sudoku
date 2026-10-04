@@ -51,8 +51,11 @@ test('stopnje: ključi, imena in opisi', () => {
   assert.deepEqual([...E.STOPNJE_GENERATORJA].map(s => s.kljuc), ['lahka', 'srednja', 'tezka', 'zelotezka']);
   for (const s of E.STOPNJE_GENERATORJA) {
     assert.equal(typeof s.ustrezaIskanju, 'function', `stopnja ${s.kljuc} mora imeti merilo iskanja`);
+    // Opis merila generatorja (okno "Nova uganka", namig na gumbu) - docs/uskladitev.md 5.2.
+    assert.ok(s.opisIskanja, `stopnja ${s.kljuc} mora imeti opis merila iskanja`);
   }
   assert.equal(E.stopnjaUganke('ekstrem').ustrezaIskanju, null);
+  assert.equal(E.stopnjaUganke('ekstrem').opisIskanja, null);
   assert.equal(E.stopnjaUganke('ni-take'), null);
 });
 

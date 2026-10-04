@@ -42,7 +42,7 @@ async function resevalec(b, sirina) {
   await b.vtipkaj(pike);
   preveri('veljaven niz izpolni mrežo', await b.izvedi('currentGivens()') === danosti);
   const st = await besedilo('status');
-  preveri('status »Niz je vpisan v mrežo«', st === `Niz je vpisan v mrežo - danih števk: ${danih}.`, st);
+  preveri('status »Niz je vpisan v mrežo«', st === `Niz je vpisan v mrežo – danih števk: ${danih}.`, st);
   await b.posnetek(path.join(mapa, `resevalec-${sirina}-niz.png`));
 
   await b.fokus('#nizDanosti'); // označi vse - vnos besedilo zamenja

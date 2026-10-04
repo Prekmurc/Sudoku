@@ -61,7 +61,7 @@ if (!izbrana) {
   process.exit(1);
 }
 const { seme, danosti, tehnike, uporabljene, mere, prednost } = izbrana;
-console.log(`kategorija: ${kategorija} (${stopnja.ime} - ${stopnja.opis})`);
+console.log(`kategorija: ${kategorija} (${stopnja.ime} – ${stopnja.opisIskanja})`);
 console.log(`seme:       ${seme}`);
 console.log(`danosti:    ${danosti.replace(/0/g, '.')} (${danosti.replace(/0/g, '').length})`);
 console.log(`countSolutions(): ${E.countSolutions(danosti)}`);

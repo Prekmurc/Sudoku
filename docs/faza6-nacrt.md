@@ -394,4 +394,17 @@ ročni pregled.
 
 | Korak | Commit | Kaj |
 |---|---|---|
-| načrt | (ta commit) | načrt z odgovori, `docs/faza6-besedila.md`, 5.3 označena v `uskladitev.md` |
+| načrt | `23e35f8` | načrt z odgovori, `docs/faza6-besedila.md`, 5.3 označena v `uskladitev.md` |
+| a | (ta commit) | ločila (4.6; 21 vezajev, 3 dolgi pomišljaji, 5 ravnih narekovajev, 3 tri pike), »→« v 13 sporočilih korakov (4b), povsod »mogoč« (4a – tudi naloga in namig E1 »celico, v kateri je mogoča samo ena števka«), sklon pri Mečarici, »12 · Edinstveni pravokotnik« v sporočilih reševalca, »naključne vaje«, razvojne poti in »hitri svinčnik«, `opis` + `opisIskanja` v `STOPNJE_UGANK` z izpisom v igri (5.2); testi `locila.test.js` (nov), `besedila-html`, `generator`, `igra-ui` in popravljena dobesedna besedila v petih testih; posnetek igre – razlike samo v besedilih 10 korakov, novo izhodišče `tools/posnetki/igra-po-6a.json` |
+
+**Korak a – preverjanje:** testi 473/473 (468 + 5 novih). Posnetek igre proti `igra-po-5a.json`:
+razlike v 10 korakih, vse v besedilih (sporočila korakov z »mogoč« in »→«, »Začel si znova –«,
+»Preverjam … …«). Brskalnik: `preveri-videz`, `preveri-niz`, `preveri-kandidati` brez napak;
+`preveri-presek` in `preveri-enojcki` v primerjavi »Spoznaj« z izhodiščem `4e1e4dc` pokažeta
+razliko samo v `innerHTML` pri 8 · Mečarica in 10 · W-krilo (slogi enaki) – po besedilnih kosih
+je razlika natanko popravljeni sklon (»najdi 3 vrstice«) in pomišljaj v razlagi W-krila.
+`preveri-vadi` enako (samo 8 in 10). `preveri-izbira` pokaže razliko v `innerHTML` pri »Rešitvi« in
+po pravilnem odgovoru pri 3–6 in 8–12 (sporočilo koraka iz motorja: »→«, »mogoč«); z začasno
+primerjavo, ki v izhodišču najprej uporabi besedilne zamenjave koraka a, je vseh 58 primerjav
+enakih – druge razlike ni. Sporočila korakov niso del banke vaj, zato `shared/vaje-banka.js` ostane
+(`tests/vaje-banka.test.js` zelen).

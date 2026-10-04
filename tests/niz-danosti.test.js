@@ -96,10 +96,10 @@ function vtipkaj(run, d) {
 const mreza = run => JSON.parse(run('JSON.stringify(inputs.map(inp => [inp.value, inp.className]))'));
 const status = dom => [dom.el('status').textContent, dom.el('status').className];
 
-// "Reši" teče v setTimeout - počakaj, da status ni več "Rešujem ...".
+// "Reši" teče v setTimeout - počakaj, da status ni več "Rešujem …".
 async function resi(dom) {
   dom.klikni('solveBtn');
-  for (let t = 0; t < 400 && dom.el('status').textContent === 'Rešujem ...'; t++) await new Promise(r => setTimeout(r, 25));
+  for (let t = 0; t < 400 && dom.el('status').textContent === 'Rešujem …'; t++) await new Promise(r => setTimeout(r, 25));
 }
 
 test('reševalec: veljaven niz izpolni vso mrežo in skrije prejšnjo rešitev', async () => {
@@ -109,7 +109,7 @@ test('reševalec: veljaven niz izpolni vso mrežo in skrije prejšnjo rešitev',
   assert.equal(dom.el('results').style.display, 'block');
   vpisiNiz(dom, danosti.replace(/0/g, '.'));
   assert.equal(run('currentGivens()'), danosti, 'niz prepiše vso mrežo');
-  assert.deepEqual(status(dom), [`Niz je vpisan v mrežo - danih števk: ${danosti.replace(/0/g, '').length}.`, '']);
+  assert.deepEqual(status(dom), [`Niz je vpisan v mrežo – danih števk: ${danosti.replace(/0/g, '').length}.`, '']);
   assert.equal(dom.el('results').style.display, 'none');
   assert.equal(run('lastSolve'), null);
   assert.equal(dom.el('nizStatus').textContent, '');
@@ -192,7 +192,7 @@ for (const vrsta of ['vrstica', 'stolpec', 'blok']) {
     const r = await primerjajZRocnim(konflikt(vrsta));
     assert.equal(r.m.filter(([, razred]) => razred.includes('conflict')).length, 2, 'dve rdeči celici');
     assert.deepEqual(r.kandidati, ['Popravi rdeče označene celice, preden prikažem kandidate.', 'err']);
-    assert.deepEqual(r.resi, ['Popravi rdeče označene celice - ista števka se ponavlja v isti vrstici, stolpcu ali bloku.', 'err']);
+    assert.deepEqual(r.resi, ['Popravi rdeče označene celice – ista števka se ponavlja v isti vrstici, stolpcu ali bloku.', 'err']);
   });
 }
 
@@ -233,7 +233,7 @@ test('reševalec: brez rešitve po nizu - enako kot ročni vnos', async () => {
   const d = danosti.slice(0, c) + dd + danosti.slice(c + 1);
   assert.equal(E(`countSolutions(${JSON.stringify(d)})`), 0, 'program potrdi, da rešitve ni');
   const r = await primerjajZRocnim(d);
-  assert.deepEqual(r.resi, ['Uganka nima rešitve - preveri vnesene števke.', 'err']);
+  assert.deepEqual(r.resi, ['Uganka nima rešitve – preveri vnesene števke.', 'err']);
   assert.equal(r.m.filter(([, razred]) => razred.includes('conflict')).length, 0, 'brez konflikta');
 });
 

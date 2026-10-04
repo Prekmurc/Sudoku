@@ -63,10 +63,10 @@ test('XY-Wing: pivot in krili v različnih enotah', () => {
   // Pivot V2S8 {4,9}: krilo V2S2 {3,4} ga vidi v vrstici 2, krilo V1S9 {3,9} v bloku 3;
   // skupni kandidat kril je 3, celica V1S3 vidi obe krili.
   assert.equal(steps[0].message,
-    'Pivot V2S8 {4,9} ima dve krili: V2S2 in V1S9, ki obe delita kandidata 3 -> 3 lahko ' +
+    'Pivot V2S8 {4,9} ima dve krili: V2S2 in V1S9, ki obe delita kandidata 3 → 3 lahko ' +
     'izbrišemo iz celic, ki vidijo obe krili (V1S3).');
   assert.equal(steps[2].message,
-    'Pivot V4S8 {4,9} ima dve krili: V6S7 in V6S9, ki obe delita kandidata 3 -> 3 lahko ' +
+    'Pivot V4S8 {4,9} ima dve krili: V6S7 in V6S9, ki obe delita kandidata 3 → 3 lahko ' +
     'izbrišemo iz celic, ki vidijo obe krili (V6S2).');
 });
 

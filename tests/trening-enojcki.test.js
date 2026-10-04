@@ -70,7 +70,7 @@ test('E1: na mreži je očitni enojček, vaja ni tik pred koncem, načrtovani ko
     assert.equal(ex.korak.technique, 'Gol enojček');
     assert.equal(E.popcount(ex.boardCand[c]), 1);
     assert.equal(d, +ex.resitev[c]);
-    assert.match(ex.namig, /^V mreži (je|sta|so) \d+ celic[aei]? z eno samo možno števko\. Ena je v bloku (\d)\.$/);
+    assert.match(ex.namig, /^V mreži (je \d+ celica, v kateri|(sta|so|je) \d+ celic[aei]?, v katerih) je mogoča samo ena števka\. Ena je v bloku (\d)\.$/);
     assert.equal(+ex.namig.match(/bloku (\d)/)[1], E.boxOf(c) + 1, 'namig pove blok načrtovane celice');
   }
 });
@@ -184,11 +184,11 @@ test('E1 vaje 4-6: označena je vrstica, stolpec ali blok celice koraka', () => 
     assert.equal(ex.oznaka.celica, null); assert.equal(ex.oznaka.stevka, null);
     assert.ok(jeEnota(u) && u.includes(c), 'enota celice koraka');
     vrste.add(vrstaEnote(u));
-    // Namig pove, koliko celic enote ima eno samo možno števko - ne katere.
+    // Namig pove, koliko celic enote ima eno samo mogočo števko - ne katere.
     const celic = new Set(E.nakedSingles(deska(ex)).map(s => s.assign[0][0]).filter(x => u.includes(x))).size;
-    assert.match(ex.namig, new RegExp(`^V (vrstici|stolpcu|bloku) \\d (je|sta|so) ${celic} celic[aei]? z eno samo možno števko\\. `));
+    assert.match(ex.namig, new RegExp(`^V (vrstici|stolpcu|bloku) \\d (je ${celic} celica, v kateri|(sta|so|je) ${celic} celic[aei]?, v katerih) je mogoča samo ena števka\\. `));
     assert.doesNotMatch(ex.namig, /V\dS\d/);
-    assert.match(ex.unitLabel, /^V označen(i vrstici|em stolpcu|em bloku) \d poišči celico z eno samo možno števko$/);
+    assert.match(ex.unitLabel, /^V označen(i vrstici|em stolpcu|em bloku) \d poišči celico, v kateri je mogoča samo ena števka$/);
   }
   assert.deepEqual([...vrste].sort(), ['blok', 'stolpec', 'vrstica']);
 });
@@ -226,7 +226,7 @@ test('vaje 7-9: cela mreža brez oznake, navodilo in namig kot doslej', () => {
   for (const ex of [...poStopnji(K1, 3), ...poStopnji(K2, 3)]) {
     assert.equal(ex.oznaka, null);
     assert.equal(ex.desc, undefined, 'opis iz MODES');
-    assert.match(ex.unitLabel, /^Poišči (celico z eno samo možno števko|števko z enim samim mestom v enoti)$/);
+    assert.match(ex.unitLabel, /^Poišči (celico, v kateri je mogoča samo ena števka|števko z enim samim mestom v enoti)$/);
     assert.match(ex.namig, /^(V mreži|Poglej) /);
   }
 });

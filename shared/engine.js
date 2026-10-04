@@ -150,7 +150,7 @@ function nakedSingles(b) {
       const d = onlyBit(b.cand[i]);
       steps.push({
         technique: 'Gol enojček', cells: [i], assign: [[i, d]], eliminate: [],
-        message: `${cellLabel(i)} ima samo še en možen kandidat (${d}) -> ${cellLabel(i)} = ${d}.`
+        message: `${cellLabel(i)} ima samo še en mogoč kandidat (${d}) → ${cellLabel(i)} = ${d}.`
       });
     }
   }
@@ -172,7 +172,7 @@ function hiddenSingles(b) {
             technique: 'Skriti enojček', cells: [cell], assign: [[cell, d]], eliminate: [],
             // Samo enota: enota in števka skupaj že določita celico (odgovor).
             hint: { unit },
-            message: `V ${unitNameLoc(unit)} je števka ${d} možna samo še v ${cellLabel(cell)} -> ${cellLabel(cell)} = ${d}.`
+            message: `V ${unitNameLoc(unit)} je števka ${d} mogoča samo še v ${cellLabel(cell)} → ${cellLabel(cell)} = ${d}.`
           });
         }
       }
@@ -200,7 +200,7 @@ function pointing(b) {
           technique: 'Pointing pair/triple', cells: spots, assign: [], eliminate: elim,
           // Samo blok: blok in števka skupaj takoj pokažeta vzorec.
           hint: { unit: box },
-          message: `V ${unitNameLoc(box)} je kandidat ${d} možen samo v ${cellsLabel(spots)}, ${spots.length === 2 ? 'ki obe ležita' : 'ki vse ležijo'} v ${unitNameLoc(target)} -> ${d} lahko izbrišemo iz preostanka te enote zunaj bloka (${cellsLabel(elim.map(e => e[0]))}).`
+          message: `V ${unitNameLoc(box)} je kandidat ${d} mogoč samo v ${cellsLabel(spots)}, ${spots.length === 2 ? 'ki obe ležita' : 'ki vse ležijo'} v ${unitNameLoc(target)} → ${d} lahko izbrišemo iz preostanka te enote zunaj bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
     }
@@ -224,7 +224,7 @@ function boxLineReduction(b) {
           technique: 'Box-line reduction', cells: spots, assign: [], eliminate: elim,
           // Samo enota: enota in števka skupaj takoj pokažeta vzorec.
           hint: { unit },
-          message: `V ${unitNameLoc(unit)} je kandidat ${d} možen samo znotraj enega bloka (${cellsLabel(spots)}) -> ${d} lahko izbrišemo iz preostanka tega bloka (${cellsLabel(elim.map(e => e[0]))}).`
+          message: `V ${unitNameLoc(unit)} je kandidat ${d} mogoč samo znotraj enega bloka (${cellsLabel(spots)}) → ${d} lahko izbrišemo iz preostanka tega bloka (${cellsLabel(elim.map(e => e[0]))}).`
         });
       }
     }
@@ -253,7 +253,7 @@ function nakedSubsets(b, size, name) {
             // ki leži tudi v istem bloku), zato je enota del identitete koraka.
             technique: name, cells: combo.slice(), unit, assign: [], eliminate: elim,
             hint: { unit },
-            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'števki' : 'števke'}) -> te števke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
+            message: `V ${unitNameLoc(unit)} ${size === 2 ? 'imata celici' : 'imajo celice'} ${cellsLabel(combo)} skupaj natanko ${size === 2 ? 'kandidata' : 'kandidate'} ${bitsOf(union).join(',')} (${size} ${size === 2 ? 'celici' : 'celice'}, ${size} ${size === 2 ? 'števki' : 'števke'}) → te števke lahko izbrišemo iz preostanka enote: ${elimLabel(elim)}.`
           });
         }
       }
@@ -289,7 +289,7 @@ function hiddenSubsets(b, size, name) {
           // unit: glej opombo pri nakedSubsets.
           technique: name, cells: [...spots], unit, assign: [], eliminate: elim,
           hint: { unit },
-          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta števki' : 'so števke'} ${digits.join(',')} ${size === 2 ? 'možni' : 'možne'} samo v celicah ${cellsLabel(spots)} -> vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
+          message: `V ${unitNameLoc(unit)} ${size === 2 ? 'sta števki' : 'so števke'} ${digits.join(',')} ${size === 2 ? 'mogoči' : 'mogoče'} samo v celicah ${cellsLabel(spots)} → vse ostale kandidate v teh celicah lahko izbrišemo: ${elimLabel(elim)}.`
         });
       }
     }
@@ -332,7 +332,7 @@ function xWing(b) {
             technique: 'X-Wing', cells: [...s1, ...s2], assign: [], eliminate: elim,
             // Števka in smer: naštete vrstice/stolpci bi takoj pokazali vzorec.
             hint: { digits: [d], lines: baseName, lineCount: 2 },
-            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} -> tvori X-krilo. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2])} → tvori X-krilo. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idx1].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -370,7 +370,7 @@ function swordfish(b) {
           steps.push({
             technique: 'Swordfish', cells: [...s1, ...s2, ...s3], assign: [], eliminate: elim,
             hint: { digits: [d], lines: baseName, lineCount: 3 },
-            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} -> tvori mečarico. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${baseName} ${numsLabel([u1, u2, u3].map(u => baseIndex(u[0]) + 1))} mogoč samo v celicah ${cellsLabel([...s1, ...s2, ...s3])} → tvori mečarico. ${d} lahko izbrišemo iz preostanka ${crossName} ${numsLabel([...idxUnion].map(i => i + 1))}: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -433,7 +433,7 @@ function turbotFish(b) {
             technique: 'Turbot Fish', variant, cells: pattern, assign: [], eliminate: elim,
             // Samo števka: enoti povezav bi takoj pokazali vzorec.
             hint: { digits: [d] },
-            message: `Kandidat ${d} je v ${unitNameLoc(L1.unit)} mogoč samo v celicah ${cellsLabel(L1.cells)}, v ${unitNameLoc(L2.unit)} pa samo v celicah ${cellsLabel(L2.cells)}. Celici ${cellLabel(bc1)} in ${cellLabel(bc2)} ležita v ${unitNameLoc(linkUnit)}, zato je vsaj ena od celic ${cellsLabel([aEnd, dEnd])} enaka ${d} -> tvori ${patternName}. ${d} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Kandidat ${d} je v ${unitNameLoc(L1.unit)} mogoč samo v celicah ${cellsLabel(L1.cells)}, v ${unitNameLoc(L2.unit)} pa samo v celicah ${cellsLabel(L2.cells)}. Celici ${cellLabel(bc1)} in ${cellLabel(bc2)} ležita v ${unitNameLoc(linkUnit)}, zato je vsaj ena od celic ${cellsLabel([aEnd, dEnd])} enaka ${d} → tvori ${patternName}. ${d} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -481,7 +481,7 @@ function wWing(b) {
           steps.push({
             technique: 'W-Wing', cells: [p1, p2, x, y], assign: [], eliminate: elim,
             hint: { digits },
-            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} -> tvori W-krilo in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
+            message: `Celici ${cellsLabel([p1, p2])} imata natanko kandidata ${digits.join(',')} in se ne vidita. V ${unitNameLoc(unit)} je kandidat ${linkD} mogoč samo v celicah ${cellsLabel([x, y])}, pri čemer ${cellLabel(x)} vidi ${cellLabel(p1)}, ${cellLabel(y)} pa ${cellLabel(p2)} → tvori W-krilo in vsaj ena od celic ${cellsLabel([p1, p2])} je enaka ${elimD}. ${elimD} lahko izbrišemo iz celic, ki vidijo obe: ${cellsLabel(elim.map(e => e[0]))}.`
           });
         }
       }
@@ -516,7 +516,7 @@ function xyWing(b) {
             steps.push({
               technique: 'XY-Wing', cells: [pivot, w1, w2], assign: [], eliminate: elim,
               hint: { digits: [x, y] },
-              message: `Pivot ${cellLabel(pivot)} {${x},${y}} ima dve krili: ${cellLabel(w1)} in ${cellLabel(w2)}, ki obe delita kandidata ${z} -> ${z} lahko izbrišemo iz celic, ki vidijo obe krili (${cellsLabel(elim.map(e => e[0]))}).`
+              message: `Pivot ${cellLabel(pivot)} {${x},${y}} ima dve krili: ${cellLabel(w1)} in ${cellLabel(w2)}, ki obe delita kandidata ${z} → ${z} lahko izbrišemo iz celic, ki vidijo obe krili (${cellsLabel(elim.map(e => e[0]))}).`
             });
           }
         }
@@ -559,7 +559,7 @@ function uniqueRectangle(b) {
       steps.push({
         technique: 'Unique Rectangle', cells: [...trio, fourth], assign: [], eliminate: elim,
         hint: { digits: bitsOf(digitsMask) },
-        message: `Celice ${cellsLabel(trio)} imajo natanko kandidata ${bitsOf(digitsMask).join(',')}, ${cellLabel(fourth)} pa poleg njiju še dodatne. Če bi imela tudi ${cellLabel(fourth)} samo ${bitsOf(digitsMask).join(',')}, bi uganka imela dve rešitvi -> ${bitsOf(digitsMask).join(',')} lahko izbrišemo iz ${cellLabel(fourth)}.`
+        message: `Celice ${cellsLabel(trio)} imajo natanko kandidata ${bitsOf(digitsMask).join(',')}, ${cellLabel(fourth)} pa poleg njiju še dodatne. Če bi imela tudi ${cellLabel(fourth)} samo ${bitsOf(digitsMask).join(',')}, bi uganka imela dve rešitvi → ${bitsOf(digitsMask).join(',')} lahko izbrišemo iz ${cellLabel(fourth)}.`
       });
     }
   }
@@ -740,7 +740,7 @@ const TEHNIKE_OPISI = {
   'w-wing': {
     ime: 'W-krilo',
     anglesko: 'W-Wing',
-    razlaga: 'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah — nobena ne sme biti celica para — pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.',
+    razlaga: 'Poišči dve celici z natanko istim parom kandidatov {a, b}, ki se ne vidita. Nato poišči vrstico, stolpec ali blok, kjer je b mogoč samo v dveh celicah – nobena ne sme biti celica para – pri čemer ena vidi prvo, druga pa drugo celico para. Takrat je vsaj ena celica para enaka a, zato a izbrišemo iz celic, ki vidijo obe.',
     navodilo: 'Izberi obe celici para in obe celici povezave (4 celice).',
     posledica: '',
   },
@@ -897,7 +897,7 @@ function tryBifurcation(b, budgetPerTry = 20000) {
       if (!hasSolution(trial, budget)) {
         return {
           technique: 'Poskus in protislovje (forcing chain)', cells: [cell], assign: [], eliminate: [[cell, d]],
-          message: `Če bi ${cellLabel(cell)} = ${d}, iz tega po verigi sklepanj ne obstaja nobena veljavna rešitev (pride do protislovja) -> ${d} v ${cellLabel(cell)} ni mogoč in ga izbrišemo.`
+          message: `Če bi ${cellLabel(cell)} = ${d}, iz tega po verigi sklepanj ne obstaja nobena veljavna rešitev (pride do protislovja) → ${d} v ${cellLabel(cell)} ni mogoč in ga izbrišemo.`
         };
       }
     }

@@ -763,6 +763,9 @@ Glej 0.2 (vzrok je CSS, ne logika).
 - **Predlog:** povsod »…« in pomišljaj » – «.
 - **Premaknjeno 2026-10-03 v fazo 6** (`docs/faza5-nacrt.md`, odgovor 2): to so besedila v JS in HTML, ne
   CSS; faza 6 piše besedila pomoči.
+- **Narejeno 2026-10-04** (faza 6, korak a, `docs/faza6-nacrt.md`): 21 vezajev z razmikom, 3 dolgi
+  pomišljaji, 5 ravnih narekovajev in 3 tri pike v vseh treh aplikacijah, puščica »→« namesto »->«
+  v 13 sporočilih korakov (odločitev 4b); test `tests/locila.test.js` (nizi v JS in besedilo HTML).
 - **Obseg:** majhno.
 
 ---
@@ -796,6 +799,10 @@ Glej 0.2 (vzrok je CSS, ne logika).
     podtipov »Nebotičnik (Skyscraper)« in »Zmaj z dvema vrvicama (2-String Kite)«,
     ki ju od faze 4 (del 2) uporabljata sporočilo koraka in razlaga v
     `TEHNIKE_OPISI`; pri W-krilu (»… imenuje Krilo W«, vrstica 76) z imenom »W-krilo«.
+- **Delno narejeno 2026-10-04** (faza 6, korak a, odločitev 4a): povsod »mogoč« – kartici 1 in 2, pet
+  sporočil korakov (`shared/engine.js`), naloga in namig E1 (»celico, v kateri je mogoča samo ena
+  števka«). Opis kartice iz polja `povzetek` (odločitev 1) in odstranitev Oakevra (odločitev 2) →
+  faza 6, korak b.
 - **Obseg:** majhno.
 
 ### 5.2 Opis stopenj ugank v treh različicah
@@ -818,6 +825,9 @@ Glej 0.2 (vzrok je CSS, ne logika).
   (`STOPNJE_UGANK[].opis`, `igra/index.html`) so nova imena tehnik in »srednje«. Odprto:
   dva opisa v `shared/generator.js` (razvrščanje in generator) in izpis iz JS namesto
   besedila v HTML. Ostanek je dodeljen fazi 6 (odločitev 2026-09-25).
+- **Narejeno 2026-10-04** (faza 6, korak a): `STOPNJE_UGANK` imajo `opis` (merilo ocene) in `opisIskanja`
+  (merilo generatorja); okno »Nova uganka«, namig miške na gumbih stopenj in Pomoč igre ju izpišejo
+  iz JS, v HTML ju ni (test v `tests/igra-ui.test.js`).
 - **Obseg:** majhno.
 
 ### 5.3 Pomoč v igri o gumbu »Poglej«
@@ -852,6 +862,10 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 - **Predlog:** v besedilih imena aplikacij (»reševalec«, »trening«) s povezavami (4.3),
   brez poti in imen datotek. Reševalec in trening dobita kratko okno »Pomoč«, lahko s
   skupnim razdelkom »Tehnike« iz igre (izris že obstaja v `igra/igra.js:882`).
+- **Delno narejeno 2026-10-04** (faza 6, korak a): poti, `localStorage` in `file://` so odstranjeni iz
+  besedil (test v `tests/besedila-html.test.js`), »hitri svinčnik v aplikaciji« je zamenjal »(brez
+  tehnik)«, »naključne vaje« v glavi treninga in v Pomoči igre so popravljene. Okno Pomoč v
+  reševalcu in treningu → faza 6, korak c.
 - **Obseg:** srednje.
 
 ### 5.6 Zastarela besedila v kodi in dokumentaciji
@@ -870,6 +884,9 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
     (faza 4, del 3 `6cfdf66`): dogovorjena imena, »števka«, »srednje«.
 - **Predlog:** popravi ob sklopu, ki se ga tiče (1.3, 1.4, 6.8), ali v enem commitu
   »dokumentacija«.
+- **Narejeno** – vse štiri postavke (ugotovljeno ob popisu faze 6). Ob fazi 6 (korak a, 2026-10-04)
+  popravljeno še: sklon v nalogi Mečarice v »Spoznaj« (»najdi 3 vrstice«), ime tehnike v sporočilih
+  reševalca (»12 · Edinstveni pravokotnik« namesto »Unique Rectangle«), »naključne vaje« (5.5).
 - **Obseg:** majhno.
 
 ---

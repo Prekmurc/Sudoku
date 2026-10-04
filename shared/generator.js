@@ -71,37 +71,46 @@ const OCENA_BREZ_RESITVE = 'Brez rešitve';
 // TEZAVNOSTI v shared/zbirka.js), da se imeni stopnje in težavnosti ne moreta
 // razdvojiti. `najvecjaPrednost` pove, kdaj se iskanje najboljše uganke lahko
 // ustavi (glej prednost v oceniStopnjo). Stopnja brez `ustrezaIskanju` se ne ustvarja.
+// Opisa sta edini vir besedila o stopnjah (docs/uskladitev.md 5.2): `opis` je merilo
+// ocene (`ustreza` - »Oceni zbirko«, ročni vnos, uvoz), `opisIskanja` merilo generatorja
+// (`ustrezaIskanju` - okno »Nova uganka«, namig miške na gumbu stopnje). Izpiše ju igra
+// (okno »Nova uganka« in Pomoč), v HTML ju ni.
 const STOPNJE_UGANK = [
   {
     kljuc: 'lahka', ime: 'Lahka', najvecjaPrednost: 1,
     ustreza: (m) => m.tehNad === 0,
     ustrezaIskanju: (m) => m.tehNad === 0,
-    opis: 'reši se samo z enojčki, brez zapisanih kandidatov',
+    opis: 'se reši samo z enojčki, torej brez zapisanih kandidatov',
+    opisIskanja: 'se reši samo z enojčki, torej brez zapisanih kandidatov',
   },
   {
     kljuc: 'srednja', ime: 'Srednja', najvecjaPrednost: 1,
     ustreza: (m) => m.srednje >= 1 && m.napredne === 0 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 0 && m.ekspertne === 0 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
-    opis: 'potrebuje vsaj dve različni tehniki: izločitev izven bloka ali v bloku, očitni ali skriti par, očitno ali skrito trojico',
+    opis: 'potrebuje srednje tehnike (1–6 – izločitve izven bloka in v bloku, pari in trojice)',
+    opisIskanja: 'potrebuje vsaj dve različni srednji tehniki (1–6 – izločitve izven bloka in v bloku, pari in trojice)',
   },
   {
     kljuc: 'tezka', ime: 'Težka', najvecjaPrednost: 1,
     ustreza: (m) => m.napredne === 1 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 1 && m.ekspertne === 0
       && m.srednje >= GEN_NAJMANJ_SREDNJIH && m.tehNad <= GEN_TEZKA_NAJVEC,
-    opis: 'potrebuje natanko eno napredno tehniko (X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) in vsaj dve srednji',
+    opis: 'potrebuje natanko eno napredno tehniko (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik)',
+    opisIskanja: 'potrebuje natanko eno napredno tehniko (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik), vsaj dve srednji in skupaj največ štiri tehnike nad enojčki',
   },
   {
     kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,
     ustreza: (m) => m.napredne >= 2 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne >= 2 && m.ekspertne === 0 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
-    opis: 'potrebuje vsaj dve različni napredni tehniki in vsaj dve srednji',
+    opis: 'potrebuje vsaj dve različni napredni tehniki',
+    opisIskanja: 'potrebuje vsaj dve različni napredni tehniki in vsaj dve srednji',
   },
   {
     kljuc: 'ekstrem', ime: 'Ekstrem', najvecjaPrednost: 1,
     ustreza: (m) => m.ekspertne >= 1,
     ustrezaIskanju: null,
-    opis: 'potrebuje ekspertno tehniko (XY-veriga - še ni v reševalcu)',
+    opis: 'potrebuje ekspertno tehniko (XY-veriga – še ni v reševalcu)',
+    opisIskanja: null,
   },
 ];
 

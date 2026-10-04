@@ -389,7 +389,7 @@ function renderExercise(){
     const pct=scoreTotal>0?Math.round(scoreRight/scoreTotal*100):0;
     d.innerHTML=`<h3>Končano!</h3><p style="font-size:15px">Rezultat: <b>${scoreRight}</b> / <b>${scoreTotal}</b> (${pct}%)</p>${sPomocjo?`
       <p style="font-size:14px;color:#3C4854">S pomočjo: <b>${sPomocjo}</b> (ne štejejo)</p>`:''}
-      <p style="font-size:14px;color:#3C4854">Pritisni "Nazaj na izbiro" za novo vadbo.</p>`;
+      <p style="font-size:14px;color:#3C4854">Pritisni »Nazaj na izbiro« za novo vadbo.</p>`;
     area.appendChild(d);return;
   }
   if(nacin==='uganka'){renderVadi();return;}

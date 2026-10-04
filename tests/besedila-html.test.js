@@ -29,6 +29,17 @@ test('HTML: »Pokaži«, ne »Prikaži«', () => {
   for (const f of STRANI) assert.doesNotMatch(beri(f), /prikaži/i, f);
 });
 
+// Faza 6 (docs/uskladitev.md 5.5): besedila za uporabnika ne kažejo razvojnih podatkov -
+// poti in imen datotek, `localStorage`, `file://` (aplikacije se imenujejo z imeni).
+test('HTML: besedilo brez poti, imen datotek in razvojnih izrazov', () => {
+  for (const f of STRANI) {
+    const besedilo = beri(f).replace(/<(script|style)\b[\s\S]*?<\/\1>|<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, ' ');
+    for (const p of [/\b(app|igra|trening|shared|docs|tests|tools)\//, /localStorage/, /file:\/\//, /\w\.(md|js|css|html)\b/]) {
+      assert.doesNotMatch(besedilo, p, `${f}: ${p}`);
+    }
+  }
+});
+
 test('trening/index.html: opisi kartic brez angleških imen tehnik', () => {
   const opisi = [...beri('trening/index.html').matchAll(/<div class="menu-card" data-mode="([^"]+)">[\s\S]*?<\/h3>\s*<p>([\s\S]*?)<\/p>/g)];
   assert.equal(opisi.length, 14, 'število kartic z opisom');
