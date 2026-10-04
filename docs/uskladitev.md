@@ -1052,6 +1052,12 @@ preštevilčenjem 1–12 (1.1, `docs/tehnike.md`).
    poskusi tehnike v istem vrstnem redu, od najlažje navzgor.
 3. **Šteje se množica različnih uporabljenih tehnik**, ne število korakov: uganka, ki
    dvajsetkrat uporabi Izločitev izven bloka, ima eno srednjo tehniko.
+4. **Ena napredna, če zadošča** (odločitev 2026-10-04 po ročnem pregledu faze 6): če pot iz
+   točke 2 uporabi dve ali več različnih naprednih tehnik, se preveri, ali uganko reši
+   posamezna napredna tehnika skupaj z lažjimi; če jo, velja pot s prvo po vrstnem redu, ki
+   zadošča. Pot v stalnem vrstnem redu je namreč pri pribl. treh četrtinah »zelo težkih« ugank
+   vzela dve napredni, čeprav bi zadoščala ena (600 naključnih ugank: 26 od 35; generator: 17
+   od 24). Zelo težkih je zdaj 1,9 % rešljivih ugank (prej okoli 8 %).
 
 ### 7.2 Stopnja po najtežji uporabljeni ravni
 
@@ -1059,8 +1065,8 @@ preštevilčenjem 1–12 (1.1, `docs/tehnike.md`).
 |---|---|
 | **Lahka** | samo enojčki |
 | **Srednja** | najtežja raven so srednje tehnike (1–6) |
-| **Težka** | natanko **ena** različna napredna tehnika (7–12) |
-| **Zelo težka** | vsaj **dve** različni napredni tehniki |
+| **Težka** | brez napredne tehnike (7–12) ne gre, **ena zadošča** (od 2026-10-04; prej: natanko ena na poti) |
+| **Zelo težka** | **ena napredna ne zadošča** – nobena posamezna skupaj z lažjimi (od 2026-10-04; prej: vsaj dve na poti) |
 | **Ekstrem** | ekspertna tehnika (13, XY-veriga – ko bo uvedena) |
 
 Število srednjih tehnik stopnje ne spremeni: Težka ostane Težka, ne glede na to, koliko
@@ -1165,7 +1171,11 @@ Točke spodaj so zapis stanja pred nalogo, pod vsako je, kako je odpravljena.
   Oznaka je iz dnevnika `solve()`, ki sidra na števko, stopnja pa iz motorja v stalnem
   vrstnem redu (7.1). Pri 12 od 471 naključnih ugank brez ugibanja (2,5 %, meritev
   2026-09-24) bi tehnike iz dnevnika dale drugo stopnjo. Odločeno 2026-09-24: tokrat se ne
-  spreminja.
+  spreminja. **2026-10-04** (ročni pregled faze 6): pri težki uganki je oznaka iz poti ocene
+  (pot z eno samo napredno tehniko, prvo po vrstnem redu, ki zadošča – polje `potOcene` v
+  `shared/zbirka.js`), zato v njej nista več dve napredni (prej npr. »Težka · tehnike: 9, 10«);
+  pri drugih stopnjah ostane iz dnevnika `solve()`. Reševalec in »Naslednji korak« lahko še
+  vedno izbereta drugo pot (Pomoč to pove).
 
 ---
 
@@ -1220,7 +1230,7 @@ komponente, na koncu videz in pomoč.
 | **4 – imena tehnik in izrazi** (zaključeno 2026-09-25, `docs/faza4-nacrt.md`: del 1 `ae48423`, del 2 `694ea42` in `e31c85e`, del 3 `6cfdf66`, odločitve po pregledu `9b8cdfa`; z ostankom 1.7 in izrazom »srednje« iz 1.1; od 5.2 samo imena tehnik; 1.1 v fazo 5, 5.1 in ostanek 5.2 v fazo 6) | 1.3, 1.4, 5.2 (imena tehnik), 5.4, 6.9 | 1.3 in 1.4 v istem prehodu (sprememba spola »par« in »števka« zadeneta ista besedila); 1.1 za njima (raven v istih podatkih kot ime, preimenovanje »osnovne« → »srednje«); besedila so neodvisna od prikaza, a spremenijo veliko nizov in testov | srednje |
 | **5 – videz** (zaključeno 2026-10-03, ročni pregled potrjen istega dne, N9 ostane; `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
 | **5a – stikalo »Kandidati« v igri** (izvedeno 2026-10-03, ročni pregled potrjen istega dne; `docs/kandidati-stikalo-nacrt.md`: načrt `4048df5`, korak 2 `3097473`, korak 3 `5b9ff90`, korak 4 – scenarij v brskalniku in ročni pregled) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
-| **6 – pomoč** (izvedeno 2026-10-04, ročni pregled čaka – `docs/rocni-test.md`; načrt `docs/faza6-nacrt.md`; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c `bc87b22`) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
+| **6 – pomoč** (izvedeno 2026-10-04; ročni pregled 2026-10-04, popravki `0999372` in naslednji commit – nova ocena »zelo težke« (7.1, točka 4), mala mreža v reševalcu, primer 2 –, dopolnjeni ročni pregled čaka – `docs/rocni-test.md`; načrt `docs/faza6-nacrt.md`; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c `bc87b22`) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
 | **7 – ostala koda** (po fazi 6 naloga 3) | 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno zbirke v reševalcu – iz faze 5; okno Pomoč je preseljeno v fazi 6); počasni testi razdeljeni, če tek vseh testov preseže 2 minuti | čiščenje brez vidne spremembe; skupna vnosna mreža (6.4 in vnosna mreža iz 6.8) je od 2026-10-04 v nalogi 9 (povezave) – polje »Niz« v reševalcu iz 2.5 je narejeno posebej (`a348672`, `7e04cb4`) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu

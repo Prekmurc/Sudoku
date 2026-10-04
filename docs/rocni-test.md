@@ -212,14 +212,17 @@ Samodejno preverjeno: izrazi (»dane števke«, »kljukica«, brez razvijalskih 
 `tests/izrazi.test.js`; podnaslovi, en seznam stopenj, posledica v svojem odstavku, kartica
 »Uganka«, legenda male mreže v reševalcu (vsi koraki štirih ugank), »več celic« in opis zaznamkov v
 treningu v `tests/igra-ui.test.js`, `tests/pomoc.test.js`, `tests/trening-uganka-ui.test.js` in
-`tools/preveri-pregled6-brskalnik.js` (375 in 1280 px).
+`tools/preveri-pregled6-brskalnik.js` (375 in 1280 px). Nova ocena »zelo težke« (ena napredna ne
+zadošča) in oznaka »tehnike:« pri težki v `tests/generator.test.js`; kandidati male mreže v celici
+(375, 540 px, povečan prikaz) in primer 2 z značko v `tools/preveri-pregled6-brskalnik.js`.
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
 | 1 | igra, okno Pomoč | Preberi »Kako igrati« in »Zbirka ugank« s podnaslovi ter seznam stopenj s povedjo o generatorju. | Podnaslovi ustrezajo temu, kar je na zaslonu, in olajšajo iskanje; poved o generatorju je razumljiva. (nepotrjeno) – ni avtomatsko: ustreznost razdelitve je vsebinska presoja. |
-| 2 | igra, kartica »Uganka«, telefon in računalnik | Odpri uganko iz zbirke, naredi potezo. | Značka težavnosti je berljiva, tehnike so v svoji vrstici, stanje (»V teku …«) je izpisano enkrat. (nepotrjeno) – ni avtomatsko: berljivost in videz presodi oko; scenarij preveri barvo, vrstice in besedilo. |
-| 3 | reševalec, koraki, telefon | Odpri »Pokaži na mreži« pri enojčku, pri koraku z izbrisom (npr. par) in pri koraku z vpisom. | Legenda našteje samo to, kar je na mali mreži (»celice vzorca«, »izbrisani kandidati«, »vpis«), vzorčki so berljivi. (nepotrjeno) – ni avtomatsko: velikost vzorčkov na pravem zaslonu. |
+| 2 | igra, kartica »Uganka«, telefon in računalnik | Odpri uganko iz zbirke, naredi potezo; odpri še vgrajeni primer 2. | Značka težavnosti je berljiva, tehnike so v svoji vrstici, stanje (»V teku …«) je izpisano enkrat; primer 2 se imenuje »Primer 2 (brez ugibanja)« in ima značko »Težka«. (nepotrjeno) – ni avtomatsko: berljivost in videz presodi oko; scenarij preveri barvo, vrstice in besedilo. |
+| 3 | reševalec, koraki, telefon | Odpri »Pokaži na mreži« pri enojčku, pri koraku z izbrisom (npr. par) in pri koraku z vpisom; tapni malo mrežo. | Legenda našteje samo to, kar je na mali mreži (»celice vzorca«, »izbrisani kandidati«, »vpis«), vzorčki so berljivi; kandidati 7, 8, 9 v spodnji vrstici celice so celi v mali mreži in v povečavi. (nepotrjeno) – ni avtomatsko: velikost vzorčkov na pravem zaslonu. |
 | 4 | trening, »Vadi v uganki« 9–12 | Reši vajo z vklopljeno kljukico »več celic« in uporabi »Označi izbrane« po opisu pod gumboma. | Opis poteka je razumljiv; privzeto vklopljena kljukica ne moti tudi pri tehnikah, kjer se števka izbriše iz ene celice. (nepotrjeno) – ni avtomatsko: občutek pri reševanju. |
+| 5 | igra, »Zbirka« → »Oceni zbirko« na tvoji zbirki; Pomoč igre in reševalca | Oceni zbirko in poglej predloge; preberi stopnje v Pomoči. | Nekdanje »Zelo težka«, ki jih reši ena napredna tehnika, dobijo predlog »Težka«; pri težkih je v »tehnike:« ena napredna; besedilo stopenj in poved, da reševalec lahko izbere drugo pot, sta razumljiva. (nepotrjeno) – ni avtomatsko: tvoja prava zbirka in vsebinska presoja besedila. |
 
 ## Zakaj ročno
 

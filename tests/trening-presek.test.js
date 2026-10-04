@@ -105,8 +105,12 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
     // Vsa stanja vseh ugank banke s tehniko: presekEnolicen() zavrne natanko korake, pri
     // katerih je na delni mreži (blok in enota koraka) še drug korak tehnike z isto
     // števko, katerega celice so vse vidne - isti pogoj kot "odgovor je enoličen" zgoraj.
+    // Pri izločitvi v bloku še minimalna uganka iz semena 16924 (v banki do ocene 2026-10-04,
+    // dva taka koraka) - banka po oceni 2026-10-04 takih korakov nima (0 od 326 pri 2, 0 od 2045
+    // pri 1), pogoj pa se mora res uveljaviti.
     const r = run(`(() => { let zavrnjenih = 0, korakov = 0, razlik = 0;
-      for (const z of VAJE_BANKA.filter(z => z.tehnike.includes('${kljuc}'))) {
+      const dodatne = ${JSON.stringify(mode === 'box-line' ? [16924] : [])}.map(s => ({ danosti: genMinimalnaUganka(s) }));
+      for (const z of [...VAJE_BANKA.filter(z => z.tehnike.includes('${kljuc}')), ...dodatne]) {
         for (const S of stanjaVUganki(z.danosti, '${kljuc}').stanja) {
           const v = vajaIzStanja(z.danosti, '${kljuc}', S, '');
           for (const k of v.KT) {
@@ -121,9 +125,8 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
       return { zavrnjenih, korakov, razlik }; })()`);
     assert.equal(r.razlik, 0, 'presekEnolicen() se ujema s pogojem testa');
     assert.ok(r.korakov > 100, `${r.korakov} korakov`);
-    // Banka iz koraka 8b (izbira po stopnji, docs/vadi-v-uganki-nacrt.md 16.11) take korake
-    // ima - pogoj se res uveljavi.
-    if (mode === 'box-line') assert.ok(r.zavrnjenih > 0, 'v banki so taki koraki - pogoj se res uveljavi');
+    // Uganka iz semena 16924 take korake ima - pogoj se res uveljavi.
+    if (mode === 'box-line') assert.ok(r.zavrnjenih > 0, 'taki koraki so (seme 16924) - pogoj se res uveljavi');
   });
 
   test(`${mode}: v vsakem krogu 9 vaj je vsaj ena vaja s tremi celicami, druge po resnični pogostosti`, () => {

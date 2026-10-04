@@ -416,10 +416,14 @@
   .mini-grid .mcell.hl-source{ background: var(--amber-bg); }
   .mini-grid .mcell.hl-elimonly{ background: var(--red-bg); }
 
+  /* Vrstice in stolpci se smejo skrčiti pod višino vrstice besedila (minmax(0, 1fr), višina
+     vrstice 1): s privzeto višino (pribl. 1,3 × pisava) so bile tri vrstice višje od celice
+     in spodnja (7, 8, 9) je segla v celico spodaj - 5 px pri 42 px, 7 px pri 31 px (popravek
+     po ročnem pregledu faze 6). */
   .mcandgrid{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
-    grid-template-rows:repeat(3,1fr);
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-rows:repeat(3,minmax(0,1fr));
     width:100%;
     height:100%;
   }
@@ -429,6 +433,7 @@
     justify-content:center;
     font-family:'JetBrains Mono', monospace;
     font-size: calc(var(--mcs) * 0.27);
+    line-height:1;
     color: var(--pencil);
   }
   .mcand-empty{ visibility:hidden; }

@@ -56,7 +56,8 @@ function ustrezaVaji(kljuc, samiEnojcki, praznih) {
 // Vrne { poskus, stopnja }:
 // - poskus: pot se je ustavila pri poskusu s protislovjem (ali se je zataknila);
 // - stopnja: ime stopnje uganke iz tehnik na poti ali "Presega tehnike" - samo
-//   informacija (pot je ista kot genPot() v oceniTezavnost(); ena rešitev je pogoj
+//   informacija (pot je ista kot genPot() v oceniTezavnost(), mere pa iz genMerePoti() -
+//   pri dveh naprednih pot z eno samo, če zadošča, kot pri oceni; ena rešitev je pogoj
 //   klicatelja, genMinimalnaUganka() jo zagotovi).
 function prehodiPot(danosti, obKoraku) {
   const b = new Board(danosti);
@@ -74,7 +75,7 @@ function prehodiPot(danosti, obKoraku) {
   if (!b.isSolved()) poskus = true;
   let stopnja = OCENA_PRESEGA;
   if (!poskus) {
-    const mere = genMere(uporabljene);
+    const mere = genMerePoti(danosti, uporabljene);
     const s = STOPNJE_UGANK.find(x => x.ustreza(mere));
     stopnja = s ? s.ime : '';
   }

@@ -653,16 +653,20 @@ test('sproti se vzame samo uganka osnovne stopnje tehnike', () => {
   }
 });
 
+// Veriga ene števke: v banki je po oceni 2026-10-04 poleg ugank osnovne stopnje (Težka) še nekaj
+// zelo težkih (prej je bila to mečarica, ki ima zdaj samo osnovne).
 test('banka ob meji: najprej vse uganke osnovne stopnje, nato višje stopnje', () => {
-  const { run, izprazni } = zacni('swordfish');
+  const { run, izprazni } = zacni('turbot-fish');
   izprazni();
   assert.equal(run('vadi.v.izvor.vrsta'), 'banka');
-  assert.equal(run('vadi.v.stopnja'), 'Težka', 'osnovna stopnja mečarice');
-  const osnovnih = run('VAJE_BANKA.filter(z => z.tehnike.includes("Swordfish") && z.stopnja === "Težka").length');
-  const stopnje = iz(run, `Array.from({ length: ${osnovnih + 2} }, () => vajaIzBanke('Swordfish').stopnja)`);
+  assert.equal(run('vadi.v.stopnja'), 'Težka', 'osnovna stopnja verige ene števke');
+  const osnovnih = run('VAJE_BANKA.filter(z => z.tehnike.includes("Turbot Fish") && z.stopnja === "Težka").length');
+  const visjih = run('VAJE_BANKA.filter(z => z.tehnike.includes("Turbot Fish") && z.stopnja === "Zelo težka").length');
+  assert.ok(visjih >= 1, `zelo težkih z verigo ene števke: ${visjih}`);
+  const stopnje = iz(run, `Array.from({ length: ${osnovnih - 1 + visjih} }, () => vajaIzBanke('Turbot Fish').stopnja)`);
   // Prva je že uporabljena (vaja na zaslonu): še osnovnih - 1 Težkih, nato Zelo težka.
   assert.deepEqual(stopnje.slice(0, osnovnih - 1), Array(osnovnih - 1).fill('Težka'));
-  assert.ok(stopnje.slice(osnovnih - 1).every(s => s === 'Zelo težka'), JSON.stringify(stopnje));
+  assert.deepEqual(stopnje.slice(osnovnih - 1), Array(visjih).fill('Zelo težka'), JSON.stringify(stopnje.slice(osnovnih - 3)));
 });
 
 test('oznaka pri uganki Presega tehnike: »za to vajo ni pomembno«', () => {

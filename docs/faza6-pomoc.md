@@ -96,16 +96,18 @@ Vsaka uganka ima v seznamu tri vrstice, enako kot v reševalcu. V prvi so težav
 
 V drugi vrstici sta tvoje **zadnje reševanje** in **stanje**: **nova** (še je nisi igral), **v teku (12/57)** (12 tvojih vpisov od 57 praznih celic) ali **rešena**. Kadar so izpolnjene vse prazne celice, a se vsaj ena števka ne ujema z rešitvijo, piše **v teku (57/57) · napaka** – napako poišči z gumbom **Preveri**. Uganka, ki si jo samo odprl in v njej še nisi naredil poteze, ostane **nova** (gumb **Igraj**); že izbrisan kandidat pa je poteza, zato je taka uganka **v teku (0/57)**. Pri rešeni uganki je v drugi vrstici **rešena 21. 9. 2026 ob 17:48** – zapis se takrat zamrzne, zato ostane čas prve rešitve. Če jo po **Začni znova** rešuješ še enkrat, piše **rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)**. Vgrajeni primeri kažejo ista stanja, a brez časa. Kdaj je uganko ocenil program in kako daleč je prišel (**Ocenjeno**, **Program rešil**), pokaže namig miške nad vrstico; oboje je tudi v izvozu.
 
-Pri vsaki uganki piše oznaka, npr. **tehnike: 1, 3, 7 + poskus**. Številke so tehnike iz razdelka **Tehnike** spodaj (iste kot v treningu) – tiste, ki jih reševalec pri tej uganki potrebuje. Enojčki se ne izpišejo, ker jih potrebuje vsaka uganka. **+ poskus** pomeni, da se reševalec ni prebil samo s tehnikami in je moral poskusiti s protislovjem. Pri uganki brez teh podatkov piše »tehnike: ni podatkov«.
+Pri vsaki uganki piše oznaka, npr. **tehnike: 1, 3, 7 + poskus**. Številke so tehnike iz razdelka **Tehnike** spodaj (iste kot v treningu) – tiste, ki jih reševalec pri tej uganki potrebuje; pri težki uganki tehnike poti z eno samo napredno tehniko (prvo po vrstnem redu, ki zadošča). Enojčki se ne izpišejo, ker jih potrebuje vsaka uganka. **+ poskus** pomeni, da se reševalec ni prebil samo s tehnikami in je moral poskusiti s protislovjem. Pri uganki brez teh podatkov piše »tehnike: ni podatkov«.
 
 #### Nova uganka
 
-V oknu **Nova uganka** ti uganko lahko **ustvari** program: izbereš stopnjo (**lahka**, **srednja**, **težka**, **zelo težka**) in počakaš – navadno gre za sekundo ali dve. Stopnjo določa najtežja raven tehnik, ki jih reševalec pri uganki uporabi, ko tehnike vedno poskuša po istem vrstnem redu, od najlažje navzgor; šteje se, koliko *različnih* tehnik uporabi, ne kolikokrat:
+V oknu **Nova uganka** ti uganko lahko **ustvari** program: izbereš stopnjo (**lahka**, **srednja**, **težka**, **zelo težka**) in počakaš – navadno gre za sekundo ali dve. Stopnjo določa najtežja raven tehnik, brez katere uganke ni mogoče rešiti; šteje se, koliko *različnih* tehnik potrebuje, ne kolikokrat:
 
 - **lahka** se reši samo z enojčki, torej brez zapisanih kandidatov
 - **srednja** potrebuje srednje tehnike (1–6 – izločitve izven bloka in v bloku, pari in trojice)
-- **težka** potrebuje natanko eno napredno tehniko (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik)
-- **zelo težka** potrebuje vsaj dve različni napredni tehniki
+- **težka** brez napredne tehnike (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča
+- **zelo težka** ena napredna tehnika ne zadošča – potrebuje vsaj dve različni
+
+Stopnja pove, katere tehnike zadoščajo. Reševalec (tudi **Naslednji korak**) lahko izbere drugo pot in uporabi druge tehnike – pri težki uganki na primer dve napredni, čeprav zadošča ena.
 
 Generator je strožji od ocene, ker ponudi samo uganke, ki so za svojo stopnjo tipične: pri srednji, težki in zelo težki zahteva vsaj dve različni srednji tehniki, pri težki pa še, da je vseh tehnik nad enojčki največ štiri.
 
@@ -159,12 +161,14 @@ Uganko z natanko eno rešitvijo reševalec po reševanju shrani v zbirko in ji i
 
 ### Težavnost
 
-Težavnost uganke je raven njene najtežje tehnike:
+Težavnost uganke je najtežja raven tehnik, brez katere uganke ni mogoče rešiti:
 
 - **lahka** se reši samo z enojčki, torej brez zapisanih kandidatov
 - **srednja** potrebuje srednje tehnike (1–6 – izločitve izven bloka in v bloku, pari in trojice)
-- **težka** potrebuje natanko eno napredno tehniko (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik)
-- **zelo težka** potrebuje vsaj dve različni napredni tehniki
+- **težka** brez napredne tehnike (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča
+- **zelo težka** ena napredna tehnika ne zadošča – potrebuje vsaj dve različni
+
+Stopnja pove, katere tehnike zadoščajo. Reševalec lahko izbere drugo pot in uporabi druge tehnike – pri težki uganki na primer dve napredni, čeprav zadošča ena.
 
 Uganka, ki potrebuje tehnike, ki jih reševalec še ne pozna (brez ugibanja je ne reši), dobi **Presega tehnike**; reševalec jo reši s poskusom in protislovjem.
 

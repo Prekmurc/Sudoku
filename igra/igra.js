@@ -267,11 +267,6 @@ function izrisiOpisUganke(danosti) {
   const z = zbirkaBeri().find(x => x.danosti === danosti);
   const primer = zbirkaPrimerZa(danosti);
   opisUgankeEl.textContent = '';
-  // Vgrajeni primer v zbirki nikoli ni.
-  if (!z) {
-    opisUgankeEl.textContent = primer ? `Vgrajeni primer »${primer.ime}«. Danih števk: ${danih}.` : `Danih števk: ${danih}. Uganke ni v zbirki.`;
-    return;
-  }
   const vrstica = (razred, ...deli) => {
     const v = document.createElement('div');
     v.className = razred;
@@ -279,15 +274,21 @@ function izrisiOpisUganke(danosti) {
     opisUgankeEl.appendChild(v);
     return v;
   };
-  const prva = [zbirkaOpisIzvora(z), zbirkaPrikazCasov(z).dodana, `danih števk: ${danih}`].filter(Boolean).join(' · ');
-  if (z.tezavnost) {
-    const znacka = document.createElement('span');
-    znacka.className = `tag ${ZNACKA_TEZAVNOSTI[z.tezavnost] || 't-chain'} znacka-tezavnosti`;
-    znacka.textContent = z.tezavnost;
-    vrstica('opis-vrstica', znacka, ' ' + prva);
-  } else {
-    vrstica('opis-vrstica', `težavnost ni določena · ${prva}`);
+  const znacka = tezavnost => {
+    const el = document.createElement('span');
+    el.className = `tag ${ZNACKA_TEZAVNOSTI[tezavnost] || 't-chain'} znacka-tezavnosti`;
+    el.textContent = tezavnost;
+    return el;
+  };
+  // Vgrajeni primer v zbirki nikoli ni; težavnost ima v PRIMERI (shared/zbirka.js).
+  if (!z) {
+    if (primer) vrstica('opis-vrstica', znacka(primer.tezavnost), ` vgrajeni primer »${primer.ime}« · danih števk: ${danih}`);
+    else opisUgankeEl.textContent = `Danih števk: ${danih}. Uganke ni v zbirki.`;
+    return;
   }
+  const prva = [zbirkaOpisIzvora(z), zbirkaPrikazCasov(z).dodana, `danih števk: ${danih}`].filter(Boolean).join(' · ');
+  if (z.tezavnost) vrstica('opis-vrstica', znacka(z.tezavnost), ' ' + prva);
+  else vrstica('opis-vrstica', `težavnost ni določena · ${prva}`);
   vrstica('opis-vrstica', zbirkaOznakaTehnik(z));
   // Čas mojega reševanja brez stanja: pri rešeni uganki »rešena 21. 9. 2026 ob 17:48«, sicer
   // »zadnje reševanje …« ali pri ponovnem reševanju čas prve rešitve.
@@ -811,7 +812,7 @@ function opisResitev(resitve) {
 // app/zbirka.js). Če enoličnosti ni bilo mogoče preveriti, se ne zapiše nič.
 function ocenaZapis(o) {
   if (o.resitve === 'unknown') return {};
-  return o.resitve === 1 ? { ...o.podatki, tezavnost: o.tezavnost } : { tezavnost: o.tezavnost };
+  return o.resitve === 1 ? { ...o.podatki, tezavnost: o.tezavnost, potOcene: o.potOcene || null } : { tezavnost: o.tezavnost };
 }
 
 // Kaj bi se pri uganki spremenilo, če oceno zapišemo. Vrne besedilo za izpis ali
@@ -823,7 +824,8 @@ function ocenaSprememba(z, o) {
     deli.push(`${z.tezavnost || 'brez težavnosti'} → ${zapis.tezavnost}`);
   }
   if (zapis.tehnike) {
-    const nova = zbirkaOznakaTehnik({ tehnike: zapis.tehnike });
+    // Oznaka z novo težavnostjo in potjo ocene (pri težki uganki je iz poti).
+    const nova = zbirkaOznakaTehnik({ ...z, ...zapis });
     if (zbirkaOznakaTehnik(z) !== nova) deli.push(nova);
     else if (z.reseno !== zapis.reseno || z.koraki !== zapis.koraki || z.ugibanje !== zapis.ugibanje) {
       deli.push('podatki reševanja');
@@ -887,7 +889,7 @@ function izpisiOcenoNapredek() {
 function obdelajOceno(m) {
   if (!ocenjevanje) return;
   if (m.tip === 'ocena') {
-    ocene.set(m.danosti, { tezavnost: m.tezavnost, resitve: m.resitve, podatki: m.podatki });
+    ocene.set(m.danosti, { tezavnost: m.tezavnost, resitve: m.resitve, podatki: m.podatki, potOcene: m.potOcene });
     ocenjevanje.i = m.i + 1;
     izrisiOceno(m.danosti, ocenjevanje.zapisi.get(m.danosti));
     izpisiOcenoNapredek();
@@ -931,7 +933,7 @@ function ocenjevanjeVGlavniNiti() {
     try {
       const o = oceniUganko(danosti);
       obdelajOceno({ tip: 'ocena', i, danosti, tezavnost: o.tezavnost, resitve: o.resitve,
-        podatki: zbirkaPodatkiResevanja(o.board, o.log) });
+        podatki: zbirkaPodatkiResevanja(o.board, o.log), potOcene: zbirkaPotIzOcene(o) });
     } catch (e) {
       return obdelajOceno({ tip: 'napaka', sporocilo: e.message });
     }

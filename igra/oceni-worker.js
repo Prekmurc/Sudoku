@@ -32,5 +32,6 @@ onmessage = (e) => {
 // pove, zakaj uganka ni dobila stopnje.
 function oceniEno(danosti) {
   const o = oceniUganko(danosti);
-  return { danosti, tezavnost: o.tezavnost, resitve: o.resitve, podatki: zbirkaPodatkiResevanja(o.board, o.log) };
+  return { danosti, tezavnost: o.tezavnost, resitve: o.resitve, podatki: zbirkaPodatkiResevanja(o.board, o.log),
+    potOcene: zbirkaPotIzOcene(o) };
 }

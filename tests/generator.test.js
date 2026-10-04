@@ -13,17 +13,47 @@ const E = loadEngine(undefined, {
   names: ['applyStep', 'STOPNJE_UGANK', 'STOPNJE_GENERATORJA', 'stopnjaUganke', 'ustvariUganko',
     'oceniStopnjo', 'oceniUganko', 'oceniTezavnost', 'genPot', 'genRazvrsti', 'genTehnikeSolve',
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE',
-    'GEN_EKSPERTNE', 'TEZAVNOSTI', 'PRIMERI'],
+    'GEN_EKSPERTNE', 'TEZAVNOSTI', 'PRIMERI', 'genMinimalnaUganka', 'zbirkaOznakaTehnik', 'zbirkaPotIzOcene',
+    'TRENING_TEHNIKE'],
 });
 const VSE_TEHNIKE = E.ALL_TECHNIQUES.map(([ime]) => ime);
 
 // Semena, pri katerih generator da uganko te stopnje (preverjeno ob pisanju testa;
 // seme da vedno isto uganko, zato so testi ponovljivi in hitri).
-const SEMENA = { lahka: 1, srednja: 5, tezka: 7, zelotezka: 3 };
+// Zelo težka: seme 18 (prej 3 - ta po opredelitvi 2026-10-04 da težko, ker zadošča ena napredna).
+const SEMENA = { lahka: 1, srednja: 5, tezka: 7, zelotezka: 18 };
 const uganke = {};
 for (const kljuc of Object.keys(SEMENA)) {
   uganke[kljuc] = E.ustvariUganko(kljuc, SEMENA[kljuc]);
   assert.ok(uganke[kljuc], `seme ${SEMENA[kljuc]} mora dati uganko stopnje ${kljuc}`);
+}
+
+// Pot motorja s samimi tehnikami `imena` (po vrstnem redu ALL_TECHNIQUES) s štetjem uporab:
+// { tehnika: uporab } ali null, če se zatakne. Neodvisno od genPot() v shared/generator.js.
+function potZUporabami(danosti, imena) {
+  const tehnike = E.ALL_TECHNIQUES.filter(([ime]) => imena.includes(ime));
+  const b = new E.Board(danosti);
+  const uporab = {};
+  for (let k = 0; k < 500 && !b.isSolved(); k++) {
+    const t = tehnike.find(([, fn]) => fn(b).length);
+    if (!t) return null;
+    uporab[t[0]] = (uporab[t[0]] || 0) + 1;
+    E.applyStep(b, t[1](b)[0]);
+  }
+  return b.isSolved() ? uporab : null;
+}
+const naprednihV = uporab => Object.keys(uporab).filter(t => E.GEN_NAPREDNE.includes(t));
+// Prva napredna tehnika po vrstnem redu, ki skupaj z lažjimi reši uganko, ali null.
+function prvaZadostna(danosti) {
+  return E.GEN_NAPREDNE.find(t => potZUporabami(danosti, [...E.GEN_LAHKE, ...E.GEN_SREDNJE, t])) || null;
+}
+// Pot ocene po opredelitvi na vrhu shared/generator.js (odločitev 2026-10-04): pot v stalnem
+// vrstnem redu; če uporabi dve ali več naprednih, pot z eno samo - s prvo, ki zadošča.
+function potOcene(danosti) {
+  const vse = potZUporabami(danosti, VSE_TEHNIKE);
+  if (!vse || naprednihV(vse).length < 2) return vse;
+  const t = prvaZadostna(danosti);
+  return t ? potZUporabami(danosti, [...E.GEN_LAHKE, ...E.GEN_SREDNJE, t]) : vse;
 }
 
 // Stopnje, ki jim uganka ustreza po merah iz genRazvrsti(); null = motor v stalnem
@@ -109,8 +139,10 @@ test('lahka samo enojčki, srednja para/trojica/presek, težka ena napredna, zel
   // težka: natanko ena napredna, skupaj največ štiri tehnike nad enojčki.
   assert.equal(uganke.tezka.mere.napredne, 1, 'težka potrebuje natanko eno napredno tehniko');
   assert.ok(uganke.tezka.mere.tehNad <= 4, 'težka ima največ štiri tehnike nad enojčki');
-  // zelo težka: vsaj dve različni napredni (pravila "5 ali več tehnik" ni več).
+  // zelo težka: vsaj dve različni napredni (pravila "5 ali več tehnik" ni več) in nobena
+  // posamezna napredna skupaj z lažjimi ne zadošča (opredelitev 2026-10-04).
   assert.ok(uganke.zelotezka.mere.napredne >= 2, 'zelo težka: vsaj dve napredni');
+  assert.equal(prvaZadostna(uganke.zelotezka.danosti), null, 'zelo težka: ena napredna ne zadošča');
 });
 
 // Stopnja po najtežji ravni (razdelek 7.2): število srednjih tehnik stopnje ne
@@ -135,14 +167,8 @@ test('mere štejejo različne tehnike, ne uporab', () => {
   for (const { ime, danosti } of vzorec) {
     const m = E.genRazvrsti(danosti);
     if (!m) continue;
-    // Ista pot kot genPot z vsemi tehnikami, le da šteje uporabe.
-    const b = new E.Board(danosti);
-    const uporab = {};
-    while (!b.isSolved()) {
-      const [t, fn] = E.ALL_TECHNIQUES.find(([, f]) => f(b).length);
-      uporab[t] = (uporab[t] || 0) + 1;
-      E.applyStep(b, fn(b)[0]);
-    }
+    // Ista pot kot pri oceni (potOcene zgoraj), le da šteje uporabe.
+    const uporab = potOcene(danosti);
     const nad = Object.keys(uporab).filter(t => !E.GEN_LAHKE.includes(t));
     assert.equal(m.tehNad, nad.length, `${ime}: različnih tehnik nad enojčki`);
     assert.equal(m.srednje, nad.filter(t => E.GEN_SREDNJE.includes(t)).length, `${ime}: srednjih`);
@@ -152,15 +178,81 @@ test('mere štejejo različne tehnike, ne uporab', () => {
   assert.ok(vecUporab >= 1, 'vsaj ena uganka uporabi kako tehniko nad enojčki večkrat');
 });
 
-// Motor v stalnem vrstnem redu (7.1): ocena uporabi pot genPot() z vsemi tehnikami
-// (brez sidranja na števko, ki ga ima solve()).
-test('ocena izhaja iz poti motorja v stalnem vrstnem redu', () => {
-  for (const { ime, danosti } of loadPuzzles()) {
-    const pot = E.genPot(danosti, VSE_TEHNIKE);
+// Motor v stalnem vrstnem redu (7.1): ocena uporabi pot genPot() z vsemi tehnikami (brez
+// sidranja na števko, ki ga ima solve()), pri dveh ali več naprednih pa pot z eno samo, če
+// zadošča (opredelitev 2026-10-04).
+test('ocena izhaja iz poti motorja v stalnem vrstnem redu ali poti z eno napredno tehniko', () => {
+  for (const { ime, danosti } of [...loadPuzzles(), ...Object.entries(uganke).map(([ime, u]) => ({ ime, danosti: u.danosti }))]) {
+    const pot = potOcene(danosti);
     const o = E.oceniTezavnost(danosti);
     if (!pot) { assert.equal(o.tezavnost, 'Presega tehnike', ime); continue; }
-    assert.deepEqual([...o.mere.uporabljene].sort(), [...pot].sort(), ime);
+    assert.deepEqual([...o.mere.uporabljene].sort(), Object.keys(pot).sort(), ime);
   }
+});
+
+/* ---------- zelo težka = ena napredna ne zadošča (odločitev 2026-10-04) ---------- */
+
+// Vzorec: naključne minimalne uganke iz semen 1-200 in uganke generatorja za težko in zelo
+// težko (seme 7, semena 18 in 59). Vsaka je preverjena s countSolutions().
+const VZOREC_OCENE = (() => {
+  const out = [];
+  for (let seme = 1; seme <= 200; seme++) out.push({ ime: `minimalna ${seme}`, danosti: E.genMinimalnaUganka(seme) });
+  out.push({ ime: 'generator težka 7', danosti: uganke.tezka.danosti });
+  for (const seme of [18, 59]) out.push({ ime: `generator zelo težka ${seme}`, danosti: E.ustvariUganko('zelotezka', seme).danosti });
+  return out.map(u => ({ ...u, o: E.oceniTezavnost(u.danosti) }));
+})();
+
+test('»Zelo težka«: nobena posamezna napredna tehnika skupaj z lažjimi uganke ne reši', () => {
+  const zelo = VZOREC_OCENE.filter(u => u.o.tezavnost === 'Zelo težka');
+  assert.ok(zelo.length >= 3, `v vzorcu je ${zelo.length} zelo težkih`);
+  for (const u of zelo) {
+    assert.equal(E.countSolutions(u.danosti), 1, u.ime);
+    for (const t of E.GEN_NAPREDNE) {
+      assert.equal(potZUporabami(u.danosti, [...E.GEN_LAHKE, ...E.GEN_SREDNJE, t]), null, `${u.ime}: ${t} sama zadošča`);
+    }
+  }
+  // Sprememba ni prazna: v vzorcu so težke uganke, ki jih pot v stalnem vrstnem redu reši z dvema
+  // naprednima (prej Zelo težka).
+  const prej = VZOREC_OCENE.filter(u => u.o.tezavnost === 'Težka' && naprednihV(potZUporabami(u.danosti, VSE_TEHNIKE)).length >= 2);
+  assert.ok(prej.length >= 3, `prej zelo težkih, zdaj težkih: ${prej.length}`);
+});
+
+// Številke naprednih tehnik (7-12) v oznaki »tehnike: …«.
+const napredneVOznaki = oznaka => (oznaka.replace(/^tehnike: /, '').match(/\d+/g) || []).map(Number).filter(n => n >= 7 && n <= 12);
+const stevilka = ime => E.TRENING_TEHNIKE.findIndex(([, t]) => t === ime) + 1;
+
+test('»Težka«: v oznaki »tehnike:« je natanko ena napredna – z najnižjo številko, ki zadošča', () => {
+  const tezke = VZOREC_OCENE.filter(u => u.o.tezavnost === 'Težka');
+  assert.ok(tezke.length >= 10, `v vzorcu je ${tezke.length} težkih`);
+  let dnevnikDve = 0;
+  for (const u of tezke) {
+    const { log } = E.solve(u.danosti);
+    const tehnike = [...new Set(log.map(k => k.technique))].map(t => [t, 1]);
+    if (tehnike.filter(([t]) => E.GEN_NAPREDNE.includes(t)).length >= 2) dnevnikDve++;
+    const pricakovana = stevilka(prvaZadostna(u.danosti));
+    // Z zapisano potjo ocene (nov zapis) in brez nje (starejši zapis - izračun sproti).
+    for (const z of [{ danosti: u.danosti, tezavnost: 'Težka', tehnike, potOcene: E.zbirkaPotIzOcene(u.o) },
+      { danosti: u.danosti, tezavnost: 'Težka', tehnike }]) {
+      const oznaka = E.zbirkaOznakaTehnik(z);
+      assert.deepEqual(napredneVOznaki(oznaka), [pricakovana], `${u.ime}: ${oznaka}`);
+    }
+  }
+  // Brez poti ocene bi pri teh pisalo »Težka · tehnike: …« z dvema naprednima.
+  assert.ok(dnevnikDve >= 1, `težkih z dvema naprednima v dnevniku solve(): ${dnevnikDve}`);
+});
+
+// Uganka iz ročnega pregleda faze 6 (ustvaril jo je generator v igri; ena rešitev - preveri
+// test): prej »Zelo težka«, ker je pot v stalnem vrstnem redu vzela 9 in 10, reševalec pa
+// uporabi samo 12. Zadošča že 10 (W-krilo) - prva po vrstnem redu, ki zadošča.
+test('uganka iz ročnega pregleda: Težka, »tehnike: 1, 2, 10«', () => {
+  const danosti = ('51......8.....86..89.7.5...' + '.....7.4...39..17.....4..2.' + '.5..1....6..4.9...9...8....').replace(/\./g, '0');
+  assert.equal(E.countSolutions(danosti), 1);
+  assert.deepEqual(naprednihV(potZUporabami(danosti, VSE_TEHNIKE)), ['Turbot Fish', 'W-Wing'], 'pot v stalnem vrstnem redu');
+  const { log } = E.solve(danosti);
+  assert.deepEqual([...new Set(log.map(k => k.technique))].filter(t => E.GEN_NAPREDNE.includes(t)), ['Unique Rectangle'], 'dnevnik solve()');
+  const o = E.oceniTezavnost(danosti);
+  assert.equal(o.tezavnost, 'Težka');
+  assert.equal(E.zbirkaOznakaTehnik({ danosti, tezavnost: o.tezavnost, tehnike: [], potOcene: E.zbirkaPotIzOcene(o) }), 'tehnike: 1, 2, 10');
 });
 
 // Ekspertne tehnike še ni, zato je Ekstrem preverjen na merah: ekspertna tehnika da

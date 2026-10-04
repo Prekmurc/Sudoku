@@ -213,7 +213,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Danosti:** `8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4`
 - **Vir:** Oakever, Ekstrem (Lv4); aplikacija Oakever je zanjo uporabila W-Wing,
   XY-Wing, Skyscraper, Jellyfish, X-Wing.
-- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 2 (Ekstrem, brez ugibanja)").
+- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 2 (brez ugibanja)"; do 2026-10-04 "Primer 2 (Ekstrem, brez ugibanja)" in težavnost Zelo težka – po oceni z eno napredno tehniko, ki zadošča, je Težka: reši jo veriga ene števke skupaj z lažjimi).
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** naš `solve()` (`shared/engine.js`) jo reši brez sestopanja

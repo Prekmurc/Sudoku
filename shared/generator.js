@@ -16,16 +16,23 @@
         najde. Če se zatakne (moral bi ugibati), dobi uganka "Presega tehnike" -
         poskus s protislovjem ni tehnika in ni raven.
      3. Šteje se MNOŽICA različnih uporabljenih tehnik, ne število uporab.
-   Stopnja je raven najtežje uporabljene tehnike (ravni GEN_LAHKE ... GEN_EKSPERTNE):
+     4. Če pot iz točke 2 uporabi dve ali več različnih naprednih tehnik, se preveri, ali
+        uganko reši posamezna napredna tehnika skupaj z lažjimi (genPot z GEN_LAHKE,
+        GEN_SREDNJE in eno napredno, po vrstnem redu tehnik). Če jo, velja pot s prvo -
+        z najnižjo številko -, ki zadošča (odločitev 2026-10-04 po ročnem pregledu faze 6:
+        pot v stalnem vrstnem redu je pri pribl. treh četrtinah "zelo težkih" ugank
+        uporabila dve napredni, čeprav bi zadoščala ena). Ta pot da tudi oznako
+        "tehnike:" pri težki uganki (potOcene v shared/zbirka.js).
+   Stopnja je raven najtežje tehnike na tej poti (ravni GEN_LAHKE ... GEN_EKSPERTNE):
      lahka      - samo enojčki (E1, E2)
      srednja    - najtežja raven so srednje tehnike (1-6)
-     težka      - natanko ena različna napredna tehnika (7-12), srednjih koliko koli
-     zelo težka - vsaj dve različni napredni tehniki
+     težka      - brez napredne tehnike (7-12) ne gre, ena zadošča; srednjih koliko koli
+     zelo težka - ena napredna tehnika ne zadošča (nobena posamezna skupaj z lažjimi)
      ekstrem    - ekspertna tehnika (13, XY-veriga - še ni v motorju, GEN_EKSPERTNE
                   je prazen; generator te stopnje ne ponuja)
    Stopnje se izključujejo in pokrijejo vsako uganko, ki jo motor reši brez ugibanja.
-   Na 600 naključnih minimalnih ugankah (meritev 2026-09-24) je delež 53 / 25 / 14 / 8 %
-   ugank brez ugibanja, 21,5 % vseh pa presega tehnike.
+   Na 600 naključnih minimalnih ugankah (meritev 2026-10-04) je delež 55,0 / 23,7 / 19,5 / 1,9 %
+   ugank brez ugibanja (pred točko 4 okoli 8 % zelo težkih), 21,2 % vseh pa presega tehnike.
 
    Merili sta dve, ker imata dve nalogi:
      ustreza        - STOPNJA: razvrsti vsako uganko (oceniUganko, gumb "Oceni zbirko",
@@ -40,8 +47,9 @@
    "Oceni zbirko" dobila drugo težavnost, kot jo ima v zbirki. To preverja
    tests/generator.test.js.
 
-   Iskanje traja v povprečju 0,2 s (lahka), 0,9 s (srednja), 1,2 s (težka) in 2,1 s
-   (zelo težka), izjemoma nekaj sekund (docs/tehnike.md).
+   Iskanje traja v povprečju 0,3 s (lahka), 0,8 s (srednja), 1,0 s (težka) in 4,0 s
+   (zelo težka - uganko da pribl. vsako 38. seme), najdlje pribl. 10 s (meritev 2026-10-04,
+   docs/tehnike.md).
 
    Z moznosti.strogoSrednja zahteva srednja stopnja par IN trojico na poti - to je
    merilo za testne uganke v docs/uganke.md (uporablja ga tools/ustvari-uganko.js).
@@ -95,15 +103,15 @@ const STOPNJE_UGANK = [
     ustreza: (m) => m.napredne === 1 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 1 && m.ekspertne === 0
       && m.srednje >= GEN_NAJMANJ_SREDNJIH && m.tehNad <= GEN_TEZKA_NAJVEC,
-    opis: 'potrebuje natanko eno napredno tehniko (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik)',
-    opisIskanja: 'potrebuje natanko eno napredno tehniko (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik), vsaj dve srednji in skupaj največ štiri tehnike nad enojčki',
+    opis: 'brez napredne tehnike (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča',
+    opisIskanja: 'brez napredne tehnike (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča; poleg nje vsaj dve srednji in skupaj največ štiri tehnike nad enojčki',
   },
   {
     kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,
     ustreza: (m) => m.napredne >= 2 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne >= 2 && m.ekspertne === 0 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
-    opis: 'potrebuje vsaj dve različni napredni tehniki',
-    opisIskanja: 'potrebuje vsaj dve različni napredni tehniki in vsaj dve srednji',
+    opis: 'ena napredna tehnika ne zadošča – potrebuje vsaj dve različni',
+    opisIskanja: 'ena napredna tehnika ne zadošča – potrebuje vsaj dve različni in vsaj dve srednji',
   },
   {
     kljuc: 'ekstrem', ime: 'Ekstrem', najvecjaPrednost: 1,
@@ -231,10 +239,28 @@ function genMere(uporabljene) {
 // null, če se motor zatakne - uganke brez ugibanja ne reši (oznaka "Presega tehnike").
 // Motor vzame v vsakem koraku najlažjo tehniko, ki kaj najde, zato je to ista pot kot
 // pri reševanju s samo tako težkimi tehnikami, kot jih uganka res potrebuje (prej
-// genRazvrsti() po skupinah TECHNIQUE_GROUPS - na 600 ugankah 0 razlik).
+// genRazvrsti() po skupinah TECHNIQUE_GROUPS - na 600 ugankah 0 razlik). Pri dveh ali več
+// naprednih tehnikah na tej poti velja pot z eno samo napredno tehniko, če obstaja - s
+// prvo po vrstnem redu, ki zadošča (točka 4 opredelitve na vrhu datoteke). Mere imajo v
+// `uporabljene` tehnike poti, ki je določila stopnjo.
 function genRazvrsti(danosti) {
   const uporabljene = genPot(danosti, ALL_TECHNIQUES.map(([ime]) => ime));
-  return uporabljene ? genMere(uporabljene) : null;
+  return uporabljene ? genMerePoti(danosti, uporabljene) : null;
+}
+
+// Mere za stopnjo iz množice tehnik poti v stalnem vrstnem redu (genPot z vsemi tehnikami ali
+// enaka pot z nextStep() brez prednosti števke - prehodiPot() v shared/vaje-uganka.js): pri dveh
+// ali več naprednih tehnikah mere poti z eno samo napredno, s prvo po vrstnem redu, ki skupaj z
+// lažjimi zadošča; če ne zadošča nobena, mere poti same (zelo težka).
+function genMerePoti(danosti, uporabljene) {
+  const mere = genMere(uporabljene);
+  if (mere.napredne < 2 || mere.ekspertne > 0) return mere;
+  const lazje = [...GEN_LAHKE, ...GEN_SREDNJE];
+  for (const napredna of GEN_NAPREDNE) {
+    const ena = genPot(danosti, [...lazje, napredna]);
+    if (ena) return genMere(ena);
+  }
+  return mere;
 }
 
 // Iste mere iz dnevnika solve() (imena tehnik).

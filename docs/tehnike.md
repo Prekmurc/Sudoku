@@ -149,6 +149,17 @@ uganke in vgrajeni primeri enako, na 300 naključnih minimalnih ugankah ena spre
 
 ## Stopnje ugank: najmanjše število različnih tehnik (meritev 2026-09-21)
 
+**Sprememba 2026-10-04** ([uskladitev.md](uskladitev.md), 7.1, točka 4): če pot v stalnem
+vrstnem redu uporabi dve ali več naprednih tehnik, velja pot z eno samo napredno, če obstaja – s
+prvo po vrstnem redu, ki skupaj z lažjimi zadošča (`genMerePoti()` v
+[shared/generator.js](../shared/generator.js)). Težka je zdaj »brez napredne ne gre, ena zadošča«,
+Zelo težka »ena napredna ne zadošča«. Na 600 naključnih minimalnih ugankah (semena 1–600) je med
+rešljivimi 55,0 % lahkih, 23,7 % srednjih, 19,5 % težkih in 1,9 % zelo težkih (prej okoli 8 %),
+21,2 % vseh presega tehnike. Časi iskanja (2026-10-04, zaporedna semena od 1, Node 24): lahka
+0,30 s, srednja 0,76 s, težka 0,99 s, zelo težka 3,97 s (povprečje; uganko da pribl. vsako 38.
+seme, najdlje 9,6 s – meja v igri je 30 s). Banka vaj ima zdaj pri vseh naprednih tehnikah po
+vsaj 50 ugank osnovne stopnje Težka (prej mečarica 8, X-krilo 42).
+
 **Opredelitev stopenj od 2026-09-24** ([uskladitev.md](uskladitev.md), razdelek 7): stopnja je
 raven najtežje tehnike, ki jo uporabi motor v stalnem vrstnem redu (`genPot()` z vsemi
 tehnikami), šteje se množica različnih tehnik. Lahka = samo enojčki, Srednja = najtežje so

@@ -7,6 +7,9 @@
 //     vzorca, izbrisani kandidati, vpis), vzorčki imajo barve celic; en napotek za povečavo;
 //   - trening, »Vadi v uganki«: »več celic« pri 1-12 privzeto vklopljen (tudi pri edinstvenem
 //     pravokotniku), opis poteka ob gumbih »Označi izbrane«, namig miške, odstavek v Pomoči;
+//   - ocena (odločitev 2026-10-04): uganka iz ročnega pregleda je v kartici »Težka · tehnike: 1, 2, 10«,
+//     primer 2 je »Primer 2 (brez ugibanja)« z značko, besedilo stopenj v Pomoči;
+//   - reševalec (D3): kandidati male mreže pri 375 in 540 px in v povečanem prikazu v svoji celici;
 //   - nič ne sega čez kartico ali okno, brez vodoravnega preliva, brez napak JS.
 //
 //   node tools/preveri-pregled6-brskalnik.js [--mapa <mapa>]
@@ -22,6 +25,8 @@ const args = process.argv.slice(2);
 const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.join(os.tmpdir(), 'sudoku-preveri-pregled6');
 const uganke = loadPuzzles().map(u => u.danosti.replace(/\./g, '0'));
 const D = JSON.stringify(uganke[0]);
+// Uganka iz ročnega pregleda faze 6 (generator v igri; ena rešitev preveri tests/generator.test.js).
+const D_POROCILO = JSON.stringify(('51......8.....86..89.7.5...' + '.....7.4...39..17.....4..2.' + '.5..1....6..4.9...9...8....').replace(/\./g, '0'));
 
 let napak = 0;
 function preveri(ime, pogoj, podrobno = '') {
@@ -94,6 +99,56 @@ async function igra(b, sirina) {
   await b.tipka('Escape');
   preveri('igra: brez vodoravnega preliva', !(await preliv(b)));
   await b.posnetek(path.join(mapa, `igra-${sirina}.png`));
+
+  // Ocena »zelo težka« (odločitev 2026-10-04): uganka iz ročnega pregleda je Težka, oznaka iz poti
+  // z eno napredno tehniko (W-krilo, 10), ne iz dnevnika reševalca (12).
+  await b.izvedi(`dodajVZbirko(${D_POROCILO}, '', 'rocno'); zacniIgro(${D_POROCILO}); true`);
+  const por = await b.izvedi(`[...document.getElementById('opisUganke').children].map(v => v.textContent)`);
+  preveri('uganka iz ročnega pregleda: Težka, »tehnike: 1, 2, 10«', /^Težka ročni vnos/.test(por[0]) && por[1] === 'tehnike: 1, 2, 10', por);
+  // Vgrajeni primer 2: brez »Ekstrem« v imenu, težavnost kot značka.
+  const pr = await b.izvedi(`(() => { const p = PRIMERI[1]; zacniIgro(p.danosti.replace(/\\./g, '0'));
+    const el = document.getElementById('opisUganke'); const z = el.querySelector('.znacka-tezavnosti');
+    return { besedilo: el.textContent, znacka: z && z.textContent, razred: z && z.className }; })()`);
+  preveri('primer 2: »Primer 2 (brez ugibanja)« z značko »Težka«', pr.znacka === 'Težka' && /tag t-advanced/.test(pr.razred)
+    && pr.besedilo === 'Težka vgrajeni primer »Primer 2 (brez ugibanja)« · danih števk: 17', pr);
+  // Besedilo stopenj v Pomoči.
+  const st = await b.izvedi(`(() => { const o = document.getElementById('navodilaDialog');
+    return { stopnje: [...o.querySelectorAll('#stopnjeOcena li')].map(li => li.textContent), besedilo: o.textContent }; })()`);
+  preveri('Pomoč: težka »ena zadošča«, zelo težka »ena napredna tehnika ne zadošča«, poved o drugi poti',
+    /^težka brez napredne tehnike .* ne gre, ena zadošča$/.test(st.stopnje[2]) && /^zelo težka ena napredna tehnika ne zadošča/.test(st.stopnje[3])
+      && st.besedilo.includes('lahko izbere drugo pot in uporabi druge tehnike'), st.stopnje);
+}
+
+// D3 (ročni pregled faze 6): kandidati male mreže koraka in povečanega prikaza ne segajo čez
+// svojo celico (prej je spodnja vrstica, 7–9, segla 5–7 px v celico spodaj).
+async function malaMreza(b) {
+  console.log('Mala mreža koraka: kandidati v celici');
+  const meri = izbirnik => b.izvedi(`(() => { let cez = 0;
+    for (const grid of document.querySelectorAll('${izbirnik}')) for (const cell of grid.querySelectorAll('.mcell')) {
+      const cr = cell.getBoundingClientRect();
+      for (const k of cell.querySelectorAll('.mcand:not(.mcand-empty)')) cez = Math.max(cez, k.getBoundingClientRect().bottom - cr.bottom, cr.top - k.getBoundingClientRect().top);
+    } return cez; })()`);
+  for (const sirina of [375, 540]) {
+    await b.odpri('app/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
+    await b.fokus('#nizDanosti');
+    await b.vtipkaj(uganke[0].replace(/0/g, '.'));
+    await b.klikni('#solveBtn');
+    await b.cakaj("getComputedStyle(document.getElementById('results')).display !== 'none'", 10000);
+    await b.izvedi("document.getElementById('openStepsBtn').click(); [...document.querySelectorAll('#steps .mini-toggle')].slice(0, 8).forEach(g => g.click()); true");
+    const cez = await meri('#steps .mini-grid');
+    const celica = await b.izvedi("document.querySelector('#steps .mini-grid .mcell').getBoundingClientRect().height");
+    preveri(`${sirina} px: kandidati v celici (celica ${celica} px)`, cez <= 0.5, cez);
+    if (sirina === 540) {
+      await b.izvedi("document.querySelector('#steps .mini-toggle').scrollIntoView(); true");
+      await b.posnetek(path.join(mapa, 'mala-mreza-540.png'), { vsaStran: false });
+      await b.izvedi("document.querySelector('#steps .mini-grid').click(); true");
+      await b.cakaj("document.querySelector('#lightboxInner .mini-grid') !== null", 3000);
+      const cezP = await meri('#lightboxInner .mini-grid');
+      const celicaP = await b.izvedi("document.querySelector('#lightboxInner .mini-grid .mcell').getBoundingClientRect().height");
+      preveri(`povečan prikaz: kandidati v celici (celica ${celicaP} px)`, cezP <= 0.5, cezP);
+      await b.posnetek(path.join(mapa, 'mala-mreza-povecava.png'), { vsaStran: false });
+    }
+  }
 }
 
 async function resevalec(b, sirina) {
@@ -192,6 +247,7 @@ async function main() {
       await resevalec(b, sirina);
       await trening(b, sirina);
     }
+    await malaMreza(b);
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } finally {
     await b.zapri();

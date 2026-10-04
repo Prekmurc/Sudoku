@@ -83,7 +83,7 @@ function zbirkaOpisIzvora(z) {
 // (shared/generator.js) - to preverja tests/generator.test.js.
 const PRIMERI = [
   { ime: 'Primer 1 (z ugibanjem)', tezavnost: 'Presega tehnike', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
-  { ime: 'Primer 2 (Ekstrem, brez ugibanja)', tezavnost: 'Zelo težka', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
+  { ime: 'Primer 2 (brez ugibanja)', tezavnost: 'Težka', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
   { ime: 'Primer 3 (srednja – presek)', tezavnost: 'Srednja', danosti: '.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7' }, // lahka-seme-197
   { ime: 'Primer 4 (srednja – trojica)', tezavnost: 'Srednja', danosti: '..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761' }, // srednja-a
   { ime: 'Primer 5 (lahka)', tezavnost: 'Lahka', danosti: '876.....4......7.....2..58..34.1.8..21..69......3.5.7.......6...4..769....8....4.' }, // lahka-seme-1
@@ -464,9 +464,18 @@ function zbirkaPodatkiResevanja(board, log) {
   };
 }
 
+// Tehnike poti, ki je določila stopnjo (mere.uporabljene iz oceniTezavnost() v
+// shared/generator.js), po vrstnem redu tehnik, ali null (uganka brez stopnje). Iz te poti je
+// oznaka »tehnike:« pri težki uganki - pot z eno samo napredno tehniko, z najnižjo številko,
+// ki zadošča (popravek po ročnem pregledu faze 6); dnevnik solve() ima lahko dve.
+function zbirkaPotIzOcene(o) {
+  return o && o.mere ? [...o.mere.uporabljene].sort((a, b) => redTehnike(a) - redTehnike(b)) : null;
+}
+
 // Nova uganka dobi težavnost in izvor iz `dodatno` ({ tezavnost, izvor }); brez
 // težavnosti (ročni vnos) se ta izračuna z oceniTezavnost() iz shared/generator.js,
-// prav tako pri že shranjeni uganki, ki težavnosti nima. Pri že shranjeni se
+// prav tako pri že shranjeni uganki, ki težavnosti nima. Zapis dobi tudi pot ocene
+// (`potOcene` - zbirkaPotIzOcene()), če je še nima. Pri že shranjeni se
 // posodobijo samo datum zadnjega reševanja in izračunani podatki
 // (težavnost, izvor in opomba ostanejo - izvor pove, kako je uganka nastala, ne kdaj
 // je bila nazadnje rešena). Vrne shranjeni zapis ali null, če brskalnik ne dovoli
@@ -479,13 +488,18 @@ function zbirkaShraniResitev(givens, board, log, dodatno = {}) {
   let zapis = zbirka.find(z => z.danosti === givens);
   if (zapis) {
     Object.assign(zapis, podatki, { nazadnje: cas });
-    if (!zapis.tezavnost) zapis.tezavnost = oceniTezavnost(givens).tezavnost;
+    if (!zapis.tezavnost || !Array.isArray(zapis.potOcene)) {
+      const o = oceniTezavnost(givens);
+      if (!zapis.tezavnost) zapis.tezavnost = o.tezavnost;
+      zapis.potOcene = zbirkaPotIzOcene(o);
+    }
   } else {
+    const o = oceniTezavnost(givens);
     zapis = {
       danosti: givens,
-      tezavnost: dodatno.tezavnost || oceniTezavnost(givens).tezavnost,
+      tezavnost: dodatno.tezavnost || o.tezavnost,
       izvor: zbirkaIzvor(dodatno.izvor),
-      dodano: cas, nazadnje: cas, ...podatki, opomba: '',
+      dodano: cas, nazadnje: cas, ...podatki, potOcene: zbirkaPotIzOcene(o), opomba: '',
     };
     zbirka.push(zapis);
   }
@@ -823,12 +837,27 @@ function zbirkaPrenesi(besedilo, ime = ZBIRKA_DATOTEKA) {
 
 /* ---------- oznaka tehnik za prikaz ---------- */
 
+// Pot ocene za oznako težke uganke: shranjena (`potOcene`) ali - pri starejšem ali uvoženem
+// zapisu - izračunana enkrat na stran (oceniTezavnost() iz shared/generator.js, pribl. 10 ms;
+// brez generatorja null).
+const ZBIRKA_POTI = new Map();
+function zbirkaPotTezke(z) {
+  if (Array.isArray(z.potOcene)) return z.potOcene;
+  if (!z.danosti || typeof oceniTezavnost !== 'function') return null;
+  if (!ZBIRKA_POTI.has(z.danosti)) ZBIRKA_POTI.set(z.danosti, zbirkaPotIzOcene(oceniTezavnost(z.danosti)));
+  return ZBIRKA_POTI.get(z.danosti);
+}
+
 // Katere tehnike uganka zahteva, s številkami iz treninga (TRENING_TEHNIKE v
 // shared/engine.js): "tehnike: 1, 3, 7 + poskus". Iz polja z.tehnike ([[ime,
-// število], ...] iz reševanja). Enojčki se ne izpišejo (osnova vsake uganke),
-// poskus s protislovjem je oznaka "+ poskus" (pri več "+ poskus ×2"); ime, ki ga
-// ni med tehnikami (npr. iz starejšega izvoza), se izpiše kar z imenom.
+// število], ...] iz reševanja); pri težki uganki iz poti ocene (zbirkaPotTezke() - pot z eno
+// samo napredno tehniko, ki zadošča; dnevnik solve() ima lahko dve, npr. »9, 10«). Enojčki
+// se ne izpišejo (osnova vsake uganke), poskus s protislovjem je oznaka "+ poskus" (pri več
+// "+ poskus ×2"); ime, ki ga ni med tehnikami (npr. iz starejšega izvoza), se izpiše kar z
+// imenom.
 function zbirkaOznakaTehnik(z) {
+  const pot = z && z.tezavnost === 'Težka' ? zbirkaPotTezke(z) : null;
+  if (pot) return zbirkaOznakaTehnik({ tehnike: pot.map(ime => [ime, 1]) });
   if (!z || !Array.isArray(z.tehnike)) return 'tehnike: ni podatkov';
   const stevilke = [];
   const neznane = [];
