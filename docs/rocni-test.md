@@ -190,6 +190,8 @@ prej (tudi »Preveri« in prekrivanje okvirja z malimi števkami), preverijo
 
 ## Faza 6 – pomoč (vse tri aplikacije)
 
+Ročni pregled faze 6 (obe preglednici v tem razdelku) je potrjen 2026-10-05; E1 in E2 ostaneta, kot sta.
+
 Iz `docs/faza6-nacrt.md` (koraki a–c). Besedila tehnik so v `docs/faza6-besedila.md`, besedila oken
 Pomoč v `docs/faza6-pomoc.md`. Samodejno preverjeno: pravila besedil (»izbriši«, druga oseba,
 števila z besedo, pari {x, y}, ločila, brez poti in Oakevra) v `tests/trening-tehnike.test.js`,
@@ -219,11 +221,22 @@ zadošča) in oznaka »tehnike:« pri težki v `tests/generator.test.js`; kandid
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
 | 1 | igra, okno Pomoč | Preberi »Kako igrati« in »Zbirka ugank« s podnaslovi ter seznam stopenj s povedjo o generatorju. | Podnaslovi ustrezajo temu, kar je na zaslonu, in olajšajo iskanje; poved o generatorju je razumljiva. (nepotrjeno) – ni avtomatsko: ustreznost razdelitve je vsebinska presoja. |
-| 2 | igra, kartica »Uganka«, telefon in računalnik | Odpri uganko iz zbirke, naredi potezo; odpri še vgrajeni primer 2. | Značka težavnosti je berljiva, tehnike so v svoji vrstici, stanje (»V teku …«) je izpisano enkrat; primer 2 se imenuje »Primer 2 (brez ugibanja)« in ima značko »Težka«. (nepotrjeno) – ni avtomatsko: berljivost in videz presodi oko; scenarij preveri barvo, vrstice in besedilo. |
+| 2 | igra, kartica »Uganka«, telefon in računalnik | Odpri uganko iz zbirke, naredi potezo; odpri še vgrajeni primer. | Značka težavnosti je berljiva, tehnike so v svoji vrstici, stanje (»V teku …«) je izpisano enkrat; primer ima ime z glavno tehniko (od 2026-10-05, npr. »P_2 · 1 Izločitev izven bloka«) in značko. (nepotrjeno) – ni avtomatsko: berljivost in videz presodi oko; scenarij preveri barvo, vrstice in besedilo. |
 | 3 | reševalec, koraki, telefon | Odpri »Pokaži na mreži« pri enojčku, pri koraku z izbrisom (npr. par) in pri koraku z vpisom; tapni malo mrežo. | Legenda našteje samo to, kar je na mali mreži (»celice vzorca«, »izbrisani kandidati«, »vpis«), vzorčki so berljivi; kandidati 7, 8, 9 v spodnji vrstici celice so celi v mali mreži in v povečavi. (nepotrjeno) – ni avtomatsko: velikost vzorčkov na pravem zaslonu. |
 | 4 | trening, »Vadi v uganki« 9–12 | Reši vajo z vklopljeno kljukico »več celic« in uporabi »Označi izbrane« po opisu pod gumboma. | Opis poteka je razumljiv; privzeto vklopljena kljukica ne moti tudi pri tehnikah, kjer se števka izbriše iz ene celice. (nepotrjeno) – ni avtomatsko: občutek pri reševanju. |
 | 5 | igra, »Zbirka« → »Oceni zbirko« na tvoji zbirki; Pomoč igre in reševalca | Oceni zbirko in poglej predloge; preberi stopnje v Pomoči. | Nekdanje »Zelo težka«, ki jih reši ena napredna tehnika, dobijo predlog »Težka«; pri težkih je v »tehnike:« ena napredna; besedilo stopenj in poved, da reševalec lahko izbere drugo pot, sta razumljiva. (nepotrjeno) – ni avtomatsko: tvoja prava zbirka in vsebinska presoja besedila. |
 | 6 | reševalec, povečava, pravi telefon pokončno in ležeče | »Reši«, »Pokaži na mreži« pri koraku, tapni malo mrežo; nato tapni rešeno mrežo. Obrni telefon in ponovi. | Povečana mreža je vsa vidna (stolpca 1 in 9, vrstici 1 in 9) brez pomikanja, kandidati so celi; ležeče je manjša, a berljiva. Napaka 2026-10-05: prej je bila mreža širša od zaslona in stolpec 1 nedosegljiv. (nepotrjeno) – ni avtomatsko: pravi zaslon, vrstica brskalnika in dotik; scenarij meri emulacijo 320–414 px, 740 × 360 in 1280 px. |
+
+## Novi vgrajeni primeri (zadnji del faze 6)
+
+Samodejno preverjeno: ocena, tehnike in meje primerov v `tests/generator.test.js`; vrstice, skupine,
+naštevanje in čiščenje starih primerov v `tests/zbirka-zapis.test.js` in `tests/igra-ui.test.js`;
+seznam in opis v reševalcu, skupine v igri in kartica »Uganka« pri 375 in 1280 px v
+`tools/preveri-primeri-brskalnik.js`.
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | reševalec (pravi telefon in računalnik) in igra, okno »Zbirka« → »Vgrajeni primeri« | V reševalcu odpri seznam »Primeri po težavnosti« s pravim dotikom in klikom, izberi P_8 in P_15; v igri preglej razdelek primerov. | Seznam pokaže skupine z naslovi in prazno vrstico med njimi, vrstice so berljive; pod seznamom značka, število danih in »Tehnike:« z glavno krepko (pri P_15 »in ugibanje«); v igri iste skupine, v vrstici značka in vse tehnike. (nepotrjeno) – ni avtomatsko: odprt spustni seznam riše sistem (telefon ga pokaže kot svoj izbirnik), brskalnik brez glave ga ne odpre. |
 
 ## Zakaj ročno
 

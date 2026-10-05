@@ -16,6 +16,8 @@ const { makeDom } = require('./dom-stub.js');
 // Vrstni red kot <script> v app/index.html.
 const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'app/app.js', 'app/zbirka.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
+// Danosti vgrajenega primera (PRIMERI v shared/zbirka.js) s '0'.
+const PRIMER = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js']).run("PRIMERI[1].danosti.split('.').join('0')");
 
 // Reševalec z eno uganko v zbirki (dodana 21. 9. 2026 ob 16:33). `vprasanja` zbere
 // besedila confirm(), `odgovor` pove, kaj confirm() vrne.
@@ -171,7 +173,7 @@ test('reševalec: »Izbriši« pobriše tudi shranjeno igro uganke', () => {
 });
 
 test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza), ostanejo samo igre primerov', () => {
-  const primer = '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4'.replace(/\./g, '0');
+  const primer = PRIMER;
   // Sirota: igra uganke, ki je v zbirki ni več (izbrisana pred novim modelom).
   const sirota = loadPuzzles()[4].danosti.replace(/\./g, '0');
   const pripravi = (odgovor) => {
@@ -206,7 +208,7 @@ test('reševalec: »Izbriši vse« s potrditvijo (število, priporočilo izvoza)
 });
 
 test('reševalec: »Izbriši vse« pri prazni zbirki počisti sirote, šele nato je »Zbirka je že prazna.«', () => {
-  const primer = '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4'.replace(/\./g, '0');
+  const primer = PRIMER;
   const sirote = [0, 3, 4].map(i => loadPuzzles()[i].danosti.replace(/\./g, '0'));
   const dom = makeDom();
   // Zbirka izbrisana s staro različico, igre so ostale.

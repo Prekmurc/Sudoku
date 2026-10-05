@@ -35,9 +35,10 @@
       <button id="candBtn">Pokaži kandidate</button>
       <button id="clearBtn">Počisti</button>
       <select id="exampleSelect" aria-label="Naloži vgrajen primer">
-        <option value="" disabled selected hidden>Primer</option>
+        <option value="" disabled selected hidden>Primeri po težavnosti</option>
       </select>
     </div>
+    <div id="primerOpis" class="primer-opis" hidden></div>
     <div id="status"></div>
   </div>
 
@@ -88,7 +89,7 @@
       <h2 id="libTitle">Zbirka ugank</h2>
       <button type="button" id="libClose" aria-label="Zapri">✕</button>
     </div>
-    <p class="cand-hint">Zbirka je ista kot v igri. Izvoz zapiše vse uganke v datoteko Markdown. Uvoz jih doda obstoječim – pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Brisanje odstrani uganko skupaj s shranjenim napredkom v igri. Vgrajeni primeri (izbira »Primer«) niso del zbirke in se vanjo ne shranijo.</p>
+    <p class="cand-hint">Zbirka je ista kot v igri. Izvoz zapiše vse uganke v datoteko Markdown. Uvoz jih doda obstoječim – pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Brisanje odstrani uganko skupaj s shranjenim napredkom v igri. Vgrajeni primeri (seznam »Primeri po težavnosti«) niso del zbirke in se vanjo ne shranijo.</p>
     <div class="lib-tools">
       <button type="button" id="libExport">Izvozi</button>
       <button type="button" id="libImport">Uvozi</button>
@@ -108,7 +109,7 @@
     </div>
 
     <h3 class="navodila-razdelek">Kako deluje</h3>
-    <p>Vtipkaj dane števke v mrežo (s puščicami se premikaš med celicami) ali prilepi niz 81 znakov v polje <b>Niz</b> – prazna celica je <code>0</code> ali <code>.</code>. Vgrajeno uganko izbereš v seznamu <b>Primer</b>. Če je ista števka dvakrat v vrstici, stolpcu ali bloku, se obarva rdeče.</p>
+    <p>Vtipkaj dane števke v mrežo (s puščicami se premikaš med celicami) ali prilepi niz 81 znakov v polje <b>Niz</b> – prazna celica je <code>0</code> ali <code>.</code>. Vgrajeno uganko izbereš v seznamu <b>Primeri po težavnosti</b>: za vsako stopnjo in vsako tehniko je en primer, v vrstici je njegova glavna tehnika. Pod seznamom sta nato težavnost primera in vse tehnike, ki jih reševalec pri njem uporabi – glavna je krepko. Če je ista števka dvakrat v vrstici, stolpcu ali bloku, se obarva rdeče.</p>
     <p><b>Reši</b> uganko reši po korakih, kot bi jo reševal človek: v vsakem koraku uporabi najlažjo tehniko, ki kaj najde. <b>Pokaži kandidate</b> pokaže števke, ki so v praznih celicah še mogoče glede na vrstico, stolpec in blok – brez tehnik. <b>Počisti</b> izprazni mrežo.</p>
 
     <h3 class="navodila-razdelek">Rešitev in koraki</h3>

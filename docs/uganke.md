@@ -11,6 +11,11 @@ ugank se ne sestavlja na pamet (glej pravila dela v `CLAUDE.md`). Lažje uganke 
 `node tools/ustvari-uganko.js <lahka|srednja|tezka>` (iz naključne polne mreže, ponovljivo
 s semenom).
 
+Vgrajeni primeri (`PRIMERI` v `shared/zbirka.js`, od 2026-10-05 P_1–P_15) niso zapisani tu: izbere
+jih `node tools/izberi-primere.js` (banka vaj, vir banke in generator), enoličnost, oceno in tehnike pa
+preverja `tests/generator.test.js`. Primeri do 2026-10-05 so spodaj (example-app, oakever-ekstrem-lv4,
+lahka-seme-1, lahka-seme-197, srednja-a) in ostanejo testne uganke.
+
 ## Pokritost tehnik
 
 Stanje 2026-09-24 za spodnjih osem ugank, z vrstnim redom tehnik po zahtevnosti znotraj
@@ -213,7 +218,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Danosti:** `8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4`
 - **Vir:** Oakever, Ekstrem (Lv4); aplikacija Oakever je zanjo uporabila W-Wing,
   XY-Wing, Skyscraper, Jellyfish, X-Wing.
-- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 2 (brez ugibanja)"; do 2026-10-04 "Primer 2 (Ekstrem, brez ugibanja)" in težavnost Zelo težka – po oceni z eno napredno tehniko, ki zadošča, je Težka: reši jo veriga ene števke skupaj z lažjimi).
+- **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 2 (brez ugibanja)"; do 2026-10-04 "Primer 2 (Ekstrem, brez ugibanja)" in težavnost Zelo težka – po oceni z eno napredno tehniko, ki zadošča, je Težka: reši jo veriga ene števke skupaj z lažjimi).
 - **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši
   (81/81 zapolnjenih celic).
 - **Značilnost:** naš `solve()` (`shared/engine.js`) jo reši brez sestopanja
@@ -247,8 +252,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 ### example-app
 
 - **Danosti:** `...8...2.9.....6...........6.4...9.....72...35............56....8...9....7.....1.`
-- **Vir:** vgrajen primer v `shared/zbirka.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)");
-  tam je isti niz zapisan z ničlami namesto pik.
+- **Vir:** do 2026-10-05 vgrajen primer v `shared/zbirka.js` (polje `PRIMERI`, "Primer 1 (z ugibanjem)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši.
 - **Značilnost:** `solve()` jo reši v 79 korakih: Skriti enojček (40), Gol enojček (24),
   Pointing pair/triple (10), Hidden pair (3), Box-line reduction (1, na indeksu 12) in
@@ -336,7 +340,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Vir:** ustvarjena 2026-09-20 z `node tools/ustvari-uganko.js lahka --seme 1` (iz
   naključne polne mreže odstranjuje celice, dokler ostaja ena rešitev; ponovljivo –
   preverja `tests/generator.test.js`).
-- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 5 (lahka)").
+- **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 5 (lahka)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
 - **Značilnost:** stopnja **lahka** po merilu štirih stopenj – reši se samo z enojčki,
@@ -355,7 +359,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   pair/triple, zato je po novem **srednja**. Iz istega semena zdaj zmaga drug kandidat na
   poti odstranjevanja. Uganka ostaja tu, ker se testne uganke ne spreminjajo; da je
   srednja, preverja `tests/generator.test.js`.
-- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 3 (srednja – presek)").
+- **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 3 (srednja – presek)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
 - **Značilnost:** stopnja **srednja** (najlažja zadostna skupina so preseki, ena tehnika
@@ -381,7 +385,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   ustreza več: preseki zdaj pridejo pred očitnim parom in pot para ne potrebuje. Oboje
   preverja `tests/generator.test.js`. Uganka ostaja tu – testne uganke naj se ne
   spreminjajo, da so primerjave z zgodovino smiselne.
-- **Vgrajen primer:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 4 (srednja – trojica)").
+- **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 4 (srednja – trojica)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
 - **Značilnost:** z enojčki in Pointing/Box-line se reševanje zatakne, s pari in trojicami

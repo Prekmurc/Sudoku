@@ -49,7 +49,7 @@ const resiVse = run => run("for (let c = 0; c < 81; c++) if (igra.danosti[c] ===
 // (1. vrstica), zb-casi (stanje), zb-info, zb-gumbi. Seznam se pred tem izriše znova.
 const delKartice = (run, razred, d = D) => run(`(() => { izrisiZbirko();
   const li = zbirkaVrstice.get(${d}) || [...document.getElementById('primeriSeznam').children]
-    .find(li => li.children[0].textContent.startsWith(zbirkaPrimerZa(${d}).ime));
+    .find(li => li.className !== 'zb-skupina' && li.children[0].textContent.startsWith(zbirkaNaslovPrimera(zbirkaPrimerZa(${d}))));
   return li.children.find(el => el.className === '${razred}'); })()`);
 // Napis gumba pri uganki v seznamu zbirke (Igraj / Nadaljuj / Poglej) - z izrisane kartice.
 const gumb = (run, d = D) => delKartice(run, 'zb-gumbi', d).children[0].textContent;
@@ -144,12 +144,12 @@ test('"Začni znova" pri rešeni uganki: vpraša, mreža je spet prazna, čas pr
 
 // Še druge uganke iz docs/uganke.md - zbirka naj ima tudi take, ki sem jih že reševal.
 // Brez vgrajenih primerov: ti v zbirko ne pridejo (dodajVZbirko in uvoz jih
-// preskočita). Takih ugank je v docs/uganke.md poleg prve še dve.
+// preskočita). Vzameta se dve (poleg prve).
 const jePrimer = (() => {
   const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js']);
   return d => run(`!!zbirkaPrimerZa(${JSON.stringify(d)})`);
 })();
-const druge = loadPuzzles().slice(1).map(p => p.danosti.replace(/\./g, '0')).filter(d => !jePrimer(d)).slice(0, 3);
+const druge = loadPuzzles().slice(1).map(p => p.danosti.replace(/\./g, '0')).filter(d => !jePrimer(d)).slice(0, 2);
 
 function zbirkaZRezevanimi(run) {
   druge.forEach((d, i) => {
@@ -496,8 +496,14 @@ test('kartica "Uganka": značka težavnosti, izvor in dane števke v 1. vrstici,
   assert.equal(znacka.textContent, z.tezavnost);
   assert.equal(znacka.className, `tag ${{ Lahka: 't-single', Srednja: 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced' }[z.tezavnost] || 't-chain'} znacka-tezavnosti`);
   assert.match(prva.textContent, new RegExp(`^${z.tezavnost} .*dodana .* · danih števk: ${81 - praznih}$`));
-  assert.equal(druga.textContent, run(`zbirkaOznakaTehnik(zbirkaBeri().find(x => x.danosti === ${D}))`));
-  assert.match(druga.textContent, /^tehnike: /);
+  // »Tehnike:« s številkami in imeni, kot v reševalcu pod seznamom primerov (vejice in »in«, brez »+«),
+  // iz istih tehnik kot oznaka »tehnike: 1, 3, 7« v seznamu.
+  assert.equal(druga.textContent, run(`zbirkaBesediloTehnik(zbirkaTehnikeZapisa(zbirkaBeri().find(x => x.danosti === ${D})))`));
+  assert.match(druga.textContent, /^Tehnike: E1, E2, \d+ /);
+  assert.doesNotMatch(druga.textContent, /\+/);
+  const stevilke = run(`zbirkaOznakaTehnik(zbirkaBeri().find(x => x.danosti === ${D}))`).replace(/^tehnike: | \+ poskus.*$/g, '').split(', ');
+  assert.deepEqual([...druga.textContent.matchAll(/(?:, | in |: )(\d+) /g)].map(m => m[1]), stevilke);
+  assert.equal(/\+ poskus/.test(run(`zbirkaOznakaTehnik(zbirkaBeri().find(x => x.danosti === ${D}))`)), / in ugibanje$/.test(druga.textContent));
   // Uganka brez težavnosti: brez značke.
   run(`(() => { const zb = zbirkaBeri(); zb.find(x => x.danosti === ${D}).tezavnost = ''; zbirkaPisi(zb); izrisi(); })()`);
   assert.match(dom.el('opisUganke').children[0].textContent, /^težavnost ni določena · /);
@@ -570,11 +576,15 @@ test('vgrajeni primer: ista kartica in besedila stanj kot zbirka', () => {
   const P = JSON.stringify(primer.danosti);
   const prazniPrimera = [...primer.danosti].filter(ch => ch === '0').length;
   const del = razred => delKartice(run, razred, P).textContent;
-  // 1. vrstica je ime primera, 2. vedno stanje, 3. danosti (primer brez zapisa v
-  // zbirki nima podatkov reševanja).
-  assert.equal(del('zb-vrstica'), primer.ime);
+  // 1. vrstica je ime primera z glavno tehniko, 2. vedno stanje, 3. značka, danosti in vse tehnike
+  // (primer brez zapisa v zbirki nima podatkov reševanja).
+  assert.equal(del('zb-vrstica'), `${primer.ime} · 4 Skriti par`);
   assert.equal(del('zb-casi'), 'nova');
-  assert.equal(del('zb-info'), `danih ${81 - prazniPrimera}`);
+  const p = run(`zbirkaPrimerZa(${P})`);
+  assert.equal(del('zb-info'), `${p.tezavnost} danih ${81 - prazniPrimera} · ${run(`zbirkaBesediloTehnik(zbirkaTehnikePrimera(zbirkaPrimerZa(${P})))`)}`);
+  const info = delKartice(run, 'zb-info', P);
+  assert.equal(info.children[0].className, 'tag t-pair znacka-tezavnosti');
+  assert.deepEqual([...info.children.filter(c => c.tagName === 'B').map(c => c.textContent)], ['4 Skriti par'], 'glavna tehnika krepko');
   run(`zacniIgro(${P})`);
   enVpis(run);
   // Brez zapisa v zbirki ni časa (čas shranjene igre se osveži že ob odprtju).
@@ -771,7 +781,11 @@ test('vgrajeni primeri: privzeto zaprti, v naslovu število primerov', () => {
   assert.equal(dom.el('primeriRazdelek').open, true, 'izris ne spremeni igralčeve izbire');
   // Ob naslednjem odprtju okna velja spet privzeto.
   assert.equal(primeriOdprtiObOdprtju(dom), false);
-  assert.equal(run("document.getElementById('primeriSeznam').children.length"), run('PRIMERI.length'), 'kartice primerov so izrisane');
+  assert.equal(run("document.getElementById('primeriSeznam').children.filter(li => li.className !== 'zb-skupina').length"), run('PRIMERI.length'), 'kartice primerov so izrisane');
+  // Skupine po stopnji: naslov skupine pred njenimi primeri.
+  assert.deepEqual([...run("document.getElementById('primeriSeznam').children.filter(li => li.className === 'zb-skupina').map(li => li.textContent)")],
+    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Presega tehnike']);
+  assert.equal(run("document.getElementById('primeriSeznam').children[1].children[0].textContent"), 'P_1 · enojčki');
 });
 
 test('vgrajeni primeri: odprti, ko je moja zbirka prazna', () => {

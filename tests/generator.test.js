@@ -14,7 +14,7 @@ const E = loadEngine(undefined, {
     'oceniStopnjo', 'oceniUganko', 'oceniTezavnost', 'genPot', 'genRazvrsti', 'genTehnikeSolve',
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE',
     'GEN_EKSPERTNE', 'TEZAVNOSTI', 'PRIMERI', 'genMinimalnaUganka', 'zbirkaOznakaTehnik', 'zbirkaPotIzOcene',
-    'TRENING_TEHNIKE'],
+    'TRENING_TEHNIKE', 'GEN_NAJMANJ_SREDNJIH', 'GEN_TEZKA_NAJVEC', 'countSolutions'],
 });
 const VSE_TEHNIKE = E.ALL_TECHNIQUES.map(([ime]) => ime);
 
@@ -401,7 +401,7 @@ test('oceniTezavnost(): nepreverjena enoličnost da prazno težavnost', () => {
 });
 
 test('oceniUganko(): uganka, ki jo motor reši le z ugibanjem, dobi Presega tehnike', () => {
-  // Vgrajeni "Primer 1 (z ugibanjem)" iz shared/zbirka.js.
+  // Do 2026-10-05 vgrajeni "Primer 1 (z ugibanjem)" (uganka example-app iz docs/uganke.md).
   const danosti = '000800020900000600000000000604000900000720003500000000000056000080009000070000010';
   assert.equal(E.genPot(danosti, VSE_TEHNIKE), null, 'motor v stalnem vrstnem redu obtiči');
   const o = E.oceniUganko(danosti);
@@ -467,12 +467,72 @@ test('neznana stopnja ali stopnja brez generatorja vrže napako', () => {
   assert.throws(() => E.oceniStopnjo('ekstrem', '0'.repeat(81)), /Neznana stopnja/);
 });
 
-// Težavnost vgrajenih primerov (PRIMERI v shared/zbirka.js) je zapisana ročno, zato
-// test ob spremembi meril stopenj takoj pokaže, da je zastarela. Pokaže se v kartici
-// primera (primeri se od 2026-09-24 ne shranjujejo v zbirko).
-test('PRIMERI: težavnost je rezultat oceniUganko()', () => {
+// Težavnost in tehnike vgrajenih primerov (PRIMERI v shared/zbirka.js) so zapisane v seznamu
+// (izbor tools/izberi-primere.js), zato test ob spremembi motorja ali meril stopenj takoj pokaže,
+// da so zastarele. Prikazani sta v reševalcu pod seznamom in v igri (primeri se od 2026-09-24 ne
+// shranjujejo v zbirko).
+const enaki = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
+const tehnikeDnevnika = (d) => {
+  const t = new Set();
+  let poskusov = 0;
+  for (const k of E.solve(d).log) {
+    if (/protislovje/.test(k.technique)) poskusov++;
+    else t.add(k.technique);
+  }
+  return { t, poskusov };
+};
+
+test('PRIMERI: težavnost in tehnike so enake izračunani oceni, reševalec uporabi iste tehnike', () => {
   for (const p of E.PRIMERI) {
+    const d = p.danosti.replace(/\./g, '0');
+    assert.equal(E.countSolutions(d), 1, p.ime);
     assert.ok(E.TEZAVNOSTI.includes(p.tezavnost), `${p.ime}: ${p.tezavnost}`);
-    assert.equal(E.oceniUganko(p.danosti.replace(/\./g, '0')).tezavnost, p.tezavnost, p.ime);
+    const o = E.oceniUganko(d);
+    assert.equal(o.tezavnost, p.tezavnost, p.ime);
+    const { t, poskusov } = tehnikeDnevnika(d);
+    assert.equal(p.ugibanje, poskusov, `${p.ime}: ugibanje`);
+    const zapisane = new Set(p.tehnike);
+    assert.equal(zapisane.size, p.tehnike.length, `${p.ime}: brez ponovitev`);
+    if (o.mere) assert.ok(enaki(zapisane, o.mere.uporabljene), `${p.ime}: tehnike = pot ocene`);
+    assert.ok(enaki(zapisane, t), `${p.ime}: tehnike = dnevnik solve()`);
+    for (const g of p.glavna) assert.ok(zapisane.has(g), `${p.ime}: glavna ${g} je med tehnikami`);
+  }
+});
+
+test('PRIMERI: vsaka stopnja in vsaka tehnika E1, E2, 1-12 ima vsaj en primer', () => {
+  const stopnje = new Set(E.PRIMERI.map(p => p.tezavnost));
+  for (const s of E.STOPNJE_GENERATORJA) assert.ok(stopnje.has(s.ime), s.ime);
+  assert.ok(stopnje.has('Presega tehnike'));
+  for (const t of VSE_TEHNIKE) assert.ok(E.PRIMERI.some(p => p.tehnike.includes(t)), t);
+  // Glavna tehnika: lahka primer z obema enojčkoma, vsaka srednja in napredna tehnika glavna pri
+  // natanko enem primeru svoje stopnje; zelo težka dve napredni, presega tehnike brez.
+  const lahka = E.PRIMERI.filter(p => p.tezavnost === 'Lahka');
+  assert.ok(lahka.length === 1 && E.GEN_LAHKE.every(t => lahka[0].tehnike.includes(t)));
+  for (const [stopnja, raven] of [['Srednja', E.GEN_SREDNJE], ['Težka', E.GEN_NAPREDNE]]) {
+    const pr = E.PRIMERI.filter(p => p.tezavnost === stopnja);
+    assert.deepEqual([...pr.map(p => p.glavna.length)], [...raven].map(() => 1), stopnja);
+    assert.deepEqual([...pr.map(p => p.glavna[0])], [...raven], `${stopnja}: po vrstnem redu tehnik`);
+  }
+  const zelo = E.PRIMERI.filter(p => p.tezavnost === 'Zelo težka');
+  assert.ok(zelo.length === 1 && zelo[0].glavna.length === 2 && zelo[0].glavna.every(t => E.GEN_NAPREDNE.includes(t)));
+  assert.deepEqual([...E.PRIMERI.map(p => p.tezavnost)],
+    ['Lahka', ...E.GEN_SREDNJE.map(() => 'Srednja'), ...E.GEN_NAPREDNE.map(() => 'Težka'), 'Zelo težka', 'Presega tehnike']);
+});
+
+test('PRIMERI: srednji in težki primeri držijo meje izbora', () => {
+  const stej = (p, raven) => p.tehnike.filter(t => raven.includes(t)).length;
+  for (const p of E.PRIMERI) {
+    const srednje = stej(p, E.GEN_SREDNJE), napredne = stej(p, E.GEN_NAPREDNE);
+    if (p.tezavnost === 'Srednja') {
+      assert.ok(srednje >= 2 && srednje <= 3 && napredne === 0, `${p.ime}: glavna in še 1-2 srednji`);
+      // Pri presekih (1, 2) najlažja srednja uganka: brez parov in trojic razen očitnega para.
+      if (E.GEN_PRESEKI.includes(p.glavna[0])) {
+        assert.ok(p.tehnike.every(t => !['Hidden pair', 'Naked triple', 'Hidden triple'].includes(t)), p.ime);
+      }
+    }
+    if (p.tezavnost === 'Težka') {
+      assert.ok(napredne === 1 && srednje >= E.GEN_NAJMANJ_SREDNJIH && srednje + napredne <= E.GEN_TEZKA_NAJVEC, p.ime);
+    }
+    if (p.tezavnost === 'Zelo težka') assert.ok(napredne === 2 && srednje >= E.GEN_NAJMANJ_SREDNJIH, p.ime);
   }
 });

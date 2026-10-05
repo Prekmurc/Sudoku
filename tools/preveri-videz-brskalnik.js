@@ -123,7 +123,7 @@ async function igra(b, sirina) {
   console.log(`Igra, ${sirina} px`);
   await b.odpri('igra/index.html', { sirina, visina: 800, mobilno: sirina < 500 });
   await meri(b, 'igra prazna', sirina);
-  await b.izvedi('zacniIgro(PRIMERI[0].danosti)');
+  await b.izvedi("zacniIgro(PRIMERI[0].danosti.split('.').join('0'))");
   for (const id of ['stikaloVrstice', 'stikaloStolpci', 'stikaloBloki']) {
     if (!await b.izvedi(`document.getElementById('${id}').checked`)) await b.klikni('#' + id);
   }
@@ -188,11 +188,11 @@ async function izbiraCelice(b, sirina) {
     s && s.bg === s.izbiraBg && s.bg !== s.peerBg && s.senca === OBROBA && s.obroba === 'none', s);
 
   await b.odpri('igra/index.html', { sirina, visina: 800, mobilno });
-  await b.izvedi('zacniIgro(PRIMERI[0].danosti)');
+  await b.izvedi("zacniIgro(PRIMERI[0].danosti.split('.').join('0'))");
   await b.klikni('#mreza .celica[data-r="4"][data-c="5"]');
   navadna('igra, prazna celica', await b.izvedi(SLOG_IZBIRE(`document.querySelector('#mreza .celica.izbrana')`)));
   await b.klikni('#nizPoudari button:nth-child(4)');
-  await b.izvedi(OZNACI(`document.querySelectorAll('#mreza .celica')[PRIMERI[0].danosti.indexOf('4')]`));
+  await b.izvedi(OZNACI(`document.querySelectorAll('#mreza .celica')[PRIMERI[0].danosti.split('.').join('0').indexOf('4')]`));
   await b.klikni('[data-videz]');
   const p = await b.izvedi(SLOG_IZBIRE(`document.querySelector('#mreza .celica.izbrana')`));
   preveri('igra, poudarjena dana števka: podlaga poudarka, obroba z belim robom', p && p.bg === p.poud && p.senca === OBROBA_POUD, p);
@@ -281,8 +281,8 @@ async function skupniVidez(b) {
 async function danostiResevalca(b) {
   console.log('Barve danosti (1280 px)');
   await b.odpri('igra/index.html', { sirina: 1280, visina: 900 });
-  await b.izvedi('zacniIgro(PRIMERI[0].danosti)');
-  await b.izvedi(OZNACI(`document.querySelectorAll('#mreza .celica')[PRIMERI[0].danosti.indexOf('0')]`));
+  await b.izvedi("zacniIgro(PRIMERI[0].danosti.split('.').join('0'))");
+  await b.izvedi(OZNACI(`document.querySelectorAll('#mreza .celica')[PRIMERI[0].danosti.split('.').join('0').indexOf('0')]`));
   await b.klikni('[data-videz]');
   await b.klikni('#nizVpisi button:not(:disabled)');
   const igra = await b.izvedi(`(() => { const s = e => { const c = getComputedStyle(e); return c.color + ' ' + c.fontWeight; };

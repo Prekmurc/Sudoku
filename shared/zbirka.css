@@ -18,6 +18,12 @@
 }
 .zbirka-seznam li.trenutna{ border-color: var(--blue); box-shadow: inset 3px 0 0 var(--blue); }
 .zbirka-seznam li.prazno{ font-size:13px; color: var(--pencil); background:transparent; border-style:dashed; }
+/* Naslov skupine vgrajenih primerov (»Srednja · tehnika«); med skupinami prazna vrstica. */
+.zbirka-seznam li.zb-skupina{ background:transparent; border:0; padding:0 2px; font-size:13px; font-weight:600; color: var(--ink2); }
+.zbirka-seznam li.zb-skupina:not(:first-child){ margin-top:14px; }
+/* Značka težavnosti (zbirkaZnacka() v shared/zbirka-ui.js): pri primeru v seznamu in pod
+   seznamom primerov v reševalcu. */
+.znacka-tezavnosti{ font-size:10.5px; padding:2px 7px; vertical-align:1px; }
 
 /* 1. vrstica: težavnost · izvor · dodana (ali ime primera) */
 .zb-vrstica{ font-size:14px; font-weight:600; }

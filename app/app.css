@@ -145,6 +145,10 @@
     cursor:pointer;
   }
 
+  /* Opis vgrajenega primera pod seznamom »Primeri po težavnosti« (izrisiOpisPrimera() v app.js). */
+  .primer-opis{ font-size:13px; color: var(--ink2); margin-top:10px; line-height:1.5; }
+  .primer-opis > div + div{ margin-top:3px; }
+
   #status{
     font-size:13px;
     color: var(--pencil);

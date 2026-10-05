@@ -254,14 +254,11 @@ function nastaviStatus(besedilo, razred) {
   statusEl.className = razred || '';
 }
 
-// Značka težavnosti v kartici "Uganka": barva ravni najtežje tehnike, kot oznaka koraka (.tag.t-* v
-// shared/base.css) - lahka zelena, srednja jantarna, težka in zelo težka vijolična; drugo (Ekstrem,
-// Presega tehnike, Več rešitev, Brez rešitve) rdeča.
-const ZNACKA_TEZAVNOSTI = { 'Lahka': 't-single', 'Srednja': 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced' };
-
-// Kartica "Uganka" (popravek po ročnem pregledu faze 6): 1. vrstica značka težavnosti, izvor, kdaj je
-// bila dodana in število danih števk; 2. vrstica tehnike; 3. vrstica čas mojega reševanja (stanje -
-// »v teku (12/57)« - je samo v vrstici pod kartico, statusNapredka()); 4. vrstica opomba.
+// Kartica "Uganka" (popravek po ročnem pregledu faze 6): 1. vrstica značka težavnosti (zbirkaZnacka() v
+// ../shared/zbirka-ui.js), izvor, kdaj je bila dodana in število danih števk; 2. vrstica »Tehnike:«
+// s številkami in imeni, kot v reševalcu pod seznamom primerov (zbirkaIzrisiTehnike(); pri primeru
+// glavna tehnika krepko); 3. vrstica čas mojega reševanja (stanje - »v teku (12/57)« - je samo v
+// vrstici pod kartico, statusNapredka()); 4. vrstica opomba.
 function izrisiOpisUganke(danosti) {
   const danih = danosti.replace(/0/g, '').length;
   const z = zbirkaBeri().find(x => x.danosti === danosti);
@@ -274,22 +271,19 @@ function izrisiOpisUganke(danosti) {
     opisUgankeEl.appendChild(v);
     return v;
   };
-  const znacka = tezavnost => {
-    const el = document.createElement('span');
-    el.className = `tag ${ZNACKA_TEZAVNOSTI[tezavnost] || 't-chain'} znacka-tezavnosti`;
-    el.textContent = tezavnost;
-    return el;
-  };
-  // Vgrajeni primer v zbirki nikoli ni; težavnost ima v PRIMERI (shared/zbirka.js).
+  const znacka = zbirkaZnacka;
+  // Vgrajeni primer v zbirki nikoli ni; težavnost in tehnike ima v PRIMERI (shared/zbirka.js).
   if (!z) {
-    if (primer) vrstica('opis-vrstica', znacka(primer.tezavnost), ` vgrajeni primer »${primer.ime}« · danih števk: ${danih}`);
-    else opisUgankeEl.textContent = `Danih števk: ${danih}. Uganke ni v zbirki.`;
+    if (primer) {
+      vrstica('opis-vrstica', znacka(primer.tezavnost), ` vgrajeni primer »${zbirkaNaslovPrimera(primer)}« · danih števk: ${danih}`);
+      zbirkaIzrisiTehnike(vrstica('opis-vrstica'), zbirkaTehnikePrimera(primer));
+    } else opisUgankeEl.textContent = `Danih števk: ${danih}. Uganke ni v zbirki.`;
     return;
   }
   const prva = [zbirkaOpisIzvora(z), zbirkaPrikazCasov(z).dodana, `danih števk: ${danih}`].filter(Boolean).join(' · ');
   if (z.tezavnost) vrstica('opis-vrstica', znacka(z.tezavnost), ' ' + prva);
   else vrstica('opis-vrstica', `težavnost ni določena · ${prva}`);
-  vrstica('opis-vrstica', zbirkaOznakaTehnik(z));
+  zbirkaIzrisiTehnike(vrstica('opis-vrstica'), zbirkaTehnikeZapisa(z));
   // Čas mojega reševanja brez stanja: pri rešeni uganki »rešena 21. 9. 2026 ob 17:48«, sicer
   // »zadnje reševanje …« ali pri ponovnem reševanju čas prve rešitve.
   const igranje = zbirkaPrikazCasov(z, povzetekTrenutne()).igranje;
@@ -627,9 +621,16 @@ function karticaUganke(danosti, z, igre) {
 
 // Vgrajeni primeri (PRIMERI v ../shared/zbirka.js): igrajo se enako kot uganke
 // iz zbirke, napredek se shrani po danostih. V zbirki jih ni, zato nimajo zapisa.
+// Razvrščeni so v skupine po stopnji (zbirkaSkupinePrimerov()) z naslovom skupine »Srednja · tehnika«.
 function izrisiPrimere(igre) {
   primeriSeznamEl.innerHTML = '';
-  for (const p of primeriIgre) primeriSeznamEl.appendChild(karticaUganke(p.danosti, null, igre));
+  for (const s of zbirkaSkupinePrimerov()) {
+    const naslov = document.createElement('li');
+    naslov.className = 'zb-skupina';
+    naslov.textContent = s.naslov;
+    primeriSeznamEl.appendChild(naslov);
+    for (const p of s.primeri) primeriSeznamEl.appendChild(karticaUganke(p.danosti.split('.').join('0'), null, igre));
+  }
 }
 
 function izrisiZbirko() {
@@ -1394,6 +1395,7 @@ osveziPoudVnose();
 
 /* ---------- zagon ---------- */
 
+zbirkaPocistiStarePrimere(); // napredek primerov do 2026-10-05 (STARI_PRIMERI v ../shared/zbirka.js)
 uskladiIgranje(); // uganke, igrane pred uvedbo teh podatkov (ali v drugem zavihku)
 osveziGumbZbirke();
 const zadnja = igraZadnja();

@@ -27,6 +27,7 @@ inputs.forEach((inp, i) => {
     const v = inp.value.replace(/[^1-9]/g, '').slice(-1);
     inp.value = v;
     checkConflicts();
+    izrisiOpisPrimera();
     const cs = document.getElementById('candSection');
     if (cs.style.display === 'block') renderCandidates();
     if (v) focusCell(i + 1);
@@ -302,11 +303,12 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   statusEl.textContent = '';
   statusEl.className = '';
   lastSolve = null;
+  izrisiOpisPrimera();
   focusCell(0);
 });
 
 // Vpiše danosti (81 znakov, '0' ali '.' = prazna celica) v vnosno mrežo in
-// skrije prejšnjo rešitev/kandidate - uporabljajo jo seznam "Primer", zbirka in
+// skrije prejšnjo rešitev/kandidate - uporabljajo jo seznam primerov, zbirka in
 // polje Niz. Polje Niz se izprazni (razen ko danosti prihajajo iz njega), da v
 // njem ne ostane niz druge uganke.
 function naloziDanosti(danosti, sporocilo, { izNiza = false } = {}) {
@@ -314,6 +316,7 @@ function naloziDanosti(danosti, sporocilo, { izNiza = false } = {}) {
   nizStatus('');
   danosti.split('').forEach((ch, i) => { inputs[i].value = (ch === '0' || ch === '.') ? '' : ch; });
   checkConflicts();
+  izrisiOpisPrimera();
   resultsEl.style.display = 'none';
   skrijKorake();
   document.getElementById('candSection').style.display = 'none';
@@ -344,22 +347,51 @@ nizDanostiEl.addEventListener('input', () => {
   }
 });
 
-// Vgrajeni primeri (spustni seznam "Primer"): polje PRIMERI v ../shared/zbirka.js.
+// Vgrajeni primeri (spustni seznam "Primeri po težavnosti"): polje PRIMERI v ../shared/zbirka.js, v
+// skupinah po stopnji (zbirkaSkupinePrimerov() - naslov »Srednja · tehnika«, med skupinami prazna
+// vrstica), vrstica »P_8 · 7 X-krilo« (zbirkaNaslovPrimera()). Pod seznamom je opis primera, ki je v
+// vnosni mreži (izrisiOpisPrimera()).
 
 const exampleSelect = document.getElementById('exampleSelect');
-PRIMERI.forEach((p, i) => {
-  const o = document.createElement('option');
-  o.value = i;
-  o.textContent = p.ime;
-  exampleSelect.appendChild(o);
+zbirkaSkupinePrimerov().forEach((s, i) => {
+  if (i) {
+    const prazna = document.createElement('option');
+    prazna.disabled = true;
+    prazna.textContent = '';
+    exampleSelect.appendChild(prazna);
+  }
+  const skupina = document.createElement('optgroup');
+  skupina.label = s.naslov;
+  for (const p of s.primeri) {
+    const o = document.createElement('option');
+    o.value = PRIMERI.indexOf(p);
+    o.textContent = zbirkaNaslovPrimera(p);
+    skupina.appendChild(o);
+  }
+  exampleSelect.appendChild(skupina);
 });
 exampleSelect.addEventListener('change', () => {
   const p = PRIMERI[exampleSelect.value];
-  exampleSelect.selectedIndex = 0; // nazaj na "Primer", da gre isti primer izbrati znova
+  exampleSelect.selectedIndex = 0; // nazaj na napis seznama, da gre isti primer izbrati znova
   if (!p) return;
   const danih = p.danosti.replace(/[.0]/g, '').length;
-  naloziDanosti(p.danosti, `Naložen je ${p.ime} – danih števk: ${danih}.`);
+  naloziDanosti(p.danosti, `Naložen je primer ${zbirkaNaslovPrimera(p)} – danih števk: ${danih}.`);
 });
+
+// Opis primera pod seznamom: značka stopnje in število danih števk, v naslednji vrstici »Tehnike:«
+// z vsemi tehnikami primera (glavna krepko). Viden je, dokler je v vnosni mreži vgrajeni primer.
+const primerOpisEl = document.getElementById('primerOpis');
+function izrisiOpisPrimera() {
+  const p = zbirkaPrimerZa(currentGivens());
+  primerOpisEl.hidden = !p;
+  primerOpisEl.textContent = '';
+  if (!p) return;
+  const prva = document.createElement('div');
+  prva.append(zbirkaZnacka(p.tezavnost), ` danih števk: ${p.danosti.replace(/[.0]/g, '').length}`);
+  const druga = document.createElement('div');
+  zbirkaIzrisiTehnike(druga, zbirkaTehnikePrimera(p));
+  primerOpisEl.append(prva, druga);
+}
 
 const candBtn = document.getElementById('candBtn');
 const candSection = document.getElementById('candSection');

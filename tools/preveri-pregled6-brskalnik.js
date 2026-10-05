@@ -7,8 +7,8 @@
 //     vzorca, izbrisani kandidati, vpis), vzorčki imajo barve celic; en napotek za povečavo;
 //   - trening, »Vadi v uganki«: »več celic« pri 1-12 privzeto vklopljen (tudi pri edinstvenem
 //     pravokotniku), opis poteka ob gumbih »Označi izbrane«, namig miške, odstavek v Pomoči;
-//   - ocena (odločitev 2026-10-04): uganka iz ročnega pregleda je v kartici »Težka · tehnike: 1, 2, 10«,
-//     primer 2 je »Primer 2 (brez ugibanja)« z značko, besedilo stopenj v Pomoči;
+//   - ocena (odločitev 2026-10-04): uganka iz ročnega pregleda je v kartici »Težka · Tehnike: … 1, 2 in 10«,
+//     primer P_2 z značko in tehnikami (novi primeri 2026-10-05), besedilo stopenj v Pomoči;
 //   - reševalec (D3): kandidati male mreže pri 375 in 540 px in v povečanem prikazu v svoji celici;
 //   - reševalec: povečan prikaz koraka in rešitve je ves v oknu pri 320, 375, 414 px, ležeče in pri 1280 px;
 //   - nič ne sega čez kartico ali okno, brez vodoravnega preliva, brez napak JS.
@@ -60,7 +60,7 @@ async function igra(b, sirina) {
   preveri('kartica »Uganka«: značka »Težka« v barvi oznake napredne tehnike', k.znacka === 'Težka' && k.ozadje === k.pricakovana, k);
   preveri('kartica: 1. vrstica izvor, dodana, dane števke; 2. vrstica tehnike; 3. vrstica čas reševanja',
     k.vrstice.length === 3 && /^Težka ustvaril generator · dodana .* · danih števk: \d+$/.test(k.vrstice[0])
-      && /^tehnike: /.test(k.vrstice[1]) && /^zadnje reševanje /.test(k.vrstice[2]), k.vrstice);
+      && /^Tehnike: E1, /.test(k.vrstice[1]) && /^zadnje reševanje /.test(k.vrstice[2]), k.vrstice);
   preveri('stanje (»V teku (1/N).«) samo pod kartico', /^V teku \(1\/\d+\)\.$/.test(k.status) && !k.vrstice.join(' ').includes('v teku'), k);
   preveri('kartica: vse v kartici', k.vKartici);
 
@@ -105,13 +105,17 @@ async function igra(b, sirina) {
   // z eno napredno tehniko (W-krilo, 10), ne iz dnevnika reševalca (12).
   await b.izvedi(`dodajVZbirko(${D_POROCILO}, '', 'rocno'); zacniIgro(${D_POROCILO}); true`);
   const por = await b.izvedi(`[...document.getElementById('opisUganke').children].map(v => v.textContent)`);
-  preveri('uganka iz ročnega pregleda: Težka, »tehnike: 1, 2, 10«', /^Težka ročni vnos/.test(por[0]) && por[1] === 'tehnike: 1, 2, 10', por);
-  // Vgrajeni primer 2: brez »Ekstrem« v imenu, težavnost kot značka.
-  const pr = await b.izvedi(`(() => { const p = PRIMERI[1]; zacniIgro(p.danosti.replace(/\\./g, '0'));
+  preveri('uganka iz ročnega pregleda: Težka, »Tehnike: … 1, 2 in 10«', /^Težka ročni vnos/.test(por[0])
+    && /^Tehnike: (E1, )?(E2, )?1 Izločitev izven bloka, 2 Izločitev v bloku in 10 W-krilo$/.test(por[1]), por);
+  // Vgrajeni primer P_2 (novi primeri 2026-10-05): značka, ime z glavno tehniko, tehnike z glavno krepko.
+  const pr = await b.izvedi(`(() => { const p = PRIMERI[1]; zacniIgro(p.danosti.split('.').join('0'));
     const el = document.getElementById('opisUganke'); const z = el.querySelector('.znacka-tezavnosti');
-    return { besedilo: el.textContent, znacka: z && z.textContent, razred: z && z.className }; })()`);
-  preveri('primer 2: »Primer 2 (brez ugibanja)« z značko »Težka«', pr.znacka === 'Težka' && /tag t-advanced/.test(pr.razred)
-    && pr.besedilo === 'Težka vgrajeni primer »Primer 2 (brez ugibanja)« · danih števk: 17', pr);
+    return { vrstice: [...el.children].map(v => v.textContent), krepko: [...el.querySelectorAll('b')].map(x => x.textContent),
+      znacka: z && z.textContent, razred: z && z.className }; })()`);
+  preveri('primer P_2: značka »Srednja«, ime z glavno tehniko, »Tehnike:« z glavno krepko', pr.znacka === 'Srednja' && /tag t-pair/.test(pr.razred)
+    && pr.vrstice[0] === 'Srednja vgrajeni primer »P_2 · 1 Izločitev izven bloka« · danih števk: 26'
+    && pr.vrstice[1] === 'Tehnike: E1, E2, 1 Izločitev izven bloka in 3 Očitni par'
+    && pr.krepko.join() === '1 Izločitev izven bloka', pr);
   // Besedilo stopenj v Pomoči.
   const st = await b.izvedi(`(() => { const o = document.getElementById('navodilaDialog');
     return { stopnje: [...o.querySelectorAll('#stopnjeOcena li')].map(li => li.textContent), besedilo: o.textContent }; })()`);

@@ -5,7 +5,7 @@
    Brez DOM-a (razen zbirkaPrenesi() za prenos datoteke) - uporabljata jo
    app/zbirka.js (UI zbirke v reševalcu) in igra/, tudi za gumba Izvozi/Uvozi.
    Tu je tudi seznam vgrajenih primerov (PRIMERI) - reševalec jih ponudi v
-   spustnem seznamu "Primer", igra v oknu "Zbirka ugank" - in podatki kartice
+   spustnem seznamu "Primeri po težavnosti", igra v oknu "Zbirka ugank" - in podatki kartice
    uganke v seznamu (zbirkaKartica); izriše jo shared/zbirka-ui.js.
    Tu je tudi stanje mojega reševanja uganke (zbirkaStanjeUganke - nova / v teku /
    rešena) za vse prikaze in izvoz ter branje shranjenih iger igre (igreBeri), iz
@@ -74,25 +74,159 @@ function zbirkaOpisIzvora(z) {
   return (z && ZBIRKA_IZVORI[z.izvor]) || '';
 }
 
-// Vgrajeni primeri (reševalec: spustni seznam "Primer", igra: razdelek "Vgrajeni
-// primeri" v oknu Zbirka ugank). Primeri NISO del zbirke: nikoli se ne shranijo v
-// zbirko (tudi ne, ko jih reši reševalec, ali z uvozom) in se ne štejejo; napredek
-// igranja primera je samo v shranjenih igrah (sudoku.igra.v1). Nov primer = nova
-// vrstica tu. Danosti morajo biti preverjene (countSolutions() === 1) in zapisane v
-// docs/uganke.md; '0' ali '.' = prazna celica. `tezavnost` je rezultat oceniUganko()
-// (shared/generator.js) - to preverja tests/generator.test.js.
+// Vgrajeni primeri (reševalec: spustni seznam "Primeri po težavnosti", igra: razdelek
+// "Vgrajeni primeri" v oknu Zbirka ugank). Primeri NISO del zbirke: nikoli se ne shranijo
+// v zbirko (tudi ne, ko jih reši reševalec, ali z uvozom) in se ne štejejo; napredek
+// igranja primera je samo v shranjenih igrah (sudoku.igra.v1). '.' = prazna celica.
+// Seznam ustvari izbor tools/izberi-primere.js (ponovi ga ob novi tehniki ali spremembi
+// motorja / generatorja): en primer za vsako stopnjo in vsako tehniko E1, E2, 1-12 - lahka,
+// srednja za vsako tehniko 1-6, težka za vsako tehniko 7-12, zelo težka in presega
+// tehnike. Urejeni so po stopnji in nato po tehniki. Polja: `tezavnost` (oceniUganko() iz
+// shared/generator.js), `glavna` (tehnike, po katerih je primer izbran; pri lahki in pri
+// presega tehnike prazno), `tehnike` (pot ocene - pri vseh primerih natanko tehnike
+// dnevnika solve() -, pri presega tehnike tehnike dnevnika brez poskusa), `ugibanje`
+// (število poskusov s protislovjem v dnevniku solve()). Vse preverja tests/generator.test.js.
 const PRIMERI = [
-  { ime: 'Primer 1 (z ugibanjem)', tezavnost: 'Presega tehnike', danosti: '000800020900000600000000000604000900000720003500000000000056000080009000070000010' }, // example-app
-  { ime: 'Primer 2 (brez ugibanja)', tezavnost: 'Težka', danosti: '8....1......6..5.....7.....1.....6.....5..2......7.....25....7..6.....3.....8...4' }, // oakever-ekstrem-lv4
-  { ime: 'Primer 3 (srednja – presek)', tezavnost: 'Srednja', danosti: '.73..4..2.49.6.8..1.58............26....9.37.387..2...492.7.6.......9.5.5..2.69.7' }, // lahka-seme-197
-  { ime: 'Primer 4 (srednja – trojica)', tezavnost: 'Srednja', danosti: '..4..7.251....3....7.8.....8...9..34.4...5..996....572..1..6.................4761' }, // srednja-a
-  { ime: 'Primer 5 (lahka)', tezavnost: 'Lahka', danosti: '876.....4......7.....2..58..34.1.8..21..69......3.5.7.......6...4..769....8....4.' }, // lahka-seme-1
+  { ime: 'P_1', tezavnost: 'Lahka', glavna: [], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček'],
+    danosti: '..2......7.12...943.........2....7....6.31..5....6...9.4.6732..8.............4..1' }, // banka, seme 2
+  { ime: 'P_2', tezavnost: 'Srednja', glavna: ['Pointing pair/triple'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Naked pair'],
+    danosti: '....85...375.4.....49.2..3......2..3.1.95..8.9.3...2......3...7..6..4.1....1..8..' }, // banka, seme 219
+  { ime: 'P_3', tezavnost: 'Srednja', glavna: ['Box-line reduction'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked pair'],
+    danosti: '.4.......2..8..37.1.......6......95..5.7......3..8.2.....53....8...1..9......94.1' }, // banka, seme 17
+  { ime: 'P_4', tezavnost: 'Srednja', glavna: ['Naked pair'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Naked pair'],
+    danosti: '.7..3........7...28.34......3.1.9....6....3.1...38.6....7...2.9.1.6.2..3...84....' }, // banka, seme 157
+  { ime: 'P_5', tezavnost: 'Srednja', glavna: ['Hidden pair'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Hidden pair'],
+    danosti: '..3.......1...3..29..4.1...73...9.......85.1..6.....7...8.5..21....9..6........37' }, // banka, seme 572
+  { ime: 'P_6', tezavnost: 'Srednja', glavna: ['Naked triple'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Hidden pair', 'Naked triple'],
+    danosti: '.....17.....68...4....53.122..1.5.....4..9..6..38...75..27....86.5...3...4......7' }, // banka, seme 7873
+  { ime: 'P_7', tezavnost: 'Srednja', glavna: ['Hidden triple'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Hidden triple'],
+    danosti: '...2..67..7.5.9..2....4....4..........56..1....2.57....34..2..12..8.......7..6.8.' }, // banka, seme 1478
+  { ime: 'P_8', tezavnost: 'Težka', glavna: ['X-Wing'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Naked pair', 'Hidden pair', 'X-Wing'],
+    danosti: '.....156..1.53.7..46..........8..64..7......1..2..........8.93.....1...7..82.9..5' }, // genMinimalnaUganka, seme 6582
+  { ime: 'P_9', tezavnost: 'Težka', glavna: ['Swordfish'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked triple', 'Swordfish'],
+    danosti: '89......6.......8...5....47....3......76.9..2381..7....1826..7.....5......24.1..5' }, // banka, seme 1229
+  { ime: 'P_10', tezavnost: 'Težka', glavna: ['Turbot Fish'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Hidden pair', 'Turbot Fish'],
+    danosti: '4....8.....3.1..62.82........8....3.74..5.2........9.7....65...2.....3.6.7...4.5.' }, // banka, seme 730
+  { ime: 'P_11', tezavnost: 'Težka', glavna: ['W-Wing'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'W-Wing'],
+    danosti: '7.....2....34.59...4.9..3.....7...1.4...8.....1..4..7.69.8.....8....7..435.1.....' }, // banka, seme 2448
+  { ime: 'P_12', tezavnost: 'Težka', glavna: ['XY-Wing'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Hidden pair', 'XY-Wing'],
+    danosti: '.7.....5....85.2.....6..8.34....9..7..13.......9..53.6......64215.4.....2........' }, // banka, seme 7
+  { ime: 'P_13', tezavnost: 'Težka', glavna: ['Unique Rectangle'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Unique Rectangle'],
+    danosti: '......78.645......2..1...6..982..5...2...1.73.....6.....2....9....8..6..1..642...' }, // banka, seme 1799
+  { ime: 'P_14', tezavnost: 'Zelo težka', glavna: ['Turbot Fish', 'XY-Wing'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Naked pair', 'Hidden pair', 'Turbot Fish', 'XY-Wing'],
+    danosti: '741.89................3...8..8..7.9....4...759.....6.2.65913....7.........3....5.' }, // generator, seme 59
+  { ime: 'P_15', tezavnost: 'Presega tehnike', glavna: [], ugibanje: 1,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Unique Rectangle'],
+    danosti: '..3.98.....2...67......5...9..7..4..1....2....6..3..1...4..79...1..6...5.8....1..' }, // genMinimalnaUganka, seme 12
+];
+
+// Danosti primerov do 2026-10-05 (»Primer 1 (z ugibanjem)« … »Primer 5 (lahka)«). Shranjeni
+// napredek pri njih igra ob zagonu enkrat počisti (zbirkaPocistiStarePrimere()), ker bi
+// sicer ostal kot napredek uganke, ki je ni nikjer.
+const STARI_PRIMERI = [
+  '000800020900000600000000000604000900000720003500000000000056000080009000070000010',
+  '800001000000600500000700000100000600000500200000070000025000070060000030000080004',
+  '073004002049060800105800000000000026000090370387002000492070600000009050500206907',
+  '004007025100003000070800000800090034040005009960000572001006000000000000000004761',
+  '876000004000000700000200580034010800210069000000305070000000600040076900008000040',
 ];
 
 // Vgrajeni primer s temi danostmi ('0' ali '.' = prazna celica) ali null.
 function zbirkaPrimerZa(danosti) {
   const d = String(danosti || '').replace(/\./g, '0');
   return PRIMERI.find(p => p.danosti.replace(/\./g, '0') === d) || null;
+}
+
+// Shranjeni napredek starih primerov (STARI_PRIMERI) - kliče ga igra ob zagonu. Igra uganke, ki je
+// medtem v zbirki (npr. vnesena znova), ostane. Vrne true, če je zapisano (ali ni bilo česa).
+function zbirkaPocistiStarePrimere() {
+  const vZbirki = new Set(zbirkaBeri().map(z => z.danosti));
+  return zbirkaIzbrisiIgre(STARI_PRIMERI.filter(d => !vZbirki.has(d)));
+}
+
+// Naštevanje z vejicami in »in« pred zadnjim: »E1, E2, 1 Izločitev izven bloka in 3 Očitni par«.
+function zbirkaNastej(deli) {
+  return deli.length < 2 ? deli.join('') : deli.slice(0, -1).join(', ') + ' in ' + deli[deli.length - 1];
+}
+
+// Kratko ime tehnike za naštevanje (»Tehnike:« v reševalcu pod seznamom primerov, v igri v kartici
+// »Uganka« in pri vgrajenih primerih): enojčka samo z oznako (»E1«, »E2«), druge s številko in
+// imenom brez angleškega (»7 X-krilo«); ime, ki ga ni med tehnikami, ostane.
+function zbirkaKratkoImeTehnike(kljuc) {
+  const e = TRENING_ENOJCKA.findIndex(([, t]) => t === kljuc);
+  if (e >= 0) return 'E' + (e + 1);
+  const i = TRENING_TEHNIKE.findIndex(([, t]) => t === kljuc);
+  return i >= 0 ? `${i + 1} ${imeTehnike(kljuc, { anglesko: false })}` : kljuc;
+}
+
+// Deli naštevanja tehnik: [{ besedilo, glavna }] po vrstnem redu tehnik (redTehnike()), na koncu
+// »ugibanje«, če ga reševalec potrebuje. `glavna` = tehnika je glavna tehnika primera (krepko).
+function zbirkaDeliTehnik(kljuci, { glavne = [], ugibanje = 0 } = {}) {
+  const deli = [...kljuci].sort((a, b) => redTehnike(a) - redTehnike(b))
+    .map(k => ({ besedilo: zbirkaKratkoImeTehnike(k), glavna: glavne.includes(k) }));
+  if (ugibanje) deli.push({ besedilo: 'ugibanje', glavna: false });
+  return deli;
+}
+
+// Tehnike vgrajenega primera z glavno tehniko.
+function zbirkaTehnikePrimera(p) {
+  return zbirkaDeliTehnik(p.tehnike, { glavne: p.glavna, ugibanje: p.ugibanje });
+}
+
+// Tehnike uganke v zbirki (kartica »Uganka« v igri) iz istega vira kot oznaka »tehnike:«
+// (zbirkaOznakaTehnik()): pri težki uganki pot ocene, sicer dnevnik reševanja (z.tehnike); poskus
+// s protislovjem je »ugibanje«. Brez podatka null.
+function zbirkaTehnikeZapisa(z) {
+  const pot = z && z.tezavnost === 'Težka' ? zbirkaPotTezke(z) : null;
+  if (pot) return zbirkaDeliTehnik(pot);
+  if (!z || !Array.isArray(z.tehnike)) return null;
+  const poskus = ([ime]) => /protislovje/.test(ime);
+  return zbirkaDeliTehnik(z.tehnike.filter(t => !poskus(t)).map(([ime]) => ime),
+    { ugibanje: z.tehnike.filter(poskus).reduce((s, [, n]) => s + n, 0) });
+}
+
+// Besedilo naštevanja (brez krepkega): »Tehnike: E1, E2 in 3 Očitni par«.
+function zbirkaBesediloTehnik(deli) {
+  return 'Tehnike: ' + (deli ? zbirkaNastej(deli.map(d => d.besedilo)) : 'ni podatkov');
+}
+
+// Vrstica primera v seznamu: »P_8 · 7 X-krilo«, »P_14 · 9 Veriga ene števke in 11 XY-krilo«,
+// pri lahki »P_1 · enojčki«, pri presega tehnike »P_15 · z ugibanjem«.
+function zbirkaNaslovPrimera(p) {
+  const glavna = p.glavna.length ? zbirkaNastej(p.glavna.map(zbirkaKratkoImeTehnike))
+    : p.tezavnost === 'Lahka' ? 'enojčki' : 'z ugibanjem';
+  return `${p.ime} · ${glavna}`;
+}
+
+// Primeri po skupinah stopnje (vrstni red iz PRIMERI): [{ tezavnost, naslov, primeri }]. Naslov
+// skupine »Srednja · tehnika«, kadar ima vsak primer eno glavno tehniko, sicer »· tehnike« (lahka:
+// enojčka, zelo težka: dve napredni); pri presega tehnike samo stopnja.
+function zbirkaSkupinePrimerov() {
+  const skupine = [];
+  for (const p of PRIMERI) {
+    let s = skupine.find(x => x.tezavnost === p.tezavnost);
+    if (!s) skupine.push(s = { tezavnost: p.tezavnost, primeri: [] });
+    s.primeri.push(p);
+  }
+  for (const s of skupine) {
+    s.naslov = s.tezavnost === 'Presega tehnike' ? s.tezavnost
+      : `${s.tezavnost} · ${s.primeri.every(p => p.glavna.length === 1) ? 'tehnika' : 'tehnike'}`;
+  }
+  return skupine;
 }
 
 // Niz danosti iz polja "Niz" (igra: okno "Nova uganka"; reševalec: nad vnosno
@@ -323,19 +457,20 @@ function zbirkaProgramResil(z) {
 //   { primer, naslov, stanje: { predpona, besedilo, kljuc, napaka }, info, opomba,
 //     namig, gumb }
 // 1. vrstica (naslov): "Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33", pri
-//    vgrajenem primeru njegovo ime;
+//    vgrajenem primeru ime z glavno tehniko (zbirkaNaslovPrimera() - "P_8 · 7 X-krilo");
 // 2. vrstica (stanje) je vedno: "nova", "zadnje reševanje … · v teku (12/57)",
 //    "rešena …" ali "rešena … · znova v teku (12/57)" (zbirkaPrikazCasov); primer
 //    je brez časa (čas shranjene igre se osveži že ob odprtju);
 // 3. vrstica (info): "danih 24 · tehnike: 1, 3, 7 + poskus · 42 korakov", pri delni
-//    rešitvi še "· program rešil delno (36/57)"; primer samo "danih 17" (podatkov
-//    reševanja nima).
+//    rešitvi še "· program rešil delno (36/57)"; primer "danih 17" (podatkov reševanja
+//    nima), izris pa doda značko težavnosti (`znacka`) in vse tehnike (`tehnike` -
+//    zbirkaTehnikePrimera(), glavna krepko).
 // `gumb` (Igraj / Nadaljuj / Poglej) je iz istega stanja kot 2. vrstica.
 function zbirkaKartica(danosti, z, povzetek) {
   const primer = zbirkaPrimerZa(danosti);
   const st = zbirkaStanjeUganke(danosti, z, povzetek);
   const dodana = z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '';
-  const naslov = primer ? primer.ime
+  const naslov = primer ? zbirkaNaslovPrimera(primer)
     : [(z && z.tezavnost) || 'težavnost ni določena', zbirkaOpisIzvora(z), dodana].filter(Boolean).join(' · ');
 
   let stanje = z ? zbirkaPrikazCasov(z, povzetek).igranje : null;
@@ -350,6 +485,8 @@ function zbirkaKartica(danosti, z, povzetek) {
   return {
     primer: primer ? primer.ime : null,
     naslov,
+    znacka: primer ? primer.tezavnost : null,
+    tehnike: primer ? zbirkaTehnikePrimera(primer) : null,
     stanje,
     info: info.join(' · '),
     opomba: (z && z.opomba) || '',

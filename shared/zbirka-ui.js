@@ -3,7 +3,8 @@
    (igra/igra.js, tudi vgrajeni primeri). Podatke da zbirkaKartica() v
    shared/zbirka.js (brez DOM-a), gumbe pa aplikacija: reševalec Odpri/Izbriši,
    igra Igraj/Nadaljuj/Poglej/Izbriši. Slogi so v shared/zbirka.css.
-   Tu je tudi poslušalec sprememb zbirke v drugem zavihku (zbirkaObSpremembiDrugje).
+   Tu je tudi poslušalec sprememb zbirke v drugem zavihku (zbirkaObSpremembiDrugje), značka
+   težavnosti (zbirkaZnacka) in naštevanje tehnik (zbirkaIzrisiTehnike).
    Naloži se za shared/zbirka.js. */
 
 // Zbirko (sudoku.zbirka.v1) in shranjene igre (sudoku.igra.v1) si delita reševalec
@@ -29,10 +30,37 @@ function zbirkaOznakaStanja(kljuc, besedilo, napaka) {
   return [oznaka, ' · ', pod];
 }
 
+// Značka težavnosti v barvi ravni (oznake korakov .tag.t-* iz shared/base.css): lahka zelena,
+// srednja jantarna, težka in zelo težka vijolična, drugo rdeča. Reševalec (pod seznamom primerov)
+// in igra (kartica »Uganka«, vgrajeni primeri).
+const ZNACKA_TEZAVNOSTI = { 'Lahka': 't-single', 'Srednja': 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced' };
+
+function zbirkaZnacka(tezavnost) {
+  const el = document.createElement('span');
+  el.className = `tag ${ZNACKA_TEZAVNOSTI[tezavnost] || 't-chain'} znacka-tezavnosti`;
+  el.textContent = tezavnost;
+  return el;
+}
+
+// Naštevanje tehnik v element: »Tehnike: E1, E2, 1 Izločitev izven bloka in 3 Očitni par« -
+// deli iz zbirkaDeliTehnik() (shared/zbirka.js), glavna tehnika krepko; brez podatka »ni podatkov«.
+function zbirkaIzrisiTehnike(el, deli) {
+  el.append('Tehnike: ');
+  if (!deli) { el.append('ni podatkov'); return; }
+  deli.forEach((d, i) => {
+    if (i) el.append(i === deli.length - 1 ? ' in ' : ', ');
+    if (!d.glavna) { el.append(d.besedilo); return; }
+    const b = document.createElement('b');
+    b.textContent = d.besedilo;
+    el.append(b);
+  });
+}
+
 // Element <li> kartice. `k` je rezultat zbirkaKartica(); `trenutna` = uganka je
 // odprta (v igri na mreži, v reševalcu v vnosni mreži) - kartica dobi modro črto in
 // značko "trenutno odprta" v prvi vrstici; `gumbi` = [{ napis, razred, obKliku }].
-// Vrstice: naslov, stanje, info (danih · tehnike · koraki), opomba, gumbi.
+// Vrstice: naslov, stanje, info (danih · tehnike · koraki; pri primeru značka, danih in vse
+// tehnike), opomba, gumbi.
 function zbirkaIzrisiKartico(k, { trenutna = false, gumbi = [] } = {}) {
   const li = document.createElement('li');
   if (trenutna) li.className = 'trenutna';
@@ -58,7 +86,11 @@ function zbirkaIzrisiKartico(k, { trenutna = false, gumbi = [] } = {}) {
 
   const info = document.createElement('div');
   info.className = 'zb-info';
-  info.textContent = k.info;
+  if (k.znacka) {
+    // Vgrajeni primer: značka, »danih 24« in vse tehnike v eni vrstici.
+    info.append(zbirkaZnacka(k.znacka), ' ' + k.info + ' · ');
+    zbirkaIzrisiTehnike(info, k.tehnike);
+  } else info.textContent = k.info;
   li.appendChild(info);
 
   if (k.opomba) {

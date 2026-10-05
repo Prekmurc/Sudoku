@@ -17,12 +17,10 @@ const RESEVALEC = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', '
 const IGRA = ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'igra/shramba.js', 'igra/igra.js'];
 const ZBIRKA = 'sudoku.zbirka.v1';
 
-// Uganke iz docs/uganke.md, ki niso vgrajeni primeri (tri so), četrta iz generatorja
-// (seme 2, stopnja lahka - ponovljivo, natanko ena rešitev), in en primer.
+// Štiri uganke iz docs/uganke.md, ki niso vgrajeni primeri, in en primer.
 const { run: skupna } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js']);
-const [a, b, c] = loadPuzzles().map(p => p.danosti.replace(/\./g, '0'))
+const [a, b, c, nova] = loadPuzzles().map(p => p.danosti.replace(/\./g, '0'))
   .filter(d => !skupna(`!!zbirkaPrimerZa(${JSON.stringify(d)})`));
-const nova = skupna("ustvariUganko('lahka', 2).danosti");
 const primer = skupna("PRIMERI[2].danosti.replace(/\\./g, '0')");
 
 test('pripravljene uganke: štiri različne, nobena ni primer, vsaka ima eno rešitev', () => {

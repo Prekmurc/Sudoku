@@ -51,7 +51,9 @@ const E = loadEngine(undefined, {
     'zbirkaZaSeznam', 'zbirkaVrsticaIgranja', 'PRIMERI', 'zbirkaPrimerZa', 'zbirkaProgramResil',
     'zbirkaKartica', 'zbirkaUvozi', 'zbirkaIzbrisi', 'zbirkaIzbrisiVse', 'zbirkaVprasanjeIzbrisi',
     'zbirkaVprasanjeIzbrisiVse', 'igreBeri', 'IGRA_KLJUC', 'ZBIRKA_KLJUC', 'zbirkaSirote',
-    'zbirkaSporociloIzbrisiVse', 'zbirkaPodatkiResevanja', 'redTehnike', 'imeTehnike', 'ALL_TECHNIQUES'],
+    'zbirkaSporociloIzbrisiVse', 'zbirkaPodatkiResevanja', 'redTehnike', 'imeTehnike', 'ALL_TECHNIQUES',
+    'zbirkaNaslovPrimera', 'zbirkaSkupinePrimerov', 'zbirkaTehnikePrimera', 'zbirkaTehnikeZapisa',
+    'zbirkaBesediloTehnik', 'zbirkaNastej', 'zbirkaPocistiStarePrimere', 'STARI_PRIMERI'],
 });
 
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
@@ -724,15 +726,64 @@ test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
 });
 
 test('zbirkaKartica(): vgrajeni primer (brez zapisa)', () => {
-  const p = E.PRIMERI[4];
+  const p = E.PRIMERI.find(x => x.glavna.length === 1 && x.glavna[0] === 'Hidden pair');
   const d = p.danosti.replace(/\./g, '0');
   const danihP = d.replace(/0/g, '').length;
   const brez = E.zbirkaKartica(d, null, null);
   assert.equal(brez.primer, p.ime);
-  assert.equal(brez.naslov, p.ime);
+  assert.equal(brez.naslov, `${p.ime} · 4 Skriti par`);
   assert.equal(brez.stanje.besedilo, 'nova');
   assert.equal(brez.info, `danih ${danihP}`, 'brez zapisa ni podatkov reševanja');
+  assert.equal(brez.znacka, 'Srednja');
+  assert.deepEqual([...brez.tehnike.filter(t => t.glavna).map(t => t.besedilo)], ['4 Skriti par']);
   assert.equal(brez.namig, '');
+});
+
+/* ---------- vgrajeni primeri: naslovi, skupine, tehnike ---------- */
+
+test('primeri: imena P_1 … P_15 po vrsti, skupine po stopnji z naslovi', () => {
+  assert.deepEqual([...E.PRIMERI.map(p => p.ime)], [...E.PRIMERI.map((_, i) => `P_${i + 1}`)]);
+  const s = E.zbirkaSkupinePrimerov();
+  assert.deepEqual([...s.map(x => x.naslov)],
+    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Presega tehnike']);
+  assert.deepEqual([...s.flatMap(x => x.primeri.map(p => p.ime))], [...E.PRIMERI.map(p => p.ime)], 'skupine ohranijo vrstni red');
+  assert.equal(E.PRIMERI[E.PRIMERI.length - 1].tezavnost, 'Presega tehnike', 'presega tehnike je zadnji');
+});
+
+test('primeri: vrstica v seznamu in naštevanje tehnik (vejice in »in«, brez »+«)', () => {
+  const po = t => E.PRIMERI.find(p => p.tezavnost === t);
+  assert.equal(E.zbirkaNaslovPrimera(po('Lahka')), 'P_1 · enojčki');
+  const zelo = po('Zelo težka');
+  assert.equal(zelo.glavna.length, 2);
+  assert.match(E.zbirkaNaslovPrimera(zelo), /^P_\d+ · \d+ [^,]+ in \d+ [^,]+$/);
+  const presega = po('Presega tehnike');
+  assert.equal(E.zbirkaNaslovPrimera(presega), `${presega.ime} · z ugibanjem`);
+  assert.match(E.zbirkaBesediloTehnik(E.zbirkaTehnikePrimera(presega)), /^Tehnike: E1, E2, .* in ugibanje$/);
+  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikePrimera(po('Lahka'))), 'Tehnike: E1 in E2');
+  for (const p of E.PRIMERI) assert.doesNotMatch(E.zbirkaBesediloTehnik(E.zbirkaTehnikePrimera(p)), /\+/);
+  assert.equal(E.zbirkaNastej(['a']), 'a');
+  assert.equal(E.zbirkaNastej(['a', 'b', 'c']), 'a, b in c');
+});
+
+test('zbirkaTehnikeZapisa(): dnevnik reševanja, pot ocene pri težki, poskus kot »ugibanje«', () => {
+  const z = { tezavnost: 'Srednja', tehnike: [['Skriti enojček', 9], ['Gol enojček', 3], ['Naked pair', 1], ['Poskus in protislovje', 2]] };
+  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(z)), 'Tehnike: E1, E2, 3 Očitni par in ugibanje');
+  const t = { tezavnost: 'Težka', potOcene: ['Gol enojček', 'Pointing pair/triple', 'Turbot Fish'], tehnike: [['XY-Wing', 1]] };
+  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(t)), 'Tehnike: E1, 1 Izločitev izven bloka in 9 Veriga ene števke');
+  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa({ tezavnost: 'Lahka' })), 'Tehnike: ni podatkov');
+});
+
+test('zbirkaPocistiStarePrimere(): izbriše shranjene igre starih primerov, igro uganke iz zbirke pusti', () => {
+  const [s1, s2] = E.STARI_PRIMERI;
+  const druga = E.PRIMERI[0].danosti.replace(/\./g, '0');
+  shramba.clear();
+  shramba.set(E.IGRA_KLJUC, JSON.stringify({ zadnja: s1, igre: { [s1]: { poteze: [] }, [s2]: { poteze: [] }, [druga]: { poteze: [] } } }));
+  E.zbirkaPisi([{ danosti: s2, dodano: '2026-10-01T10:00:00' }]);
+  assert.equal(E.zbirkaPocistiStarePrimere(), true);
+  const igre = E.igreBeri();
+  assert.deepEqual([...Object.keys(igre.igre)].sort(), [s2, druga].sort());
+  assert.equal(igre.zadnja, null, 'zadnja igra je bila stari primer');
+  shramba.clear();
 });
 
 /* ---------- vrstni red tehnik v zapisu ---------- */
