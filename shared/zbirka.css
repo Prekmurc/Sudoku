@@ -29,6 +29,8 @@
 /* Značka težavnosti (zbirkaZnacka() v shared/zbirka-ui.js): pri primeru v seznamu in pod
    seznamom primerov v reševalcu. */
 .znacka-tezavnosti{ font-size:10.5px; padding:2px 7px; vertical-align:1px; }
+/* »Zelo težka« – ista vijolična kot »Težka« (.tag.t-advanced), a temnejša in polna. */
+.tag.znacka-zelo-tezka{ background: var(--purple-dark); color: var(--purple-dark-ink); }
 
 /* 1. vrstica: težavnost · izvor · dodana (ali ime primera) */
 .zb-vrstica{ font-size:14px; font-weight:600; }

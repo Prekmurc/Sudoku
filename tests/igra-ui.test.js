@@ -496,7 +496,7 @@ test('kartica "Uganka": značka težavnosti, izvor in dane števke v 1. vrstici,
   const [prva, druga] = dom.el('opisUganke').children;
   const znacka = prva.children[0];
   assert.equal(znacka.textContent, z.tezavnost);
-  assert.equal(znacka.className, `tag ${{ Lahka: 't-single', Srednja: 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced' }[z.tezavnost] || 't-chain'} znacka-tezavnosti`);
+  assert.equal(znacka.className, `tag ${{ Lahka: 't-single', Srednja: 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced znacka-zelo-tezka' }[z.tezavnost] || 't-chain'} znacka-tezavnosti`);
   assert.match(prva.textContent, new RegExp(`^${z.tezavnost} .*dodana .* · danih števk: ${81 - praznih}$`));
   // »Tehnike:« s številkami in imeni, kot v reševalcu pod seznamom primerov (vejice in »in«, brez »+«),
   // iz istih tehnik kot oznaka »tehnike: 1, 3, 7« v seznamu.

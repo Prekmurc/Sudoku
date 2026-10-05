@@ -25,6 +25,10 @@
   --amber-bg: #F1E5C9;
   --purple: #7548A0;
   --purple-bg: #E7DEF0;
+  /* Značka težavnosti »Zelo težka« (shared/zbirka.css): temnejša, polna vijolična z belim
+     besedilom (kontrast 10,0), da se loči od »Težke« (--purple na --purple-bg, 5,1). */
+  --purple-dark: #53307E;
+  --purple-dark-ink: #FFFFFF;
   /* Izbrana celica (shared/mreza.css) in fokus v vnosni mreži (reševalec, okno »Nova
      uganka« v igri) - povsod enako (odločitev A2): modrikasta podlaga in 3 px modra obroba. */
   --izbira: #4A86D8;
