@@ -5,11 +5,11 @@
 // kandidatov in "pokaži prečrtane", krog in "Končano!". Vaje so iz pravih ugank (banka
 // in minimalne uganke iz semen), nič ni sestavljeno na pamet. Videza (CSS) test ne vidi -
 // to preveri tools/preveri-vadi-brskalnik.js.
-// Zagon: node --test "tests/*.test.js"
+// Zagon (vsi testi): node --test "tests/**/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadContext } = require('./load-engine.js');
-const { makeDom } = require('./dom-stub.js');
+const { loadContext } = require('../load-engine.js');
+const { makeDom } = require('../dom-stub.js');
 
 // Vrstni red kot <script> v trening/index.html.
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
@@ -673,7 +673,7 @@ test('oznaka pri uganki Presega tehnike: »za to vajo ni pomembno«', () => {
   const { dom, run, izprazni } = zacni('pointing');
   izprazni();
   // Uganka iz semena 12 presega tehnike, stanja izločitve izven bloka so pred prvim poskusom
-  // (tests/vaje-uganka.test.js).
+  // (tests/pocasni/vaje-uganka.test.js).
   run(`{ const v = vajaIzUganke(genMinimalnaUganka(12), 'Pointing pair/triple', Math.random);
     v.izvor = { vrsta: 'sproti', seme: 12 }; exNum = 6; izrisiVadi(v); }`);
   const st = poRazredu(dom, 'vaja-info')[0].children[0];

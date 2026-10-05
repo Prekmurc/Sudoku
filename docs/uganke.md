@@ -13,7 +13,7 @@ s semenom).
 
 Vgrajeni primeri (`PRIMERI` v `shared/zbirka.js`, od 2026-10-05 P_1–P_15) niso zapisani tu: izbere
 jih `node tools/izberi-primere.js` (banka vaj, vir banke in generator), enoličnost, oceno in tehnike pa
-preverja `tests/generator.test.js`. Primeri do 2026-10-05 so spodaj (example-app, oakever-ekstrem-lv4,
+preverja `tests/pocasni/generator.test.js`. Primeri do 2026-10-05 so spodaj (example-app, oakever-ekstrem-lv4,
 lahka-seme-1, lahka-seme-197, srednja-a) in ostanejo testne uganke.
 
 ## Pokritost tehnik
@@ -339,7 +339,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Danosti (26):** `876.....4......7.....2..58..34.1.8..21..69......3.5.7.......6...4..769....8....4.`
 - **Vir:** ustvarjena 2026-09-20 z `node tools/ustvari-uganko.js lahka --seme 1` (iz
   naključne polne mreže odstranjuje celice, dokler ostaja ena rešitev; ponovljivo –
-  preverja `tests/generator.test.js`).
+  preverja `tests/pocasni/generator.test.js`).
 - **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 5 (lahka)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
@@ -358,7 +358,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   pravi, da je lahka uganka tista, ki se reši samo z enojčki – ta pa potrebuje Pointing
   pair/triple, zato je po novem **srednja**. Iz istega semena zdaj zmaga drug kandidat na
   poti odstranjevanja. Uganka ostaja tu, ker se testne uganke ne spreminjajo; da je
-  srednja, preverja `tests/generator.test.js`.
+  srednja, preverja `tests/pocasni/generator.test.js`.
 - **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 3 (srednja – presek)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,
   `solutionOf()` da isto rešitev.
@@ -380,10 +380,10 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   stopnje bere dnevnik `solve()`, ta pa se je s spremembo sidranja (2026-09-20) spremenil,
   zato na poti odstranjevanja zmaga drug kandidat (uganka s 24 danostmi). Od spremembe
   vrstnega reda tehnik (2026-09-24) seme 97 s strogim merilom ne da nobene uganke; prvo
-  seme, ki jo da, je 1185 (`tests/generator.test.js`). Uganka sama je še vedno srednja
+  seme, ki jo da, je 1185 (`tests/pocasni/generator.test.js`). Uganka sama je še vedno srednja
   (tudi po merilu iskanja generatorja), **strogemu merilu** (par in trojica na poti) pa ne
   ustreza več: preseki zdaj pridejo pred očitnim parom in pot para ne potrebuje. Oboje
-  preverja `tests/generator.test.js`. Uganka ostaja tu – testne uganke naj se ne
+  preverja `tests/pocasni/generator.test.js`. Uganka ostaja tu – testne uganke naj se ne
   spreminjajo, da so primerjave z zgodovino smiselne.
 - **Vgrajen primer do 2026-10-05:** `shared/zbirka.js` (polje `PRIMERI`, "Primer 4 (srednja – trojica)").
 - **Preverjeno:** `countSolutions() === 1`; `solve()` jo v celoti reši brez ugibanja,

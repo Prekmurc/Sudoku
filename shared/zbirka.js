@@ -85,7 +85,7 @@ function zbirkaOpisIzvora(z) {
 // shared/generator.js), `glavna` (tehnike, po katerih je primer izbran; pri lahki in pri
 // presega tehnike prazno), `tehnike` (pot ocene - pri vseh primerih natanko tehnike
 // dnevnika solve() -, pri presega tehnike tehnike dnevnika brez poskusa), `ugibanje`
-// (število poskusov s protislovjem v dnevniku solve()). Vse preverja tests/generator.test.js.
+// (število poskusov s protislovjem v dnevniku solve()). Vse preverja tests/pocasni/generator.test.js.
 const PRIMERI = [
   { ime: 'P_1', tezavnost: 'Lahka', glavna: [], ugibanje: 0,
     tehnike: ['Gol enojček', 'Skriti enojček'],
@@ -187,8 +187,9 @@ function zbirkaTehnikePrimera(p) {
   return zbirkaDeliTehnik(p.tehnike, { glavne: p.glavna, ugibanje: p.ugibanje });
 }
 
-// Tehnike uganke v zbirki (kartica »Uganka« v igri) iz istega vira kot oznaka »tehnike:«
-// (zbirkaOznakaTehnik()): pri težki uganki pot ocene, sicer dnevnik reševanja (z.tehnike); poskus
+// Tehnike uganke v zbirki (kartica »Uganka« v igri, kartica v seznamu zbirke): pri težki uganki pot
+// ocene (zbirkaPotTezke() - pot z eno samo napredno tehniko, ki zadošča; dnevnik solve() ima lahko
+// dve, npr. »9, 10«), sicer dnevnik reševanja (z.tehnike); poskus
 // s protislovjem je »ugibanje«. Brez podatka (tudi prazen seznam) null.
 function zbirkaTehnikeZapisa(z) {
   const pot = z && z.tezavnost === 'Težka' ? zbirkaPotTezke(z) : null;
@@ -989,32 +990,6 @@ function zbirkaPotTezke(z) {
   if (!z.danosti || typeof oceniTezavnost !== 'function') return null;
   if (!ZBIRKA_POTI.has(z.danosti)) ZBIRKA_POTI.set(z.danosti, zbirkaPotIzOcene(oceniTezavnost(z.danosti)));
   return ZBIRKA_POTI.get(z.danosti);
-}
-
-// Katere tehnike uganka zahteva, s številkami iz treninga (TRENING_TEHNIKE v
-// shared/engine.js): "tehnike: 1, 3, 7 + poskus". Iz polja z.tehnike ([[ime,
-// število], ...] iz reševanja); pri težki uganki iz poti ocene (zbirkaPotTezke() - pot z eno
-// samo napredno tehniko, ki zadošča; dnevnik solve() ima lahko dve, npr. »9, 10«). Enojčki
-// se ne izpišejo (osnova vsake uganke), poskus s protislovjem je oznaka "+ poskus" (pri več
-// "+ poskus ×2"); ime, ki ga ni med tehnikami (npr. iz starejšega izvoza), se izpiše kar z
-// imenom.
-function zbirkaOznakaTehnik(z) {
-  const pot = z && z.tezavnost === 'Težka' ? zbirkaPotTezke(z) : null;
-  if (pot) return zbirkaOznakaTehnik({ tehnike: pot.map(ime => [ime, 1]) });
-  if (!z || !Array.isArray(z.tehnike)) return 'tehnike: ni podatkov';
-  const stevilke = [];
-  const neznane = [];
-  let poskusi = 0;
-  for (const [ime, n] of z.tehnike) {
-    const i = TRENING_TEHNIKE.findIndex(([, t]) => t === ime);
-    if (i >= 0) stevilke.push(i + 1);
-    else if (/protislovje/.test(ime)) poskusi += n;
-    else if (!ALL_TECHNIQUES.some(([t]) => t === ime)) neznane.push(ime);
-  }
-  const deli = stevilke.sort((a, b) => a - b).map(String).concat(neznane);
-  let s = deli.length ? deli.join(', ') : 'samo enojčki';
-  if (poskusi) s += ' + poskus' + (poskusi > 1 ? ` ×${poskusi}` : '');
-  return 'tehnike: ' + s;
 }
 
 /* ---------- vrstni red za prikaz ---------- */

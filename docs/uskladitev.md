@@ -1245,7 +1245,7 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 |---|---|---|---|
 | 1 | po fazi 6 | **Oznaka različice pri nalaganju skript in slogov** | da brskalnik po spremembi ne kaže stare različice iz predpomnilnika (prej v »Kasneje«) |
 | 2 | po fazi 6 | **Faza 3a – dopolnitev primerov** | vgrajeni primeri za vse stopnje in tehnike (**narejeno 2026-10-05** kot zadnji del faze 6 – `tools/izberi-primere.js`); ostane shema vzorca pri razlagi tehnik 1–12 (pri 11: {x, y}, {x, z}, {y, z}, obe krili in celica izbrisa) |
-| 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); počasne teste razdeli, če tek vseh testov (`node --test "tests/*.test.js"`) preseže 2 minuti |
+| 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); razdelitev testov na hitre in počasne je **narejena 2026-10-05** (`tests/pocasni/`, pravilo v `CLAUDE.md`) |
 | 4 | nove tehnike | **XY-veriga** (ekspertna raven, tehnika 13) | nova tehnika na koncu `ALL_TECHNIQUES`, v `GEN_EKSPERTNE`, `TECHNIQUE_GROUPS`, trening (vaja, kartica, značka EKSPERTNA); stopnja Ekstrem (odločitev 2026-09-24, razdelek 7) se vrne v seznam stopenj v Pomoči (`stopnjeZaPomoc()` v `shared/pomoc.js` jo pokaže sama, ko je `GEN_EKSPERTNE` neprazen); banka vaj znova (`tools/ustvari-banko-vaj.js`); **dodati primer** (vgrajeni primer stopnje Ekstrem – izbor `tools/izberi-primere.js` razširi na ekspertno raven) |
 | 5 | nove tehnike | **BUG+1** | nova tehnika (raven in mesto v vrstnem redu določi načrt); **dodati primer** (vgrajeni primer s to tehniko – izbor `tools/izberi-primere.js` znova) |
 | 6 | videz | **Podlage, legenda, Escape** | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; postavka »tvoje oznake« v legendi »Vadi v uganki«; Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«) |
@@ -1256,7 +1256,8 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 | 11 | na koncu | **Preklop jezika SI/EN** | |
 
 **Samo če bo potreba** (ni v vrstnem redu – glej »Kasneje«): gumb »Izvedi izbris«, gumb »drži«
-na dnu strani, reševalec v dveh stolpcih, oblika vzorca po označenih celicah.
+na dnu strani, reševalec v dveh stolpcih, oblika vzorca po označenih celicah, E1 in E2: »Spoznaj« in
+»Vadi v uganki« se skoraj ne razlikujeta (zaenkrat ostane). Vrstni red preverjen 2026-10-05.
 
 **Vpliv odločitev 2026-09-23 na vrstni red:** zaporedje faz ostane. Spremembe:
 
@@ -1323,6 +1324,9 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   konca (zgoraj).
 - **Reševalec v dveh stolpcih** (zgoraj).
 - **Oblika vzorca po označenih celicah**.
+- **E1 in E2: »Spoznaj« in »Vadi v uganki« se skoraj ne razlikujeta** (zaenkrat ostane; zapisano
+  2026-10-05) – obe sta stanje prave uganke brez kandidatov z vpisom števke; združitev ali
+  razločitev načinov, če se pokaže potreba.
 
 ## Opombe k delom
 

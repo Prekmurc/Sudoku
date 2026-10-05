@@ -6,7 +6,7 @@
    NE UREJAJ ROČNO. Datoteko ustvari orodje:
      node tools/ustvari-banko-vaj.js --na-tehniko 50 --najvec-semen 30000
    Ob vsaki spremembi motorja (shared/engine.js) ali generatorja (shared/generator.js)
-   jo ustvari znova s tem orodjem. Če test tests/vaje-banka.test.js pade, datoteke in
+   jo ustvari znova s tem orodjem. Če test tests/pocasni/vaje-banka.test.js pade, datoteke in
    testa ne popravljaj ročno - poženi orodje.
 
    Ustvarjeno 2026-10-04: semena 1-30000, 356 zapisov (Lahka 50, Težka 191, Srednja 111, Zelo težka 4).

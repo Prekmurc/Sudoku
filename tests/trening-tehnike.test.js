@@ -2,8 +2,7 @@
 // Številke tehnik iz treninga (TRENING_TEHNIKE v shared/engine.js) in enojčka z oznakama
 // E1, E2 (TRENING_ENOJCKA): seznama se skupaj morata ujemati s karticami v
 // trening/index.html in z MODES v trening/generators.js, TRENING_TEHNIKE mora vsebovati
-// vse tehnike iz ALL_TECHNIQUES razen enojčkov; oznaka "tehnike: 1, 3, 7" v zbirki
-// (zbirkaOznakaTehnik v shared/zbirka.js) enojčkov ne izpisuje.
+// vse tehnike iz ALL_TECHNIQUES razen enojčkov (enojčka imata v »Tehnike:« oznaki E1, E2).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -13,7 +12,7 @@ const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js', 'trening/generators.js', 'shared/zbirka.js'],
-  names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaOznakaTehnik', 'zbirkaPodatkiResevanja',
+  names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaBesediloTehnik', 'zbirkaTehnikeZapisa', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
     'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint',
     'genMinimalnaUganka', 'stanjaVUganki', 'vajaIzStanja', 'preveriVajo', 'stanjeIgre', 'dodajPotezo'],
@@ -84,7 +83,7 @@ test('značke v treningu: LAHKA za E1-E2, SREDNJA za 1-6, NAPREDNA za 7-12', () 
 });
 
 // Številke niso shranjene nikjer: zbirka in izvoz hranita imena tehnik, številko da
-// zbirkaOznakaTehnik() ob prikazu. Izvoz iz časa pred preštevilčenjem (2026-09-24,
+// zbirkaKratkoImeTehnike() ob prikazu. Izvoz iz časa pred preštevilčenjem (2026-09-24,
 // takrat je bil Naked pair 1, Pointing 3) zato po uvozu kaže nove številke.
 test('izvoz hrani imena tehnik, star izvoz po uvozu dobi nove številke', () => {
   // Uganka, ki ni vgrajeni primer (primere uvoz preskoči).
@@ -97,38 +96,42 @@ test('izvoz hrani imena tehnik, star izvoz po uvozu dobi nove številke', () => 
   ].join('\n');
   const { zapisi } = E.zbirkaIzMarkdowna(star);
   assert.equal(zapisi.length, 1);
-  assert.equal(E.zbirkaOznakaTehnik(zapisi[0]), 'tehnike: 1, 3, 6');
+  const besedilo = z => E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(z));
+  const pricakovano = 'Tehnike: E1, E2, 1 Izločitev izven bloka, 3 Očitni par in 6 Skrita trojica';
+  assert.equal(besedilo(zapisi[0]), pricakovano);
   const izvoz = E.zbirkaVMarkdown(zapisi);
   // Izvoz tehnike uredi po vrstnem redu tehnik (redTehnike()), ne po pogostosti, in
   // zapiše slovenska imena brez oklepaja (imeTehnike()); uvoz jih prebere nazaj v ključe.
   assert.match(izvoz, /\*\*Tehnike:\*\* Očitni enojček 27, Skriti enojček 30, Izločitev izven bloka 1, Očitni par 2, Skrita trojica 1$/m);
-  assert.equal(E.zbirkaOznakaTehnik(E.zbirkaIzMarkdowna(izvoz).zapisi[0]), 'tehnike: 1, 3, 6', 'nov izvoz po uvozu');
+  assert.equal(besedilo(E.zbirkaIzMarkdowna(izvoz).zapisi[0]), pricakovano, 'nov izvoz po uvozu');
   assert.doesNotMatch(izvoz, /tehnike: \d/, 'v izvozu ni številk tehnik');
 });
 
-test('zbirkaOznakaTehnik(): številke iz treninga, brez enojčkov, poskus posebej', () => {
-  const oznaka = tehnike => E.zbirkaOznakaTehnik({ tehnike });
-  const st = ime => imena.indexOf(ime) + 1;
-  assert.equal(E.zbirkaOznakaTehnik({}), 'tehnike: ni podatkov');
-  assert.equal(E.zbirkaOznakaTehnik({ tehnike: null }), 'tehnike: ni podatkov');
-  assert.equal(oznaka([]), 'tehnike: samo enojčki');
-  assert.equal(oznaka([['Skriti enojček', 30], ['Gol enojček', 20]]), 'tehnike: samo enojčki');
-  assert.equal(oznaka([['Skriti enojček', 9], ['X-Wing', 1], ['Naked pair', 2]]),
-    `tehnike: ${st('Naked pair')}, ${st('X-Wing')}`);
-  assert.equal(oznaka([['Gol enojček', 5], ['Poskus in protislovje (forcing chain)', 1]]), 'tehnike: samo enojčki + poskus');
-  assert.equal(oznaka([['Turbot Fish', 2], ['Poskus in protislovje (forcing chain)', 3]]),
-    `tehnike: ${st('Turbot Fish')} + poskus ×3`);
-  assert.equal(oznaka([['Pointing pair/triple', 1], ['Stara tehnika', 1]]), `tehnike: ${st('Pointing pair/triple')}, Stara tehnika`);
+test('»Tehnike:« uganke v zbirki: številke in imena iz treninga, enojčka E1/E2, poskus je »ugibanje«', () => {
+  const besedilo = tehnike => E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa({ tehnike }));
+  const ime = kljuc => `${imena.indexOf(kljuc) + 1} ${E.imeTehnike(kljuc, { anglesko: false })}`;
+  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa({})), 'Tehnike: ni podatkov');
+  assert.equal(besedilo(null), 'Tehnike: ni podatkov');
+  assert.equal(besedilo([]), 'Tehnike: ni podatkov');
+  assert.equal(besedilo([['Skriti enojček', 30], ['Gol enojček', 20]]), 'Tehnike: E1 in E2');
+  assert.equal(besedilo([['Skriti enojček', 9], ['X-Wing', 1], ['Naked pair', 2]]),
+    `Tehnike: E2, ${ime('Naked pair')} in ${ime('X-Wing')}`);
+  assert.equal(besedilo([['Gol enojček', 5], ['Poskus in protislovje (forcing chain)', 1]]), 'Tehnike: E1 in ugibanje');
+  assert.equal(besedilo([['Turbot Fish', 2], ['Poskus in protislovje (forcing chain)', 3]]),
+    `Tehnike: ${ime('Turbot Fish')} in ugibanje`);
+  assert.equal(besedilo([['Pointing pair/triple', 1], ['Stara tehnika', 1]]), `Tehnike: ${ime('Pointing pair/triple')} in Stara tehnika`);
 });
 
-test('zbirkaOznakaTehnik() na ugankah iz docs/uganke.md: vsaka uporabljena tehnika ima številko', () => {
+test('»Tehnike:« na ugankah iz docs/uganke.md: vsaka uporabljena tehnika ima oznako ali številko', () => {
+  const del = String.raw`(E[12]|\d+ [^,]+?|ugibanje)`;
   for (const p of loadPuzzles()) {
     const { board, log } = E.solve(p.danosti.replace(/\./g, '0'));
     const z = E.zbirkaPodatkiResevanja(board, log);
-    const o = E.zbirkaOznakaTehnik(z);
-    assert.match(o, /^tehnike: (samo enojčki|\d+(, \d+)*)( \+ poskus( ×\d+)?)?$/, `${p.ime}: ${o}`);
+    const o = E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(z));
+    assert.match(o, new RegExp(`^Tehnike: ${del}((, ${del})* in ${del})?$`), `${p.ime}: ${o}`);
     const poskus = z.tehnike.some(([t]) => t.includes('protislovje'));
-    assert.equal(o.includes('+ poskus'), poskus, `${p.ime}: ${o}`);
+    assert.equal(/ in ugibanje$/.test(o), poskus, `${p.ime}: ${o}`);
+    assert.doesNotMatch(o, /\+/, `${p.ime}: ${o}`);
   }
 });
 
@@ -316,7 +319,7 @@ test('sporočila solve() in stepHint() na ugankah iz docs/uganke.md: »števka«
 
 // Sporočila presoje v "Vadi v uganki" (preveriVajo() v shared/vaje-uganka.js) za vse
 // izide: ime tehnike iz imeTehnike() brez angleškega imena, izraz »števka«. Uganke so iz
-// semen, ki imajo stanja za vse tehnike (glej SEMENA v tests/vaje-uganka.test.js).
+// semen, ki imajo stanja za vse tehnike (glej SEMENA v tests/pocasni/vaje-uganka.test.js).
 test('sporočila preveriVajo(): »števka«, slovenska imena', () => {
   const izidi = new Set();
   for (const seme of [1, 2, 3, 18, 245]) {

@@ -4,10 +4,10 @@
 // in presoja odgovora preveriVajo() z vrstnim redom izidov. Stanja in odgovori niso
 // sestavljeni na pamet: uganke da genMinimalnaUganka(seme), izbrisi v odgovorih so
 // izbrisi korakov motorja (KT, KV) ali števke rešitve.
-// Zagon: node --test "tests/*.test.js"
+// Zagon (vsi testi): node --test "tests/**/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadEngine } = require('./load-engine.js');
+const { loadEngine } = require('../load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js'],

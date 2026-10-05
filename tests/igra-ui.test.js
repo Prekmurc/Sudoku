@@ -499,13 +499,15 @@ test('kartica "Uganka": značka težavnosti, izvor in dane števke v 1. vrstici,
   assert.equal(znacka.className, `tag ${{ Lahka: 't-single', Srednja: 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced znacka-zelo-tezka' }[z.tezavnost] || 't-chain'} znacka-tezavnosti`);
   assert.match(prva.textContent, new RegExp(`^${z.tezavnost} .*dodana .* · danih števk: ${81 - praznih}$`));
   // »Tehnike:« s številkami in imeni, kot v reševalcu pod seznamom primerov (vejice in »in«, brez »+«),
-  // iz istih tehnik kot oznaka »tehnike: 1, 3, 7« v seznamu.
+  // iz istega vira kot kartica v seznamu zbirke (zbirkaTehnikeZapisa()).
   assert.equal(druga.textContent, run(`zbirkaBesediloTehnik(zbirkaTehnikeZapisa(zbirkaBeri().find(x => x.danosti === ${D})))`));
   assert.match(druga.textContent, /^Tehnike: E1, E2, \d+ /);
   assert.doesNotMatch(druga.textContent, /\+/);
-  const stevilke = run(`zbirkaOznakaTehnik(zbirkaBeri().find(x => x.danosti === ${D}))`).replace(/^tehnike: | \+ poskus.*$/g, '').split(', ');
+  // Številke tehnik (brez enojčkov) so položaji v TRENING_TEHNIKE, ugibanje je natanko pri poskusu.
+  const zt = run(`zbirkaBeri().find(x => x.danosti === ${D}).tehnike`);
+  const stevilke = Array.from(run('TRENING_TEHNIKE')).map(([, t], i) => zt.some(([k]) => k === t) ? String(i + 1) : null).filter(Boolean);
   assert.deepEqual([...druga.textContent.matchAll(/(?:, | in |: )(\d+) /g)].map(m => m[1]), stevilke);
-  assert.equal(/\+ poskus/.test(run(`zbirkaOznakaTehnik(zbirkaBeri().find(x => x.danosti === ${D}))`)), / in ugibanje$/.test(druga.textContent));
+  assert.equal(zt.some(([k]) => /protislovje/.test(k)), / in ugibanje$/.test(druga.textContent));
   // Uganka brez težavnosti: brez značke.
   run(`(() => { const zb = zbirkaBeri(); zb.find(x => x.danosti === ${D}).tezavnost = ''; zbirkaPisi(zb); izrisi(); })()`);
   assert.match(dom.el('opisUganke').children[0].textContent, /^težavnost ni določena · /);

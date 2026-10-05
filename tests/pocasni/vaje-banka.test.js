@@ -7,10 +7,10 @@
 //
 // Banko ustvari tools/ustvari-banko-vaj.js. Sprememba motorja ali generatorja jo lahko
 // pokvari - takrat jo ustvari znova z orodjem, datoteke in tega testa ne popravljaj ročno.
-// Zagon: node --test "tests/*.test.js"
+// Zagon (vsi testi): node --test "tests/**/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadEngine } = require('./load-engine.js');
+const { loadEngine } = require('../load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js'],

@@ -4,10 +4,10 @@
 // rešene do tja samo z enojčki, zato se preverja: uganka, skladnost mreže z rešitvijo,
 // kandidati samo iz števk (prikaz brez kandidatov), pri E2 ni nobenega očitnega
 // enojčka, preverjanje odgovora pa sprejme natanko korake motorja.
-// Zagon: node --test "tests/*.test.js"
+// Zagon (vsi testi): node --test "tests/**/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadEngine } = require('./load-engine.js');
+const { loadEngine } = require('../load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'trening/generators.js'],

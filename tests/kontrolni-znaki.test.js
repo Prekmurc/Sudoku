@@ -2,7 +2,7 @@
 // Besedilne datoteke repozitorija nimajo kontrolnih znakov (razen tabulatorja, \n in \r).
 // Tak znak lahko nevidno pride v kodo npr. iz skripte za urejanje (backspace namesto \b v
 // regularnem izrazu - test potem ne preverja ničesar, kar se je zgodilo v
-// tests/mreza.test.js in tests/trening-uganka-ui.test.js, 2026-10-03).
+// tests/mreza.test.js in tests/pocasni/trening-uganka-ui.test.js, 2026-10-03).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');

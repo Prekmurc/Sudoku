@@ -1,7 +1,7 @@
 /* ==================== VAJE IZ UGANKE ====================
    Trening "Vadi v uganki" (docs/trening-v-uganki-nacrt.md, del 2): pravo stanje
    uganke, v katerem je naslednji korak motorja izbrana tehnika. Brez DOM-a
-   (testabilno v Node, glej tests/vaje-uganka.test.js). Naloži se za
+   (testabilno v Node, glej tests/pocasni/vaje-uganka.test.js). Naloži se za
    shared/engine.js, shared/generator.js (genMinimalnaUganka, genMere, STOPNJE_UGANK)
    in shared/stanje.js (igraZZacetkom, stanjeIgre).
 

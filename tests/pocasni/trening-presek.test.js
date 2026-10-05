@@ -3,11 +3,11 @@
 // mreži (docs/geometrija-1-2-nacrt.md): generator genPresek() v trening/generators.js
 // vzame stanje prave uganke iz banke vaj (shared/vaje-banka.js) in korak motorja, na
 // mreži sta vidna samo blok in vrstica/stolpec koraka. Nič ni sestavljeno na pamet -
-// uganke so iz banke (ena rešitev preverja tests/vaje-banka.test.js), korake izračuna
-// motor. Zagon: node --test "tests/*.test.js"
+// uganke so iz banke (ena rešitev preverja tests/pocasni/vaje-banka.test.js), korake izračuna
+// motor. Zagon (vsi testi): node --test "tests/**/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadContext } = require('./load-engine.js');
+const { loadContext } = require('../load-engine.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
   'shared/vaje-banka.js', 'trening/generators.js'];
@@ -154,7 +154,7 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
 
 /* ---------- prikaz v treningu (trening/trening.js) v nadomestnem DOM-u ---------- */
 
-const { makeDom } = require('./dom-stub.js');
+const { makeDom } = require('../dom-stub.js');
 const DATOTEKE_UI = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
   'shared/vaje-banka.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 

@@ -31,7 +31,7 @@
 // Če kaka tehnika po meji semen nima niti --na-tehniko ugank skupaj, banka ni zapisana.
 //
 // Banko je treba ustvariti znova ob vsaki spremembi motorja (shared/engine.js) ali
-// generatorja (shared/generator.js). Če test tests/vaje-banka.test.js pade, se datoteka
+// generatorja (shared/generator.js). Če test tests/pocasni/vaje-banka.test.js pade, se datoteka
 // in test ne popravljata ročno - poženi to orodje.
 
 const { loadEngine } = require('../tests/load-engine.js');
@@ -150,7 +150,7 @@ const vsebina = `/* ==================== BANKA VAJ ====================
    NE UREJAJ ROČNO. Datoteko ustvari orodje:
      node tools/ustvari-banko-vaj.js --na-tehniko ${NA_TEHNIKO} --najvec-semen ${NAJVEC_SEMEN}
    Ob vsaki spremembi motorja (shared/engine.js) ali generatorja (shared/generator.js)
-   jo ustvari znova s tem orodjem. Če test tests/vaje-banka.test.js pade, datoteke in
+   jo ustvari znova s tem orodjem. Če test tests/pocasni/vaje-banka.test.js pade, datoteke in
    testa ne popravljaj ročno - poženi orodje.
 
    Ustvarjeno ${datum}: semena 1-${semen}, ${banka.length} zapisov (${Object.entries(stopnje).map(([s, k]) => `${s} ${k}`).join(', ')}).

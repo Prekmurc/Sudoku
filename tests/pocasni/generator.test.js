@@ -3,17 +3,17 @@
 // razdelek 7), pogoji generatorja, enoličnost rešitve in ponovljivost po semenu.
 // Uganke tu niso sestavljene na pamet - ustvari jih generator in vsaka je preverjena s
 // countSolutions()/solve() (CLAUDE.md).
-// Zagon: node --test "tests/*.test.js"
+// Zagon (vsi testi): node --test "tests/**/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadEngine, loadContext, loadPuzzles } = require('./load-engine.js');
+const { loadEngine, loadContext, loadPuzzles } = require('../load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js'],
   names: ['applyStep', 'STOPNJE_UGANK', 'STOPNJE_GENERATORJA', 'stopnjaUganke', 'ustvariUganko',
     'oceniStopnjo', 'oceniUganko', 'oceniTezavnost', 'genPot', 'genRazvrsti', 'genTehnikeSolve',
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE',
-    'GEN_EKSPERTNE', 'TEZAVNOSTI', 'PRIMERI', 'genMinimalnaUganka', 'zbirkaOznakaTehnik', 'zbirkaPotIzOcene',
+    'GEN_EKSPERTNE', 'TEZAVNOSTI', 'PRIMERI', 'genMinimalnaUganka', 'zbirkaBesediloTehnik', 'zbirkaTehnikeZapisa', 'zbirkaPotIzOcene',
     'TRENING_TEHNIKE', 'GEN_NAJMANJ_SREDNJIH', 'GEN_TEZKA_NAJVEC', 'countSolutions'],
 });
 const VSE_TEHNIKE = E.ALL_TECHNIQUES.map(([ime]) => ime);
@@ -218,7 +218,10 @@ test('»Zelo težka«: nobena posamezna napredna tehnika skupaj z lažjimi ugank
 });
 
 // Številke naprednih tehnik (7-12) v oznaki »tehnike: …«.
-const napredneVOznaki = oznaka => (oznaka.replace(/^tehnike: /, '').match(/\d+/g) || []).map(Number).filter(n => n >= 7 && n <= 12);
+// Številke tehnik v »Tehnike: E1, E2, 1 Izločitev izven bloka in 10 W-krilo« (E1/E2 niso številke).
+const stevilkeVOznaki = oznaka => [...oznaka.matchAll(/(?:: |, | in )(\d+) /g)].map(m => Number(m[1]));
+const napredneVOznaki = oznaka => stevilkeVOznaki(oznaka).filter(n => n >= 7 && n <= 12);
+const oznakaTehnik = z => E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(z));
 const stevilka = ime => E.TRENING_TEHNIKE.findIndex(([, t]) => t === ime) + 1;
 
 test('»Težka«: v oznaki »tehnike:« je natanko ena napredna – z najnižjo številko, ki zadošča', () => {
@@ -233,7 +236,7 @@ test('»Težka«: v oznaki »tehnike:« je natanko ena napredna – z najnižjo 
     // Z zapisano potjo ocene (nov zapis) in brez nje (starejši zapis - izračun sproti).
     for (const z of [{ danosti: u.danosti, tezavnost: 'Težka', tehnike, potOcene: E.zbirkaPotIzOcene(u.o) },
       { danosti: u.danosti, tezavnost: 'Težka', tehnike }]) {
-      const oznaka = E.zbirkaOznakaTehnik(z);
+      const oznaka = oznakaTehnik(z);
       assert.deepEqual(napredneVOznaki(oznaka), [pricakovana], `${u.ime}: ${oznaka}`);
     }
   }
@@ -252,7 +255,8 @@ test('uganka iz ročnega pregleda: Težka, »tehnike: 1, 2, 10«', () => {
   assert.deepEqual([...new Set(log.map(k => k.technique))].filter(t => E.GEN_NAPREDNE.includes(t)), ['Unique Rectangle'], 'dnevnik solve()');
   const o = E.oceniTezavnost(danosti);
   assert.equal(o.tezavnost, 'Težka');
-  assert.equal(E.zbirkaOznakaTehnik({ danosti, tezavnost: o.tezavnost, tehnike: [], potOcene: E.zbirkaPotIzOcene(o) }), 'tehnike: 1, 2, 10');
+  const oznaka = oznakaTehnik({ danosti, tezavnost: o.tezavnost, tehnike: [], potOcene: E.zbirkaPotIzOcene(o) });
+  assert.deepEqual(stevilkeVOznaki(oznaka), [1, 2, 10], oznaka);
 });
 
 // Ekspertne tehnike še ni, zato je Ekstrem preverjen na merah: ekspertna tehnika da

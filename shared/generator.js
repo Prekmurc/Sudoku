@@ -45,7 +45,7 @@
                       Stopnja brez ustrezaIskanju (Ekstrem) se ne ustvarja.
    Vsak ustrezaIskanju je podmnožica svojega ustreza, sicer bi ustvarjena uganka pri
    "Oceni zbirko" dobila drugo težavnost, kot jo ima v zbirki. To preverja
-   tests/generator.test.js.
+   tests/pocasni/generator.test.js.
 
    Iskanje traja v povprečju 0,3 s (lahka), 0,8 s (srednja), 1,0 s (težka) in 4,0 s
    (zelo težka - uganko da pribl. vsako 38. seme), najdlje pribl. 10 s (meritev 2026-10-04,
@@ -56,7 +56,7 @@
    Iskanje je pri njem precej daljše, zato igra tega ne zahteva. */
 
 // Ravni tehnik - vsaka tehnika iz ALL_TECHNIQUES je v natanko eni (preverja
-// tests/generator.test.js, da nova tehnika ne ostane brez ravni).
+// tests/pocasni/generator.test.js, da nova tehnika ne ostane brez ravni).
 const GEN_LAHKE = ['Gol enojček', 'Skriti enojček'];                    // E1, E2
 const GEN_PRESEKI = ['Pointing pair/triple', 'Box-line reduction'];
 const GEN_PARI = ['Naked pair', 'Hidden pair'];
@@ -274,7 +274,7 @@ function genMereDnevnika(imena) {
 // (večja je boljša) pove, ali istemu merilu ustreza tudi dnevnik solve(): ta se zaradi
 // sidranja na števko prejšnjega koraka lahko razlikuje od poti - vzame zahtevnejšo
 // tehniko za isto številko ali kako s poti izpusti. Dnevnik vidijo reševalec, igra in
-// pokritost tehnik v docs/uganke.md (od tod tudi oznaka "tehnike: 1, 3, 7" pri uganki
+// pokritost tehnik v docs/uganke.md (od tod tudi »Tehnike:« pri uganki
 // v zbirki), zato ima uganka, pri kateri se ujema, prednost pri izbiri - spodnjo mejo
 // tehnik tako igralec vidi tudi v dnevniku, ne le na poti.
 function oceniStopnjo(kljuc, danosti, moznosti = {}) {

@@ -609,8 +609,9 @@ function techniqueGroup(name) {
 
 // Tehnike s številkami: [oznaka kartice v trening/index.html (data-mode), ime v
 // ALL_TECHNIQUES]. Številka tehnike je položaj v tem seznamu (1 = prvi) - trening po
-// njem razvrsti in oštevilči kartice, igra pa pri uganki izpiše "tehnike: 1, 3, 7"
-// (zbirkaOznakaTehnik v shared/zbirka.js). Edino mesto teh številk. Vrstni red je
+// njem razvrsti in oštevilči kartice, igra in reševalec pa pri uganki izpišeta »Tehnike: E1,
+// E2, 1 Izločitev izven bloka in 3 Očitni par« (zbirkaKratkoImeTehnike v shared/zbirka.js).
+// Edino mesto teh številk. Vrstni red je
 // ISTI kot v ALL_TECHNIQUES (brez enojčkov): znotraj ravni po zahtevnosti - srednje
 // 1-6 po Sudoku Explainerju, napredne 7-12 po Sudoku Explainerju, Turbot Fish in
 // W-Wing (SE ju ne ocenjuje) po točkah HoDoKu (docs/tehnike.md, odločitev 2026-09-24).
@@ -634,8 +635,7 @@ const TRENING_TEHNIKE = [
 ];
 
 // Enojčka v treningu (raven lahke, docs/uskladitev.md 1.1): oznaki E1 in E2 namesto
-// številke, zato nista v TRENING_TEHNIKE - številke 1-12 in oznaka "tehnike: 1, 3, 7"
-// pri ugankah ostanejo brez enojčkov. Drugi element je ključ v ALL_TECHNIQUES kot pri
+// številke, zato nista v TRENING_TEHNIKE - številke 1-12 ostanejo brez enojčkov. Drugi element je ključ v ALL_TECHNIQUES kot pri
 // TRENING_TEHNIKE; ime za prikaz da imeTehnike() ("Gol enojček" -> "Očitni enojček").
 const TRENING_ENOJCKA = [
   ['naked-single', 'Gol enojček'],

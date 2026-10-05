@@ -26,7 +26,7 @@ const args = process.argv.slice(2);
 const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.join(os.tmpdir(), 'sudoku-preveri-pregled6');
 const uganke = loadPuzzles().map(u => u.danosti.replace(/\./g, '0'));
 const D = JSON.stringify(uganke[0]);
-// Uganka iz ročnega pregleda faze 6 (generator v igri; ena rešitev preveri tests/generator.test.js).
+// Uganka iz ročnega pregleda faze 6 (generator v igri; ena rešitev preveri tests/pocasni/generator.test.js).
 const D_POROCILO = JSON.stringify(('51......8.....86..89.7.5...' + '.....7.4...39..17.....4..2.' + '.5..1....6..4.9...9...8....').replace(/\./g, '0'));
 
 let napak = 0;

@@ -116,7 +116,7 @@ test('uvoz iz Markdowna: neznano ime težavnosti postane prazno, znano ostane', 
 test('uvoz: manjkajočo ali neznano težavnost izračuna, znano pusti', () => {
   shramba.clear();
   // docs/uganke.md ima samo tri uganke, ki niso primeri; četrta je naključna minimalna
-  // uganka iz tests/generator.test.js (seme 100239, preverjena ena rešitev).
+  // uganka iz tests/pocasni/generator.test.js (seme 100239, preverjena ena rešitev).
   const [a, b, c] = loadPuzzles().filter(p => !E.zbirkaPrimerZa(p.danosti)).map(p => p.danosti);
   const d = '060070000000000805030600000000901020200500900700000004003200506000014000000005001';
   assert.equal(E.countSolutions(d), 1);
@@ -847,7 +847,7 @@ test('uvoz tehnik: nova imena in stari ključi dajo iste ključe', () => {
   const stara = 'Skriti enojček 30, Gol enojček 27, Naked pair 2, Hidden triple 1, Pointing pair/triple 1, XY-Wing 1, Poskus in protislovje (forcing chain) 1';
   assert.deepEqual(kotPolje(uvoziTehnike(nova)), pricakovano, 'nova imena');
   assert.deepEqual(kotPolje(uvoziTehnike(stara)), pricakovano, 'stari ključi, urejeni po vrstnem redu tehnik');
-  // Neznano ime ostane (zbirkaOznakaTehnik() ga izpiše z imenom).
+  // Neznano ime ostane (zbirkaKratkoImeTehnike() ga izpiše z imenom).
   assert.deepEqual(kotPolje(uvoziTehnike('Očitni par 2, Stara tehnika 1')), [['Naked pair', 2], ['Stara tehnika', 1]]);
 });
 
