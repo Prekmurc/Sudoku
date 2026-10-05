@@ -382,12 +382,12 @@ test('seznami manjkajočih števk: števke, opis, poudarek, skriti seznam', () =
       assert.equal(stevke[v - 1].className, manjkajo.includes(v) ? 'kand poud b0' : 'kand');
     });
   }
-  // Polna enota: prazen kvadratek in "je polna".
+  // Polna enota: prazen kvadratek in "polna".
   const res = run(`solutionOf(${D})`);
   run(`igra = novaIgra(${JSON.stringify(res.join(''))}); stanje = stanjeIgre(igra);`);
   run(`seznami.izrisi({ maske: manjkajoceVEnotah(stanje), vidni: { vrstice: true, stolpci: true, bloki: true } })`);
-  assert.equal(run('sez.vrstice.children[0].title'), 'Vrstica 1 je polna');
-  assert.equal(run('sez.bloki.children[8].title'), 'Blok 9 je poln');
+  assert.equal(run('sez.vrstice.children[0].title'), 'Vrstica 1: polna');
+  assert.equal(run('sez.bloki.children[8].title'), 'Blok 9: poln');
   assert.equal(run('sez.vrstice.children[0].children[0].textContent'), '');
   // Brez uganke: brez opisa, aria-label je ime enote.
   run(`seznami.izrisi({ maske: null, vidni: { vrstice: true, stolpci: true, bloki: true } })`);

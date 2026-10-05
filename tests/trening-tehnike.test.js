@@ -15,8 +15,16 @@ const E = loadEngine(undefined, {
   names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaBesediloTehnik', 'zbirkaTehnikeZapisa', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
     'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint',
-    'genMinimalnaUganka', 'stanjaVUganki', 'vajaIzStanja', 'preveriVajo', 'stanjeIgre', 'dodajPotezo'],
+    'genMinimalnaUganka', 'stanjaVUganki', 'vajaIzStanja', 'preveriVajo', 'stanjeIgre', 'dodajPotezo', 'Math'],
 });
+// Math.random s stalnim semenom (mulberry32): besedila naključnih vaj so ob vsakem zagonu ista.
+let seme = 20261005;
+E.Math.random = () => {
+  seme = (seme + 0x6D2B79F5) | 0;
+  let t = Math.imul(seme ^ (seme >>> 15), 1 | seme);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
 
 const treningHtml = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
 const kartice = [...treningHtml.matchAll(/class="menu-card" data-mode="([^"]+)"/g)].map(m => m[1]);

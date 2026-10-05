@@ -268,7 +268,7 @@ function ustvariSezname(elementi) {
           const b = barva ? barva(d) : -1;
           if (b >= 0) el.classList.add('poud', `b${b}`);
         }
-        p.el.title = !maske ? '' : manjkajo.length ? `${s.ime} ${i + 1}: manjkajo ${manjkajo.join(', ')}` : `${s.ime} ${i + 1} je ${s.polna}`;
+        p.el.title = !maske ? '' : manjkajo.length ? `${s.ime} ${i + 1}: manjkajo ${manjkajo.join(', ')}` : `${s.ime} ${i + 1}: ${s.polna}`;
         p.el.setAttribute('aria-label', p.el.title || `${s.ime} ${i + 1}`);
       });
     }

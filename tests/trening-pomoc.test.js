@@ -21,11 +21,17 @@ const { makeDom } = require('./dom-stub.js');
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 
+// Math.random s stalnim semenom: vaja (in z njo npr. polna vrstica 1) je ob vsakem zagonu ista.
+const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2B79F5) | 0;
+  let t = Math.imul(seme ^ (seme >>> 15), 1 | seme); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
+
 // Kontekst z odprto prvo vajo tehnike; generator vaje si zapomni zadnjo vajo (`zadnja`),
 // da test pozna pravi odgovor.
 function zacni(tehnika, n = 0, shramba) {
   const dom = makeDom(shramba);
   const { run } = loadContext(DATOTEKE, dom.globals);
+  run(SEME(1));
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen; MODES[${JSON.stringify(tehnika)}].gen = n => (zadnja = g(n)); }`);
   run(`mode = ${JSON.stringify(tehnika)}; exNum = ${n}; scoreRight = 0; scoreTotal = 0; sPomocjo = 0; updateScore(); renderExercise();`);
   return { dom, run };
@@ -329,7 +335,7 @@ for (const t of ['naked-single', 'hidden-single']) {
     kV.checked = true; kV.sprozi('change');
     kB.checked = true; kB.sprozi('change');
     assert.deepEqual(seznami.map(s => s.hidden), [false, true, false]);
-    assert.match(seznami[0].children[0].title, /^Vrstica 1: (manjkajo|je polna)/);
+    assert.match(seznami[0].children[0].title, /^Vrstica 1: (manjkajo \d|polna$)/);
     assert.deepEqual(JSON.parse(shramba.get('sudoku.trening.seznami')), { vrstice: true, stolpci: false, bloki: true });
     assert.ok(ima(vsi(dom.el('exerciseArea')).find(e => /\bvaja-enojcek\b/.test(e.className)), 'z-vrsticami'));
     assert.equal(kS.checked, false);
