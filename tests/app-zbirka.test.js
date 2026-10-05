@@ -117,10 +117,13 @@ test('reševalec: vrstice kartice - naslov, stanje, danih · tehnike · koraki �
   ]));
   const { run } = loadContext(DATOTEKE, dom.globals);
   run('zbirkaOdpri()');
-  assert.equal(delKartice(dom, 'zb-vrstica').textContent, 'Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33');
+  assert.equal(delKartice(dom, 'zb-vrstica').textContent, 'ročni vnos · dodana 21. 9. 2026 ob 16:33');
+  const znacka = delKartice(dom, 'zb-info').children[0];
+  assert.equal(znacka.className, 'tag t-advanced znacka-tezavnosti', 'težavnost je značka v barvi stopnje');
+  assert.equal(znacka.textContent, 'Težka');
   assert.equal(delKartice(dom, 'zb-casi'), undefined, 'nova uganka: brez vrstice stanja');
   assert.equal(delKartice(dom, 'zb-info').textContent,
-    `danih ${81 - praznih} · Tehnike: ni podatkov · 42 korakov · program rešil delno (36/${praznih})`);
+    `Težka danih ${81 - praznih} · Tehnike: ni podatkov · 42 korakov · program rešil delno (36/${praznih})`);
   assert.equal(delKartice(dom, 'zb-opomba').textContent, 'moja opomba');
   // Namig miške: časi v isti obliki kot v seznamu, program z istim števcem.
   const namig = delKartice(dom, 'zb-vrstica').title;

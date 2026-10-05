@@ -139,14 +139,14 @@ test('dogodek "storage": uganka, odprta v igri, izbrisana v reševalcu - mreža 
   res.run('zbirkaOdpri()');
   // Brisanje druge uganke: odprta igra ostane.
   let prej = shramba.get(ZBIRKA);
-  res.dom.el('libList').children.find(li => li.children[0].textContent.startsWith('Lahka'))
+  res.dom.el('libList').children.find(li => li.children.find(el => el.className === 'zb-info').textContent.startsWith('Lahka'))
     .children.find(el => el.className === 'zb-gumbi').children.find(g => g.textContent === 'Izbriši').sprozi('click');
   igra.dom.obvesti(ZBIRKA, prej);
   assert.equal(igra.run('igra.danosti'), a);
 
   // Brisanje odprte uganke.
   prej = shramba.get(ZBIRKA);
-  res.dom.el('libList').children.find(li => li.children[0].textContent.startsWith('Težka'))
+  res.dom.el('libList').children.find(li => li.children.find(el => el.className === 'zb-info').textContent.startsWith('Težka'))
     .children.find(el => el.className === 'zb-gumbi').children.find(g => g.textContent === 'Izbriši').sprozi('click');
   assert.equal(igra.run(`!!igreBeri().igre[${A}]`), false, 'reševalec je izbrisal tudi shranjeno igro');
   igra.dom.obvesti(ZBIRKA, prej);

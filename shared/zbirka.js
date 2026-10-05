@@ -369,8 +369,11 @@ function zbirkaStanjeUganke(danosti, z, povzetek) {
   let p = null;
   if (igra) p = povzetek;
   else if (z && z.igrano) {
+    // Shranjena igra brez poteze (uganka je bila samo odprta) in zapis brez mojih
+    // vpisov: ni česa pokazati - uganka je nova (stari zapisi so čas reševanja
+    // dobili že ob odprtju). Brez shranjene igre (uvoz, izvoz) velja zapis.
     const vpisanih = Math.max(0, Math.min(praznih, izpolnjenoZapisa - (81 - praznih)));
-    p = { vpisanih, polna: izpolnjenoZapisa >= 81, napaka: !!z.napaka };
+    if (vpisanih > 0 || !povzetek) p = { vpisanih, polna: izpolnjenoZapisa >= 81, napaka: !!z.napaka };
   }
   if (!p) {
     return { kljuc: 'nova', napaka: false, vpisanih: null, praznih,
@@ -457,7 +460,7 @@ function zbirkaProgramResil(z) {
 // nikoli ni), `povzetek` povzetek shranjene igre ali null. Vrne
 //   { primer, naslov, stanje: { predpona, besedilo, kljuc, napaka }, info, opomba,
 //     namig, gumb }
-// 1. vrstica (naslov): "Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33", pri
+// 1. vrstica (naslov): "ročni vnos · dodana 21. 9. 2026 ob 16:33", pri
 //    vgrajenem primeru ime z glavno tehniko (zbirkaNaslovPrimera() - "P_8 · 7 X-krilo");
 // 2. vrstica (stanje) je vedno: "nova", "zadnje reševanje … · v teku (12/57)",
 //    "rešena …" ali "rešena … · znova v teku (12/57)" (zbirkaPrikazCasov); primer
@@ -465,15 +468,16 @@ function zbirkaProgramResil(z) {
 // 3. vrstica (info): "danih 24 · Tehnike: E1, E2, 1 Izločitev izven bloka in 7 X-krilo · 42 korakov"
 //    (zbirkaBesediloTehnik(zbirkaTehnikeZapisa()), poskus s protislovjem "in ugibanje"), pri delni
 //    rešitvi še "· program rešil delno (36/57)"; primer "danih 17" (podatkov reševanja
-//    nima), izris pa doda značko težavnosti (`znacka`) in vse tehnike (`tehnike` -
-//    zbirkaTehnikePrimera(), glavna krepko).
+//    nima), izris pa doda vse tehnike (`tehnike` - zbirkaTehnikePrimera(), glavna krepko).
+//    Pred 3. vrstico je značka težavnosti (`znacka` - primer in uganka v zbirki enako;
+//    uganka brez težavnosti je brez značke).
 // `gumb` (Igraj / Nadaljuj / Poglej) je iz istega stanja kot 2. vrstica.
 function zbirkaKartica(danosti, z, povzetek) {
   const primer = zbirkaPrimerZa(danosti);
   const st = zbirkaStanjeUganke(danosti, z, povzetek);
   const dodana = z && z.dodano ? `dodana ${zbirkaPrikazDatuma(z.dodano)}` : '';
   const naslov = primer ? zbirkaNaslovPrimera(primer)
-    : [(z && z.tezavnost) || 'težavnost ni določena', zbirkaOpisIzvora(z), dodana].filter(Boolean).join(' · ');
+    : [zbirkaOpisIzvora(z), dodana].filter(Boolean).join(' · ');
 
   let stanje = z ? zbirkaPrikazCasov(z, povzetek).igranje : null;
   if (!stanje) stanje = { predpona: '', besedilo: st.napredek, kljuc: st.kljuc, napaka: st.napaka };
@@ -487,7 +491,7 @@ function zbirkaKartica(danosti, z, povzetek) {
   return {
     primer: primer ? primer.ime : null,
     naslov,
-    znacka: primer ? primer.tezavnost : null,
+    znacka: primer ? primer.tezavnost : (z && z.tezavnost) || null,
     tehnike: primer ? zbirkaTehnikePrimera(primer) : null,
     stanje,
     info: info.join(' · '),

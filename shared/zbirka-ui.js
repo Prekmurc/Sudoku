@@ -59,8 +59,8 @@ function zbirkaIzrisiTehnike(el, deli) {
 // Element <li> kartice. `k` je rezultat zbirkaKartica(); `trenutna` = uganka je
 // odprta (v igri na mreži, v reševalcu v vnosni mreži) - kartica dobi modro črto in
 // značko "trenutno odprta" v prvi vrstici; `gumbi` = [{ napis, razred, obKliku }].
-// Vrstice: naslov, stanje (ne pri novi uganki), info (danih · tehnike · koraki; pri primeru značka, danih in vse
-// tehnike), opomba, gumbi.
+// Vrstice: naslov, stanje (ne pri novi uganki), info (značka težavnosti, danih · tehnike · koraki; pri primeru
+// danih in vse tehnike), opomba, gumbi.
 function zbirkaIzrisiKartico(k, { trenutna = false, gumbi = [] } = {}) {
   const li = document.createElement('li');
   if (trenutna) li.className = 'trenutna';
@@ -89,11 +89,13 @@ function zbirkaIzrisiKartico(k, { trenutna = false, gumbi = [] } = {}) {
 
   const info = document.createElement('div');
   info.className = 'zb-info';
-  if (k.znacka) {
-    // Vgrajeni primer: značka, »danih 24« in vse tehnike v eni vrstici.
-    info.append(zbirkaZnacka(k.znacka), ' ' + k.info + ' · ');
+  // Značka težavnosti (primer in uganka v zbirki enako; brez težavnosti je ni), nato
+  // podatki - pri primeru »danih 24« in vse tehnike z glavno krepko.
+  if (k.znacka) info.append(zbirkaZnacka(k.znacka), ' ');
+  if (k.tehnike) {
+    info.append(k.info + ' · ');
     zbirkaIzrisiTehnike(info, k.tehnike);
-  } else info.textContent = k.info;
+  } else info.append(k.info);
   li.appendChild(info);
 
   if (k.opomba) {

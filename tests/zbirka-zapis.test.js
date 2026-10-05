@@ -278,6 +278,9 @@ test('zbirkaStanjeUganke() iz zapisa v zbirki: tri stanja, "12/57", podoznaka na
   assert.equal(napaka.gumb, 'Igraj');
   // Stari zapis z manj izpolnjenimi celicami, kot je danosti (uvoz "0 od 81"), ne da negativnega števca.
   assert.equal(stanje(z({ igrano: cas, izpolnjeno: 0 })).besedilo, `v teku (0/${praznih})`);
+  // Samo odprta uganka (shranjena igra brez poteze) je nova, tudi če ima zapis čas reševanja brez vpisov.
+  assert.equal(stanje(z({ igrano: cas, izpolnjeno: danih }), povzetekIgre([])).kljuc, 'nova');
+  assert.equal(stanje(z({ igrano: cas, izpolnjeno: danih + 3 }), povzetekIgre([])).besedilo, `v teku (3/${praznih})`);
 });
 
 test('zbirkaPovzetekIgre(): vpisi, prazne celice, polna mreža in napaka', () => {
@@ -706,7 +709,8 @@ test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
     reseno: 81, koraki: 42, ugibanje: 1, tehnike: [['Gol enojček', 3], ['Poskus in protislovje (V1S1 = 5)', 1]], opomba: 'op' };
   const k = E.zbirkaKartica(danosti, z, null);
   assert.equal(k.primer, null);
-  assert.equal(k.naslov, 'Težka · ustvaril generator · dodana 21. 9. 2026 ob 16:33');
+  assert.equal(k.naslov, 'ustvaril generator · dodana 21. 9. 2026 ob 16:33', 'težavnost ni v naslovu');
+  assert.equal(k.znacka, 'Težka', 'težavnost je značka');
   assert.deepEqual({ ...k.stanje }, { predpona: '', besedilo: 'nova', kljuc: 'nova', napaka: false }, 'nova uganka ima 2. vrstico');
   assert.equal(k.info, `danih ${danih} · Tehnike: E1 in ugibanje · 42 korakov`, 'poskus s protislovjem je »in ugibanje«');
   assert.equal(k.opomba, 'op');
@@ -721,7 +725,8 @@ test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
 
   // Brez težavnosti in izvora; delna rešitev programa.
   const brez = E.zbirkaKartica(danosti, { danosti, dodano: '2026-09-21 16:33', reseno: danih + 36, koraki: 1 }, null);
-  assert.equal(brez.naslov, 'težavnost ni določena · dodana 21. 9. 2026 ob 16:33');
+  assert.equal(brez.naslov, 'dodana 21. 9. 2026 ob 16:33');
+  assert.equal(brez.znacka, null, 'brez težavnosti ni značke');
   assert.equal(brez.info, `danih ${danih} · Tehnike: ni podatkov · 1 korak · program rešil delno (36/${praznih})`);
 });
 
