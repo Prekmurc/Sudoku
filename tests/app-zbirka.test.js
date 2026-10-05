@@ -87,13 +87,14 @@ function zStanjem(zapis, poteze) {
   }
   const { run } = loadContext(DATOTEKE, dom.globals);
   run('zbirkaOdpri()');
-  return delKartice(dom, 'zb-casi').textContent;
+  const v = delKartice(dom, 'zb-casi');
+  return v ? v.textContent : null; // nova uganka nima vrstice stanja
 }
 
 test('reševalec: stanje "v teku (12/57)" iz zapisa, kadar shranjene igre ni', () => {
   assert.equal(zStanjem({ igrano: '2026-09-22 10:05', izpolnjeno: 81 - praznih + 12, napaka: false }),
     `zadnje reševanje 22. 9. 2026 ob 10:05 · v teku (12/${praznih})`);
-  assert.equal(zStanjem({}), 'nova', 'nova uganka ima v 2. vrstici "nova"');
+  assert.equal(zStanjem({}), null, 'nova uganka nima vrstice stanja (»nova« se ne izpiše)');
 });
 
 test('reševalec: shranjena igra ima prednost - "rešena … · znova v teku"', () => {
@@ -117,7 +118,7 @@ test('reševalec: vrstice kartice - naslov, stanje, danih · tehnike · koraki �
   const { run } = loadContext(DATOTEKE, dom.globals);
   run('zbirkaOdpri()');
   assert.equal(delKartice(dom, 'zb-vrstica').textContent, 'Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33');
-  assert.equal(delKartice(dom, 'zb-casi').textContent, 'nova');
+  assert.equal(delKartice(dom, 'zb-casi'), undefined, 'nova uganka: brez vrstice stanja');
   assert.equal(delKartice(dom, 'zb-info').textContent,
     `danih ${81 - praznih} · Tehnike: ni podatkov · 42 korakov · program rešil delno (36/${praznih})`);
   assert.equal(delKartice(dom, 'zb-opomba').textContent, 'moja opomba');

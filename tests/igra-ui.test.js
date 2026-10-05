@@ -67,8 +67,10 @@ test('odprta uganka brez poteze: ni časa reševanja, v seznamu je "nova"', () =
   assert.ok(!z.igrano, `brez poteze ni časa reševanja (igrano = ${z.igrano})`);
   assert.equal(vrstica(run), '', 'kartica "Uganka" nima vrstice reševanja');
   assert.equal(stanjeZapisa(run), 'nova');
-  // Kartica v seznamu ima 2. vrstico vedno - pri novi uganki samo "nova".
-  assert.equal(delKartice(run, 'zb-casi').textContent, 'nova');
+  // Kartica v seznamu nove uganke nima vrstice stanja (»nova« se ne izpiše) in ne prazne vrstice.
+  assert.equal(delKartice(run, 'zb-casi'), undefined);
+  assert.deepEqual([...run(`(() => { izrisiZbirko(); return zbirkaVrstice.get(${D}).children.map(el => el.className); })()`)],
+    ['zb-vrstica', 'zb-info', 'zb-gumbi']);
   // V seznamu zbirke je pri taki uganki gumb "Igraj", ne "Nadaljuj".
   assert.equal(zaceta(run), false);
   assert.equal(gumb(run), 'Igraj');
@@ -576,10 +578,10 @@ test('vgrajeni primer: ista kartica in besedila stanj kot zbirka', () => {
   const P = JSON.stringify(primer.danosti);
   const prazniPrimera = [...primer.danosti].filter(ch => ch === '0').length;
   const del = razred => delKartice(run, razred, P).textContent;
-  // 1. vrstica je ime primera z glavno tehniko, 2. vedno stanje, 3. značka, danosti in vse tehnike
-  // (primer brez zapisa v zbirki nima podatkov reševanja).
+  // 1. vrstica je ime primera z glavno tehniko, stanje samo v teku ali rešena (»nova« se ne izpiše),
+  // nato značka, danosti in vse tehnike (primer brez zapisa v zbirki nima podatkov reševanja).
   assert.equal(del('zb-vrstica'), `${primer.ime} · 4 Skriti par`);
-  assert.equal(del('zb-casi'), 'nova');
+  assert.equal(delKartice(run, 'zb-casi', P), undefined, 'nova: brez vrstice stanja');
   const p = run(`zbirkaPrimerZa(${P})`);
   assert.equal(del('zb-info'), `${p.tezavnost} danih ${81 - prazniPrimera} · ${run(`zbirkaBesediloTehnik(zbirkaTehnikePrimera(zbirkaPrimerZa(${P})))`)}`);
   const info = delKartice(run, 'zb-info', P);

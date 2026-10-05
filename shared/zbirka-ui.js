@@ -59,7 +59,7 @@ function zbirkaIzrisiTehnike(el, deli) {
 // Element <li> kartice. `k` je rezultat zbirkaKartica(); `trenutna` = uganka je
 // odprta (v igri na mreži, v reševalcu v vnosni mreži) - kartica dobi modro črto in
 // značko "trenutno odprta" v prvi vrstici; `gumbi` = [{ napis, razred, obKliku }].
-// Vrstice: naslov, stanje, info (danih · tehnike · koraki; pri primeru značka, danih in vse
+// Vrstice: naslov, stanje (ne pri novi uganki), info (danih · tehnike · koraki; pri primeru značka, danih in vse
 // tehnike), opomba, gumbi.
 function zbirkaIzrisiKartico(k, { trenutna = false, gumbi = [] } = {}) {
   const li = document.createElement('li');
@@ -77,12 +77,15 @@ function zbirkaIzrisiKartico(k, { trenutna = false, gumbi = [] } = {}) {
   if (k.namig) naslov.title = k.namig;
   li.appendChild(naslov);
 
+  // Stanje samo pri uganki v teku ali rešeni - »nova« se ne izpiše (kartica je brez te vrstice).
   const s = k.stanje;
-  const stanje = document.createElement('div');
-  stanje.className = 'zb-casi';
-  stanje.append(s.predpona ? `${s.predpona} · ` : '', ...zbirkaOznakaStanja(s.kljuc, s.besedilo, s.napaka));
-  if (k.namig) stanje.title = k.namig;
-  li.appendChild(stanje);
+  if (s.kljuc !== 'nova') {
+    const stanje = document.createElement('div');
+    stanje.className = 'zb-casi';
+    stanje.append(s.predpona ? `${s.predpona} · ` : '', ...zbirkaOznakaStanja(s.kljuc, s.besedilo, s.napaka));
+    if (k.namig) stanje.title = k.namig;
+    li.appendChild(stanje);
+  }
 
   const info = document.createElement('div');
   info.className = 'zb-info';
