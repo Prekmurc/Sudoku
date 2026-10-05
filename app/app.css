@@ -326,13 +326,25 @@
     font-family:'JetBrains Mono', monospace;
     opacity:0.75;
   }
+  /* Povečana mreža je vsa v oknu: celica je največ 52 px (rešitev 48 px - app.js), sicer iz
+     širine in višine drsnega območja (odmik notranjosti 2 × 10 px, obroba mreže 2 px, naslov
+     koraka pribl. 34 px). Prej je bila celica stalna in mreža (470 px) je bila na telefonu
+     širša od zaslona; centriranje z justify-content je preliv razdelilo na obe strani, zato
+     levega dela ni bilo mogoče doseči. Sredino zdaj da margin:auto notranjosti - pri prelivu
+     je 0, mreža se začne na levem robu. */
   #lightboxScroll{
     width:100%;
     height:100%;
     overflow:auto;
     display:flex;
     align-items:flex-start;
-    justify-content:center;
+    --mcs-povecave: min(calc((100vw - 50px) / 9), calc((100vh - 140px) / 9));
+  }
+  @supports (width: 1cqw){
+    #lightboxScroll{
+      container-type: size;
+      --mcs-povecave: min(calc((100cqw - 22px) / 9), calc((100cqh - 56px) / 9));
+    }
   }
   #lightboxInner{
     background:#fff;

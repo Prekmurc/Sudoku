@@ -70,7 +70,7 @@ solvedGridEl.addEventListener('click', () => {
   if (!lastSolve) return;
   openLightbox(el => renderGridInto(el, {
     snapshotGrid: lastSolve.grid, snapshotCand: [], eliminate: [], assign: [], cells: []
-  }, '48px'));
+  }, 'min(48px, var(--mcs-povecave))'));
 });
 const summaryEl = document.getElementById('summary');
 
@@ -239,7 +239,7 @@ function renderStepsList() {
               lbTitle.textContent = `Korak ${idx + 1} · ${celo}`;
               el.appendChild(lbTitle);
               const lbGrid = document.createElement('div');
-              renderGridInto(lbGrid, s, '52px');
+              renderGridInto(lbGrid, s, 'min(52px, var(--mcs-povecave))'); // največ 52 px, sicer iz okna (app.css)
               el.appendChild(lbGrid);
             });
           });

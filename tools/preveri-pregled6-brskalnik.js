@@ -10,6 +10,7 @@
 //   - ocena (odločitev 2026-10-04): uganka iz ročnega pregleda je v kartici »Težka · tehnike: 1, 2, 10«,
 //     primer 2 je »Primer 2 (brez ugibanja)« z značko, besedilo stopenj v Pomoči;
 //   - reševalec (D3): kandidati male mreže pri 375 in 540 px in v povečanem prikazu v svoji celici;
+//   - reševalec: povečan prikaz koraka in rešitve je ves v oknu pri 320, 375, 414 px, ležeče in pri 1280 px;
 //   - nič ne sega čez kartico ali okno, brez vodoravnega preliva, brez napak JS.
 //
 //   node tools/preveri-pregled6-brskalnik.js [--mapa <mapa>]
@@ -151,6 +152,50 @@ async function malaMreza(b) {
   }
 }
 
+// Povečan prikaz (napaka 2026-10-05): mreža koraka in rešitve je vsa v oknu - brez vodoravnega in
+// navpičnega drsnika, kandidati (tudi 7, 8, 9) celi v svoji celici. Prej je bila celica stalnih 52 px
+// in na telefonu levi del mreže ni bil dosegljiv.
+async function povecava(b) {
+  console.log('Povečan prikaz: vsa mreža v oknu');
+  for (const [sirina, visina] of [[320, 640], [375, 740], [414, 820], [740, 360], [1280, 900]]) {
+    await b.odpri('app/index.html', { sirina, visina, mobilno: sirina < 800 });
+    await b.fokus('#nizDanosti');
+    await b.vtipkaj(uganke[0].replace(/0/g, '.'));
+    await b.klikni('#solveBtn');
+    await b.cakaj("getComputedStyle(document.getElementById('results')).display !== 'none'", 10000);
+    await b.izvedi("document.getElementById('openStepsBtn').click(); document.querySelector('#steps .mini-toggle').click(); document.querySelector('#steps .mini-toggle').scrollIntoView(); true");
+    for (const [kaj, mreza] of [['korak', '#steps .mini-grid'], ['rešitev', '#solvedGrid']]) {
+      await b.izvedi(`document.querySelector('${mreza}').scrollIntoView({ block: 'center' }); true`);
+      await b.klikni(mreza);
+      await b.cakaj("document.getElementById('lightbox').style.display === 'block'", 3000);
+      const r = await b.izvedi(`(() => {
+        const s = document.getElementById('lightboxScroll');
+        const g = document.querySelector('#lightboxInner .mini-grid') || document.getElementById('lightboxInner');
+        const gr = g.getBoundingClientRect();
+        let cez = 0;
+        for (const cell of g.querySelectorAll('.mcell')) {
+          const cr = cell.getBoundingClientRect();
+          for (const k of cell.querySelectorAll('.mcand:not(.mcand-empty)')) {
+            const kr = k.getBoundingClientRect();
+            cez = Math.max(cez, kr.bottom - cr.bottom, cr.top - kr.top, kr.right - cr.right, cr.left - kr.left);
+          }
+        }
+        return { levo: gr.left, desno: gr.right, zgoraj: gr.top, spodaj: gr.bottom, sirina: innerWidth, visina: innerHeight,
+          celica: +g.querySelector('.mcell').getBoundingClientRect().width.toFixed(1),
+          kandidatov: g.querySelectorAll('.mcand:not(.mcand-empty)').length,
+          drsnik: s.scrollWidth > s.clientWidth || s.scrollHeight > s.clientHeight, cez };
+      })()`);
+      const najvec = kaj === 'korak' ? 52 : 48;
+      preveri(`${sirina}×${visina}, ${kaj}: mreža v oknu, brez drsnika (celica ${r.celica} px)`,
+        r.levo >= 0 && r.desno <= r.sirina && r.zgoraj >= 0 && r.spodaj <= r.visina && !r.drsnik
+          && r.celica <= najvec && (sirina < 800 || r.celica === najvec), r);
+      if (kaj === 'korak') preveri(`${sirina}×${visina}: kandidati (tudi 7, 8, 9) celi v celici`, r.kandidatov > 0 && r.cez <= 0.5, r);
+      if (sirina === 320 && kaj === 'korak') await b.posnetek(path.join(mapa, 'povecava-320.png'), { vsaStran: false });
+      await b.klikni('#lightboxClose');
+    }
+  }
+}
+
 async function resevalec(b, sirina) {
   console.log(`Reševalec, ${sirina} px`);
   await b.odpri('app/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
@@ -248,6 +293,7 @@ async function main() {
       await trening(b, sirina);
     }
     await malaMreza(b);
+    await povecava(b);
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } finally {
     await b.zapri();
