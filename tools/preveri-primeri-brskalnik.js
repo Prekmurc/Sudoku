@@ -94,6 +94,27 @@ async function igra(b, sirina) {
   preveri('15 kartic, v vrstici značka in vse tehnike', sez.kartic === 15 && sez.znacka
     && /^Srednja danih 26 · Tehnike: E1, E2, 1 Izločitev izven bloka in 3 Očitni par$/.test(sez.info[1]), sez.info.slice(0, 3));
   preveri('nič ne sega čez okno', sez.cez === 0, sez.cez);
+  // Naslova razdelkov, podnaslovi skupin, podlaga kartic, prekrivanje.
+  const sl = await b.izvedi(`(() => { const cs = el => getComputedStyle(el);
+    const moje = document.getElementById('mojeNaslov'), prim = document.getElementById('primeriNaslov');
+    const sk = document.querySelector('#primeriSeznam li.zb-skupina'), kart = document.querySelector('#primeriSeznam li:not(.zb-skupina)');
+    const razd = document.getElementById('primeriRazdelek');
+    const vrste = [moje, prim, ...document.querySelectorAll('#zbirkaDialog .zbirka-seznam > li, #zbirkaDialog .dialog-gumbi, #zbirkaDialog .namig')]
+      .filter(e => e.getBoundingClientRect().height > 0).map(e => e.getBoundingClientRect());
+    let prekrivanj = 0;
+    for (let i = 0; i < vrste.length; i++) for (let j = i + 1; j < vrste.length; j++) {
+      const a = vrste[i], c = vrste[j];
+      if (a.left < c.right && c.left < a.right && a.top < c.bottom - 0.5 && c.top < a.bottom - 0.5) prekrivanj++;
+    }
+    return { moje: [moje.textContent, cs(moje).fontFamily, cs(moje).fontSize], prim: [prim.textContent, cs(prim).fontFamily, cs(prim).fontSize],
+      skupina: [cs(sk).fontFamily, cs(sk).fontSize, cs(sk).textTransform], podlaga: cs(kart).backgroundColor,
+      card: cs(document.body).getPropertyValue('--card').trim(), crta: cs(razd).borderTopStyle, prekrivanj }; })()`);
+  preveri('naslova razdelkov enakovredna, v pisavi naslovov kartic', sl.moje[0] === 'Moje uganke (0)' && sl.prim[0] === 'Vgrajeni primeri (15)'
+    && /Source Serif/.test(sl.moje[1]) && sl.moje[1] === sl.prim[1] && sl.moje[2] === '17px' && sl.prim[2] === '17px', sl);
+  preveri('nad primeri ločilna črta', sl.crta === 'solid', sl.crta);
+  preveri('podnaslovi skupin drobni in sivi', /JetBrains Mono/.test(sl.skupina[0]) && sl.skupina[1] === '11px' && sl.skupina[2] === 'uppercase', sl.skupina);
+  preveri('kartice primerov s podlago --card (#F6F8F9)', sl.podlaga === 'rgb(246, 248, 249)', sl.podlaga);
+  preveri('naslovi in vrstice se ne prekrivajo', sl.prekrivanj === 0, sl.prekrivanj);
   await b.izvedi(`document.getElementById('primeriNaslov').scrollIntoView(); true`);
   await b.posnetek(path.join(mapa, `igra-${sirina}-primeri.png`), { vsaStran: false });
 

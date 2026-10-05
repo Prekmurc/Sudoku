@@ -89,7 +89,7 @@ async function igra(b, sirina) {
   preveri('»Kako igrati«: podnaslovi po zaslonu', JSON.stringify(p.razdelki['Kako igrati'])
     === JSON.stringify(['Vpis in izbris', 'Kandidati v celicah', 'Več celic', 'Poudari števko', 'Razveljavi in ponovi', 'Tipkovnica']), p.razdelki['Kako igrati']);
   preveri('»Zbirka ugank«: podnaslovi', JSON.stringify(p.razdelki['Zbirka ugank'])
-    === JSON.stringify(['Tvoja zbirka in vgrajeni primeri', 'Igraj, Nadaljuj, Poglej', 'Uganka v seznamu', 'Nova uganka', 'Izvozi in Uvozi', 'Izbriši in Izbriši vse', 'Oceni zbirko']), p.razdelki['Zbirka ugank']);
+    === JSON.stringify(['Moje uganke in vgrajeni primeri', 'Igraj, Nadaljuj, Poglej', 'Uganka v seznamu', 'Nova uganka', 'Izvozi in Uvozi', 'Izbriši in Izbriši vse', 'Oceni zbirko']), p.razdelki['Zbirka ugank']);
   preveri('podnaslov: krepko, 13,5 px', p.utez === '600' && p.velikost === '13.5px', [p.utez, p.velikost]);
   // seznam stopenj ugank (ul; tri stopnje »Naslednji korak« so ol)
   preveri('en seznam stopenj (4) in ena poved o generatorju', p.stopnjeSeznamov === 1 && p.stopnjeVnos === 4 && /^Generator je strožji od ocene/.test(p.strozje), [p.stopnjeSeznamov, p.stopnjeVnos, p.strozje]);

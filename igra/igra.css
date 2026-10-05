@@ -250,19 +250,22 @@ kbd{
 .dialog-gumbi{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
 .dialog-gumbi .primary{ flex:1; }
 
-/* razdelka v oknu Zbirka ugank: Tvoja zbirka, Vgrajeni primeri */
-.zbirka-razdelek{
-  font-family:'JetBrains Mono', monospace;
-  font-size:11px;
-  font-weight:500;
-  letter-spacing:0.06em;
-  text-transform:uppercase;
-  color: var(--pencil);
+/* razdelka v oknu Zbirka ugank, enakovredna: »Moje uganke (N)« in »Vgrajeni primeri (15)« - v
+   pisavi naslovov kartic (.card h2 v ../shared/base.css) */
+.zbirka-razdelek, .zbirka-razdelek h3{
+  font-family:'Source Serif 4', serif;
+  font-size:17px;
+  font-weight:600;
+  color: var(--ink);
   margin: 4px 0 8px;
 }
-/* Vgrajeni primeri: zložljiv razdelek na dnu okna (privzeto zaprt) */
-.primeri-razdelek{ margin-top:18px; }
+.zbirka-razdelek h3{ display:inline; margin:0; }
+/* Vgrajeni primeri: zložljiv razdelek na dnu okna (privzeto zaprt), nad njim ločilna črta */
+.primeri-razdelek{ margin-top:24px; padding-top:16px; border-top:1px solid var(--line); }
 .primeri-razdelek summary{ cursor:pointer; width:max-content; }
+/* podnaslovi skupin primerov (»Lahka · tehnike«) so v ../shared/zbirka.css */
+/* kartice primerov: rahlo drugačna podlaga kot moje uganke (bele) */
+#primeriSeznam li:not(.zb-skupina){ background: var(--card); }
 /* seznam ugank (kartica uganke) je v ../shared/zbirka.css */
 /* predlagana ocena (gumb "Oceni zbirko"), dokler ni zapisana */
 .zb-ocena{ margin-top:3px; }

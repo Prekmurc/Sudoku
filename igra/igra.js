@@ -593,6 +593,8 @@ const zbirkaSeznamEl = document.getElementById('zbirkaSeznam');
 const primeriSeznamEl = document.getElementById('primeriSeznam');
 const primeriRazdelekEl = document.getElementById('primeriRazdelek');
 document.getElementById('primeriNaslov').textContent = `Vgrajeni primeri (${primeriIgre.length})`;
+// Naslov razdelka »Moje uganke (N)« nad mojo zbirko - N kot na gumbu »Zbirka«.
+const mojeNaslovEl = document.getElementById('mojeNaslov');
 const zbirkaStatusEl = document.getElementById('zbirkaStatus');
 // Vrstica seznama po danostih - da med ocenjevanjem osvežimo samo njo.
 const zbirkaVrstice = new Map();
@@ -637,6 +639,7 @@ function izrisiZbirko() {
   uskladiIgranje();
   const zbirka = zbirkaBeri();
   const igre = igreBeri().igre;
+  mojeNaslovEl.textContent = `Moje uganke (${zbirka.length})`;
   zbirkaVrstice.clear();
   izrisiPrimere(igre);
   zbirkaSeznamEl.innerHTML = '';
@@ -826,8 +829,8 @@ function ocenaSprememba(z, o) {
   }
   if (zapis.tehnike) {
     // Oznaka z novo težavnostjo in potjo ocene (pri težki uganki je iz poti).
-    const nova = zbirkaOznakaTehnik({ ...z, ...zapis });
-    if (zbirkaOznakaTehnik(z) !== nova) deli.push(nova);
+    const nova = zbirkaBesediloTehnik(zbirkaTehnikeZapisa({ ...z, ...zapis }));
+    if (zbirkaBesediloTehnik(zbirkaTehnikeZapisa(z)) !== nova) deli.push(nova);
     else if (z.reseno !== zapis.reseno || z.koraki !== zapis.koraki || z.ugibanje !== zapis.ugibanje) {
       deli.push('podatki reševanja');
     }

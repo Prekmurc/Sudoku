@@ -775,6 +775,8 @@ test('vgrajeni primeri: privzeto zaprti, v naslovu število primerov', () => {
   const { dom, run } = zacni(); // zbirka ni prazna, odprta je uganka iz zbirke
   assert.equal(dom.el('primeriNaslov').textContent, `Vgrajeni primeri (${run('PRIMERI.length')})`);
   assert.equal(primeriOdprtiObOdprtju(dom), false);
+  // Enakovredni naslov nad mojo zbirko s številom ugank.
+  assert.equal(dom.el('mojeNaslov').textContent, `Moje uganke (${run('zbirkaBeri().length')})`);
   // Igralec razdelek odpre; ponoven izris seznama (uvoz, ocene) ga ne zapre.
   dom.el('primeriRazdelek').open = true;
   run('izrisiZbirko()');

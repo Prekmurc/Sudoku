@@ -237,6 +237,7 @@ seznam in opis v reševalcu, skupine v igri in kartica »Uganka« pri 375 in 128
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
 | 1 | reševalec (pravi telefon in računalnik) in igra, okno »Zbirka« → »Vgrajeni primeri« | V reševalcu odpri seznam »Primeri po težavnosti« s pravim dotikom in klikom, izberi P_8 in P_15; v igri preglej razdelek primerov. | Seznam pokaže skupine z naslovi in prazno vrstico med njimi, vrstice so berljive; pod seznamom značka, število danih in »Tehnike:« z glavno krepko (pri P_15 »in ugibanje«); v igri iste skupine, v vrstici značka in vse tehnike. (nepotrjeno) – ni avtomatsko: odprt spustni seznam riše sistem (telefon ga pokaže kot svoj izbirnik), brskalnik brez glave ga ne odpre. |
+| 2 | igra, okno »Zbirka ugank«, telefon in računalnik (popravek po pregledu) | Odpri okno z nekaj ugankami v zbirki in odpri »Vgrajeni primeri«. | Naslova »Moje uganke (N)« in »Vgrajeni primeri (15)« sta enakovredna, nad drugim je črta; podnaslovi skupin so drobni in sivi; kartice primerov imajo rahlo drugo podlago kot tvoje uganke; v tvojih ugankah piše »Tehnike: …« z imeni, brez »+«. (nepotrjeno) – ni avtomatsko: ali je razlika podlag dovolj opazna in razmerje naslovov prijetno, presodi oko; scenarij meri pisavo, podlago in prekrivanje. |
 
 ## Zakaj ročno
 

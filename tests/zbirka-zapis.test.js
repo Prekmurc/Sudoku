@@ -703,12 +703,12 @@ test('zbirkaProgramResil(): "v celoti" ali "delno (36/57)" - samo prazne celice'
 
 test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
   const z = { danosti, tezavnost: 'Težka', izvor: 'generator', dodano: '2026-09-21 16:33',
-    reseno: 81, koraki: 42, ugibanje: 1, tehnike: [['Poskus in protislovje (V1S1 = 5)', 1]], opomba: 'op' };
+    reseno: 81, koraki: 42, ugibanje: 1, tehnike: [['Gol enojček', 3], ['Poskus in protislovje (V1S1 = 5)', 1]], opomba: 'op' };
   const k = E.zbirkaKartica(danosti, z, null);
   assert.equal(k.primer, null);
   assert.equal(k.naslov, 'Težka · ustvaril generator · dodana 21. 9. 2026 ob 16:33');
   assert.deepEqual({ ...k.stanje }, { predpona: '', besedilo: 'nova', kljuc: 'nova', napaka: false }, 'nova uganka ima 2. vrstico');
-  assert.equal(k.info, `danih ${danih} · tehnike: samo enojčki + poskus · 42 korakov`, 'ugibanje je "+ poskus"');
+  assert.equal(k.info, `danih ${danih} · Tehnike: E1 in ugibanje · 42 korakov`, 'poskus s protislovjem je »in ugibanje«');
   assert.equal(k.opomba, 'op');
   assert.equal(k.gumb, 'Igraj');
   assert.ok(k.namig.startsWith('Dodano: 21. 9. 2026 ob 16:33'));
@@ -722,7 +722,7 @@ test('zbirkaKartica(): tri vrstice, gumb iz istega stanja', () => {
   // Brez težavnosti in izvora; delna rešitev programa.
   const brez = E.zbirkaKartica(danosti, { danosti, dodano: '2026-09-21 16:33', reseno: danih + 36, koraki: 1 }, null);
   assert.equal(brez.naslov, 'težavnost ni določena · dodana 21. 9. 2026 ob 16:33');
-  assert.equal(brez.info, `danih ${danih} · tehnike: ni podatkov · 1 korak · program rešil delno (36/${praznih})`);
+  assert.equal(brez.info, `danih ${danih} · Tehnike: ni podatkov · 1 korak · program rešil delno (36/${praznih})`);
 });
 
 test('zbirkaKartica(): vgrajeni primer (brez zapisa)', () => {

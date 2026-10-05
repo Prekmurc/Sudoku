@@ -189,11 +189,12 @@ function zbirkaTehnikePrimera(p) {
 
 // Tehnike uganke v zbirki (kartica »Uganka« v igri) iz istega vira kot oznaka »tehnike:«
 // (zbirkaOznakaTehnik()): pri težki uganki pot ocene, sicer dnevnik reševanja (z.tehnike); poskus
-// s protislovjem je »ugibanje«. Brez podatka null.
+// s protislovjem je »ugibanje«. Brez podatka (tudi prazen seznam) null.
 function zbirkaTehnikeZapisa(z) {
   const pot = z && z.tezavnost === 'Težka' ? zbirkaPotTezke(z) : null;
   if (pot) return zbirkaDeliTehnik(pot);
   if (!z || !Array.isArray(z.tehnike)) return null;
+  if (!z.tehnike.length) return null;
   const poskus = ([ime]) => /protislovje/.test(ime);
   return zbirkaDeliTehnik(z.tehnike.filter(t => !poskus(t)).map(([ime]) => ime),
     { ugibanje: z.tehnike.filter(poskus).reduce((s, [, n]) => s + n, 0) });
@@ -461,7 +462,8 @@ function zbirkaProgramResil(z) {
 // 2. vrstica (stanje) je vedno: "nova", "zadnje reševanje … · v teku (12/57)",
 //    "rešena …" ali "rešena … · znova v teku (12/57)" (zbirkaPrikazCasov); primer
 //    je brez časa (čas shranjene igre se osveži že ob odprtju);
-// 3. vrstica (info): "danih 24 · tehnike: 1, 3, 7 + poskus · 42 korakov", pri delni
+// 3. vrstica (info): "danih 24 · Tehnike: E1, E2, 1 Izločitev izven bloka in 7 X-krilo · 42 korakov"
+//    (zbirkaBesediloTehnik(zbirkaTehnikeZapisa()), poskus s protislovjem "in ugibanje"), pri delni
 //    rešitvi še "· program rešil delno (36/57)"; primer "danih 17" (podatkov reševanja
 //    nima), izris pa doda značko težavnosti (`znacka`) in vse tehnike (`tehnike` -
 //    zbirkaTehnikePrimera(), glavna krepko).
@@ -478,7 +480,7 @@ function zbirkaKartica(danosti, z, povzetek) {
 
   const info = [`danih ${81 - st.praznih}`];
   if (z) {
-    info.push(zbirkaOznakaTehnik(z));
+    info.push(zbirkaBesediloTehnik(zbirkaTehnikeZapisa(z)));
     if (!zbirkaPrazno(z.koraki)) info.push(zbirkaStKorakov(z.koraki));
     if (!zbirkaPrazno(z.reseno) && z.reseno < 81) info.push(`program rešil ${zbirkaProgramResil(z)}`);
   }

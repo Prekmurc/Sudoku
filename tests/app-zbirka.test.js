@@ -119,7 +119,7 @@ test('reševalec: vrstice kartice - naslov, stanje, danih · tehnike · koraki �
   assert.equal(delKartice(dom, 'zb-vrstica').textContent, 'Težka · ročni vnos · dodana 21. 9. 2026 ob 16:33');
   assert.equal(delKartice(dom, 'zb-casi').textContent, 'nova');
   assert.equal(delKartice(dom, 'zb-info').textContent,
-    `danih ${81 - praznih} · tehnike: samo enojčki · 42 korakov · program rešil delno (36/${praznih})`);
+    `danih ${81 - praznih} · Tehnike: ni podatkov · 42 korakov · program rešil delno (36/${praznih})`);
   assert.equal(delKartice(dom, 'zb-opomba').textContent, 'moja opomba');
   // Namig miške: časi v isti obliki kot v seznamu, program z istim števcem.
   const namig = delKartice(dom, 'zb-vrstica').title;
