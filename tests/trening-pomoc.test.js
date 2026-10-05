@@ -335,7 +335,7 @@ for (const t of ['naked-single', 'hidden-single']) {
     kV.checked = true; kV.sprozi('change');
     kB.checked = true; kB.sprozi('change');
     assert.deepEqual(seznami.map(s => s.hidden), [false, true, false]);
-    assert.match(seznami[0].children[0].title, /^Vrstica 1: (manjkajo \d|polna$)/);
+    assert.match(seznami[0].children[0].title, /^Vrstica 1: ((manjka|manjkata|manjkajo) \d|polna$)/);
     assert.deepEqual(JSON.parse(shramba.get('sudoku.trening.seznami')), { vrstice: true, stolpci: false, bloki: true });
     assert.ok(ima(vsi(dom.el('exerciseArea')).find(e => /\bvaja-enojcek\b/.test(e.className)), 'z-vrsticami'));
     assert.equal(kS.checked, false);

@@ -518,7 +518,7 @@ test('plošča: seznami s stikali pod ključem aplikacije, plošča samo z mrež
   assert.equal(p.dom.el('sV').hidden, false);
   assert.equal(p.dom.el('sS').hidden, true);
   assert.ok(p.dom.el('postavitev').className.includes('z-vrsticami'));
-  assert.match(p.dom.el('sV').children[0].title, /^Vrstica 1: manjkajo /);
+  assert.match(p.dom.el('sV').children[0].title, /^Vrstica 1: (manjka|manjkata|manjkajo) \d/);
   p.kljukica('kS', true);
   assert.equal(p.dom.el('sS').hidden, false);
   assert.deepEqual(JSON.parse(shramba.get('test.seznami')), { vrstice: true, stolpci: true, bloki: false });

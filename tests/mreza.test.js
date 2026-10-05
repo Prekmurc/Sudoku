@@ -360,6 +360,19 @@ test('robovi: oznake S1-S9 in V1-V9, krepka enota iz vidne, razred delna', () =>
   assert.equal(run('el.className'), '');
 });
 
+test('seznami manjkajočih števk: glagol se ujema s številom števk', () => {
+  const { run } = pripravi();
+  run(`var sez = { vrstice: document.createElement('div'), stolpci: document.createElement('div'), bloki: document.createElement('div') };
+    var seznami = ustvariSezname(sez);`);
+  const maska = (...d) => d.reduce((m, x) => m | (1 << x), 0);
+  const vrstice = [maska(5), maska(1, 5), maska(1, 5, 7), 0, 0, 0, 0, 0, 0];
+  const prazno = Array(9).fill(0);
+  run(`seznami.izrisi({ maske: { vrstice: ${JSON.stringify(vrstice)}, stolpci: ${JSON.stringify(prazno)}, bloki: ${JSON.stringify(prazno)} }, vidni: { vrstice: true, stolpci: true, bloki: true } })`);
+  assert.equal(run('sez.vrstice.children[0].title'), 'Vrstica 1: manjka 5');
+  assert.equal(run('sez.vrstice.children[1].title'), 'Vrstica 2: manjkata 1, 5');
+  assert.equal(run('sez.vrstice.children[2].title'), 'Vrstica 3: manjkajo 1, 5, 7');
+});
+
 test('seznami manjkajočih števk: števke, opis, poudarek, skriti seznam', () => {
   const { run } = pripravi();
   run(`var sez = { vrstice: document.createElement('div'), stolpci: document.createElement('div'), bloki: document.createElement('div') };
@@ -377,7 +390,8 @@ test('seznami manjkajočih števk: števke, opis, poudarek, skriti seznam', () =
       const stevke = polje.children[0].children;
       const manjkajo = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => m[k][i] & (1 << d));
       assert.deepEqual(stevke.map(s => +s.textContent || 0), [1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (manjkajo.includes(d) ? d : 0)));
-      assert.equal(polje.title, `${ime[k]} ${i + 1}: manjkajo ${manjkajo.join(', ')}`);
+      const glagol = manjkajo.length === 1 ? 'manjka' : manjkajo.length === 2 ? 'manjkata' : 'manjkajo';
+      assert.equal(polje.title, `${ime[k]} ${i + 1}: ${glagol} ${manjkajo.join(', ')}`);
       assert.equal(polje.getAttribute('aria-label'), polje.title);
       assert.equal(stevke[v - 1].className, manjkajo.includes(v) ? 'kand poud b0' : 'kand');
     });

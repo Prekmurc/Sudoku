@@ -6,6 +6,10 @@
    ../shared/plosca.js, shranjevanje igre v shramba.js, hramba zbirke v
    ../shared/zbirka.js, korak in rešitev da motor (../shared/engine.js). */
 
+// Oznaka različice (?v=... iz igra/index.html, tools/oznaci-razlicico.js) gre tudi v URL delavcev,
+// da brskalnik po objavi ne vzame starih iz predpomnilnika; delavec jo doda svojim importScripts.
+const PRIPONA_RAZLICICE = (document.currentScript && /\?v=[^#]*/.exec(document.currentScript.src) || [''])[0];
+
 const mrezaEl = document.getElementById('mreza');
 const nizPoudariEl = document.getElementById('nizPoudari');
 const nizVpisiEl = document.getElementById('nizVpisi');
@@ -960,7 +964,7 @@ oceniBtn.addEventListener('click', () => {
   osveziOcenoGumbe();
   izpisiOcenoNapredek();
   try {
-    const w = new Worker('oceni-worker.js');
+    const w = new Worker('oceni-worker.js' + PRIPONA_RAZLICICE);
     w.onmessage = (e) => obdelajOceno(e.data);
     w.onerror = () => {
       // Delavec se ni naložil (npr. file://) - ocenjujemo v glavni niti.
@@ -1153,7 +1157,7 @@ ustvariBtn.addEventListener('click', () => {
   osveziStopnje();
   izpisiNapredek();
   try {
-    const w = new Worker('generator-worker.js');
+    const w = new Worker('generator-worker.js' + PRIPONA_RAZLICICE);
     w.onmessage = (e) => obdelajIskanje(e.data);
     w.onerror = () => {
       // Worker se ni naložil (npr. file://) - iskanje nadaljujemo v glavni niti.

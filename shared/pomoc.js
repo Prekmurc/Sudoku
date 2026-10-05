@@ -6,7 +6,28 @@
 // Okno Pomoč (element z razredom .dialog; odprto = razred "odprt"): gumbi ga odprejo, zapre ga
 // gumb z [data-zapri] (✕), klik ob oknu in Escape. Escape ob odprtem oknu ne pride do drugih
 // poslušalcev (tipkovnica plošče) - poslušalec je v fazi zajema. Vrne { odpri, zapri, odprto }.
+// Oznaka različice iz ?v= te skripte (tools/oznaci-razlicico.js), npr. »2026-10-05.1432«, ali ''.
+const RAZLICICA = (() => {
+  const s = typeof document !== 'undefined' && document.currentScript && document.currentScript.src;
+  const m = s && /[?&]v=([^&#]+)/.exec(s);
+  return m ? decodeURIComponent(m[1]) : '';
+})();
+
+// »Različica 2026-10-05 14:32« za dno okna Pomoč ('' brez oznake).
+function razlicicaZaPrikaz(oznaka) {
+  const m = /^(\d{4}-\d{2}-\d{2})\.(\d{2})(\d{2})([a-z]?)$/.exec(oznaka || '');
+  return m ? `Različica ${m[1]} ${m[2]}:${m[3]}${m[4]}` : (oznaka ? `Različica ${oznaka}` : '');
+}
+
 function ustvariPomoc(okno, gumbi) {
+  // Na dnu panela različica aplikacije - po objavi se vidi, ali brskalnik kaže novo.
+  const panel = okno.querySelector && okno.querySelector('.dialog-panel');
+  if (panel && RAZLICICA) {
+    const p = document.createElement('p');
+    p.className = 'dialog-razlicica';
+    p.textContent = razlicicaZaPrikaz(RAZLICICA);
+    panel.appendChild(p);
+  }
   const odprto = () => okno.classList.contains('odprt');
   const odpri = () => {
     okno.classList.add('odprt');

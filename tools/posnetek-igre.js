@@ -27,7 +27,7 @@ const KOREN = path.join(__dirname, '..');
 // Skripte igre v vrstnem redu iz igra/index.html, poti od korena projekta.
 function datotekeIgre() {
   const html = fs.readFileSync(path.join(KOREN, 'igra', 'index.html'), 'utf8');
-  return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)]
+  return [...html.matchAll(/<script src="([^"?]+)(?:\?[^"]*)?"><\/script>/g)]
     .map(m => path.posix.normalize(path.posix.join('igra', m[1])));
 }
 

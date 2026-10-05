@@ -1,0 +1,5 @@
+#!/bin/sh
+# Osveži oznako različice (?v=) v treh index.html, če se je aplikacija spremenila
+# (tools/oznaci-razlicico.js), in jo doda v commit. Vklop: git config core.hooksPath tools/hooks
+node tools/oznaci-razlicico.js || exit 1
+git add app/index.html igra/index.html trening/index.html razlicica.json

@@ -11,7 +11,10 @@
      { tip: 'konec', ocenjenih }
      { tip: 'napaka', sporocilo } */
 
-importScripts('../shared/engine.js', '../shared/stanje.js', '../shared/zbirka.js', '../shared/generator.js');
+// Oznaka različice iz URL delavca (?v=..., igra.js), da tudi skripte motorja niso stare iz predpomnilnika.
+const PRIPONA_RAZLICICE = (self.location && self.location.search) || '';
+importScripts(...['../shared/engine.js', '../shared/stanje.js', '../shared/zbirka.js', '../shared/generator.js']
+  .map(f => f + PRIPONA_RAZLICICE));
 
 onmessage = (e) => {
   const seznam = (e.data && e.data.danosti) || [];

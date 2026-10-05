@@ -11,7 +11,9 @@
      { tip: 'obup', poskusi, ms }      meja je potekla
      { tip: 'napaka', sporocilo } */
 
-importScripts('../shared/engine.js', '../shared/generator.js');
+// Oznaka različice iz URL delavca (?v=..., igra.js), da tudi skripte motorja niso stare iz predpomnilnika.
+const PRIPONA_RAZLICICE = (self.location && self.location.search) || '';
+importScripts('../shared/engine.js' + PRIPONA_RAZLICICE, '../shared/generator.js' + PRIPONA_RAZLICICE);
 
 const PRIVZETA_MEJA = 30000;
 

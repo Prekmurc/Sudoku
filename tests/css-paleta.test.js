@@ -54,7 +54,7 @@ test('barve palete niso definirane nikjer drugje', () => {
 
 test('shared/base.css je prvi slog v vseh treh aplikacijah', () => {
   for (const f of STRANI) {
-    const slogi = [...beri(f).matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(m => m[1]);
+    const slogi = [...beri(f).matchAll(/<link rel="stylesheet" href="([^"?]+)/g)].map(m => m[1]);
     assert.equal(slogi[0], '../shared/base.css', f);
   }
 });
