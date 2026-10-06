@@ -110,9 +110,12 @@ function makeDom(shramba = new Map()) {
     },
   };
 
-  // window: samo poslušalci (dogodek "storage" ob zapisu v drugem zavihku).
+  // window: poslušalci (dogodek "storage" ob zapisu v drugem zavihku) in položaj strani
+  // (scrollY, scrollTo - vrnitev v meni treninga).
   const window = {
     poslusalci: {},
+    scrollY: 0,
+    scrollTo(x, y) { this.scrollY = y; },
     addEventListener(tip, f) { (this.poslusalci[tip] = this.poslusalci[tip] || []).push(f); },
     sprozi(tip, dogodek = {}) { for (const f of this.poslusalci[tip] || []) f(dogodek); },
   };

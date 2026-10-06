@@ -6,6 +6,9 @@
 //     korak - celice vzorca in izbrise sheme;
 //   - napis o črkah našteje samo črke na shemi (dodatek 1), vrstica »Enako velja …« pri 1-8
 //     (dodatek 2), izris v nadomestnem DOM-u;
+//   - popravki po pregledu koraka 1: trojici imata celice z dvema in s tremi črkami in opombo
+//     »Celica trojice ima dve ali vse tri črke.«, legenda ima rožnato »celica izbrisa«, kadar je
+//     taka celica na shemi;
 //   - razdelek »Shema« v treningu (dodatek 4): nad mrežo vaje za »Razlaga«, v »Spoznaj« odprt,
 //     v »Vadi v uganki« zaprt, stanje ostane ob naslednji vaji kroga, E1 brez razdelka.
 // Videz (SVG, barve, 375 px) preverja tools/preveri-sheme-brskalnik.js.
@@ -114,7 +117,8 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
   assert.equal(run('f.children[2].textContent'), 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.');
   assert.equal(run('f.children[3].textContent'), 'Enako velja za stolpec ali blok.');
   run('var g = izrisiShemo("naked-pair")');
-  assert.equal(run('g.children[1].children.map(c => c.textContent).join(" | ")'), 'celici para | xkandidat za izbris');
+  assert.equal(run('g.children[1].children.map(c => c.textContent).join(" | ")'), 'celici para | celica izbrisa | xkandidat za izbris');
+  assert.equal(run('g.children[1].children[1].children[0].className'), 'shema-sw shema-sw-izbris');
   assert.equal(run('izrisiShemo("naked-single")'), null);
 });
 
@@ -160,4 +164,27 @@ test('trening: razdelek »Shema« za »Razlaga«; Spoznaj odprt, Vadi v uganki z
 
   run('zacniKrog("naked-single", "spoznaj")');
   assert.equal(shema(), undefined, 'E1 nima sheme');
+});
+
+test('trojici: celice z dvema in s tremi črkami, opomba pod napisom o črkah; legenda »celica izbrisa« samo z rožnato celico', () => {
+  for (const k of ['naked-triple', 'hidden-triple']) {
+    const stevila = SHEME[k].celice.map(celica).filter(c => c.vzorec).map(c => c.zetoni.filter(t => t.z !== '…').length);
+    assert.ok(stevila.includes(2) && stevila.includes(3), `${k}: celice vzorca z dvema in s tremi črkami (${stevila})`);
+    assert.equal(SHEME[k].opomba, 'Celica trojice ima dve ali vse tri črke.', k);
+  }
+  for (const k of ['naked-pair', 'hidden-pair']) assert.equal(SHEME[k].opomba, undefined, k);
+  const dom = makeDom();
+  const { run } = loadContext(['shared/engine.js', 'shared/sheme.js'], dom.globals);
+  for (const k of Object.keys(SHEME)) {
+    run(`var f = izrisiShemo(${JSON.stringify(k)})`);
+    const deli = JSON.parse(run('JSON.stringify(f.children.map(c => c.className))'));
+    const pricakovano = ['shema-okvir', 'shema-legenda', 'shema-crke', ...(SHEME[k].opomba ? ['shema-opomba'] : []), 'shema-enako'];
+    assert.deepEqual(deli, pricakovano, k);
+    if (SHEME[k].opomba) assert.equal(run('f.children[3].textContent'), SHEME[k].opomba, k);
+    const rozna = SHEME[k].celice.map(celica).some(c => !c.vzorec && c.zetoni.some(t => t.izbris));
+    const legenda = run('f.children[1].children.map(c => c.textContent).join(" | ")');
+    assert.equal(legenda.includes('celica izbrisa'), rozna, `${k}: ${legenda}`);
+    // Na risbi je rožnata celica natanko takrat, ko je v legendi.
+    assert.equal(run('f.children[0].innerHTML').includes('class="sh-izbris"'), rozna, k);
+  }
 });

@@ -142,3 +142,39 @@ razdelku). O2–O5: a. Faza 7 ostane za fazo 3a. `.gitattributes` za hooke: v re
   `tools/preveri-sheme-brskalnik.js` (375 in 1280 px). Primerjave »Spoznaj« z izhodiščem v
   `tools/preveri-{presek,enojcki,vadi,izbira}-brskalnik.js` razdelek »Shema« med meritvijo skrijejo
   in izpustijo (v izhodišču ga ni). Posnetki: `docs/slike/faza3a/korak1-shema-{3,4,5,6}-375.png`.
+
+**Popravki po pregledu koraka 1 – narejeni 2026-10-06** (Darko je korak 1 pogledal na telefonu;
+pred korakom 2 štirje popravki). Korak 2 še ni začet.
+
+1. **Shema trojice (5, 6).** Prej so imele vse tri celice po dve črki ({x, y}, {y, z}, {x, z}) –
+   bralec bi sklepal, da ima celica trojice natanko dve. Zdaj mešan primer {x, y, z}, {x, y},
+   {y, z} (pri skriti trojici vsaka še s prečrtanimi drugimi kandidati) in pod napisom o črkah
+   vrstica »Celica trojice ima dve ali vse tri črke.« (polje `opomba` v `SHEME_TEHNIK`, odstavek
+   `.shema-opomba`). Motor obe shemi potrdi (`nakedTriples()`, `hiddenTriples()` – en sam korak,
+   celice in izbrisi sheme). Tri črke gredo v celico pri isti velikosti (13): korak med črkami je
+   pri treh 10,5 enote namesto 11,5, sicer bi zunanji črki segli v zlati okvir celice vzorca –
+   scenarij v brskalniku to izmeri (`getBBox()` znotraj notranjega roba okvirja).
+2. **Legenda.** Rožnata »celica izbrisa« (`.shema-sw-izbris`, barva `--shema-izbris-bg`) je v
+   legendi, kadar je taka celica na shemi (3, 5 – pri skritih so izbrisi v celicah vzorca, rožnate
+   celice ni). Vrstni red: celice vzorca · celica izbrisa · kandidat za izbris.
+3. **Ime tehnike pri vaji** (`.ex-label` v `trening/trening.css`, »Spoznaj« in »Vadi v uganki«):
+   prej 11 px, velike tiskane, `--pencil` na `--card` (kontrast 2,9 : 1), zdaj 15 px, polkrepko,
+   `--ink` (kontrast 12,6 : 1), brez velikih tiskanih. Test `tests/trening-kontrast.test.js`
+   (barvi iz CSS, kontrast po WCAG vsaj 4,5, vsaj 14 px), v brskalniku izračunan slog v
+   `tools/preveri-sheme-brskalnik.js`. Primerjave »Spoznaj« z izhodiščem
+   (`tools/preveri-{presek,enojcki,vadi,izbira}-brskalnik.js`) vrstico med meritvijo skrijejo kot
+   razdelek »Shema«. Posnetki prej in potem:
+   [Spoznaj prej](slike/faza3a/popravki-ime-tehnike-spoznaj-375-prej.png),
+   [Spoznaj potem](slike/faza3a/popravki-ime-tehnike-spoznaj-375-potem.png),
+   [Vadi prej](slike/faza3a/popravki-ime-tehnike-vadi-375-prej.png),
+   [Vadi potem](slike/faza3a/popravki-ime-tehnike-vadi-375-potem.png).
+4. **Vrnitev na izbiro tehnike.** Vzrok: meni je med vajo skrit (`display: none`), stran z vajo je
+   krajša in brskalnik položaj zmanjša; ob vrnitvi meni ostane na položaju vaje – pri 375 px na
+   vrhu (E1). Zdaj `zacniKrog()` zapomni položaj menija (`menuPolozaj`), »Nazaj na izbiro« ga
+   obnovi in, če kartica tehnike vseeno ni v oknu (drugačna velikost okna), pomakne do nje
+   (`scrollIntoView({ block: 'nearest' })`). Test `tests/trening-meni.test.js` (nadomestni DOM ima
+   zdaj `window.scrollY`/`scrollTo()`), v brskalniku po vsaki vrnitvi iz »Spoznaj« in »Vadi v
+   uganki«: položaj kot ob kliku, kartica v oknu.
+
+Posnetki shem po popravkih: [3](slike/faza3a/popravki-shema-3-375.png),
+[5](slike/faza3a/popravki-shema-5-375.png), [6](slike/faza3a/popravki-shema-6-375.png).

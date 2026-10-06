@@ -11,8 +11,9 @@
 // (jantarna z zlatim okvirjem). Celica z izbrisom, ki ni celica vzorca, je rožnata. Prazen niz =
 // celica brez črk (vpisana števka ali samo drugi kandidati, ki za vzorec niso pomembni).
 // izsek: 'vrstica' (1 × 9), 'pas' (3 × 9) ali 'mreza' (9 × 9); celice so po indeksu v izseku
-// (vrstica · 9 + stolpec). vzorec = napis celic vzorca v legendi, enako = vrstica pod shemo
-// (dodatek 2 – enako velja za stolpec ali blok).
+// (vrstica · 9 + stolpec). vzorec = napis celic vzorca v legendi, opomba = vrstica pod napisom o
+// črkah (pri trojicah: celica ima dve ali vse tri črke – popravek po pregledu koraka 1), enako =
+// vrstica pod shemo (dodatek 2 – enako velja za stolpec ali blok).
 const SHEME_TEHNIK = {
   'naked-pair': {
     izsek: 'vrstica',
@@ -28,14 +29,16 @@ const SHEME_TEHNIK = {
   },
   'naked-triple': {
     izsek: 'vrstica',
-    celice: ['-z …', '*x y', '', '…', '*y z', '-x -y …', '', '*x z', '…'],
+    celice: ['-z …', '*x y z', '', '…', '*x y', '-x -y …', '', '*y z', '…'],
     vzorec: 'celice trojice',
+    opomba: 'Celica trojice ima dve ali vse tri črke.',
     enako: 'Enako velja za stolpec ali blok.',
   },
   'hidden-triple': {
     izsek: 'vrstica',
-    celice: ['…', '*x y -…', '…', '', '*y z -…', '…', '…', '*x z -…', ''],
+    celice: ['…', '*x y z -…', '…', '', '*x y -…', '…', '…', '*y z -…', ''],
     vzorec: 'celice trojice',
+    opomba: 'Celica trojice ima dve ali vse tri črke.',
     enako: 'Enako velja za stolpec ali blok.',
   },
 };
@@ -95,9 +98,11 @@ function svgSheme(kljuc) {
     const crke = cel.zetoni.filter(t => t.z !== '…'), drugi = cel.zetoni.find(t => t.z === '…');
     const cx = x0(c) + C / 2, cy = y0(r) + C / 2;
     const yc = drugi && crke.length ? cy - 5 : cy, yd = crke.length ? cy + 8 : cy;
-    const w = 8, g = 3.5, n = crke.length;
+    // Korak med črkami: 11,5 enote, pri treh črkah 10,5 – sicer bi zunanji črki segli v zlati
+    // okvir celice vzorca (velikost črk ostane 13).
+    const n = crke.length, korak = n > 2 ? 10.5 : 11.5;
     crke.forEach((t, k) => {
-      const x = cx - ((n - 1) * (w + g)) / 2 + k * (w + g);
+      const x = cx - ((n - 1) * korak) / 2 + k * korak;
       deli.push(`<text class="sh-crka${t.izbris ? ' sh-precrtan' : ''}" x="${x}" y="${yc + fs * 0.27}">${t.z}</text>`);
       if (t.izbris) deli.push(`<line class="sh-crta-izbris" x1="${x - 5.5}" y1="${yc}" x2="${x + 5.5}" y2="${yc}"/>`);
     });
@@ -116,8 +121,9 @@ function svgSheme(kljuc) {
   return `<svg class="shema-risba" viewBox="0 0 ${sirina} ${visina}" style="max-width:${sirina}px" role="img" aria-label="Shema vzorca: ${ime}">${deli.join('')}</svg>`;
 }
 
-// Element <figure class="shema">: risba, legenda (celice vzorca, kandidat za izbris), napis o
-// črkah in vrstica »enako velja« – ali null, če tehnika sheme nima (E1, E2).
+// Element <figure class="shema">: risba, legenda (celice vzorca, celica izbrisa – samo, če je na
+// shemi rožnata celica –, kandidat za izbris), napis o črkah, opomba in vrstica »enako velja« –
+// ali null, če tehnika sheme nima (E1, E2).
 function izrisiShemo(kljuc) {
   const s = SHEME_TEHNIK[kljuc];
   if (!s) return null;
@@ -136,6 +142,11 @@ function izrisiShemo(kljuc) {
   const v = el('span');
   v.append(el('span', 'shema-sw shema-sw-vzorec'), s.vzorec);
   leg.appendChild(v);
+  if (s.celice.some(z => shemaCelica(z).izbris)) {
+    const c = el('span');
+    c.append(el('span', 'shema-sw shema-sw-izbris'), 'celica izbrisa');
+    leg.appendChild(c);
+  }
   // Vzorček izbrisa je prvi prečrtani žeton na shemi (pri skritih »…«).
   const prvi = s.celice.flatMap(z => shemaCelica(z).zetoni).find(t => t.izbris);
   if (prvi) {
@@ -153,6 +164,7 @@ function izrisiShemo(kljuc) {
   }
   fig.appendChild(leg);
   fig.appendChild(el('p', 'shema-crke', shemaNapisCrk(kljuc)));
+  if (s.opomba) fig.appendChild(el('p', 'shema-opomba', s.opomba));
   if (s.enako) fig.appendChild(el('p', 'shema-enako', s.enako));
   return fig;
 }

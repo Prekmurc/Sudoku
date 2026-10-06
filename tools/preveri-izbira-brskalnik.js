@@ -171,7 +171,7 @@ const PRECRTANE_NAVADNE = '#exerciseArea .xw-cell.peek-elim { color: var(--ink);
 // Med meritvijo sta glava strani in besedilo nad mrežo (naslov, opis, razdelek »Razlaga«) skrita v obeh brskalnikih: mreža
 // je tako na istem mestu, sicer drugačna višina besedila (faza 6) premakne mrežo za del piksla in
 // spremeni glajenje robov na posnetku - meritev naj meri okvir in števke, ne besedila.
-const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike, #exerciseArea .shema-razdelek { display: none !important; }';
+const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike, #exerciseArea .shema-razdelek, #exerciseArea .ex-label { display: none !important; }';
 async function prekrivanje(b) {
   await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-izbris').forEach(e => { e.classList.remove('peek-izbris'); e.dataset.pi = 1; }); true`);
   try { return await prekrivanjeMeritev(b); } finally {
@@ -209,9 +209,10 @@ async function prekrivanjeMeritev(b) {
 // currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo.
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
-// Razdelek »Shema« (faza 3a) v izhodišču ni - primerja se vse drugo.
-const izris = (b, mode) => b.izvedi(`(() => { const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek')]; sk.forEach(e => { e.style.display = 'none'; });
-  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek')), ocitni = ${OCITNI.includes(mode)};
+// Razdelek »Shema« (faza 3a) v izhodišču ni, vrstica z imenom tehnike (.ex-label) je od popravkov
+// po koraku 1 faze 3a večja in temna - med meritvijo sta skrita, primerja se vse drugo.
+const izris = (b, mode) => b.izvedi(`(() => { const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-label')]; sk.forEach(e => { e.style.display = 'none'; });
+  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label')), ocitni = ${OCITNI.includes(mode)};
   const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
   const dovoljeno = {};
   vsi.forEach((e, i) => {

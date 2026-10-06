@@ -91,6 +91,7 @@
 .shema-legenda{ display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12.5px; margin-top:6px; color:var(--ink2); }
 .shema-sw{ display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
 .shema-sw-vzorec{ background:var(--shema-vzorec-bg); border:2px solid var(--shema-vzorec-okvir); }
+.shema-sw-izbris{ background:var(--shema-izbris-bg); }
 .shema-izbris{ color:var(--red); font-weight:700; text-decoration:line-through; font-family:'JetBrains Mono', monospace; margin-right:5px; }
 .shema-izbris-drugi svg{ display:inline-block; width:17px; height:14px; vertical-align:-2px; margin-right:5px; }
-.shema .shema-crke, .shema .shema-enako{ font-size:12.5px; color:var(--ink2); line-height:1.5; margin:4px 0 0; }
+.shema .shema-crke, .shema .shema-opomba, .shema .shema-enako{ font-size:12.5px; color:var(--ink2); line-height:1.5; margin:4px 0 0; }

@@ -80,8 +80,12 @@ function razdelekShema(m){
   return d;
 }
 
+// Položaj menija ob odhodu v vajo: "Nazaj na izbiro" ga obnovi, da seznam ostane pri tehniki,
+// iz katere si prišel (popravek po pregledu koraka 1 faze 3a - prej je skočil na začetek, E1).
+let menuPolozaj=0;
 // Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka').
 function zacniKrog(m,n){
+  if(menuEl.style.display!=='none')menuPolozaj=window.scrollY||0;
   mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;razlagaKrog=false;shemaKrog=n==='spoznaj';
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';
   renderExercise();
@@ -97,9 +101,15 @@ document.querySelectorAll('.menu-card').forEach(card=>{
   }
   card.appendChild(nacini);
 });
+// Nazaj na izbiro: položaj menija kot ob odhodu; če kartica tehnike vseeno ni v oknu (npr. drugačna
+// velikost okna), se pomakne do nje.
 document.getElementById('backBtn').addEventListener('click',()=>{
   vadiPrekini();
-  trainerEl.style.display='none';menuEl.style.display='block';mode=null;
+  trainerEl.style.display='none';menuEl.style.display='block';
+  window.scrollTo(0,menuPolozaj);
+  const card=menuEl.querySelector(`.menu-card[data-mode="${mode}"]`);
+  if(card)card.scrollIntoView({block:'nearest'});
+  mode=null;
 });
 
 function makeCell(slot,si,M){
