@@ -226,3 +226,75 @@ odrezana. Zdaj `zacniKrog()` po izrisu vaje pomakne stran na vrh (`window.scroll
   9 × 9 se za meritev odpre; vstop na vrh; izpis položaja »Preveri«). Posnetki shem:
   [1](slike/faza3a/korak2-shema-1-375.png), [2](slike/faza3a/korak2-shema-2-375.png),
   [7](slike/faza3a/korak2-shema-7-375.png), [8](slike/faza3a/korak2-shema-8-375.png).
+
+**Popravka po pregledu koraka 2 – narejena 2026-10-07** (Darko je korak 2 pogledal na telefonu).
+
+1. **Shema odprta.** V »Spoznaj« je razdelek »Shema« privzeto odprt pri vseh tehnikah, tudi pri
+   shemah 9 × 9 (`shemaPrivzetoOdprta()` = `n === 'spoznaj'`); v »Vadi v uganki« ostane zaprt,
+   stanje ostane do konca kroga kot prej. Odločitev o zaprtih 9 × 9 iz koraka 2 s tem ne velja več.
+2. **Prečrtan kandidat.** Prej rdeča črka z rdečo črto 1,5 – videti kot zvezdica. Zdaj je črka
+   temna kot druge (`--ink`, običajna debelina), čez njo rdeča črta 2 (zaobljeni konci), pri eni
+   črki 12 enot dolga (prej 11), pri dveh ali treh v celici krajša, da se črti sosednjih črk ne
+   zlijeta; prečrtane pike »…« ostanejo sive z rdečo črto. V legendi enako (`.shema-izbris`:
+   `--ink`, `text-decoration: line-through var(--red) 2px`). Posnetki pri 375 px – prej:
+   [3](slike/faza3a/popravek-precrtan-prej-naked-pair-375.png),
+   [4](slike/faza3a/popravek-precrtan-prej-hidden-pair-375.png),
+   [7](slike/faza3a/popravek-precrtan-prej-x-wing-375.png); potem:
+   [3](slike/faza3a/popravek-precrtan-potem-naked-pair-375.png),
+   [4](slike/faza3a/popravek-precrtan-potem-hidden-pair-375.png),
+   [7](slike/faza3a/popravek-precrtan-potem-x-wing-375.png); povečano (CSS `zoom` 3 – posnetek
+   ima gostoto 1, telefon 3): [prej](slike/faza3a/popravek-precrtan-prej-povecano.png),
+   [potem](slike/faza3a/popravek-precrtan-potem-povecano.png).
+
+**Korak 3 – narejen 2026-10-07** (sheme 9–12). Korak 4 še ni začet.
+
+- **9 · Veriga ene števke** – dve risbi 9 × 9 samo z x, vsaka z naslovom: **Nebotičnik
+  (Skyscraper)** (povezavi v stolpcih 2 in 7, konca V8S2 in V8S7 v isti vrstici, izbris V3S3) in
+  **Zmaj z dvema vrvicama (2-String Kite)** (povezava v vrstici 2 in stolpcu 2, konca V2S3 in V3S2
+  v bloku 1, izbris V8S8). Motor najde natanko ta korak s tem podtipom. Opomba »Nebotičnik je lahko
+  tudi iz dveh vrstic, zmaj tudi drugače obrnjen.«
+- **10 · W-krilo** – celici para {a, b} V2S2 in V5S8, povezava b v vrstici 8 (V8S2, V8S8 – v njiju
+  še »…«, ker nista celici z dvema kandidatoma), izbris a v V2S8. Opomba »Povezava je lahko tudi
+  stolpec ali blok.«
+- **11 · XY-krilo** – pivot {x, y} V2S2, krili {x, z} V2S7 in {y, z} V7S2, izbris z v V7S7.
+  Opomba »Krilo je lahko s pivotom tudi v istem bloku.«
+- **12 · Edinstveni pravokotnik** – vogali V2S2, V2S6, V3S2 {x, y}, četrti V3S6 {x, y, …} z
+  izbrisom x in y. Brez povezav (po načrtu so pri 9–11; vogali sami kažejo pravokotnik, izbris je v
+  vogalu). Opomba »Bloka sta lahko tudi eden nad drugim.«
+- **Povezave** (`povezave`, `vidita`, `vidi` v `SHEME_TEHNIK`): polna jantarna črta (`--shema-povezava`
+  #A8820E, temnejša od zlatega okvirja, da je vidna tudi na jantarni celici) = povezava (vrstica ali
+  stolpec, kjer je črka samo v teh dveh celicah); črtkana jantarna = celici vzorca se vidita;
+  črtkana rdeča = celica izbrisa vidi celico vzorca. Črte gredo od središča do središča celice,
+  skrajšane za 12 enot, zato ne prekrijejo črk; pod črkami, nad mrežo. V legendi so vrste, ki so na
+  shemi (»povezava«, »celici se vidita«, »celica izbrisa vidi«), z vzorčkom črte.
+- **Drugi kandidati pri 10–12** (`drugiVVzorcu`): celice vzorca imajo natanko narisane kandidate,
+  drugod drugi kandidati niso narisani (sicer bi bila mreža polna »…«). Napis o črkah to pove:
+  »Drugi kandidati so narisani samo v celicah vzorca.« Test zato pri 10–12 vsem celicam zunaj vzorca
+  doda vse druge števke.
+- **Kako so sheme sestavljene.** Kot pri 7 in 8 z iskanjem (simulirano ohlajanje): vzorec in
+  izbris sta dana, iskanje doda črke tako, da tehnika najde natanko ta korak, lažje tehnike nič,
+  prazne enote se ujemajo z vpisanimi črkami (pri več črkah v celicah brez črk in različne črke v
+  različnih celicah), črte ne gredo čez celice s črkami, črk pa je čim manj. Pri 12 golega para
+  vogalov ni mogoče obiti drugače kot s tem, da blok 1, vrstica 2 in stolpec 2 nimata drugih x, y.
+  **XY-krilo je gostejše** (57 črk; W-krilo 35, pravokotnik 34, 9 po 18 in 19): tri črke, vsaka v
+  vsaki enoti, kjer je, vsaj dvakrat, poleg tega se dve črki ne smeta v nobeni enoti pojaviti samo v
+  istih dveh celicah (skriti par). Daljše iskanje (120 000 korakov, štiri semena) ni dalo manj kot 56.
+- **Najdba ob delu (test koraka 2).** Pri shemah samo z x ima celica en kandidat, zato
+  `hiddenSingles()` osamljenega x v enoti ne javi (pogoj `popcount > 1`), golega enojčka pa test
+  izpusti – preverba »skriti enojček ne najde ničesar« je bila pri 1, 2, 7, 8 prazna. Sheme 1, 2,
+  7, 8 so bile kljub temu pravilne (preverjeno), test zdaj osamljeno črko preveri posebej.
+- **Meritev pri 375 px – 9 z obema odprtima risbama** (nič spremenjeno): razdelek »Shema« od 531 do
+  1348 px od vrha strani (risbi 575–884 in 914–1223 px), mreža vaje se začne pri 1360 px (oznaka
+  »Označena števka« tik nad njo), gumb »Preveri« 1716–1755 px; stran je visoka 1883 px. Na telefonu
+  z višino 812 px se ob vstopu v vajo vidi opis, »Razlaga« in začetek prve risbe; do mreže je
+  pribl. 1,5 zaslona. Za primerjavo pri 375 px: 7, 8 mreža od 923/946 px, »Preveri« do 1288/1311 px;
+  10–12 mreža od 921–980 px, »Preveri« do 1332–1391 px. Posnetek cele strani:
+  [vaja 9](slike/faza3a/korak3-vaja-turbot-fish-375.png).
+- Preverjanje: `tests/sheme.test.js` (29 testov – motor na vseh 13 risbah, lažje tehnike, osamljena
+  črka, prazne enote, povezave, napisi, izris, razdelek v treningu pri vseh 12),
+  `tools/preveri-sheme-brskalnik.js` (375 in 1280 px, vseh 12 tehnik, obe risbi pri 9, povezave in
+  prečrtanje z izračunanim slogom; izpis mreže in »Preveri«). Posnetki shem pri 375 px:
+  [9 Nebotičnik](slike/faza3a/korak3-shema-turbot-fish-375.png),
+  [9 Zmaj](slike/faza3a/korak3-shema-turbot-fish-2-375.png),
+  [10](slike/faza3a/korak3-shema-w-wing-375.png), [11](slike/faza3a/korak3-shema-xy-wing-375.png),
+  [12](slike/faza3a/korak3-shema-unique-rectangle-375.png).

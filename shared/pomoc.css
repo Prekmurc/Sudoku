@@ -74,6 +74,7 @@
   --shema-vzorec-bg:#EFD8A0;
   --shema-vzorec-okvir:#C8A020;
   --shema-izbris-bg:#F0B4AA;
+  --shema-povezava:#A8820E;
 }
 .shema{ margin:8px 0 0; }
 .shema-okvir{ line-height:0; }
@@ -86,12 +87,21 @@
 .shema-risba text{ font-family:'JetBrains Mono', monospace; font-size:13px; text-anchor:middle; }
 .shema-risba .sh-crka{ fill:var(--ink); font-weight:500; }
 .shema .sh-drugi{ fill:var(--pencil); }
-.shema .sh-precrtan{ fill:var(--red); font-weight:700; }
-.shema .sh-crta-izbris{ stroke:var(--red); stroke-width:1.5; }
+/* Prečrtan kandidat: črka (pike) v barvi drugih, čez njo rdeča črta (popravek po pregledu koraka 2 –
+   rdeča črka z rdečo črto je bila videti kot zvezdica). Enako v legendi (.shema-izbris). */
+.shema .sh-crta-izbris{ stroke:var(--red); stroke-width:2; stroke-linecap:round; }
 .shema-legenda{ display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12.5px; margin-top:6px; color:var(--ink2); }
 .shema-sw{ display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
 .shema-sw-vzorec{ background:var(--shema-vzorec-bg); border:2px solid var(--shema-vzorec-okvir); }
 .shema-sw-izbris{ background:var(--shema-izbris-bg); }
-.shema-izbris{ color:var(--red); font-weight:700; text-decoration:line-through; font-family:'JetBrains Mono', monospace; margin-right:5px; }
+.shema-izbris{ color:var(--ink); font-weight:500; text-decoration:line-through var(--red) 2px; font-family:'JetBrains Mono', monospace; margin-right:5px; }
+/* Povezave (sheme 9–11): povezava polna jantarna, celici se vidita črtkana jantarna, celica izbrisa
+   vidi črtkana rdeča; v legendi kratka črta. Naslov risbe pri 9 (dve risbi). */
+.shema .sh-povezava, .shema .sh-vidita{ stroke:var(--shema-povezava); stroke-width:2.5; stroke-linecap:round; }
+.shema .sh-vidita{ stroke-dasharray:5 4; stroke-linecap:butt; }
+.shema .sh-vidi{ stroke:var(--red); stroke-width:1.75; stroke-dasharray:4 3; }
+.shema-sw-crta svg{ display:inline-block; width:24px; height:14px; vertical-align:-2px; margin-right:5px; }
+.shema .shema-naslov{ font-size:13px; font-weight:600; color:var(--ink); margin:10px 0 4px; }
+.shema .shema-naslov:first-child{ margin-top:0; }
 .shema-izbris-drugi svg{ display:inline-block; width:17px; height:14px; vertical-align:-2px; margin-right:5px; }
 .shema .shema-crke, .shema .shema-opomba, .shema .shema-enako{ font-size:12.5px; color:var(--ink2); line-height:1.5; margin:4px 0 0; }

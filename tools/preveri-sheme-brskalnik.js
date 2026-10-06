@@ -9,9 +9,13 @@
 // (tudi tri črke pri trojicah), opomba pri trojicah, rožnata »celica izbrisa« v legendi (barva),
 // ime tehnike nad vajo (.ex-label) s kontrastom vsaj 4,5 : 1 in črkami vsaj 14 px (»Spoznaj« in
 // »Vadi v uganki«), »Nazaj na izbiro« pusti meni pri kartici tehnike, iz katere si prišel.
-// Korak 2: sheme 1, 2 (pas) in 7, 8 (9 × 9); shema 9 × 9 je tudi v »Spoznaj« zaprta (za meritev se
-// odpre), opomba pri 1, 2, 5, 6, 8; vaja začne na vrhu strani (glava v oknu); pri 375 px izpiše,
-// kje je gumb »Preveri« (pod višino 667 in 812 px – telefon), brez preverjanja.
+// Korak 2: sheme 1, 2 (pas) in 7, 8 (9 × 9), opomba pri 1, 2, 5, 6, 8; vaja začne na vrhu strani
+// (glava v oknu); pri 375 px izpiše, kje se začne mreža vaje in kje je gumb »Preveri« (pod višino
+// 667 in 812 px – telefon), brez preverjanja.
+// Popravka po pregledu koraka 2: razdelek je v »Spoznaj« odprt pri vseh tehnikah (tudi 9 × 9);
+// prečrtan kandidat je temna črka z rdečo črto (izračunan slog, tudi v legendi).
+// Korak 3: sheme 9 (dve risbi z naslovom), 10, 11, 12 – vse risbe v kartici, povezave (barva in
+// črtkanje, vzorčki v legendi), vsaka črka v svoji celici.
 // Posnetke zaslona shrani v mapo (--mapa, privzeto začasna).
 //
 //   node tools/preveri-sheme-brskalnik.js [--mapa <mapa>]
@@ -28,6 +32,7 @@ const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.j
 const SIRINE = [375, 1280];
 
 let napak = 0;
+const izmerjeno = [];
 function preveri(ime, pogoj, podrobno = '') {
   console.log(`${pogoj ? '  ✓' : '  ✗'} ${ime}${!pogoj && podrobno !== '' ? ` - dobljeno: ${JSON.stringify(podrobno)}` : ''}`);
   if (!pogoj) napak++;
@@ -38,7 +43,7 @@ const pocakaj = (b, ms = 250) => b.izvedi(`new Promise(r => setTimeout(() => r(t
 const MERI = `(() => {
   const ex = document.querySelector('#exerciseArea .exercise'), d = ex && ex.querySelector('.shema-razdelek');
   if (!d) return { razdelek: false };
-  const svg = d.querySelector('svg.shema-risba'), e = ex.getBoundingClientRect(), r = svg ? svg.getBoundingClientRect() : null;
+  const svgi = [...d.querySelectorAll('svg.shema-risba')], e = ex.getBoundingClientRect();
   const sonda = (lastnost, v) => { const s = document.createElement('span'); s.style[lastnost] = 'var(' + v + ')'; document.body.appendChild(s);
     const c = getComputedStyle(s)[lastnost]; s.remove(); return c; };
   const out = { razdelek: true, odprt: d.open, povzetek: d.querySelector('summary').textContent };
@@ -47,31 +52,34 @@ const MERI = `(() => {
   if (!d.open) return out;
   const de = document.documentElement;
   out.preliv = de.scrollWidth > de.clientWidth;
-  out.risba = [r.left, r.right, r.width, r.height]; out.kartica = [e.left, e.right];
+  out.risb = svgi.length; out.kartica = [e.left, e.right];
   const st = getComputedStyle(ex), notranja = [e.left + parseFloat(st.paddingLeft), e.right - parseFloat(st.paddingRight)];
-  out.vKartici = r.left >= notranja[0] - 0.5 && r.right <= notranja[1] + 0.5;
+  out.risbe = svgi.map(svg => { const r = svg.getBoundingClientRect(); return [r.left, r.right, r.width, r.height]; });
+  out.vKartici = out.risbe.every(r => r[0] >= notranja[0] - 0.5 && r[1] <= notranja[1] + 0.5);
+  out.naslovi = [...d.querySelectorAll('.shema-naslov')].map(n => n.textContent);
+  const vse = (sel) => svgi.flatMap(svg => [...svg.querySelectorAll(sel)]);
+  const svg = svgi[0], k = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
   // Celice: vsak <text> mora biti v pravokotniku svoje celice (36 enot, rob 1.5).
-  const vb = svg.viewBox.baseVal, k = r.width / vb.width;
-  out.crkeVCelicah = [...svg.querySelectorAll('text')].every(t => {
+  out.crkeVCelicah = vse('text').every(t => {
     const b = t.getBBox(), x = +t.getAttribute('x'), c = Math.floor((x - 1.5) / 36), y = +t.getAttribute('y'), v = Math.floor((y - 1.5) / 36);
     return b.x >= 1.5 + c * 36 && b.x + b.width <= 1.5 + (c + 1) * 36 && b.y >= 1.5 + v * 36 && b.y + b.height <= 1.5 + (v + 1) * 36;
   });
-  out.zetonov = svg.querySelectorAll('text').length;
+  out.zetonov = vse('text').length;
   // Črke v celici vzorca ne segajo v zlati okvir (pravokotnik z odmikom 1,75 in črto 2,5 - notranji
   // rob je 3 enote od roba celice).
-  out.crkeVOkvirju = [...svg.querySelectorAll('.sh-vzorec')].every(p => {
+  out.crkeVOkvirju = svgi.every(svg => [...svg.querySelectorAll('.sh-vzorec')].every(p => {
     const x = +p.getAttribute('x') + 1.25, y = +p.getAttribute('y') + 1.25, w = +p.getAttribute('width') - 2.5, h = +p.getAttribute('height') - 2.5;
     return [...svg.querySelectorAll('text')].filter(t => { const tx = +t.getAttribute('x'), ty = +t.getAttribute('y'); return tx > x && tx < x + w && ty > y && ty < y + h; })
       .every(t => { const b = t.getBBox(); return b.x >= x && b.x + b.width <= x + w; });
-  });
-  out.triCrke = [...svg.querySelectorAll('.sh-vzorec')].some(p => {
+  }));
+  out.triCrke = svgi.some(svg => [...svg.querySelectorAll('.sh-vzorec')].some(p => {
     const x = +p.getAttribute('x'), y = +p.getAttribute('y');
     return [...svg.querySelectorAll('text')].filter(t => { const tx = +t.getAttribute('x'), ty = +t.getAttribute('y'); return tx > x && tx < x + 33 && ty > y && ty < y + 33; }).length === 3;
-  });
+  }));
   out.velikostCrke = svg.querySelector('text') ? parseFloat(getComputedStyle(svg.querySelector('text')).fontSize) * k : 0;
-  const vz = svg.querySelector('.sh-vzorec'), iz = svg.querySelector('.sh-izbris'), pr = svg.querySelector('.sh-precrtan');
+  const vz = svg.querySelector('.sh-vzorec'), iz = vse('.sh-izbris')[0], pr = vse('text.sh-precrtan')[0], crta = vse('.sh-crta-izbris')[0];
   // Pike »…« (krožci) in prečrtanja v svoji celici.
-  out.pikeVCelicah = [...svg.querySelectorAll('circle, .sh-crta-izbris')].every(o => {
+  out.pikeVCelicah = vse('circle, .sh-crta-izbris').every(o => {
     const b = o.getBBox(), c = Math.floor((b.x + b.width / 2 - 1.5) / 36), v = Math.floor((b.y + b.height / 2 - 1.5) / 36);
     return b.x >= 1.5 + c * 36 && b.x + b.width <= 1.5 + (c + 1) * 36 && b.y >= 1.5 + v * 36 && b.y + b.height <= 1.5 + (v + 1) * 36;
   });
@@ -80,11 +88,25 @@ const MERI = `(() => {
     vzorecBg: vzorec.fill === sonda('backgroundColor', '--k-vzorec-bg'),
     vzorecOkvir: vzorec.stroke === sonda('backgroundColor', '--okvir-vzorec'),
     izbris: !iz || getComputedStyle(iz).fill === sonda('backgroundColor', '--k-izbris-bg'),
-    precrtan: !!pr && getComputedStyle(pr).fill === sonda('color', '--red'),
+    // Prečrtan kandidat: črka temna (kot druge), črta rdeča; v legendi enako (popravek 2).
+    precrtanCrka: !pr || getComputedStyle(pr).fill === sonda('color', '--ink'),
+    precrtanCrta: !!crta && getComputedStyle(crta).stroke === sonda('color', '--red') && parseFloat(getComputedStyle(crta).strokeWidth) >= 2,
+    legendaPrecrtan: !d.querySelector('.shema-izbris') || (getComputedStyle(d.querySelector('.shema-izbris')).color === sonda('color', '--ink')
+      && getComputedStyle(d.querySelector('.shema-izbris')).textDecorationColor === sonda('color', '--red')
+      && getComputedStyle(d.querySelector('.shema-izbris')).textDecorationLine === 'line-through'),
     legendaVzorec: getComputedStyle(d.querySelector('.shema-sw-vzorec')).backgroundColor === sonda('backgroundColor', '--k-vzorec-bg'),
     legendaIzbris: !iz || getComputedStyle(d.querySelector('.shema-sw-izbris')).backgroundColor === sonda('backgroundColor', '--k-izbris-bg'),
   };
   out.rozna = !!iz;
+  // Povezave: barva, debelina, črtkanje; vzorček v legendi v istem slogu.
+  const slog = el => { const c = getComputedStyle(el); return [c.stroke, c.strokeWidth, c.strokeDasharray].join(' '); };
+  out.povezave = {};
+  for (const r of ['sh-povezava', 'sh-vidita', 'sh-vidi']) {
+    const na = vse('.' + r), v = d.querySelector('.shema-legenda .' + r);
+    out.povezave[r] = { stevilo: na.length, legenda: !!v, enako: na.length === 0 ? !v : !!v && slog(v) === slog(na[0]),
+      barva: na.length ? getComputedStyle(na[0]).stroke : null, crtkana: na.length ? getComputedStyle(na[0]).strokeDasharray !== 'none' : null };
+  }
+  out.barvaPovezave = sonda('color', '--shema-povezava'); out.rdeca = sonda('color', '--red');
   out.napisi = [...d.querySelectorAll('.shema-legenda > span, .shema-crke, .shema-opomba, .shema-enako')].map(e => e.textContent);
   return out;
 })()`;
@@ -104,7 +126,9 @@ const MENI = kljuc => `(() => { const r = document.querySelector('.menu-card[dat
 
 // Vrh strani ob vstopu v vajo in spodnji rob gumba »Preveri« (od vrha strani).
 const VRH = `(() => { const g = document.querySelector('header.top').getBoundingClientRect(), p = [...document.querySelectorAll('#exerciseArea button')].find(b => b.textContent === 'Preveri');
-  return { y: scrollY, glava: g.top, preveri: p ? Math.round(p.getBoundingClientRect().bottom + scrollY) : null }; })()`;
+  const s = document.querySelector('#exerciseArea .shema-razdelek'), m = s && s.nextElementSibling;
+  return { y: scrollY, glava: g.top, preveri: p ? Math.round(p.getBoundingClientRect().bottom + scrollY) : null,
+    mreza: m ? Math.round(m.getBoundingClientRect().top + scrollY) : null, mrezaRazred: m ? m.className : null }; })()`;
 
 async function sirina(b, sir, kljuci, info) {
   console.log(`trening, ${sir} px`);
@@ -120,23 +144,24 @@ async function sirina(b, sir, kljuci, info) {
     await pocakaj(b);
     const vrh = await b.izvedi(VRH);
     preveri(`${kljuc}, Spoznaj: vaja začne na vrhu strani, glava v oknu (prej ${pred.y})`, vrh.y === 0 && vrh.glava >= 0, vrh);
-    const mreza = info[kljuc].izsek === 'mreza';
-    if (sir < 500) console.log(`    · ${kljuc}: spodnji rob »Preveri« ${vrh.preveri} px od vrha (${vrh.preveri > 667 ? 'pod' : 'nad'} 667, ${vrh.preveri > 812 ? 'pod' : 'nad'} 812)${mreza ? ' – shema zaprta' : ''}`);
-    const m0 = await b.izvedi(MERI);
-    preveri(`${kljuc}, Spoznaj: razdelek »Shema« ${mreza ? 'zaprt (9 × 9)' : 'odprt'}, takoj za »Razlaga«`, m0.razdelek && m0.odprt === !mreza && m0.povzetek === 'Shema' && m0.zaRazlago, m0);
-    if (mreza) {
-      await b.izvedi(`document.querySelector('.shema-razdelek summary').scrollIntoView({ block: 'center' }); true`);
-      await b.klikni('.shema-razdelek summary');
-      await pocakaj(b, 100);
-    }
+    if (sir < 500) console.log(`    · ${kljuc}: mreža vaje (${vrh.mrezaRazred}) od ${vrh.mreza} px, spodnji rob »Preveri« ${vrh.preveri} px od vrha (${vrh.preveri > 667 ? 'pod' : 'nad'} 667, ${vrh.preveri > 812 ? 'pod' : 'nad'} 812)`);
+    izmerjeno.push({ kljuc, sir, ...vrh });
     const m = await b.izvedi(MERI);
-    preveri(`${kljuc}: risba v kartici, največ 327 px, brez preliva`, m.vKartici && m.risba[2] <= 327.5 && !m.preliv, m);
+    preveri(`${kljuc}, Spoznaj: razdelek »Shema« odprt, takoj za »Razlaga«`, m.razdelek && m.odprt && m.povzetek === 'Shema' && m.zaRazlago, m);
+    preveri(`${kljuc}: ${m.risb} ${m.risb === 1 ? 'risba' : 'risbi'} v kartici, največ 327 px, brez preliva`,
+      m.vKartici && m.risb === info[kljuc].risb && m.risbe.every(r => r[2] <= 327.5) && !m.preliv, m);
+    if (info[kljuc].naslovi.length) preveri(`${kljuc}: naslova risb`, JSON.stringify(m.naslovi) === JSON.stringify(info[kljuc].naslovi), m.naslovi);
+    const pov = Object.entries(m.povezave);
+    preveri(`${kljuc}: povezave ${pov.map(([r, p]) => p.stevilo).join('/')} – barva, črtkanje, vzorček v legendi`,
+      pov.every(([r, p]) => p.stevilo === info[kljuc].povezave[r] && p.enako && (p.stevilo === 0
+        || (p.barva === (r === 'sh-vidi' ? m.rdeca : m.barvaPovezave) && p.crtkana === (r !== 'sh-povezava')))), m.povezave);
     preveri(`${kljuc}: ${m.zetonov} črk, vsaka črka, pika in prečrtanje v svoji celici, črke ${m.velikostCrke && m.velikostCrke.toFixed(1)} px`,
       m.crkeVCelicah && m.pikeVCelicah && m.zetonov === info[kljuc].stevilo && m.velikostCrke >= 11, m);
     preveri(`${kljuc}: barve kot legenda treninga`, Object.values(m.barve).every(Boolean), m.barve);
     const trojica = kljuc.endsWith('triple');
-    const { vzorec, opomba } = info[kljuc];
-    const napisi = [vzorec, ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', 'poljubn', ...(opomba ? [opomba] : []), 'Enako velja'];
+    const { vzorec, opomba, enako } = info[kljuc];
+    const crte = [['sh-povezava', 'povezava'], ['sh-vidita', 'se vidita'], ['sh-vidi', 'celica izbrisa vidi']].filter(([r]) => info[kljuc].povezave[r]).map(([, n]) => n);
+    const napisi = [vzorec, ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', ...crte, 'poljubn', ...(opomba ? [opomba] : []), ...(enako ? ['Enako velja'] : [])];
     preveri(`${kljuc}: legenda (${m.rozna ? 'z rožnato celico izbrisa' : 'brez rožnate celice'}) in napisi${opomba ? ' z opombo' : ''}`,
       m.napisi.length === napisi.length && napisi.every((n, i) => m.napisi[i].includes(n)), m.napisi);
     preveri(`${kljuc}: črke v celici vzorca ne segajo v zlati okvir${trojica ? ', celica s tremi črkami' : ''}`, m.crkeVOkvirju && m.triCrke === trojica, m);
@@ -145,6 +170,11 @@ async function sirina(b, sir, kljuci, info) {
     await b.izvedi(`document.querySelector('.shema-razdelek').scrollIntoView({ block: 'start' }); true`);
     await pocakaj(b, 100);
     await b.posnetek(path.join(mapa, `shema-${kljuc}-${sir}.png`), { vsaStran: false });
+    if (info[kljuc].risb > 1) {
+      await b.izvedi(`document.querySelectorAll('.shema-razdelek .shema-naslov')[1].scrollIntoView({ block: 'start' }); true`);
+      await pocakaj(b, 100);
+      await b.posnetek(path.join(mapa, `shema-${kljuc}-2-${sir}.png`), { vsaStran: false });
+    }
     // Zaprt razdelek ostane zaprt v naslednji vaji.
     await b.izvedi(`document.querySelector('.shema-razdelek summary').scrollIntoView({ block: 'center' }); true`);
     await b.klikni('.shema-razdelek summary');
@@ -188,9 +218,13 @@ async function main() {
     await b.odpri('trening/index.html', { sirina: 1280, visina: 900 });
     const kljuci = await b.izvedi('Object.keys(SHEME_TEHNIK)');
     const info = await b.izvedi(`Object.fromEntries(Object.keys(SHEME_TEHNIK).map(k => [k, {
-      stevilo: SHEME_TEHNIK[k].celice.reduce((n, z) => n + shemaCelica(z).zetoni.filter(t => t.z !== '…').length, 0),
-      vzorec: SHEME_TEHNIK[k].vzorec, opomba: SHEME_TEHNIK[k].opomba || null, izsek: SHEME_TEHNIK[k].izsek }]))`);
+      stevilo: shemaRisbe(k).flatMap(r => r.celice).reduce((n, z) => n + shemaCelica(z).zetoni.filter(t => t.z !== '…').length, 0),
+      risb: shemaRisbe(k).length, naslovi: shemaRisbe(k).map(r => r.naslov).filter(Boolean),
+      povezave: Object.fromEntries(SHEMA_POVEZAVE.map(([p, r]) => [r, shemaRisbe(k).reduce((n, x) => n + (x[p] || []).length, 0)])),
+      vzorec: SHEME_TEHNIK[k].vzorec, opomba: SHEME_TEHNIK[k].opomba || null, enako: !!SHEME_TEHNIK[k].enako, izsek: SHEME_TEHNIK[k].izsek }]))`);
     for (const s of SIRINE) await sirina(b, s, kljuci, info);
+    const t = izmerjeno.find(x => x.kljuc === 'turbot-fish' && x.sir === 375);
+    if (t) console.log(`\n9 · Veriga ene števke pri 375 px, obe risbi odprti: mreža vaje (${t.mrezaRazred}) se začne ${t.mreza} px od vrha strani, spodnji rob »Preveri« ${t.preveri} px.`);
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } finally {
     await b.zapri();

@@ -1,19 +1,23 @@
 'use strict';
 // Shema vzorca pri razlagi tehnik (faza 3a, docs/faza3a-nacrt.md; shared/sheme.js):
-//   - sheme so samo pri tehnikah 1-12 (TRENING_TEHNIKE), E1 in E2 je nimata;
+//   - sheme so pri vseh tehnikah 1-12 (TRENING_TEHNIKE), E1 in E2 je nimata;
 //   - motor: na deski iz sheme (črke -> števke, »…« -> vse druge števke, celice izseka brez črk
-//     vpisane, celice zunaj izseka prazne z vsemi kandidati) funkcija tehnike najde natanko en
-//     korak - celice vzorca in izbrise sheme;
+//     vpisane, celice zunaj izseka prazne z vsemi kandidati; pri 10-12 imajo vse celice razen
+//     celic vzorca še vse druge števke) funkcija tehnike najde natanko en korak - celice vzorca
+//     in izbrise sheme (pri 9 še podtip po naslovu risbe);
 //   - napis o črkah našteje samo črke na shemi (dodatek 1), vrstica »Enako velja …« pri 1-8
 //     (dodatek 2), izris v nadomestnem DOM-u;
 //   - popravki po pregledu koraka 1: trojici imata celice z dvema in s tremi črkami in opombo
 //     »Celica trojice ima dve ali vse tri črke.«, legenda ima rožnato »celica izbrisa«, kadar je
 //     taka celica na shemi;
-//   - razdelek »Shema« v treningu (dodatek 4): nad mrežo vaje za »Razlaga«, v »Spoznaj« odprt,
-//     v »Vadi v uganki« zaprt, stanje ostane ob naslednji vaji kroga, E1 brez razdelka;
+//   - razdelek »Shema« v treningu (dodatek 4): nad mrežo vaje za »Razlaga«, v »Spoznaj« odprt
+//     (od popravka po pregledu koraka 2 pri vseh tehnikah, tudi 9 × 9), v »Vadi v uganki« zaprt,
+//     stanje ostane ob naslednji vaji kroga, E1 brez razdelka;
 //   - korak 2: sheme 1, 2 (pas) in 7, 8 (9 × 9) samo z x - lažje tehnike in skriti enojček na
-//     njih ne najdejo ničesar, pri 9 × 9 se prazne vrstice, stolpci in bloki ujemajo z vpisanimi x;
-//     razdelek »Shema« pri 9 × 9 tudi v »Spoznaj« privzeto zaprt, pri pasu odprt.
+//     njih ne najdejo ničesar (tudi osamljenega x v enoti ni - motor ga pri celicah s samim x ne
+//     javi), pri 9 × 9 se prazne vrstice, stolpci in bloki ujemajo z vpisanimi črkami;
+//   - korak 3: sheme 9 (dve risbi), 10, 11, 12 s povezavami - črte ne gredo čez celice s črkami,
+//     povezava je vrstica ali stolpec z dvema celicama s črko, »vidita« in »vidi« se res vidita.
 // Videz (SVG, barve, 375 px) preverja tools/preveri-sheme-brskalnik.js.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
@@ -30,6 +34,12 @@ const SHEME = iz('SHEME_TEHNIK');
 const TRENING = iz('TRENING_TEHNIKE');
 const IZSEKI = { vrstica: [1, 9], pas: [3, 9], mreza: [9, 9] };
 const STEVKA = { x: 1, y: 2, z: 3, a: 1, b: 2 };
+const risbe = k => SHEME[k].risbe || [SHEME[k]];
+const boxOf = i => Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3);
+const vidita = (i, j) => Math.floor(i / 9) === Math.floor(j / 9) || i % 9 === j % 9 || boxOf(i) === boxOf(j);
+const indeks = oznaka => { const [, r, c] = oznaka.match(/^V(\d)S(\d)$/); return (r - 1) * 9 + (c - 1); };
+// Vse risbe kot [ključ, n, naslov].
+const VSE_RISBE = Object.keys(SHEME).flatMap(k => risbe(k).map((r, n) => [k, n, r.naslov || '']));
 
 // Zapis celice: žetoni, »-« = izbris, »*« = celica vzorca (glej shared/sheme.js) - tu
 // neodvisno od shemaCelica().
@@ -38,20 +48,23 @@ function celica(zapis) {
   const zetoni = zapis.replace(/^\*/, '').split(' ').filter(Boolean);
   return { vzorec, zetoni: zetoni.map(t => ({ z: t.replace(/^-/, ''), izbris: t.startsWith('-') })) };
 }
+const crkeCelice = zapis => celica(zapis).zetoni.map(t => t.z).filter(z => z !== '…');
 
-// Deska iz sheme in pričakovani korak { celice, izbrisi } (celice 0-80, izbrisi "celica:števka").
-function deskaIzSheme(kljuc) {
-  const s = SHEME[kljuc];
+// Deska iz risbe sheme in pričakovani korak { celice, izbrisi } (celice 0-80, izbrisi "celica:števka").
+function deskaIzSheme(kljuc, n = 0) {
+  const s = SHEME[kljuc], r = risbe(kljuc)[n];
   const [V, S] = IZSEKI[s.izsek];
-  const crke = new Set(s.celice.flatMap(z => celica(z).zetoni.map(t => t.z)).filter(z => z !== '…'));
+  const crke = new Set(r.celice.flatMap(crkeCelice));
   const stevkeCrk = new Set([...crke].map(c => STEVKA[c]));
   const druge = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => !stevkeCrk.has(d));
+  const drugeMaska = druge.reduce((m, d) => m | (1 << d), 0);
   const grid = Array(81).fill(0), cand = Array(81).fill(0x3FE);
   const celice = [], izbrisi = [];
-  s.celice.forEach((zapis, i) => {
-    const r = Math.floor(i / S), c = i % S, idx = r * 9 + c;
+  assert.equal(r.celice.length, V * S, `${kljuc}: število celic izseka`);
+  r.celice.forEach((zapis, i) => {
+    const idx = Math.floor(i / S) * 9 + i % S;
     const cel = celica(zapis);
-    if (!cel.zetoni.length) { grid[idx] = 9; cand[idx] = 1 << 9; return; }
+    if (cel.vzorec) celice.push(idx);
     let m = 0;
     for (const t of cel.zetoni) {
       const ds = t.z === '…' ? druge : [STEVKA[t.z]];
@@ -60,72 +73,154 @@ function deskaIzSheme(kljuc) {
         if (t.izbris) izbrisi.push(`${idx}:${d}`);
       }
     }
+    // 10-12: drugi kandidati so narisani samo v celicah vzorca - drugod so vsi.
+    if (s.drugiVVzorcu && !cel.vzorec) m |= drugeMaska;
+    if (!m) { grid[idx] = 9; cand[idx] = 1 << 9; return; }
     cand[idx] = m;
-    if (cel.vzorec) celice.push(idx);
   });
-  assert.equal(s.celice.length, V * S, `${kljuc}: število celic izseka`);
   return { grid, cand, celice: celice.sort((a, b) => a - b), izbrisi: izbrisi.sort() };
 }
 
-test('sheme so samo pri tehnikah 1-12, E1 in E2 je nimata; korak 2: sheme 1-8', () => {
+// Različni koraki funkcije tehnike na deski (XY-krilo vrne isti vzorec dvakrat - krili v obeh vrstnih redih).
+function koraki(d, ime) {
+  const vsi = iz(`(() => { const b = Object.create(Board.prototype); b.grid = ${JSON.stringify(d.grid)}; b.cand = ${JSON.stringify(d.cand)};
+    return ALL_TECHNIQUES.find(([n]) => n === ${JSON.stringify(ime)})[1](b)
+      .map(k => ({ celice: [...k.cells].sort((a, b) => a - b), izbrisi: k.eliminate.map(([c, s]) => c + ':' + s).sort(), podtip: k.variant || '' })); })()`);
+  return [...new Map(vsi.map(k => [JSON.stringify(k), k])).values()];
+}
+const imeMotorja = kljuc => TRENING.find(([k]) => k === kljuc)[1];
+
+test('sheme so pri vseh tehnikah 1-12, E1 in E2 je nimata; pri 9 dve risbi', () => {
   const kljuci = TRENING.map(([k]) => k);
-  for (const k of Object.keys(SHEME)) assert.ok(kljuci.includes(k), `${k} ni tehnika 1-12`);
+  assert.deepEqual(Object.keys(SHEME).sort(), [...kljuci].sort());
   for (const k of ['naked-single', 'hidden-single']) assert.equal(SHEME[k], undefined, k);
-  for (const [k] of TRENING.slice(0, 8)) assert.ok(SHEME[k], `${k} nima sheme`);
-  const izseki = Object.fromEntries(TRENING.slice(0, 8).map(([k]) => [k, SHEME[k].izsek]));
+  const izseki = Object.fromEntries(kljuci.map(k => [k, SHEME[k].izsek]));
   assert.deepEqual(izseki, { 'pointing': 'pas', 'box-line': 'pas', 'naked-pair': 'vrstica', 'hidden-pair': 'vrstica',
-    'naked-triple': 'vrstica', 'hidden-triple': 'vrstica', 'x-wing': 'mreza', 'swordfish': 'mreza' });
+    'naked-triple': 'vrstica', 'hidden-triple': 'vrstica', 'x-wing': 'mreza', 'swordfish': 'mreza',
+    'turbot-fish': 'mreza', 'w-wing': 'mreza', 'xy-wing': 'mreza', 'unique-rectangle': 'mreza' });
+  assert.deepEqual(risbe('turbot-fish').map(r => r.naslov), ['Nebotičnik (Skyscraper)', 'Zmaj z dvema vrvicama (2-String Kite)']);
+  for (const k of kljuci.filter(k => k !== 'turbot-fish')) assert.equal(SHEME[k].risbe, undefined, k);
 });
 
-for (const kljuc of Object.keys(SHEME)) {
-  test(`motor: shema ${kljuc} - funkcija tehnike najde natanko vzorec in izbrise sheme`, () => {
-    const d = deskaIzSheme(kljuc);
-    const ime = TRENING.find(([k]) => k === kljuc)[1];
-    const koraki = iz(`(() => { const b = Object.create(Board.prototype); b.grid = ${JSON.stringify(d.grid)}; b.cand = ${JSON.stringify(d.cand)};
-      return ALL_TECHNIQUES.find(([n]) => n === ${JSON.stringify(ime)})[1](b)
-        .map(k => ({ celice: [...k.cells].sort((a, b) => a - b), izbrisi: k.eliminate.map(([c, s]) => c + ':' + s).sort() })); })()`);
-    assert.equal(koraki.length, 1, `${kljuc}: en sam korak (${JSON.stringify(koraki)})`);
-    assert.deepEqual(koraki[0].celice, d.celice, `${kljuc}: celice vzorca`);
-    assert.deepEqual(koraki[0].izbrisi, d.izbrisi, `${kljuc}: izbrisi`);
+for (const [kljuc, n, naslov] of VSE_RISBE) {
+  test(`motor: shema ${kljuc}${naslov ? ` (${naslov})` : ''} - funkcija tehnike najde natanko vzorec in izbrise sheme`, () => {
+    const d = deskaIzSheme(kljuc, n);
+    const k = koraki(d, imeMotorja(kljuc));
+    assert.equal(k.length, 1, `${kljuc}: en sam korak (${JSON.stringify(k)})`);
+    assert.deepEqual(k[0].celice, d.celice, `${kljuc}: celice vzorca`);
+    assert.deepEqual(k[0].izbrisi, d.izbrisi, `${kljuc}: izbrisi`);
     assert.ok(d.izbrisi.length > 0);
+    if (kljuc === 'turbot-fish') assert.equal(k[0].podtip, ['Skyscraper', 'Two-String Kite'][n], 'podtip po naslovu risbe');
   });
 }
 
-// Sheme ene števke (1, 2, 7, 8): samo x; lažja tehnika ali skriti enojček na deski iz sheme bi
-// pomenila, da vzorec ni potreben (npr. kot vogal X-krila, ki je edini x v bloku).
-const ENA_STEVKA = ['pointing', 'box-line', 'x-wing', 'swordfish'];
-for (const kljuc of ENA_STEVKA) {
-  test(`shema ${kljuc}: samo x, lažje tehnike in skriti enojček ne najdejo ničesar`, () => {
-    const znaki = new Set(SHEME[kljuc].celice.flatMap(z => celica(z).zetoni.map(t => t.z)));
-    assert.deepEqual([...znaki], ['x'], kljuc);
-    const d = deskaIzSheme(kljuc);
-    const ime = TRENING.find(([k]) => k === kljuc)[1];
+// Lažje tehnike (vse pred tehniko sheme) na deski iz sheme ne najdejo ničesar - sicer vzorec ne
+// bi bil potreben (npr. kot vogal X-krila, ki je edini x v bloku). Sheme ene števke (1, 2, 7-9):
+// samo x, gol enojček izpustimo (narisani so samo kandidati x), osamljen x v enoti (skriti enojček,
+// ki ga motor pri celici s samim x ne javi) preverimo posebej. Sheme 3-6 v vrstici: lažje tehnike
+// tu niso del preverbe (vrstica je del mreže s praznimi celicami).
+const ENA_STEVKA = ['pointing', 'box-line', 'x-wing', 'swordfish', 'turbot-fish'];
+for (const [kljuc, n, naslov] of VSE_RISBE.filter(([k]) => SHEME[k].izsek !== 'vrstica')) {
+  test(`shema ${kljuc}${naslov ? ` (${naslov})` : ''}: lažje tehnike in skriti enojček ne najdejo ničesar`, () => {
+    const r = risbe(kljuc)[n];
+    const znaki = new Set(r.celice.flatMap(z => celica(z).zetoni.map(t => t.z)));
+    if (ENA_STEVKA.includes(kljuc)) assert.deepEqual([...znaki], ['x'], kljuc);
+    const d = deskaIzSheme(kljuc, n);
+    const od = ENA_STEVKA.includes(kljuc) ? 1 : 0;
     const najdene = iz(`(() => { const b = Object.create(Board.prototype); b.grid = ${JSON.stringify(d.grid)}; b.cand = ${JSON.stringify(d.cand)};
-      const i = ALL_TECHNIQUES.findIndex(([n]) => n === ${JSON.stringify(ime)});
-      // Gol enojček izpustimo: na shemi so narisani samo kandidati x.
-      return ALL_TECHNIQUES.slice(1, i).filter(([, f]) => f(b).length).map(([n]) => n); })()`);
+      const i = ALL_TECHNIQUES.findIndex(([n]) => n === ${JSON.stringify(imeMotorja(kljuc))});
+      return ALL_TECHNIQUES.slice(${od}, i).filter(([, f]) => f(b).length).map(([n]) => n); })()`);
     assert.deepEqual(najdene, [], kljuc);
+    if (ENA_STEVKA.includes(kljuc)) {
+      // Enote v celoti v izseku: vrstice, bloki, pri 9 × 9 še stolpci.
+      const [V, S] = IZSEKI[SHEME[kljuc].izsek];
+      const x = r.celice.map((z, i) => [Math.floor(i / S) * 9 + i % S, crkeCelice(z).length > 0]).filter(([, ima]) => ima).map(([i]) => i);
+      const enote = [['vrstica', i => Math.floor(i / 9)], ['blok', boxOf], ...(V === 9 ? [['stolpec', i => i % 9]] : [])];
+      for (const [ime, f] of enote) for (let e = 0; e < 9; e++) {
+        assert.notEqual(x.filter(i => f(i) === e).length, 1, `${kljuc}: ${ime} ${e + 1} ima en sam x`);
+      }
+    }
   });
 }
 
-test('sheme 9 × 9: prazne vrstice, stolpci in bloki se ujemajo z vpisanimi x (en x na vrstico, stolpec in blok)', () => {
-  for (const kljuc of ENA_STEVKA.filter(k => SHEME[k].izsek === 'mreza')) {
-    const x = SHEME[kljuc].celice.map(z => celica(z).zetoni.length > 0);
-    const prazne = f => [...Array(9).keys()].filter(e => !x.some((ima, i) => ima && f(i) === e));
-    const vr = prazne(i => Math.floor(i / 9)), st = prazne(i => i % 9);
-    const bl = prazne(i => Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3));
-    assert.equal(vr.length, st.length, kljuc);
-    assert.equal(vr.length, bl.length, kljuc);
-    const perm = a => a.length <= 1 ? [a] : a.flatMap((e, i) => perm([...a.slice(0, i), ...a.slice(i + 1)]).map(p => [e, ...p]));
-    const ok = perm(st).some(p => {
-      const b = vr.map((r, i) => Math.floor(r / 3) * 3 + Math.floor(p[i] / 3));
-      return new Set(b).size === b.length && b.every(e => bl.includes(e));
+// Prazne enote (brez črke) se ujemajo z vpisanimi črkami: za vsako črko se da vrstice brez nje
+// razporediti po stolpcih brez nje tako, da so bloki natanko bloki brez nje, v celicah brez črk in
+// različne črke v različnih celicah.
+test('sheme 9 × 9: prazne vrstice, stolpci in bloki se ujemajo z vpisanimi črkami', () => {
+  for (const [kljuc, n, naslov] of VSE_RISBE.filter(([k]) => SHEME[k].izsek === 'mreza')) {
+    const cel = risbe(kljuc)[n].celice;
+    const crke = [...new Set(cel.flatMap(crkeCelice))];
+    const enote = crke.map(c => {
+      const ima = cel.map(z => crkeCelice(z).includes(c));
+      const prazne = f => [...Array(9).keys()].filter(e => !ima.some((h, i) => h && f(i) === e));
+      return { vr: prazne(i => Math.floor(i / 9)), st: prazne(i => i % 9), bl: prazne(boxOf) };
     });
-    assert.ok(ok, `${kljuc}: vrstice ${vr}, stolpci ${st}, bloki ${bl}`);
+    const ime = `${kljuc}${naslov ? ` (${naslov})` : ''}`;
+    for (const e of enote) assert.ok(e.vr.length === e.st.length && e.vr.length === e.bl.length, `${ime}: ${JSON.stringify(e)}`);
+    const zasedene = new Set();
+    const crka = k => {
+      if (k === crke.length) return true;
+      const { vr, st, bl } = enote[k];
+      const korak = (j, stolpci, bloki) => {
+        if (j === vr.length) return crka(k + 1);
+        for (const c of st) {
+          const i = vr[j] * 9 + c;
+          if (stolpci.includes(c) || bloki.includes(boxOf(i)) || !bl.includes(boxOf(i))) continue;
+          if (crkeCelice(cel[i]).length || zasedene.has(i)) continue;
+          zasedene.add(i);
+          if (korak(j + 1, [...stolpci, c], [...bloki, boxOf(i)])) return true;
+          zasedene.delete(i);
+        }
+        return false;
+      };
+      return korak(0, [], []);
+    };
+    assert.ok(crka(0), `${ime}: razporeditev vpisanih črk`);
+  }
+});
+
+// Povezave (9-11): črte ne gredo čez celice s črkami; povezava je vrstica ali stolpec, kjer je ena
+// od črk obeh celic samo v njiju; »vidita« - celici vzorca se vidita; »vidi« - od celice izbrisa
+// do celice vzorca, ki jo vidi.
+test('povezave pri 9-11: pomen in črte brez črk na poti', () => {
+  const s = k => VSE_RISBE.filter(([kk]) => kk === k).map(([, n]) => risbe(k)[n]);
+  for (const k of ['turbot-fish', 'w-wing', 'xy-wing']) for (const r of s(k)) {
+    assert.ok((r.vidi || []).length >= 2, `${k}: črte »vidi«`);
+    assert.ok((r.vidita || []).length + (r.povezave || []).length >= 2, `${k}: povezave med celicami vzorca`);
+  }
+  for (const k of Object.keys(SHEME).filter(k => !['turbot-fish', 'w-wing', 'xy-wing'].includes(k))) {
+    for (const r of risbe(k)) for (const p of ['povezave', 'vidita', 'vidi']) assert.equal(r[p], undefined, `${k}: brez povezav`);
+  }
+  for (const [k, n] of VSE_RISBE) {
+    const r = risbe(k)[n];
+    const cel = i => celica(r.celice[i]);
+    for (const [p, pari] of [['povezave', r.povezave], ['vidita', r.vidita], ['vidi', r.vidi]]) {
+      for (const par of pari || []) {
+        const [i, j] = par.split(' ').map(indeks);
+        const ime = `${k} ${p} ${par}`;
+        if (p === 'vidi') assert.ok(!cel(i).vzorec && cel(i).zetoni.some(t => t.izbris), `${ime}: začne se v celici izbrisa`);
+        else assert.ok(cel(i).vzorec, `${ime}: celica vzorca`);
+        assert.ok(cel(j).vzorec, `${ime}: konča se v celici vzorca`);
+        assert.ok(vidita(i, j), `${ime}: celici se vidita`);
+        if (p === 'povezave') {
+          const enota = Math.floor(i / 9) === Math.floor(j / 9) ? c => Math.floor(c / 9) === Math.floor(i / 9) : c => c % 9 === i % 9;
+          assert.ok(Math.floor(i / 9) === Math.floor(j / 9) || i % 9 === j % 9, `${ime}: vrstica ali stolpec`);
+          const skupne = crkeCelice(r.celice[i]).filter(c => crkeCelice(r.celice[j]).includes(c));
+          assert.ok(skupne.some(c => r.celice.filter((z, x) => enota(x) && crkeCelice(z).includes(c)).length === 2), `${ime}: črka samo v teh dveh celicah`);
+        }
+        // Celice, čez katere gre črta (brez koncev), so brez črk.
+        const [r1, c1, r2, c2] = [Math.floor(i / 9), i % 9, Math.floor(j / 9), j % 9];
+        for (let t = 1; t < 40; t++) {
+          const x = Math.round(r1 + (r2 - r1) * t / 40) * 9 + Math.round(c1 + (c2 - c1) * t / 40);
+          if (x !== i && x !== j) assert.equal(r.celice[x], '', `${ime}: črta gre čez celico ${x} s črkami`);
+        }
+      }
+    }
   }
 });
 
 test('napis o črkah našteje samo črke na shemi, »…« samo, če je na njej; »Enako velja« pri 1-8', () => {
+  const DRUGI = ' Drugi kandidati so narisani samo v celicah vzorca.';
   const PRICAKOVANO = {
     'naked-pair': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.',
     'hidden-pair': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.',
@@ -135,6 +230,10 @@ test('napis o črkah našteje samo črke na shemi, »…« samo, če je na njej;
     'box-line': 'x – poljubna števka; prazna celica – brez x.',
     'x-wing': 'x – poljubna števka; prazna celica – brez x.',
     'swordfish': 'x – poljubna števka; prazna celica – brez x.',
+    'turbot-fish': 'x – poljubna števka; prazna celica – brez x.',
+    'w-wing': 'a, b – poljubni različni števki; … – drugi kandidati; prazna celica – brez a in b.' + DRUGI,
+    'xy-wing': 'x, y, z – poljubne različne števke; prazna celica – brez x, y in z.' + DRUGI,
+    'unique-rectangle': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.' + DRUGI,
   };
   const ENAKO = {
     'pointing': 'Enako velja za stolpec namesto vrstice.',
@@ -146,10 +245,11 @@ test('napis o črkah našteje samo črke na shemi, »…« samo, če je na njej;
   for (const [k, p] of Object.entries(PRICAKOVANO)) assert.equal(motor(`shemaNapisCrk(${JSON.stringify(k)})`), p, k);
   for (const k of Object.keys(SHEME)) {
     const crke = motor(`shemaNapisCrk(${JSON.stringify(k)})`).split(' – ')[0].split(', ');
-    const naShemi = [...new Set(SHEME[k].celice.flatMap(z => celica(z).zetoni.map(t => t.z)).filter(z => z !== '…'))].sort();
+    const naShemi = [...new Set(risbe(k).flatMap(r => r.celice).flatMap(crkeCelice))].sort();
     assert.deepEqual([...crke].sort(), naShemi, k);
     const n = TRENING.findIndex(([t]) => t === k) + 1;
     assert.equal(!!SHEME[k].enako, n <= 8, `${k}: vrstica »Enako velja« pri 1-8`);
+    assert.equal(!!SHEME[k].drugiVVzorcu, n >= 10, `${k}: drugi kandidati samo v celicah vzorca pri 10-12`);
   }
 });
 
@@ -179,6 +279,34 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
   assert.equal((xs.match(/<text /g) || []).length, 21, 'X-krilo: 21 x');
   assert.equal((xs.match(/class="sh-vzorec"/g) || []).length, 4, 'štirje vogali');
   assert.equal((xs.match(/class="sh-izbris"/g) || []).length, 4, 'štiri celice izbrisa');
+  // Prečrtan kandidat (popravek po pregledu koraka 2): črka sh-crka sh-precrtan, čez njo črta sh-crta-izbris.
+  assert.equal((xs.match(/class="sh-crta-izbris"/g) || []).length, 4, 'X-krilo: štiri črte izbrisa');
+
+  // Korak 3: pri 9 dve risbi z naslovom, povezave, legenda z vrstami povezav.
+  run('var t = izrisiShemo("turbot-fish")');
+  assert.deepEqual(JSON.parse(run('JSON.stringify(t.children.map(c => c.className))')),
+    ['shema-naslov', 'shema-okvir', 'shema-naslov', 'shema-okvir', 'shema-legenda', 'shema-crke', 'shema-opomba']);
+  assert.equal(run('t.children[0].textContent'), 'Nebotičnik (Skyscraper)');
+  assert.equal(run('t.children[2].textContent'), 'Zmaj z dvema vrvicama (2-String Kite)');
+  assert.equal(run('t.children[4].children.map(c => c.textContent).join(" | ")'),
+    'konca povezav | celica izbrisa | xkandidat za izbris | povezava | celici se vidita | celica izbrisa vidi');
+  for (const [n, i] of [[0, 1], [1, 3]]) {
+    const s = run(`t.children[${i}].innerHTML`);
+    const r = risbe('turbot-fish')[n];
+    assert.match(s, new RegExp(`aria-label="Shema vzorca: Veriga ene števke – ${r.naslov.replace(/[()]/g, '\\$&')}"`));
+    assert.equal((s.match(/class="sh-povezava"/g) || []).length, r.povezave.length, `risba ${n}: povezave`);
+    assert.equal((s.match(/class="sh-vidita"/g) || []).length, r.vidita.length, `risba ${n}: vidita`);
+    assert.equal((s.match(/class="sh-vidi"/g) || []).length, r.vidi.length, `risba ${n}: vidi`);
+    // Črte povezav so za mrežnimi črtami in pred črkami.
+    assert.ok(s.lastIndexOf('sh-debela') < s.indexOf('sh-povezava') && s.lastIndexOf('sh-vidi"') < s.indexOf('<text'), `risba ${n}: vrstni red`);
+  }
+  // Skrajšana črta: konca sta 12 enot od središč celic.
+  const s0 = run('t.children[1].innerHTML');
+  const crta = s0.match(/<line class="sh-povezava" x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)"\/>/).slice(1).map(Number);
+  assert.deepEqual(crta, [1.5 + 36 + 18, 1.5 + 36 + 18 + 12, 1.5 + 36 + 18, 1.5 + 7 * 36 + 18 - 12], 'V2S2 V8S2');
+  run('var u = izrisiShemo("unique-rectangle")');
+  assert.equal(run('u.children[1].children.map(c => c.textContent).join(" | ")'), 'vogali pravokotnika | xkandidat za izbris');
+  assert.doesNotMatch(run('u.children[0].innerHTML'), /sh-povezava|sh-vidi/, 'pravokotnik brez povezav');
 });
 
 // Trening v nadomestnem DOM-u; setTimeout gre v vrsto (iskanje vaje »Vadi v uganki«), ura
@@ -224,18 +352,19 @@ test('trening: razdelek »Shema« za »Razlaga«; Spoznaj odprt, Vadi v uganki z
   run('zacniKrog("naked-single", "spoznaj")');
   assert.equal(shema(), undefined, 'E1 nima sheme');
 
-  // Korak 2: pas (1, 2) v »Spoznaj« odprt, 9 × 9 (7, 8) tudi v »Spoznaj« zaprt.
-  for (const [k, odprt] of [['pointing', true], ['box-line', true], ['x-wing', false], ['swordfish', false]]) {
+  // Popravek po pregledu koraka 2: v »Spoznaj« odprt pri vseh tehnikah, tudi pri shemah 9 × 9.
+  for (const [k] of TRENING) {
     run(`zacniKrog(${JSON.stringify(k)}, "spoznaj")`);
-    assert.equal(shema().open, odprt, `${k}: Spoznaj`);
+    assert.equal(shema().open, true, `${k}: Spoznaj`);
     run(`zacniKrog(${JSON.stringify(k)}, "uganka")`);
     izprazni();
     assert.equal(shema().open, false, `${k}: Vadi v uganki`);
   }
-  run('zacniKrog("x-wing", "spoznaj")');
-  shema().open = true; shema().sprozi('toggle');
+  run('zacniKrog("turbot-fish", "spoznaj")');
+  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-okvir').length, 2, 'veriga ene števke: dve risbi');
+  shema().open = false; shema().sprozi('toggle');
   run('exNum++; renderExercise()');
-  assert.equal(shema().open, true, 'X-krilo: odprt ostane v naslednji vaji');
+  assert.equal(shema().open, false, 'veriga ene števke: zaprt ostane v naslednji vaji');
 });
 
 test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), opomba pod napisom o črkah; legenda »celica izbrisa« samo z rožnato celico', () => {
@@ -252,18 +381,23 @@ test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), op
   const vVrstici = [...Array(9).keys()].map(r => SHEME.swordfish.celice.slice(r * 9, r * 9 + 9).map(celica).filter(c => c.vzorec).length).filter(Boolean);
   assert.deepEqual(vVrstici.sort(), [2, 2, 3]);
   assert.equal(SHEME.swordfish.opomba, 'V vrstici vzorca je x v dveh ali vseh treh stolpcih.');
+  // Korak 3: vzorec z več oblikami ima opombo.
+  for (const k of ['turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle']) assert.ok(SHEME[k].opomba, k);
   const dom = makeDom();
   const { run } = loadContext(['shared/engine.js', 'shared/sheme.js'], dom.globals);
   for (const k of Object.keys(SHEME)) {
     run(`var f = izrisiShemo(${JSON.stringify(k)})`);
     const deli = JSON.parse(run('JSON.stringify(f.children.map(c => c.className))'));
-    const pricakovano = ['shema-okvir', 'shema-legenda', 'shema-crke', ...(SHEME[k].opomba ? ['shema-opomba'] : []), 'shema-enako'];
+    const zacetek = risbe(k).flatMap(r => [...(r.naslov ? ['shema-naslov'] : []), 'shema-okvir']);
+    const pricakovano = [...zacetek, 'shema-legenda', 'shema-crke', ...(SHEME[k].opomba ? ['shema-opomba'] : []), ...(SHEME[k].enako ? ['shema-enako'] : [])];
     assert.deepEqual(deli, pricakovano, k);
-    if (SHEME[k].opomba) assert.equal(run('f.children[3].textContent'), SHEME[k].opomba, k);
-    const rozna = SHEME[k].celice.map(celica).some(c => !c.vzorec && c.zetoni.some(t => t.izbris));
-    const legenda = run('f.children[1].children.map(c => c.textContent).join(" | ")');
+    const leg = zacetek.length;
+    if (SHEME[k].opomba) assert.equal(run(`f.children[${leg + 2}].textContent`), SHEME[k].opomba, k);
+    const rozna = risbe(k).flatMap(r => r.celice).map(celica).some(c => !c.vzorec && c.zetoni.some(t => t.izbris));
+    const legenda = run(`f.children[${leg}].children.map(c => c.textContent).join(" | ")`);
     assert.equal(legenda.includes('celica izbrisa'), rozna, `${k}: ${legenda}`);
     // Na risbi je rožnata celica natanko takrat, ko je v legendi.
-    assert.equal(run('f.children[0].innerHTML').includes('class="sh-izbris"'), rozna, k);
+    const svg = risbe(k).map((r, n) => run(`f.children[${zacetek.indexOf('shema-okvir') + n * (zacetek.length / risbe(k).length)}].innerHTML`)).join('');
+    assert.equal(svg.includes('class="sh-izbris"'), rozna, k);
   }
 });
