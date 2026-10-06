@@ -65,3 +65,32 @@
 .vzorec-vzorec{ background: var(--amber-bg); color: var(--amber); padding:0 3px; border-radius:3px; }
 .vzorec-izbris{ background: var(--red-bg); color: var(--red); padding:0 3px; border-radius:3px; text-decoration: line-through; }
 .vzorec-vpis{ background: var(--green-bg); color: var(--green); padding:0 3px; border-radius:3px; }
+
+/* ---------- shema vzorca pri razlagi tehnik 1–12 (faza 3a, shared/sheme.js) ----------
+   Barve kot legenda treninga (--k-vzorec-bg, --okvir-vzorec, --k-izbris-bg v trening/trening.css),
+   tu pod svojimi imeni, ker se slog naloži tudi v igri in reševalcu. Risba se prilagodi širini
+   (največ 327 px – na širokem zaslonu se ne poveča). */
+:root{
+  --shema-vzorec-bg:#EFD8A0;
+  --shema-vzorec-okvir:#C8A020;
+  --shema-izbris-bg:#F0B4AA;
+}
+.shema{ margin:8px 0 0; }
+.shema-okvir{ line-height:0; }
+.shema-risba{ display:block; width:100%; height:auto; }
+.shema-risba .sh-vzorec{ fill:var(--shema-vzorec-bg); stroke:var(--shema-vzorec-okvir); stroke-width:2.5; }
+.shema-risba .sh-izbris{ fill:var(--shema-izbris-bg); }
+.shema-risba .sh-tanka{ stroke:var(--line); stroke-width:1; }
+.shema-risba .sh-debela{ stroke:var(--ink); stroke-width:2; }
+.shema-risba .sh-okvir{ fill:none; stroke:var(--ink); stroke-width:2.5; }
+.shema-risba text{ font-family:'JetBrains Mono', monospace; font-size:13px; text-anchor:middle; }
+.shema-risba .sh-crka{ fill:var(--ink); font-weight:500; }
+.shema .sh-drugi{ fill:var(--pencil); }
+.shema .sh-precrtan{ fill:var(--red); font-weight:700; }
+.shema .sh-crta-izbris{ stroke:var(--red); stroke-width:1.5; }
+.shema-legenda{ display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12.5px; margin-top:6px; color:var(--ink2); }
+.shema-sw{ display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
+.shema-sw-vzorec{ background:var(--shema-vzorec-bg); border:2px solid var(--shema-vzorec-okvir); }
+.shema-izbris{ color:var(--red); font-weight:700; text-decoration:line-through; font-family:'JetBrains Mono', monospace; margin-right:5px; }
+.shema-izbris-drugi svg{ display:inline-block; width:17px; height:14px; vertical-align:-2px; margin-right:5px; }
+.shema .shema-crke, .shema .shema-enako{ font-size:12.5px; color:var(--ink2); line-height:1.5; margin:4px 0 0; }

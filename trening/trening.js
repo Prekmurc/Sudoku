@@ -65,9 +65,24 @@ function razdelekRazlaga(m){
   return d;
 }
 
+// Razdelek "Shema" nad mrežo vaje (faza 3a, docs/faza3a-nacrt.md, dodatek 4): splošna risba
+// vzorca iz shared/sheme.js. V "Spoznaj" privzeto odprt, v "Vadi v uganki" zaprt; odprt ali
+// zaprt ostane med vajami kroga (shemaKrog, zacniKrog() ga nastavi). Ogled ne šteje kot pomoč -
+// shema je splošna. Tehnika brez sheme (E1, E2) razdelka nima: null.
+let shemaKrog=true;
+function razdelekShema(m){
+  const fig=izrisiShemo(m);
+  if(!fig)return null;
+  const d=document.createElement('details');d.className='shema-razdelek';d.open=shemaKrog;
+  const s=document.createElement('summary');s.textContent='Shema';
+  d.append(s,fig);
+  d.addEventListener('toggle',()=>{shemaKrog=d.open;});
+  return d;
+}
+
 // Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka').
 function zacniKrog(m,n){
-  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;razlagaKrog=false;
+  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;razlagaKrog=false;shemaKrog=n==='spoznaj';
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';
   renderExercise();
 }
@@ -474,6 +489,7 @@ function renderExercise(){
   const opis=ex.desc?`${TEHNIKE_OPISI[mode].povzetek} ${ex.desc}`:M.desc;
   div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
   div.appendChild(razdelekRazlaga(mode));
+  const shema=razdelekShema(mode);if(shema)div.appendChild(shema);
 
   let cellEls=[],countEls=[];
 

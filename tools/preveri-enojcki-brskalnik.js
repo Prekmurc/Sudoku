@@ -285,9 +285,14 @@ async function izris(b, mode, sirina) {
   // razlikovala zaradi nalaganja, ne zaradi kode (kot v preveri-presek-brskalnik.js).
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
-    const a = document.getElementById('exerciseArea');
-    const slogi = [...a.querySelectorAll('*')].map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
-    return { html: a.innerHTML, slogi };
+    // Razdelek »Shema« (faza 3a) v izhodišču ni - med meritvijo je skrit (višina kartice je
+    // potem kot v izhodišču), primerja se vse drugo.
+    const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
+    k.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek')]; sk.forEach(e => { e.style.display = 'none'; });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    sk.forEach(e => { e.style.display = ''; });
+    return { html: k.innerHTML, slogi };
   })()`);
 }
 

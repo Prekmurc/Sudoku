@@ -58,6 +58,9 @@ header.top{max-width:560px}
 .razlaga-tehnike{font-size:13px;color:var(--ink2);line-height:1.5;margin:-6px 0 12px}
 .razlaga-tehnike summary{cursor:pointer;color:var(--blue);font-weight:600;width:max-content}
 .razlaga-tehnike p{margin:6px 0 0}
+/* Razdelek "Shema" nad mrežo vaje (faza 3a): risba in napisi v shared/pomoc.css (.shema). */
+.shema-razdelek{margin:-6px 0 12px}
+.shema-razdelek summary{cursor:pointer;color:var(--blue);font-weight:600;font-size:13px;width:max-content}
 
 /* --- PRIKAZI --- */
 .layout-row{display:flex;justify-content:center;gap:2px;margin:0 0 8px}

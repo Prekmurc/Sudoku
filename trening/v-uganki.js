@@ -185,6 +185,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].povzetek+(!ob?'':ob.celice?' Območje je na mreži uokvirjeno.'
     :ob.stevke.length>1?' Števki sta poudarjeni.':' Števka je poudarjena.')));
   div.appendChild(razdelekRazlaga(mode));
+  const shema=razdelekShema(mode);if(shema)div.appendChild(shema);
 
   // Stopnja uganke (samo informacija, tudi "Presega tehnike"), izvor vaje v title.
   const info=vEl('div','vaja-info');

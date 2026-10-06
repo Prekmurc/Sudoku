@@ -1,7 +1,8 @@
 # Faza 3a – shema vzorca pri razlagi tehnik 1–12 – načrt
 
 Načrt 2026-10-06 (vir: `docs/uskladitev.md`, tabela »Vrstni red popravkov«, vrstica 3a, in »Vrstni red
-po fazi 6«, naloga 2). Koda ni spremenjena. Čaka potrditev.
+po fazi 6«, naloga 2). **Potrjeno 2026-10-06** z dodatki – razdelek 7 (odločitve in dodatki imajo
+prednost pred razdelki 2–6).
 
 ## 1. Obseg
 
@@ -96,3 +97,48 @@ Ročni pregled (en, ob koraku 4):
 3. Igra, monitor, Pomoč → Tehnike: odpri nekaj shem – dolžina okna, videz ob besedilu.
 
 Ni avtomatsko, ker razumljivost in berljivost risbe lahko oceni samo bralec.
+
+## 7. Odločitve in dodatki (Darko, 2026-10-06)
+
+**Odločitve.** O1: a, s spremembo iz dodatka 4 (shema v treningu ni v »Razlaga«, ampak v svojem
+razdelku). O2–O5: a. Faza 7 ostane za fazo 3a. `.gitattributes` za hooke: v redu.
+
+**Dodatki k načrtu.**
+
+1. Napis o črkah se ravna po tehniki: našteje samo črke, ki so na tej shemi (npr. pri 1, 2, 7, 8
+   samo x, pri 3 x, y, pri 11 x, y, z; »…« samo, če je na shemi).
+2. Pri tehnikah 1–8 je pod shemo kratka vrstica, da enako velja za stolpec ali blok, kjer to drži
+   (3–6: vrstica, stolpec ali blok; 7, 8: vrstice ↔ stolpci; 1, 2: vrstica ↔ stolpec).
+3. Po koraku 1 se delo ustavi. Darko pogleda sheme 3–6 na telefonu, preden se ostale naredijo
+   v istem slogu.
+4. Shema v treningu ni v »Razlaga«, ampak ima svoj zložljiv razdelek »Shema« nad mrežo vaje
+   (pod »Razlaga«). V »Spoznaj« je privzeto odprt, v »Vadi v uganki« privzeto zaprt. Stanje
+   (odprt/zaprt) ostane, ko greš na naslednjo vajo iste tehnike (do novega kroga). »Razlaga«
+   ostane zaprta kot zdaj. V Pomoči ostane po načrtu: zložljivo, zaprto. Če se pri 375 px pokaže
+   boljša postavitev, se jo predlaga v poročilu – brez spreminjanja.
+
+**Koraki** (razdelek 4) ostanejo, korak 1 je zdaj: `shared/sheme.js`, slogi, sheme 3–6, razdelek
+»Shema« v treningu, test motorja.
+
+## 8. Izvedba
+
+**Korak 1 – narejen 2026-10-06** (sheme 3–6, razdelek »Shema« v treningu). Nato se delo ustavi
+(dodatek 3).
+
+- `shared/sheme.js`: `SHEME_TEHNIK` (zapis celice »*x y -…«), `svgSheme()` (risba kot niz),
+  `izrisiShemo()` (`<figure class="shema">`), `shemaNapisCrk()` (dodatek 1). Slogi in barve
+  `--shema-*` v `shared/pomoc.css`.
+- Sheme 3–6 so vrstica 1 × 9; celice vzorca so v treh različnih blokih (sicer bi bil isti vzorec
+  hkrati vzorec bloka). 5 · Očitna trojica ima {x, y}, {y, z}, {x, z} kot v razlagi, 6 · Skrita
+  trojica števke vsako v dveh od treh celic.
+- **Odstopanje od prototipa** (posnetki ob delu): znak »…« je pri 13 px premajhen, da bi se
+  prečrtanje videlo – na risbi so drugi kandidati tri pike (krožci), v celici s črkami pod njimi
+  (črke zgoraj, pike spodaj), sicer sredi celice. Legenda pri skritih: prečrtane pike »drugi
+  kandidati za izbris« (pri očitnih prečrtan »x« »kandidat za izbris«). Napis o črkah ima še »prazna
+  celica – brez x in y« (pri skritih je bistveno, da x in y drugje v enoti nista).
+- Trening: `razdelekShema()` v `trening/trening.js` (»Spoznaj« in »Vadi v uganki«), stanje
+  `shemaKrog` (dodatek 4).
+- Preverjanje: `tests/sheme.test.js` (motor na deski iz sheme, napisi, izris, razdelek v treningu),
+  `tools/preveri-sheme-brskalnik.js` (375 in 1280 px). Primerjave »Spoznaj« z izhodiščem v
+  `tools/preveri-{presek,enojcki,vadi,izbira}-brskalnik.js` razdelek »Shema« med meritvijo skrijejo
+  in izpustijo (v izhodišču ga ni). Posnetki: `docs/slike/faza3a/korak1-shema-{3,4,5,6}-375.png`.

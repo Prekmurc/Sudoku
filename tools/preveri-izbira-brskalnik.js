@@ -171,7 +171,7 @@ const PRECRTANE_NAVADNE = '#exerciseArea .xw-cell.peek-elim { color: var(--ink);
 // Med meritvijo sta glava strani in besedilo nad mrežo (naslov, opis, razdelek »Razlaga«) skrita v obeh brskalnikih: mreža
 // je tako na istem mestu, sicer drugačna višina besedila (faza 6) premakne mrežo za del piksla in
 // spremeni glajenje robov na posnetku - meritev naj meri okvir in števke, ne besedila.
-const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike { display: none !important; }';
+const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike, #exerciseArea .shema-razdelek { display: none !important; }';
 async function prekrivanje(b) {
   await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-izbris').forEach(e => { e.classList.remove('peek-izbris'); e.dataset.pi = 1; }); true`);
   try { return await prekrivanjeMeritev(b); } finally {
@@ -209,15 +209,19 @@ async function prekrivanjeMeritev(b) {
 // currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo.
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
-const izris = (b, mode) => b.izvedi(`(() => { const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')], ocitni = ${OCITNI.includes(mode)};
+// Razdelek »Shema« (faza 3a) v izhodišču ni - primerja se vse drugo.
+const izris = (b, mode) => b.izvedi(`(() => { const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek')]; sk.forEach(e => { e.style.display = 'none'; });
+  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek')), ocitni = ${OCITNI.includes(mode)};
+  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
   const dovoljeno = {};
   vsi.forEach((e, i) => {
     if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl)')) dovoljeno[i] = ['background-color'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl) .cd')) dovoljeno[i] = ['color', 'border-top-color'];
   });
-  return { html: a.innerHTML.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno,
-    slogi: vsi.map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); }) }; })()`);
+  const slogi = vsi.map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+  sk.forEach(e => { e.style.display = ''; });
+  return { html: kopija.innerHTML.replace(/ data-(i|vz|iz|izb)="[^"]*"/g, ''), dovoljeno, slogi }; })()`);
 // Razlike nove kode od izhodišča razen dovoljenih: razred peek-izbris (pri 3 in 5 še peek-elim) se
 // odstrani v obeh izrisih, dovoljene lastnosti so kot v izhodišču - tako primerjava velja z
 // izhodiščem pred nalogo prečrtanja (06e64e5) in po njej (od faze 6 privzeto 4c47cc0).
