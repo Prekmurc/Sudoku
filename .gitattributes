@@ -1,0 +1,2 @@
+# Hook teče v lupini sh: prelomi LF tudi ob core.autocrlf=true (»#!/bin/sh\r« ne deluje).
+tools/hooks/* text eol=lf
