@@ -10,11 +10,43 @@
 // »-« pred žetonom = kandidat za izbris (rdeče prečrtan), »*« na začetku = celica vzorca
 // (jantarna z zlatim okvirjem). Celica z izbrisom, ki ni celica vzorca, je rožnata. Prazen niz =
 // celica brez črk (vpisana števka ali samo drugi kandidati, ki za vzorec niso pomembni).
+// shemaVrstice(): vrstice izseka kot nizi zapisov celic z enim žetonom, ločenih s presledki;
+// ».« = prazen niz.
+function shemaVrstice(vrstice) {
+  return vrstice.flatMap(v => v.trim().split(/\s+/).map(t => t === '.' ? '' : t));
+}
+
 // izsek: 'vrstica' (1 × 9), 'pas' (3 × 9) ali 'mreza' (9 × 9); celice so po indeksu v izseku
 // (vrstica · 9 + stolpec). vzorec = napis celic vzorca v legendi, opomba = vrstica pod napisom o
 // črkah (pri trojicah: celica ima dve ali vse tri črke – popravek po pregledu koraka 1), enako =
-// vrstica pod shemo (dodatek 2 – enako velja za stolpec ali blok).
+// vrstica pod shemo (dodatek 2 – enako velja za stolpec ali blok, pri 1, 2 za stolpec namesto
+// vrstice, pri 7, 8 z zamenjanimi vrsticami in stolpci). Pas in mreža sta zapisana po vrsticah
+// (shemaVrstice()). Sheme 1, 2, 7 in 8 imajo samo x (druge števke za vzorec niso pomembne); na njih
+// lažje tehnike in skriti enojček ne najdejo ničesar, pri 7 in 8 se prazne vrstice, stolpci in
+// bloki ujemajo z vpisanimi x (tests/sheme.test.js).
 const SHEME_TEHNIK = {
+  'pointing': {
+    izsek: 'pas',
+    celice: shemaVrstice([
+      '*x  .  *x  -x  .   .   .   -x  .',
+      '.   .   .   x   .   .   .   x   .',
+      '.   .   .   .   x   .   x   .   .',
+    ]),
+    vzorec: 'celice vzorca',
+    opomba: 'Vzorec ima dve ali tri celice.',
+    enako: 'Enako velja za stolpec namesto vrstice.',
+  },
+  'box-line': {
+    izsek: 'pas',
+    celice: shemaVrstice([
+      'x   .   .   .   -x  .   .   x   .',
+      '.   .   .   *x  *x  *x  .   .   .',
+      '.   x   .   -x  .   .   x   .   .',
+    ]),
+    vzorec: 'celice vzorca',
+    opomba: 'Vzorec ima dve ali tri celice.',
+    enako: 'Enako velja za stolpec namesto vrstice.',
+  },
   'naked-pair': {
     izsek: 'vrstica',
     celice: ['', '*x y', '-x …', '…', '', '-y …', '…', '*x y', '-x -y …'],
@@ -40,6 +72,39 @@ const SHEME_TEHNIK = {
     vzorec: 'celice trojice',
     opomba: 'Celica trojice ima dve ali vse tri črke.',
     enako: 'Enako velja za stolpec ali blok.',
+  },
+  'x-wing': {
+    izsek: 'mreza',
+    celice: shemaVrstice([
+      '.   .   x   .   x   .   -x  .   x',
+      '.   *x  .   .   .   .   *x  .   .',
+      'x   .   .   .   .   x   .   .   .',
+      'x   -x  x   .   .   .   .   .   .',
+      '.   .   .   .   .   .   -x  x   .',
+      '.   .   .   .   .   .   .   .   .',
+      '.   *x  .   .   .   .   *x  .   .',
+      'x   .   .   .   .   x   .   x   x',
+      '.   -x  .   .   x   .   .   .   .',
+    ]),
+    vzorec: 'vogali X-krila',
+    enako: 'Enako velja z zamenjanimi vrsticami in stolpci.',
+  },
+  'swordfish': {
+    izsek: 'mreza',
+    celice: shemaVrstice([
+      '.   .   x   .   .   x   .   .   .',
+      '.   *x  .   .   *x  .   .   *x  .',
+      '.   .   .   .   -x  .   .   .   x',
+      '.   .   .   .   .   x   x   .   .',
+      '.   *x  .   .   .   .   .   *x  .',
+      'x   .   x   x   .   .   .   .   .',
+      '.   .   .   .   *x  .   .   *x  .',
+      'x   .   .   .   .   .   x   .   .',
+      '.   -x  .   x   .   .   .   -x  x',
+    ]),
+    vzorec: 'celice vzorca',
+    opomba: 'V vrstici vzorca je x v dveh ali vseh treh stolpcih.',
+    enako: 'Enako velja z zamenjanimi vrsticami in stolpci.',
   },
 };
 

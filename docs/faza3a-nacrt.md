@@ -178,3 +178,51 @@ pred korakom 2 štirje popravki). Korak 2 še ni začet.
 
 Posnetki shem po popravkih: [3](slike/faza3a/popravki-shema-3-375.png),
 [5](slike/faza3a/popravki-shema-5-375.png), [6](slike/faza3a/popravki-shema-6-375.png).
+
+**Popravek pred korakom 2 – narejen 2026-10-06.** Ob vstopu v vajo je stran ostala na položaju
+menija (brskalnik ga le zmanjša na višino krajše strani) – pri 375 px pribl. 145 px niže, glava
+odrezana. Zdaj `zacniKrog()` po izrisu vaje pomakne stran na vrh (`window.scrollTo(0, 0)`);
+»Nazaj na izbiro« deluje kot prej (`menuPolozaj` se zapomni pred tem). Test
+`tests/trening-meni.test.js` (vstop v »Spoznaj« in »Vadi v uganki« → položaj 0), v brskalniku
+`tools/preveri-sheme-brskalnik.js` po vsakem vstopu v »Spoznaj«: `scrollY` 0, glava v oknu.
+
+**Korak 2 – narejen 2026-10-06** (sheme 1, 2, 7, 8). Korak 3 še ni začet.
+
+- **Samo x** pri vseh štirih (tudi pri 1 in 2 – druge števke za vzorec niso pomembne, risba je
+  preglednejša; celice brez x so prazne). Napis o črkah zato »x – poljubna števka; prazna celica –
+  brez x.« (dodatek 1).
+- **1 · Izločitev izven bloka** (pas 3 × 9): v bloku 1 je x samo v dveh celicah vrstice 1 → izbris
+  x v vrstici 1 v blokih 2 in 3; bloka 2 in 3 imata x tudi v drugih vrsticah. **2 · Izločitev v
+  bloku**: v vrstici 2 je x samo v treh celicah bloka 2 → izbris x v bloku 2 v vrsticah 1 in 3.
+  Ker ima 1 vzorec z dvema, 2 s tremi celicami, je pod napisom o črkah pri obeh »Vzorec ima dve ali
+  tri celice.« (kot pri trojicah po pregledu koraka 1).
+- **7 · X-krilo** (9 × 9): vogali V2S2, V2S7, V7S2, V7S7, izbrisi po dva v vsakem stolpcu, 21 x.
+  **8 · Mečarica**: vrstice 2, 5, 7 in stolpci 2, 5, 8, vrstica 2 s tremi x, drugi dve z dvema –
+  opomba »V vrstici vzorca je x v dveh ali vseh treh stolpcih.«; trije izbrisi, 22 x. Legenda: 7
+  »vogali X-krila«, 1, 2, 8 »celice vzorca«.
+- **Vrstica pod shemo** (dodatek 2): 1, 2 »Enako velja za stolpec namesto vrstice.«, 7, 8 »Enako
+  velja z zamenjanimi vrsticami in stolpci.«
+- **Kako so sheme sestavljene.** Ne na pamet: preprosta postavitev (samo vzorec in izbrisi) je
+  imela napake, ki jih bralec opazi – npr. pri X-krilu je bil vogal edini x v bloku 9 (skriti
+  enojček – X-krilo ne bi bilo potrebno), pri mečarici je X-krilo ali izločitev izven bloka našla
+  del izbrisov. Dodatni x so poiskani z iskanjem (simulirano ohlajanje v zapisu na deski iz sheme)
+  s pogoji, ki jih zdaj preverja test: funkcija tehnike najde natanko vzorec in izbrise sheme;
+  lažje tehnike (vse pred njo v `ALL_TECHNIQUES` razen golega enojčka – narisani so samo kandidati
+  x) in skriti enojček ne najdejo ničesar (ni osamljenega x v vrstici, stolpcu ali bloku); pri 9 × 9
+  se prazne vrstice, stolpci in bloki ujemajo z vpisanimi x (en x na vrstico, stolpec in blok – pri
+  X-krilu vrstica 6, stolpec 4 in srednji blok, pri mečarici praznih enot ni).
+- **Postavitev v treningu** (odločitev): razdelek »Shema« je pri 9 × 9 (7–12) tudi v »Spoznaj«
+  privzeto zaprt (`shemaPrivzetoOdprta()` v `trening/trening.js`), pri 1 in 2 odprt kot pri 3–6.
+- **Gumb »Preveri« pri 1 in 2 pri 375 px** (izmerjeno, nič spremenjeno): spodnji rob gumba je
+  1108 px od vrha strani, mreža vaje se začne pri 768 px (shema z napisi je visoka 239 px). Na
+  telefonu z višino 667 ali 812 px je gumb pod robom zaslona; tudi z zaprto shemo bi bil pri 884 px
+  (še vedno pod 812). Za primerjavo: 3–6 pri 752–796 px (odprta shema), 7, 8 pri 884 px (zaprta).
+- Kljub vstopu na vrh strani se pri 1 in 2 na telefonu ob odprtju vidi le opis, »Razlaga« in
+  shema; mreža vaje je pod robom – posnetka cele strani:
+  [1](slike/faza3a/korak2-vaja-pointing-375.png), [2](slike/faza3a/korak2-vaja-box-line-375.png).
+- Preverjanje: `tests/sheme.test.js` (motor na deski iz sheme za 1, 2, 7, 8; lažje tehnike in
+  skriti enojček; prazne enote 9 × 9; opombe, napisi, mere SVG; razdelek v treningu – pas odprt,
+  9 × 9 zaprt v »Spoznaj«), `tools/preveri-sheme-brskalnik.js` (375 in 1280 px, vseh osem shem –
+  9 × 9 se za meritev odpre; vstop na vrh; izpis položaja »Preveri«). Posnetki shem:
+  [1](slike/faza3a/korak2-shema-1-375.png), [2](slike/faza3a/korak2-shema-2-375.png),
+  [7](slike/faza3a/korak2-shema-7-375.png), [8](slike/faza3a/korak2-shema-8-375.png).

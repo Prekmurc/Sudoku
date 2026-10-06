@@ -66,10 +66,14 @@ function razdelekRazlaga(m){
 }
 
 // Razdelek "Shema" nad mrežo vaje (faza 3a, docs/faza3a-nacrt.md, dodatek 4): splošna risba
-// vzorca iz shared/sheme.js. V "Spoznaj" privzeto odprt, v "Vadi v uganki" zaprt; odprt ali
-// zaprt ostane med vajami kroga (shemaKrog, zacniKrog() ga nastavi). Ogled ne šteje kot pomoč -
+// vzorca iz shared/sheme.js. V "Spoznaj" privzeto odprt, v "Vadi v uganki" zaprt, shema 9 × 9
+// (7-12) tudi v "Spoznaj" zaprta (korak 2); odprt ali zaprt ostane med vajami kroga (shemaKrog,
+// zacniKrog() ga nastavi po shemaPrivzetoOdprta()). Ogled ne šteje kot pomoč -
 // shema je splošna. Tehnika brez sheme (E1, E2) razdelka nima: null.
 let shemaKrog=true;
+function shemaPrivzetoOdprta(m,n){
+  return n==='spoznaj'&&!(SHEME_TEHNIK[m]&&SHEME_TEHNIK[m].izsek==='mreza');
+}
 function razdelekShema(m){
   const fig=izrisiShemo(m);
   if(!fig)return null;
@@ -83,12 +87,14 @@ function razdelekShema(m){
 // Položaj menija ob odhodu v vajo: "Nazaj na izbiro" ga obnovi, da seznam ostane pri tehniki,
 // iz katere si prišel (popravek po pregledu koraka 1 faze 3a - prej je skočil na začetek, E1).
 let menuPolozaj=0;
-// Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka').
+// Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka'). Vaja začne na vrhu strani - sicer
+// bi ostal položaj menija (brskalnik ga le zmanjša na višino krajše strani) in glava bi bila odrezana.
 function zacniKrog(m,n){
   if(menuEl.style.display!=='none')menuPolozaj=window.scrollY||0;
-  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;razlagaKrog=false;shemaKrog=n==='spoznaj';
+  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';
   renderExercise();
+  window.scrollTo(0,0);
 }
 // Klik kartice je "Spoznaj"; gumba "Spoznaj" in "Vadi v uganki" (docs/vadi-v-uganki-nacrt.md).
 document.querySelectorAll('.menu-card').forEach(card=>{

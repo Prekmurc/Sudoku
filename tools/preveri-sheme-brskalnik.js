@@ -9,6 +9,9 @@
 // (tudi tri črke pri trojicah), opomba pri trojicah, rožnata »celica izbrisa« v legendi (barva),
 // ime tehnike nad vajo (.ex-label) s kontrastom vsaj 4,5 : 1 in črkami vsaj 14 px (»Spoznaj« in
 // »Vadi v uganki«), »Nazaj na izbiro« pusti meni pri kartici tehnike, iz katere si prišel.
+// Korak 2: sheme 1, 2 (pas) in 7, 8 (9 × 9); shema 9 × 9 je tudi v »Spoznaj« zaprta (za meritev se
+// odpre), opomba pri 1, 2, 5, 6, 8; vaja začne na vrhu strani (glava v oknu); pri 375 px izpiše,
+// kje je gumb »Preveri« (pod višino 667 in 812 px – telefon), brez preverjanja.
 // Posnetke zaslona shrani v mapo (--mapa, privzeto začasna).
 //
 //   node tools/preveri-sheme-brskalnik.js [--mapa <mapa>]
@@ -99,7 +102,11 @@ const IME = `(() => {
 const MENI = kljuc => `(() => { const r = document.querySelector('.menu-card[data-mode="${kljuc}"]').getBoundingClientRect();
   return { y: scrollY, vidna: r.top >= 0 && r.bottom <= innerHeight, meni: getComputedStyle(document.getElementById('menu')).display }; })()`;
 
-async function sirina(b, sir, kljuci, stevilo) {
+// Vrh strani ob vstopu v vajo in spodnji rob gumba »Preveri« (od vrha strani).
+const VRH = `(() => { const g = document.querySelector('header.top').getBoundingClientRect(), p = [...document.querySelectorAll('#exerciseArea button')].find(b => b.textContent === 'Preveri');
+  return { y: scrollY, glava: g.top, preveri: p ? Math.round(p.getBoundingClientRect().bottom + scrollY) : null }; })()`;
+
+async function sirina(b, sir, kljuci, info) {
   console.log(`trening, ${sir} px`);
   await b.odpri('trening/index.html', { sirina: sir, visina: 900, mobilno: sir < 500 });
   await b.cakaj('document.fonts.status === "loaded"', 15000);
@@ -111,15 +118,26 @@ async function sirina(b, sir, kljuci, stevilo) {
     const pred = await b.izvedi(MENI(kljuc));
     await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
     await pocakaj(b);
+    const vrh = await b.izvedi(VRH);
+    preveri(`${kljuc}, Spoznaj: vaja začne na vrhu strani, glava v oknu (prej ${pred.y})`, vrh.y === 0 && vrh.glava >= 0, vrh);
+    const mreza = info[kljuc].izsek === 'mreza';
+    if (sir < 500) console.log(`    · ${kljuc}: spodnji rob »Preveri« ${vrh.preveri} px od vrha (${vrh.preveri > 667 ? 'pod' : 'nad'} 667, ${vrh.preveri > 812 ? 'pod' : 'nad'} 812)${mreza ? ' – shema zaprta' : ''}`);
+    const m0 = await b.izvedi(MERI);
+    preveri(`${kljuc}, Spoznaj: razdelek »Shema« ${mreza ? 'zaprt (9 × 9)' : 'odprt'}, takoj za »Razlaga«`, m0.razdelek && m0.odprt === !mreza && m0.povzetek === 'Shema' && m0.zaRazlago, m0);
+    if (mreza) {
+      await b.izvedi(`document.querySelector('.shema-razdelek summary').scrollIntoView({ block: 'center' }); true`);
+      await b.klikni('.shema-razdelek summary');
+      await pocakaj(b, 100);
+    }
     const m = await b.izvedi(MERI);
-    preveri(`${kljuc}, Spoznaj: razdelek »Shema« odprt, takoj za »Razlaga«`, m.razdelek && m.odprt && m.povzetek === 'Shema' && m.zaRazlago, m);
     preveri(`${kljuc}: risba v kartici, največ 327 px, brez preliva`, m.vKartici && m.risba[2] <= 327.5 && !m.preliv, m);
     preveri(`${kljuc}: ${m.zetonov} črk, vsaka črka, pika in prečrtanje v svoji celici, črke ${m.velikostCrke && m.velikostCrke.toFixed(1)} px`,
-      m.crkeVCelicah && m.pikeVCelicah && m.zetonov === stevilo[kljuc] && m.velikostCrke >= 11, m);
+      m.crkeVCelicah && m.pikeVCelicah && m.zetonov === info[kljuc].stevilo && m.velikostCrke >= 11, m);
     preveri(`${kljuc}: barve kot legenda treninga`, Object.values(m.barve).every(Boolean), m.barve);
     const trojica = kljuc.endsWith('triple');
-    const napisi = ['celic', ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', 'poljubn', ...(trojica ? ['Celica trojice ima dve ali vse tri črke.'] : []), 'Enako velja'];
-    preveri(`${kljuc}: legenda (${m.rozna ? 'z rožnato celico izbrisa' : 'brez rožnate celice'}) in napisi${trojica ? ' z opombo' : ''}`,
+    const { vzorec, opomba } = info[kljuc];
+    const napisi = [vzorec, ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', 'poljubn', ...(opomba ? [opomba] : []), 'Enako velja'];
+    preveri(`${kljuc}: legenda (${m.rozna ? 'z rožnato celico izbrisa' : 'brez rožnate celice'}) in napisi${opomba ? ' z opombo' : ''}`,
       m.napisi.length === napisi.length && napisi.every((n, i) => m.napisi[i].includes(n)), m.napisi);
     preveri(`${kljuc}: črke v celici vzorca ne segajo v zlati okvir${trojica ? ', celica s tremi črkami' : ''}`, m.crkeVOkvirju && m.triCrke === trojica, m);
     const ime = await b.izvedi(IME);
@@ -169,9 +187,10 @@ async function main() {
   try {
     await b.odpri('trening/index.html', { sirina: 1280, visina: 900 });
     const kljuci = await b.izvedi('Object.keys(SHEME_TEHNIK)');
-    const stevilo = await b.izvedi(`Object.fromEntries(Object.keys(SHEME_TEHNIK).map(k => [k,
-      SHEME_TEHNIK[k].celice.reduce((n, z) => n + shemaCelica(z).zetoni.filter(t => t.z !== '…').length, 0)]))`);
-    for (const s of SIRINE) await sirina(b, s, kljuci, stevilo);
+    const info = await b.izvedi(`Object.fromEntries(Object.keys(SHEME_TEHNIK).map(k => [k, {
+      stevilo: SHEME_TEHNIK[k].celice.reduce((n, z) => n + shemaCelica(z).zetoni.filter(t => t.z !== '…').length, 0),
+      vzorec: SHEME_TEHNIK[k].vzorec, opomba: SHEME_TEHNIK[k].opomba || null, izsek: SHEME_TEHNIK[k].izsek }]))`);
+    for (const s of SIRINE) await sirina(b, s, kljuci, info);
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } finally {
     await b.zapri();

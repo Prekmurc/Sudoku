@@ -10,7 +10,10 @@
 //     »Celica trojice ima dve ali vse tri črke.«, legenda ima rožnato »celica izbrisa«, kadar je
 //     taka celica na shemi;
 //   - razdelek »Shema« v treningu (dodatek 4): nad mrežo vaje za »Razlaga«, v »Spoznaj« odprt,
-//     v »Vadi v uganki« zaprt, stanje ostane ob naslednji vaji kroga, E1 brez razdelka.
+//     v »Vadi v uganki« zaprt, stanje ostane ob naslednji vaji kroga, E1 brez razdelka;
+//   - korak 2: sheme 1, 2 (pas) in 7, 8 (9 × 9) samo z x - lažje tehnike in skriti enojček na
+//     njih ne najdejo ničesar, pri 9 × 9 se prazne vrstice, stolpci in bloki ujemajo z vpisanimi x;
+//     razdelek »Shema« pri 9 × 9 tudi v »Spoznaj« privzeto zaprt, pri pasu odprt.
 // Videz (SVG, barve, 375 px) preverja tools/preveri-sheme-brskalnik.js.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
@@ -64,11 +67,14 @@ function deskaIzSheme(kljuc) {
   return { grid, cand, celice: celice.sort((a, b) => a - b), izbrisi: izbrisi.sort() };
 }
 
-test('sheme so samo pri tehnikah 1-12, E1 in E2 je nimata; korak 1: sheme 3-6', () => {
+test('sheme so samo pri tehnikah 1-12, E1 in E2 je nimata; korak 2: sheme 1-8', () => {
   const kljuci = TRENING.map(([k]) => k);
   for (const k of Object.keys(SHEME)) assert.ok(kljuci.includes(k), `${k} ni tehnika 1-12`);
   for (const k of ['naked-single', 'hidden-single']) assert.equal(SHEME[k], undefined, k);
-  for (const k of ['naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple']) assert.ok(SHEME[k], `${k} nima sheme`);
+  for (const [k] of TRENING.slice(0, 8)) assert.ok(SHEME[k], `${k} nima sheme`);
+  const izseki = Object.fromEntries(TRENING.slice(0, 8).map(([k]) => [k, SHEME[k].izsek]));
+  assert.deepEqual(izseki, { 'pointing': 'pas', 'box-line': 'pas', 'naked-pair': 'vrstica', 'hidden-pair': 'vrstica',
+    'naked-triple': 'vrstica', 'hidden-triple': 'vrstica', 'x-wing': 'mreza', 'swordfish': 'mreza' });
 });
 
 for (const kljuc of Object.keys(SHEME)) {
@@ -85,13 +91,58 @@ for (const kljuc of Object.keys(SHEME)) {
   });
 }
 
+// Sheme ene števke (1, 2, 7, 8): samo x; lažja tehnika ali skriti enojček na deski iz sheme bi
+// pomenila, da vzorec ni potreben (npr. kot vogal X-krila, ki je edini x v bloku).
+const ENA_STEVKA = ['pointing', 'box-line', 'x-wing', 'swordfish'];
+for (const kljuc of ENA_STEVKA) {
+  test(`shema ${kljuc}: samo x, lažje tehnike in skriti enojček ne najdejo ničesar`, () => {
+    const znaki = new Set(SHEME[kljuc].celice.flatMap(z => celica(z).zetoni.map(t => t.z)));
+    assert.deepEqual([...znaki], ['x'], kljuc);
+    const d = deskaIzSheme(kljuc);
+    const ime = TRENING.find(([k]) => k === kljuc)[1];
+    const najdene = iz(`(() => { const b = Object.create(Board.prototype); b.grid = ${JSON.stringify(d.grid)}; b.cand = ${JSON.stringify(d.cand)};
+      const i = ALL_TECHNIQUES.findIndex(([n]) => n === ${JSON.stringify(ime)});
+      // Gol enojček izpustimo: na shemi so narisani samo kandidati x.
+      return ALL_TECHNIQUES.slice(1, i).filter(([, f]) => f(b).length).map(([n]) => n); })()`);
+    assert.deepEqual(najdene, [], kljuc);
+  });
+}
+
+test('sheme 9 × 9: prazne vrstice, stolpci in bloki se ujemajo z vpisanimi x (en x na vrstico, stolpec in blok)', () => {
+  for (const kljuc of ENA_STEVKA.filter(k => SHEME[k].izsek === 'mreza')) {
+    const x = SHEME[kljuc].celice.map(z => celica(z).zetoni.length > 0);
+    const prazne = f => [...Array(9).keys()].filter(e => !x.some((ima, i) => ima && f(i) === e));
+    const vr = prazne(i => Math.floor(i / 9)), st = prazne(i => i % 9);
+    const bl = prazne(i => Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3));
+    assert.equal(vr.length, st.length, kljuc);
+    assert.equal(vr.length, bl.length, kljuc);
+    const perm = a => a.length <= 1 ? [a] : a.flatMap((e, i) => perm([...a.slice(0, i), ...a.slice(i + 1)]).map(p => [e, ...p]));
+    const ok = perm(st).some(p => {
+      const b = vr.map((r, i) => Math.floor(r / 3) * 3 + Math.floor(p[i] / 3));
+      return new Set(b).size === b.length && b.every(e => bl.includes(e));
+    });
+    assert.ok(ok, `${kljuc}: vrstice ${vr}, stolpci ${st}, bloki ${bl}`);
+  }
+});
+
 test('napis o črkah našteje samo črke na shemi, »…« samo, če je na njej; »Enako velja« pri 1-8', () => {
   const PRICAKOVANO = {
     'naked-pair': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.',
     'hidden-pair': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.',
     'naked-triple': 'x, y, z – poljubne različne števke; … – drugi kandidati; prazna celica – brez x, y in z.',
     'hidden-triple': 'x, y, z – poljubne različne števke; … – drugi kandidati; prazna celica – brez x, y in z.',
+    'pointing': 'x – poljubna števka; prazna celica – brez x.',
+    'box-line': 'x – poljubna števka; prazna celica – brez x.',
+    'x-wing': 'x – poljubna števka; prazna celica – brez x.',
+    'swordfish': 'x – poljubna števka; prazna celica – brez x.',
   };
+  const ENAKO = {
+    'pointing': 'Enako velja za stolpec namesto vrstice.',
+    'box-line': 'Enako velja za stolpec namesto vrstice.',
+    'x-wing': 'Enako velja z zamenjanimi vrsticami in stolpci.',
+    'swordfish': 'Enako velja z zamenjanimi vrsticami in stolpci.',
+  };
+  for (const [k, p] of Object.entries(ENAKO)) assert.equal(SHEME[k].enako, p, k);
   for (const [k, p] of Object.entries(PRICAKOVANO)) assert.equal(motor(`shemaNapisCrk(${JSON.stringify(k)})`), p, k);
   for (const k of Object.keys(SHEME)) {
     const crke = motor(`shemaNapisCrk(${JSON.stringify(k)})`).split(' – ')[0].split(', ');
@@ -120,6 +171,14 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
   assert.equal(run('g.children[1].children.map(c => c.textContent).join(" | ")'), 'celici para | celica izbrisa | xkandidat za izbris');
   assert.equal(run('g.children[1].children[1].children[0].className'), 'shema-sw shema-sw-izbris');
   assert.equal(run('izrisiShemo("naked-single")'), null);
+  assert.match(run('izrisiShemo("pointing").children[0].innerHTML'), /viewBox="0 0 327 111"/, 'pas 3 × 9');
+  assert.match(run('izrisiShemo("x-wing").children[0].innerHTML'), /viewBox="0 0 327 327"/, 'mreža 9 × 9');
+  run('var x = izrisiShemo("x-wing")');
+  assert.equal(run('x.children[1].children.map(c => c.textContent).join(" | ")'), 'vogali X-krila | celica izbrisa | xkandidat za izbris');
+  const xs = run('x.children[0].innerHTML');
+  assert.equal((xs.match(/<text /g) || []).length, 21, 'X-krilo: 21 x');
+  assert.equal((xs.match(/class="sh-vzorec"/g) || []).length, 4, 'štirje vogali');
+  assert.equal((xs.match(/class="sh-izbris"/g) || []).length, 4, 'štiri celice izbrisa');
 });
 
 // Trening v nadomestnem DOM-u; setTimeout gre v vrsto (iskanje vaje »Vadi v uganki«), ura
@@ -164,15 +223,35 @@ test('trening: razdelek »Shema« za »Razlaga«; Spoznaj odprt, Vadi v uganki z
 
   run('zacniKrog("naked-single", "spoznaj")');
   assert.equal(shema(), undefined, 'E1 nima sheme');
+
+  // Korak 2: pas (1, 2) v »Spoznaj« odprt, 9 × 9 (7, 8) tudi v »Spoznaj« zaprt.
+  for (const [k, odprt] of [['pointing', true], ['box-line', true], ['x-wing', false], ['swordfish', false]]) {
+    run(`zacniKrog(${JSON.stringify(k)}, "spoznaj")`);
+    assert.equal(shema().open, odprt, `${k}: Spoznaj`);
+    run(`zacniKrog(${JSON.stringify(k)}, "uganka")`);
+    izprazni();
+    assert.equal(shema().open, false, `${k}: Vadi v uganki`);
+  }
+  run('zacniKrog("x-wing", "spoznaj")');
+  shema().open = true; shema().sprozi('toggle');
+  run('exNum++; renderExercise()');
+  assert.equal(shema().open, true, 'X-krilo: odprt ostane v naslednji vaji');
 });
 
-test('trojici: celice z dvema in s tremi črkami, opomba pod napisom o črkah; legenda »celica izbrisa« samo z rožnato celico', () => {
+test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), opomba pod napisom o črkah; legenda »celica izbrisa« samo z rožnato celico', () => {
   for (const k of ['naked-triple', 'hidden-triple']) {
     const stevila = SHEME[k].celice.map(celica).filter(c => c.vzorec).map(c => c.zetoni.filter(t => t.z !== '…').length);
     assert.ok(stevila.includes(2) && stevila.includes(3), `${k}: celice vzorca z dvema in s tremi črkami (${stevila})`);
     assert.equal(SHEME[k].opomba, 'Celica trojice ima dve ali vse tri črke.', k);
   }
-  for (const k of ['naked-pair', 'hidden-pair']) assert.equal(SHEME[k].opomba, undefined, k);
+  for (const k of ['naked-pair', 'hidden-pair', 'x-wing']) assert.equal(SHEME[k].opomba, undefined, k);
+  // Pas: vzorec z dvema in s tremi celicami; mečarica: vrstica z dvema in s tremi x.
+  const vzorcev = k => SHEME[k].celice.map(celica).filter(c => c.vzorec).length;
+  assert.deepEqual([vzorcev('pointing'), vzorcev('box-line')], [2, 3]);
+  for (const k of ['pointing', 'box-line']) assert.equal(SHEME[k].opomba, 'Vzorec ima dve ali tri celice.', k);
+  const vVrstici = [...Array(9).keys()].map(r => SHEME.swordfish.celice.slice(r * 9, r * 9 + 9).map(celica).filter(c => c.vzorec).length).filter(Boolean);
+  assert.deepEqual(vVrstici.sort(), [2, 2, 3]);
+  assert.equal(SHEME.swordfish.opomba, 'V vrstici vzorca je x v dveh ali vseh treh stolpcih.');
   const dom = makeDom();
   const { run } = loadContext(['shared/engine.js', 'shared/sheme.js'], dom.globals);
   for (const k of Object.keys(SHEME)) {
