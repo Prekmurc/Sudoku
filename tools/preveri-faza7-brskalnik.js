@@ -22,8 +22,12 @@
 //     biti enako v drevesu, izračunanih slogih (vse lastnosti), položajih in do piksla; izhodišče
 //     brez O2 se razlikuje samo v odmiku pod glavo (in višini panela). Obnašanje (✕, klik ob
 //     panelu, Escape - tudi ob povečanem prikazu -, Pomoč) enako izhodišču.
+//   korak 5 (1.1) - raven kot podatek tehnike pri 375 in 1280 px: značke na karticah treninga
+//     (vrstni red, razred, besedilo, vse lastnosti izračunanega sloga), značke ravni v oknu Pomoč
+//     vseh treh aplikacij (pravi klik na gumb) in oznake korakov v reševalcu po »Reši« na P_14
+//     in P_15 (razred, barva, podlaga) - enake izhodišču.
 //
-//   node tools/preveri-faza7-brskalnik.js [--mapa <mapa>] [--korak 2|3|4] [--izhodisce <commit>]
+//   node tools/preveri-faza7-brskalnik.js [--mapa <mapa>] [--korak 2|3|4|5] [--izhodisce <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
@@ -491,6 +495,106 @@ async function korak4(b) {
   }
 }
 
+/* ---------- korak 5: raven kot podatek tehnike (1.1) ---------- */
+
+// Izračunan slog elementa (vse lastnosti) kot niz - za primerjavo z izhodiščem.
+const SLOG = `el => { const cs = getComputedStyle(el); const o = {};
+  for (let i = 0; i < cs.length; i++) o[cs[i]] = cs.getPropertyValue(cs[i]); return o; }`;
+const POMOC5 = [
+  { ime: 'igra', stran: 'igra/index.html', gumb: '#navodilaBtn', okno: '#navodilaDialog' },
+  { ime: 'reševalec', stran: 'app/index.html', gumb: '#pomocBtn', okno: '#pomocDialog' },
+  { ime: 'trening', stran: 'trening/index.html', gumb: '#pomocBtn', okno: '#pomocDialog' },
+];
+
+// Opažanja ene različice (nova ali izhodišče) pri dani širini: značke na karticah treninga (vrstni
+// red, razred, besedilo, slog), značke ravni v oknu Pomoč vseh treh aplikacij (pravi klik na
+// gumb) in oznake korakov v reševalcu po »Reši« na primerih P_14 (dve napredni) in P_15 (poskus).
+async function znacke(b, sirina) {
+  const o = { sirina };
+  const pocakajPisave = () => b.cakaj('document.fonts.status === "loaded"', 5000);
+  await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
+  await pocakajPisave();
+  o.trening = await b.izvedi(`[...document.querySelectorAll('#menu .menu-card')].map(k => { const z = k.querySelector('.badge');
+    return { mode: k.dataset.mode, razred: z.className, besedilo: z.textContent, slog: (${SLOG})(z) }; })`);
+  o.pomoc = {};
+  for (const a of POMOC5) {
+    await b.odpri(a.stran, { sirina, visina: 900, mobilno: sirina < 500 });
+    await pocakajPisave();
+    await b.klikni(a.gumb);
+    await b.cakaj(`!document.querySelector('${a.okno}').hidden`, 3000);
+    o.pomoc[a.ime] = await b.izvedi(`[...document.querySelectorAll('${a.okno} .tehnika-raven')].map(z => ({
+      razred: z.className, besedilo: z.textContent, slog: (${SLOG})(z) }))`);
+  }
+  o.koraki = {};
+  for (const p of ['P_14', 'P_15']) {
+    await b.odpri('app/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
+    await pocakajPisave();
+    await b.izvedi(`(() => { const s = document.getElementById('exampleSelect');
+      s.value = [...s.options].find(x => x.textContent.startsWith('${p} ')).value; s.dispatchEvent(new Event('change')); })()`);
+    await b.klikni('#solveBtn');
+    await b.cakaj('document.querySelectorAll(".tag").length > 0', 10000);
+    o.koraki[p] = await b.izvedi(`[...document.querySelectorAll('.tag')].map(z => ({ razred: z.className, besedilo: z.textContent,
+      barva: getComputedStyle(z).color, podlaga: getComputedStyle(z).backgroundColor }))`);
+  }
+  return o;
+}
+
+async function korak5(b) {
+  const sirine = [375, 1280];
+  const nova = {};
+  for (const s of sirine) {
+    console.log(`Značke ravni, ${s} px (1.1)`);
+    const n = nova[s] = await znacke(b, s);
+    const ravni = n.trening.map(k => k.besedilo).join(' ');
+    preveri('trening: 14 kartic, značke LAHKA ×2, SREDNJA ×6, NAPREDNA ×6 v vrstnem redu kartic',
+      ravni === ['LAHKA', 'LAHKA', ...Array(6).fill('SREDNJA'), ...Array(6).fill('NAPREDNA')].join(' '), ravni);
+    preveri('trening: razred značke ustreza besedilu', n.trening.every(k => k.razred === `badge badge-${k.besedilo.toLowerCase()}`),
+      n.trening.map(k => k.razred));
+    for (const a of POMOC5) {
+      const z = n.pomoc[a.ime].map(x => x.besedilo).join(' ');
+      preveri(`Pomoč (${a.ime}): 14 značk lahka ×2, srednja ×6, napredna ×6`,
+        z === ['lahka', 'lahka', ...Array(6).fill('srednja'), ...Array(6).fill('napredna')].join(' '), z);
+    }
+    for (const p of Object.keys(n.koraki)) preveri(`reševalec ${p}: oznake korakov (${n.koraki[p].length})`, n.koraki[p].length > 10);
+  }
+  preveri('brez napak JS', b.napake.length === 0, b.napake);
+
+  console.log(`Izhodišče ${izhodisce} – značke in oznake korakov`);
+  const star = izvleciIzhodisce();
+  const bStar = await zazeni({ koren: star });
+  try {
+    for (const s of sirine) {
+      const st = await znacke(bStar, s), n = nova[s];
+      console.log(`Primerjava z izhodiščem ${izhodisce}, ${s} px`);
+      const razlike = (a, c) => {
+        const out = [];
+        a.forEach((x, i) => {
+          const y = c[i];
+          if (!y) { out.push(`${i}: manjka`); return; }
+          for (const k of Object.keys(x)) if (k !== 'slog' && x[k] !== y[k]) out.push(`${i} ${k}: ${x[k]} → ${y[k]}`);
+          if (x.slog) for (const l of Object.keys(x.slog)) if (x.slog[l] !== y.slog[l]) out.push(`${i} ${l}: ${x.slog[l]} → ${y.slog[l]}`);
+        });
+        if (c.length !== a.length) out.push(`število ${a.length} → ${c.length}`);
+        return out;
+      };
+      const rT = razlike(st.trening, n.trening);
+      preveri(`trening: značke (vrstni red, razred, besedilo, vse lastnosti sloga) enake izhodišču`, rT.length === 0, rT.slice(0, 8));
+      for (const a of POMOC5) {
+        const r = razlike(st.pomoc[a.ime], n.pomoc[a.ime]);
+        preveri(`Pomoč (${a.ime}): značke ravni (razred, besedilo, vse lastnosti sloga) enake izhodišču`, r.length === 0, r.slice(0, 8));
+      }
+      for (const p of Object.keys(n.koraki)) {
+        const r = razlike(st.koraki[p], n.koraki[p]);
+        preveri(`reševalec ${p}: oznake korakov (razred, besedilo, barva, podlaga) enake izhodišču`, r.length === 0, r.slice(0, 8));
+      }
+    }
+    preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);
+  } finally {
+    await bStar.zapri();
+    fs.rmSync(star, { recursive: true, force: true });
+  }
+}
+
 (async () => {
   fs.mkdirSync(mapa, { recursive: true });
   const b = await zazeni();
@@ -498,6 +602,7 @@ async function korak4(b) {
     if (!korak || korak === '2') for (const s of [320, 375]) await igra(b, s);
     if (!korak || korak === '3') await korak3(b);
     if (!korak || korak === '4') await korak4(b);
+    if (!korak || korak === '5') await korak5(b);
   } finally {
     await b.zapri();
   }

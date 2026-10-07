@@ -57,13 +57,14 @@
 
 // Ravni tehnik - vsaka tehnika iz ALL_TECHNIQUES je v natanko eni (preverja
 // tests/pocasni/generator.test.js, da nova tehnika ne ostane brez ravni).
-const GEN_LAHKE = ['Gol enojček', 'Skriti enojček'];                    // E1, E2
+const GEN_LAHKE = RAVNI_TEHNIK.lahka;                                   // E1, E2
+const GEN_SREDNJE = RAVNI_TEHNIK.srednja;                               // 1-6
+const GEN_NAPREDNE = RAVNI_TEHNIK.napredna;                             // 7-12
+const GEN_EKSPERTNE = RAVNI_TEHNIK.ekspertna;                           // 13 XY-veriga, ko bo v motorju
+// Ožje delitve srednje ravni za strogoSrednja (skupaj so GEN_SREDNJE - tests/ravni-tehnik.test.js).
 const GEN_PRESEKI = ['Pointing pair/triple', 'Box-line reduction'];
 const GEN_PARI = ['Naked pair', 'Hidden pair'];
 const GEN_TROJICE = ['Naked triple', 'Hidden triple'];
-const GEN_SREDNJE = [...GEN_PRESEKI, ...GEN_PARI, ...GEN_TROJICE];     // 1-6
-const GEN_NAPREDNE = ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle']; // 7-12
-const GEN_EKSPERTNE = [];                                               // 13 XY-veriga, ko bo v motorju
 // Pogoja generatorja (glej ustrezaIskanju): najmanj različnih srednjih tehnik (vse
 // stopnje razen lahke) in največ različnih tehnik nad enojčki pri težki.
 const GEN_NAJMANJ_SREDNJIH = 2;

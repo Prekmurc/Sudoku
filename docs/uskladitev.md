@@ -135,6 +135,14 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   → faza 7 (koda, brez vidne spremembe); poved o ravneh v pomoči igre → faza 6. **Poved narejena
   2026-10-04** (faza 6, korak c): razdelek »Tehnike« v oknih Pomoč vseh treh aplikacij
   (`izrisiTehnike()` v `shared/pomoc.js`) ima poved o ravneh in pri vsaki tehniki značko ravni.
+- **Narejeno 2026-10-07** (faza 7, korak 5, `docs/faza7-nacrt.md`): `RAVNI_TEHNIK` (`lahka`, `srednja`,
+  `napredna`, `ekspertna` – ključi v vrstnem redu tehnik, ekspertna prazna) in `ravenTehnike(kljuc)` v
+  `shared/engine.js` sta edini vir ravni; `GEN_LAHKE` … `GEN_EKSPERTNE` v `shared/generator.js` so te
+  ravni, `tagClass()` je iz ravni (poskus `t-chain`, drugo `t-basic`), značke v Pomoči
+  (`shared/pomoc.js`) in na karticah treninga (`trening/trening.js`, HTML je nadomestek) iz
+  `ravenTehnike()`. Za uporabnika nič; banka vaj, ustvarjena znova, je enaka razen datuma (ni
+  zapisana). Barva ekspertne ravni pride z XY-verigo (naloga 4). Test `tests/ravni-tehnik.test.js`,
+  scenarij `tools/preveri-faza7-brskalnik.js --korak 5`.
 - **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
   `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 

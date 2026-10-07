@@ -591,6 +591,25 @@ const ALL_TECHNIQUES = [
   ['Unique Rectangle', uniqueRectangle],
 ];
 
+// Ravni tehnik (docs/faza7-nacrt.md, točka 1.1) - edini vir: stopnja uganke (GEN_LAHKE ...
+// GEN_EKSPERTNE v shared/generator.js so te ravni), barva oznake koraka (tagClass()) in značka
+// ravni v treningu in v oknu Pomoč. Ključi ALL_TECHNIQUES v vrstnem redu tehnik - vrstni red
+// znotraj ravni šteje (genMerePoti() preizkuša napredne po vrsti, »prva, ki zadošča«). Nova
+// tehnika gre v natanko eno raven (XY-veriga med ekspertne).
+const RAVNI_TEHNIK = {
+  lahka: ['Gol enojček', 'Skriti enojček'],                                                  // E1, E2
+  srednja: ['Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Hidden pair',
+    'Naked triple', 'Hidden triple'],                                                        // 1-6
+  napredna: ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'], // 7-12
+  ekspertna: [],                                                                             // 13 XY-veriga, ko bo v motorju
+};
+// Ključ ravni ('lahka', 'srednja', 'napredna', 'ekspertna') ali null (poskus s protislovjem,
+// OBSTALO, NAPAKA, neznan ključ).
+function ravenTehnike(kljuc) {
+  for (const raven in RAVNI_TEHNIK) if (RAVNI_TEHNIK[raven].includes(kljuc)) return raven;
+  return null;
+}
+
 // Skupine tehnik po težavnosti - samo za sidranje na številko (glej nextStep).
 // So zaporedni odseki ALL_TECHNIQUES, zato vrstni red tehnik ostane nespremenjen:
 // korak iz lažje skupine ima vedno prednost pred sidranim korakom iz težje, sidro
@@ -598,8 +617,8 @@ const ALL_TECHNIQUES = [
 // najlažje, šele nato nadaljuje z isto številko.
 // Srednje tehnike (1-6 v TRENING_TEHNIKE) so razdeljene na tri skupine po vrsti
 // vzorca: preseki, para, trojici. Indeksi 0 (enojčki), 1-3 (srednje) in 4 (napredne)
-// so meje ravni; stopnje ugank pa shared/generator.js računa iz svojih izrecnih ravni
-// (GEN_LAHKE ... GEN_EKSPERTNE), ne iz teh skupin.
+// so meje ravni (vsaka skupina je v eni ravni RAVNI_TEHNIK - tests/ravni-tehnik.test.js);
+// stopnje ugank pa shared/generator.js računa iz ravni, ne iz teh skupin.
 const TECHNIQUE_GROUPS = [
   ['Gol enojček', 'Skriti enojček'],
   ['Pointing pair/triple', 'Box-line reduction'],
@@ -828,14 +847,13 @@ function opisTehnike(kljuc) {
 }
 
 // Skupina tehnike za barvo oznake v prikazu koraka (CSS razredi .tag.t-* v
-// app/app.css in igra/igra.css). Nova tehnika v ALL_TECHNIQUES naj dobi
-// skupino tudi tu.
+// shared/base.css) iz ravni (RAVNI_TEHNIK): lahka t-single, srednja t-pair, napredna
+// t-advanced; poskus s protislovjem t-chain, drugo (OBSTALO, NAPAKA, neznan ključ) t-basic.
+// Ekspertna raven barve še nima (t-basic) - dobi jo z XY-verigo.
+const RAZRED_RAVNI = { lahka: 't-single', srednja: 't-pair', napredna: 't-advanced' };
 function tagClass(tech) {
-  if (tech === 'Gol enojček' || tech === 'Skriti enojček') return 't-single';
-  if (tech.includes('pair') || tech.includes('triple') || tech.includes('Pair') || tech.includes('Triple') || tech === 'Box-line reduction') return 't-pair';
-  if (tech === 'X-Wing' || tech === 'Swordfish' || tech === 'Turbot Fish' || tech === 'W-Wing' || tech === 'XY-Wing' || tech === 'Unique Rectangle' || tech.includes('Coloring')) return 't-advanced';
-  if (tech.includes('forcing') || tech.includes('protislovje')) return 't-chain';
-  return 't-basic';
+  if (typeof tech === 'string' && tech.startsWith(POSKUS_KLJUC)) return 't-chain';
+  return RAZRED_RAVNI[ravenTehnike(tech)] || 't-basic';
 }
 
 // Namig za drugo stopnjo postopne pomoči v igri (prva je samo ime tehnike, tretja

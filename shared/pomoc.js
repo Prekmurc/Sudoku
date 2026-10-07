@@ -49,10 +49,6 @@ function ustvariPomoc(okno, gumbi) {
   return { odpri, zapri, odprto };
 }
 
-// Raven tehnike za značko v seznamu »Tehnike« - iste barve kot oznaka koraka (.tag.t-* v
-// shared/base.css) in značke na karticah treninga (docs/uskladitev.md 1.1).
-const POMOC_RAVNI = { 't-single': 'lahka', 't-pair': 'srednja', 't-advanced': 'napredna' };
-
 // Razdelek »Tehnike« v okno Pomoč (element el): poved o ravneh in seznam E1, E2, 1-12 z oznako,
 // imenom (angleško ime v oklepaju), značko ravni ter razlago in posledico v dveh odstavkih
 // (TEHNIKE_OPISI - popravek po ročnem pregledu faze 6) - vse iz shared/engine.js, zato je enako
@@ -72,10 +68,11 @@ function izrisiTehnike(el) {
     oznaka.textContent = oznakaTehnike(kljuc) + ' · ';
     const ime = document.createElement('b');
     ime.textContent = imeTehnike(tehnika);
-    const razred = tagClass(tehnika);
+    // Značka ravni (ravenTehnike()) v barvi oznake koraka (.tag.t-* v shared/base.css) - kot
+    // značke na karticah treninga (docs/faza7-nacrt.md, točka 1.1).
     const raven = document.createElement('span');
-    raven.className = `tag ${razred} tehnika-raven`;
-    raven.textContent = POMOC_RAVNI[razred];
+    raven.className = `tag ${tagClass(tehnika)} tehnika-raven`;
+    raven.textContent = ravenTehnike(tehnika);
     const razlaga = document.createElement('p');
     razlaga.textContent = TEHNIKE_OPISI[kljuc].razlaga;
     const posledica = document.createElement('p');

@@ -225,6 +225,21 @@ poskus nov in star z oznako celice, `OBSTALO`, `NAPAKA`, neznan ključ); ravni v
 datoteka mora biti enaka obstoječi razen datuma (O5). **Brskalnik:** značke v treningu in Pomoči
 (besedilo in izračunan slog) enake izhodišču; posnetek igre `--primerjaj` (oznaka koraka).
 
+**Izvedeno 2026-10-07** (korak 5). `shared/engine.js`: `RAVNI_TEHNIK` in `ravenTehnike()` (pred
+`TECHNIQUE_GROUPS`), `tagClass()` iz ravni (`RAZRED_RAVNI`; poskus prepozna po `POSKUS_KLJUC`).
+`shared/generator.js`: `GEN_LAHKE` … `GEN_EKSPERTNE` = `RAVNI_TEHNIK.*` (isto polje), `GEN_PRESEKI`/
+`GEN_PARI`/`GEN_TROJICE` ostanejo. `shared/pomoc.js`: `POMOC_RAVNI` odstranjen, besedilo značke iz
+`ravenTehnike()`. `trening/trening.js`: razred in besedilo značke kartice iz `ravenTehnike()` (O4).
+Test pred spremembo `tests/ravni-tehnik.test.js` (`tagClass()` za 14 tehnik, poskus nov in star,
+`OBSTALO`, `NAPAKA`, neznan ključ, vsak ključ iz dnevnika `solve()` na ugankah iz `docs/uganke.md`;
+ravni GEN_* v vrstnem redu `ALL_TECHNIQUES`, ožje delitve, `TECHNIQUE_GROUPS` v eni ravni) – zelen
+na stari kodi (pred tem popravek v testu samem: polji iz konteksta `vm` sta dobili prototip konteksta
+testa, sicer `deepEqual` pade že na enakih vrednostih); po spremembi še `RAVNI_TEHNIK`/`ravenTehnike()`
+in značke v HTML = `ravenTehnike()`. Banka vaj (O5), ustvarjena znova: razlika samo v datumu – ni
+zapisana. Vsi testi (592), posnetek igre (99, enako), brskalnik (`--korak 5`, 375 in 1280 px): značke
+v treningu in v Pomoči vseh treh aplikacij (razred, besedilo, vse lastnosti izračunanega sloga) in
+oznake korakov v reševalcu (P_14, P_15 – razred, barva, podlaga) enake izhodišču `2fdb542`.
+
 ### 6.10 Nadomestna pot za Web Worker (predlagam izpust)
 
 **Zdaj.** V `igra/igra.js` sta dva podobna bloka (pribl. 25 vrstic): »Oceni zbirko« (`oceni-worker.js`,

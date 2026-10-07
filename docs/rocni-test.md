@@ -260,6 +260,22 @@ para) – preverjeno s testi, v brskalniku in na posnetku brez okvirjev, ne roč
 | 3 | igra, monitor in telefon, »Pomoč« → »Tehnike« | Odpri nekaj shem s pravim klikom oziroma dotikom na »Shema« in se pomikaj po oknu. | »Shema« je pri vseh 1–12 zaprta, odpre se ob dotiku, risba stoji pod posledico in ne moti besedila; okno ostane pregledno tudi z nekaj odprtimi shemami. (potrjeno 7. 10. 2026) – ni avtomatsko: dotik in pomikanje s prstom ter presoja dolžine okna. |
 | 4 | reševalec in trening, telefon, »Pomoč« → »Tehnike« | Odpri isto shemo kot v igri (npr. 11). | Risba, legenda in napisi so enaki kot v igri in v treningu. (potrjeno 7. 10. 2026) – ni avtomatsko: pravi zaslon telefona; scenarij preveri enakost v emulaciji 375 px. |
 
+## Faza 7 – ostanek skupne kode (vse tri aplikacije)
+
+Samodejno preverjeno: sklanjanje po številu v `tests/sklanjanje.test.js`; sporočila o številu rešitev
+v `tests/igra-ui.test.js`; izvoz in uvoz v `tests/zbirka-izvoz-uvoz.test.js`; okno zbirke v
+reševalcu v `tests/app-zbirka.test.js`; ravni tehnik in `tagClass()` v `tests/ravni-tehnik.test.js`;
+v pravem brskalniku `tools/preveri-faza7-brskalnik.js` (vrstica ocene in »Začni igro« pri 320 in
+375 px, izvoz in uvoz s pravimi kliki, prenosom in izbirnikom datotek prek DevTools, okno zbirke
+po pikslih in slogih proti izhodišču, značke ravni in oznake korakov proti izhodišču); posnetek igre
+brez razlik; banka vaj, ustvarjena znova, enaka razen datuma.
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | reševalec in igra, telefon | »Zbirka« → »Izvozi«, nato »Uvozi« iste datoteke. | Datoteka se prenese; uvoz pove »že obstoječih brez sprememb: N«. (nepotrjeno) – ni avtomatsko: brskalnik brez glave sistemskega izbirnika datotek in prenosa na telefonu ne odpre (datoteko nastavi neposredno). |
+| 2 | reševalec, telefon | »Zbirka« – odpri, drsi po seznamu, zapri s ✕ in s tapom ob oknu. | Kot prej in kot okno v igri. (nepotrjeno) – ni avtomatsko: dotik in drsenje v pravem telefonu. |
+| 3 | igra, okno »Nova uganka« | Vnesi eno samo števko in klikni »Začni igro«. | »Te uganke ni mogoče igrati: ima več kot eno rešitev.« – se dobro bere. (nepotrjeno) – ni avtomatsko: test preveri, da je besedilo tako, kot je zapisano, ne kako se bere. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

@@ -36,7 +36,8 @@ document.addEventListener('keydown',e=>{if(oknoPomoc.odprto())return;if(enojcek&
 // (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,
 // 7"), ime da imeTehnike(). Vrstni red kartic v HTML ni pomemben, naslov v HTML je samo
 // nadomestek (tests/trening-tehnike.test.js preveri, da je enak imeTehnike()). Opis na
-// kartici je povzetek tehnike iz TEHNIKE_OPISI (faza 6) - tudi v HTML je nadomestek.
+// kartici je povzetek tehnike iz TEHNIKE_OPISI (faza 6) - tudi v HTML je nadomestek, prav tako
+// značka ravni iz ravenTehnike() (faza 7, točka 1.1 - nova tehnika potrebuje samo vnos ravni).
 // TEHNIKA_VAJE: način vaje (data-mode) -> ključ tehnike v ALL_TECHNIQUES.
 const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
 [...TRENING_ENOJCKA,...TRENING_TEHNIKE].forEach(([m,t])=>{
@@ -47,6 +48,8 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
   h3.dataset.stevilka=oznakaTehnike(m);
   const p=card.querySelector('p');
   if(p) p.textContent=TEHNIKE_OPISI[m].povzetek;
+  const znacka=card.querySelector('.badge'),raven=ravenTehnike(t);
+  if(znacka){znacka.className=`badge badge-${raven}`;znacka.textContent=raven.toUpperCase();}
   menuEl.appendChild(card);
 });
 
