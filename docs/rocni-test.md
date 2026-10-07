@@ -247,12 +247,16 @@ brskalniku pri 375 in 1280 px (trening in Pomoč v vseh treh) risba v kartici in
 drsnika, črke v celicah, barve, povezave in celice druge vrste z izračunanim slogom –
 `tools/preveri-sheme-brskalnik.js`.
 
+Ročni pregled faze 3a je potrjen 7. 10. 2026 (vse štiri točke). Po njem so bili narejeni še trije
+popravki (pri 11 pivot poln, krili bledejši, okvir pri vseh treh poln; sklep pri 11; sklep pod obema
+risbama pri 9) – preverjeni s testi in v brskalniku, ne ročno.
+
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | trening, telefon, »Spoznaj« 10 · W-krilo in 11 · XY-krilo | Poglej shemo brez branja razlage. | Celici povezave (pri 11 pivot) se na prvi pogled ločita od celic para (kril): bledejši s črtkanim okvirjem; legenda ima obe postavki; sklep pod legendo pri 10 je razumljiv. (nepotrjeno) – ni avtomatsko: ali je razlika odtenka in črtkanega okvirja na pravem zaslonu dovolj opazna, presodi oko. |
-| 2 | trening, telefon, »Spoznaj« 3, 9 in 11 → »Shema« | Preberi shemo in nato razlago. | Shema je berljiva in jo razumeš brez besedila; pri 9 nobena od risb ni odveč, nič ne manjka. (nepotrjeno) – ni avtomatsko: razumljivost risbe lahko oceni samo bralec. |
-| 3 | igra, monitor in telefon, »Pomoč« → »Tehnike« | Odpri nekaj shem s pravim klikom oziroma dotikom na »Shema« in se pomikaj po oknu. | »Shema« je pri vseh 1–12 zaprta, odpre se ob dotiku, risba stoji pod posledico in ne moti besedila; okno ostane pregledno tudi z nekaj odprtimi shemami. (nepotrjeno) – ni avtomatsko: dotik in pomikanje s prstom ter presoja dolžine okna. |
-| 4 | reševalec in trening, telefon, »Pomoč« → »Tehnike« | Odpri isto shemo kot v igri (npr. 11). | Risba, legenda in napisi so enaki kot v igri in v treningu. (nepotrjeno) – ni avtomatsko: pravi zaslon telefona; scenarij preveri enakost v emulaciji 375 px. |
+| 1 | trening, telefon, »Spoznaj« 10 · W-krilo in 11 · XY-krilo | Poglej shemo brez branja razlage. | Celici povezave (pri 11 pivot) se na prvi pogled ločita od celic para (kril): bledejši s črtkanim okvirjem; legenda ima obe postavki; sklep pod legendo pri 10 je razumljiv. (potrjeno 7. 10. 2026) – ni avtomatsko: ali je razlika odtenka in črtkanega okvirja na pravem zaslonu dovolj opazna, presodi oko. |
+| 2 | trening, telefon, »Spoznaj« 3, 9 in 11 → »Shema« | Preberi shemo in nato razlago. | Shema je berljiva in jo razumeš brez besedila; pri 9 nobena od risb ni odveč, nič ne manjka. (potrjeno 7. 10. 2026) – ni avtomatsko: razumljivost risbe lahko oceni samo bralec. |
+| 3 | igra, monitor in telefon, »Pomoč« → »Tehnike« | Odpri nekaj shem s pravim klikom oziroma dotikom na »Shema« in se pomikaj po oknu. | »Shema« je pri vseh 1–12 zaprta, odpre se ob dotiku, risba stoji pod posledico in ne moti besedila; okno ostane pregledno tudi z nekaj odprtimi shemami. (potrjeno 7. 10. 2026) – ni avtomatsko: dotik in pomikanje s prstom ter presoja dolžine okna. |
+| 4 | reševalec in trening, telefon, »Pomoč« → »Tehnike« | Odpri isto shemo kot v igri (npr. 11). | Risba, legenda in napisi so enaki kot v igri in v treningu. (potrjeno 7. 10. 2026) – ni avtomatsko: pravi zaslon telefona; scenarij preveri enakost v emulaciji 375 px. |
 
 ## Zakaj ročno
 

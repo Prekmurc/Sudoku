@@ -20,7 +20,9 @@
 //     povezava je vrstica ali stolpec z dvema celicama s črko, »vidita« in »vidi« se res vidita;
 //   - popravek po pregledu koraka 3: pri W-krilu se celici povezave ločita od celic para, pri
 //     XY-krilu pivot od kril (celica vzorca druge vrste »+«, svoja postavka v legendi), pri
-//     W-krilu vrstica s sklepom.
+//     W-krilu vrstica s sklepom;
+//   - popravki po ročnem pregledu faze 3a: pri XY-krilu je pivot poln, krili bledejši s polnim
+//     okvirjem (črtkan je samo pri W-krilu), sklep pri 11 in pod vsako risbo pri 9.
 // Videz (SVG, barve, 375 px) preverja tools/preveri-sheme-brskalnik.js.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
@@ -288,12 +290,16 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
   // Korak 3: pri 9 dve risbi z naslovom, povezave, legenda z vrstami povezav.
   run('var t = izrisiShemo("turbot-fish")');
   assert.deepEqual(JSON.parse(run('JSON.stringify(t.children.map(c => c.className))')),
-    ['shema-naslov', 'shema-okvir', 'shema-naslov', 'shema-okvir', 'shema-legenda', 'shema-crke', 'shema-opomba']);
+    ['shema-naslov', 'shema-okvir', 'shema-sklep', 'shema-naslov', 'shema-okvir', 'shema-sklep', 'shema-legenda', 'shema-crke', 'shema-opomba']);
   assert.equal(run('t.children[0].textContent'), 'Nebotičnik (Skyscraper)');
-  assert.equal(run('t.children[2].textContent'), 'Zmaj z dvema vrvicama (2-String Kite)');
-  assert.equal(run('t.children[4].children.map(c => c.textContent).join(" | ")'),
+  assert.equal(run('t.children[3].textContent'), 'Zmaj z dvema vrvicama (2-String Kite)');
+  // Popravek po ročnem pregledu faze 3a: pod vsako risbo enak sklep z izrazi iz razlage tehnike.
+  const SKLEP9 = 'Konca, ki se vidita, ne moreta biti oba x, zato je vsaj eden od preostalih dveh koncev x in x izbrišeš iz celic, ki vidijo oba ta konca.';
+  assert.equal(run('t.children[2].textContent'), SKLEP9);
+  assert.equal(run('t.children[5].textContent'), SKLEP9);
+  assert.equal(run('t.children[6].children.map(c => c.textContent).join(" | ")'),
     'konca povezav | celica izbrisa | xkandidat za izbris | povezava | celici se vidita | celica izbrisa vidi');
-  for (const [n, i] of [[0, 1], [1, 3]]) {
+  for (const [n, i] of [[0, 1], [1, 4]]) {
     const s = run(`t.children[${i}].innerHTML`);
     const r = risbe('turbot-fish')[n];
     assert.match(s, new RegExp(`aria-label="Shema vzorca: Veriga ene števke – ${r.naslov.replace(/[()]/g, '\\$&')}"`));
@@ -313,17 +319,22 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
     ['shema-okvir', 'shema-legenda', 'shema-sklep', 'shema-crke', 'shema-opomba']);
   assert.equal(run('w.children[1].children.map(c => c.textContent).join(" | ")'),
     'celici para | celici povezave | celica izbrisa | akandidat za izbris | povezava | celici se vidita | celica izbrisa vidi');
-  assert.equal(run('w.children[1].children[1].children[0].className'), 'shema-sw shema-sw-vzorec2');
+  assert.equal(run('w.children[1].children[1].children[0].className'), 'shema-sw shema-sw-vzorec2 shema-sw-crtkan');
   assert.equal(run('w.children[2].textContent'), 'Vsaj ena celica para je a, zato a izbrišeš iz celic, ki vidijo obe.');
   const ws = run('w.children[0].innerHTML');
   assert.equal((ws.match(/class="sh-vzorec"/g) || []).length, 2, 'W-krilo: celici para');
-  assert.equal((ws.match(/class="sh-vzorec sh-vzorec2"/g) || []).length, 2, 'W-krilo: celici povezave');
+  assert.equal((ws.match(/class="sh-vzorec sh-vzorec2 sh-crtkan"/g) || []).length, 2, 'W-krilo: celici povezave, črtkan okvir');
+  // Popravek po ročnem pregledu faze 3a: XY-krilo - pivot poln, krili bledejši s polnim okvirjem, sklep.
   run('var y = izrisiShemo("xy-wing")');
+  assert.deepEqual(JSON.parse(run('JSON.stringify(y.children.map(c => c.className))')),
+    ['shema-okvir', 'shema-legenda', 'shema-sklep', 'shema-crke', 'shema-opomba']);
   assert.equal(run('y.children[1].children.map(c => c.textContent).join(" | ")'),
-    'krili | pivot | celica izbrisa | zkandidat za izbris | celici se vidita | celica izbrisa vidi');
+    'pivot | krili | celica izbrisa | zkandidat za izbris | celici se vidita | celica izbrisa vidi');
+  assert.equal(run('y.children[1].children[1].children[0].className'), 'shema-sw shema-sw-vzorec2');
+  assert.equal(run('y.children[2].textContent'), 'Eno od kril je z, zato z izbrišeš iz celic, ki vidijo obe krili.');
   const ys = run('y.children[0].innerHTML');
-  assert.equal((ys.match(/class="sh-vzorec"/g) || []).length, 2, 'XY-krilo: krili');
-  assert.equal((ys.match(/class="sh-vzorec sh-vzorec2"/g) || []).length, 1, 'XY-krilo: pivot');
+  assert.equal((ys.match(/class="sh-vzorec"/g) || []).length, 1, 'XY-krilo: pivot');
+  assert.equal((ys.match(/class="sh-vzorec sh-vzorec2"/g) || []).length, 2, 'XY-krilo: krili, poln okvir');
   run('var u = izrisiShemo("unique-rectangle")');
   assert.equal(run('u.children[1].children.map(c => c.textContent).join(" | ")'), 'vogali pravokotnika | xkandidat za izbris');
   assert.doesNotMatch(run('u.children[0].innerHTML'), /sh-povezava|sh-vidi/, 'pravokotnik brez povezav');
@@ -408,7 +419,7 @@ test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), op
   for (const k of Object.keys(SHEME)) {
     run(`var f = izrisiShemo(${JSON.stringify(k)})`);
     const deli = JSON.parse(run('JSON.stringify(f.children.map(c => c.className))'));
-    const zacetek = risbe(k).flatMap(r => [...(r.naslov ? ['shema-naslov'] : []), 'shema-okvir']);
+    const zacetek = risbe(k).flatMap(r => [...(r.naslov ? ['shema-naslov'] : []), 'shema-okvir', ...(r !== SHEME[k] && r.sklep ? ['shema-sklep'] : [])]);
     const pricakovano = [...zacetek, 'shema-legenda', ...(SHEME[k].sklep ? ['shema-sklep'] : []), 'shema-crke', ...(SHEME[k].opomba ? ['shema-opomba'] : []), ...(SHEME[k].enako ? ['shema-enako'] : [])];
     assert.deepEqual(deli, pricakovano, k);
     const leg = zacetek.length;
@@ -417,30 +428,35 @@ test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), op
     const legenda = run(`f.children[${leg}].children.map(c => c.textContent).join(" | ")`);
     assert.equal(legenda.includes('celica izbrisa'), rozna, `${k}: ${legenda}`);
     // Na risbi je rožnata celica natanko takrat, ko je v legendi.
-    const svg = risbe(k).map((r, n) => run(`f.children[${zacetek.indexOf('shema-okvir') + n * (zacetek.length / risbe(k).length)}].innerHTML`)).join('');
+    const okvirji = zacetek.map((c, i) => [c, i]).filter(([c]) => c === 'shema-okvir').map(([, i]) => i);
+    const svg = okvirji.map(i => run(`f.children[${i}].innerHTML`)).join('');
     assert.equal(svg.includes('class="sh-izbris"'), rozna, k);
   }
 });
 
 // Popravek po pregledu koraka 3: celice vzorca druge vrste (»+«) - pri W-krilu celici povezave
-// (vrstica, kjer je b samo v njiju, vsaka vidi svojo celico para), pri XY-krilu pivot (vidi obe
-// krili); druge sheme jih nimajo. Druga vrsta ima svoj napis v legendi.
-test('W-krilo in XY-krilo: celice vzorca druge vrste (povezava, pivot), sklep pri W-krilu', () => {
+// (vrstica, kjer je b samo v njiju, vsaka vidi svojo celico para) s črtkanim okvirjem, pri XY-krilu
+// krili (po ročnem pregledu faze 3a; obe vidita pivot, ki je poln) s polnim okvirjem; druge sheme
+// jih nimajo. Druga vrsta ima svoj napis v legendi. Sklep pri 10 in 11, pri 9 pod vsako risbo.
+test('W-krilo in XY-krilo: celice vzorca druge vrste (povezava, krili), sklep pri 9, 10 in 11', () => {
   const vrste = k => risbe(k).flatMap(r => r.celice).map((z, i) => [i, celica(z)]).filter(([, c]) => c.vzorec);
   const w = vrste('w-wing'), y = vrste('xy-wing');
   const povezava = w.filter(([, c]) => c.vzorec2).map(([i]) => i), par = w.filter(([, c]) => !c.vzorec2).map(([i]) => i);
   assert.deepEqual(povezava, SHEME['w-wing'].povezave[0].split(' ').map(indeks), 'W-krilo: celici povezave sta konca povezave');
   assert.equal(par.length, 2);
   for (const [i] of w) assert.deepEqual(crkeCelice(SHEME['w-wing'].celice[i]).sort(), povezava.includes(i) ? ['b'] : ['a', 'b']);
-  const pivot = y.filter(([, c]) => c.vzorec2).map(([i]) => i), krili = y.filter(([, c]) => !c.vzorec2).map(([i]) => i);
+  const pivot = y.filter(([, c]) => !c.vzorec2).map(([i]) => i), krili = y.filter(([, c]) => c.vzorec2).map(([i]) => i);
   assert.equal(pivot.length, 1);
+  assert.equal(krili.length, 2);
   assert.deepEqual(crkeCelice(SHEME['xy-wing'].celice[pivot[0]]).sort(), ['x', 'y'], 'pivot {x, y}');
   assert.ok(krili.every(i => vidita(i, pivot[0]) && crkeCelice(SHEME['xy-wing'].celice[i]).includes('z')), 'krili vidita pivot, imata z');
   assert.deepEqual([SHEME['w-wing'].vzorec, SHEME['w-wing'].vzorec2], ['celici para', 'celici povezave']);
-  assert.deepEqual([SHEME['xy-wing'].vzorec, SHEME['xy-wing'].vzorec2], ['krili', 'pivot']);
+  assert.deepEqual([SHEME['xy-wing'].vzorec, SHEME['xy-wing'].vzorec2], ['pivot', 'krili']);
+  assert.deepEqual(Object.keys(SHEME).filter(k => SHEME[k].vzorec2Crtkan), ['w-wing'], 'črtkan okvir samo pri W-krilu');
   for (const k of Object.keys(SHEME).filter(k => !['w-wing', 'xy-wing'].includes(k))) {
     assert.ok(!vrste(k).some(([, c]) => c.vzorec2), `${k}: brez druge vrste`);
     assert.equal(SHEME[k].vzorec2, undefined, k);
   }
-  assert.deepEqual(Object.keys(SHEME).filter(k => SHEME[k].sklep), ['w-wing']);
+  assert.deepEqual(Object.keys(SHEME).filter(k => SHEME[k].sklep), ['w-wing', 'xy-wing']);
+  assert.deepEqual(risbe('turbot-fish').map(r => !!r.sklep), [true, true], '9: sklep pod vsako risbo');
 });

@@ -343,3 +343,29 @@ ostaneta obe risbi odprti, brez spremembe).
   [10 · W-krilo](slike/faza3a/korak4-pomoc-w-wing-375.png).
 - **Faza 3a je izvedena**; zaključena bo, ko Darko potrdi ročni pregled (`docs/rocni-test.md`,
   razdelek »Faza 3a – shema vzorca«).
+
+**Popravki po ročnem pregledu faze 3a – narejeni 2026-10-07** (ročni pregled potrjen 7. 10. 2026,
+vse štiri točke v redu; nato trije popravki in zaključek).
+
+1. **Shema 11 – podlagi in okvir.** Obrnjeno glede na popravek po pregledu koraka 3: pivot ima polno
+   (jantarno) podlago, krili bledejšo (`--shema-vzorec2-bg`); okvir je pri vseh treh celicah poln
+   zlati. Črtkan okvir celic druge vrste ostane samo pri W-krilu (polje `vzorec2Crtkan`, razreda
+   `sh-crtkan` na risbi in `shema-sw-crtkan` v legendi). Legenda »pivot« (polni vzorček) · »krili«
+   (bledejši vzorček s polno obrobo). Pravilo »polne so celice, ki jih vidi celica izbrisa« iz
+   popravka po koraku 3 zato ne velja več – pri 11 je poln pivot.
+2. **Sklep pri 11** pod legendo: »Eno od kril je z, zato z izbrišeš iz celic, ki vidijo obe krili.«
+3. **Sklep pri 9** pod vsako risbo (polje `sklep` risbe – pri 10 in 11 je sklep pod legendo, pri 9
+   pod svojo risbo), z izrazi iz razlage tehnike (»konca, ki se vidita«, »preostala dva konca«,
+   »oba ta konca«): »Konca, ki se vidita, ne moreta biti oba x, zato je vsaj eden od preostalih
+   dveh koncev x in x izbrišeš iz celic, ki vidijo oba ta konca.« Pri obeh risbah enako besedilo.
+
+Preverjanje: `tests/sheme.test.js` (zaporedje elementov pri 9 in 11, legenda, razreda okvirja, sklepi),
+vsi testi; `tools/preveri-sheme-brskalnik.js` pri 375 in 1280 px v treningu in Pomoči vseh treh
+aplikacij (podlaga in okvir druge vrste z izračunanim slogom – pri 11 poln, pri 10 črtkan –, sklepi
+v napisih), 869 preverb, vse drži. Posnetka sheme 11 pri 375 px – prej:
+[11](slike/faza3a/popravek3-shema-xy-wing-375.png), potem:
+[11](slike/faza3a/zakljucek-shema-xy-wing-375.png); sklep pri 9:
+[9](slike/faza3a/zakljucek-shema-turbot-fish-375.png).
+
+**Faza 3a je zaključena 2026-10-07.** Naslednja je faza 7 (`docs/uskladitev.md`, »Vrstni red po
+fazi 6«, vrstica 3).

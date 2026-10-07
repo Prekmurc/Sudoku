@@ -18,7 +18,9 @@
 // črtkanje, vzorčki v legendi), vsaka črka v svoji celici.
 // Popravek po pregledu koraka 3: celice vzorca druge vrste (W-krilo: celici povezave, XY-krilo:
 // pivot) – bledejša podlaga in črtkan okvir (izračunan slog), svoja postavka v legendi; sklep pri
-// W-krilu.
+// W-krilu. Popravki po ročnem pregledu faze 3a: pri XY-krilu sta druga vrsta krili (pivot poln),
+// okvir je poln – črtkan je samo pri W-krilu (tudi vzorček v legendi); sklep pri 11 in pod vsako
+// risbo pri 9.
 // Korak 4: sheme v oknu Pomoč (»Tehnike«) v igri, reševalcu in treningu pri 375 in 1280 px – pri
 // 1–12 zložljivo »Shema«, privzeto zaprto, E1 in E2 brez; pravi klik na »Shema« odpre risbo, ki je
 // v panelu, največ 327 px, brez vodoravnega drsnika (stran in okno), z istimi meritvami kot v
@@ -110,14 +112,16 @@ const meri = (exIzraz, dIzraz, zaIzraz, barve) => `(() => {
     legendaIzbris: !iz || getComputedStyle(d.querySelector('.shema-sw-izbris')).backgroundColor === sonda('backgroundColor', '${barve.izbris}'),
   };
   // Celice vzorca druge vrste (popravek po pregledu koraka 3): bledejša podlaga, isti zlati okvir,
-  // črtkan; v legendi enako.
+  // pri W-krilu črtkan (crtkan2); v legendi enako.
   const v2 = vse('.sh-vzorec2'), sw2 = d.querySelector('.shema-sw-vzorec2');
   out.vzorec2 = v2.length;
   if (v2.length) {
     const c = getComputedStyle(v2[0]), l = sw2 && getComputedStyle(sw2);
     out.barve.vzorec2 = c.fill === sonda('backgroundColor', '--shema-vzorec2-bg') && c.fill !== vzorec.fill
-      && c.stroke === vzorec.stroke && c.strokeDasharray !== 'none';
-    out.barve.legendaVzorec2 = !!l && l.backgroundColor === c.fill && l.borderTopStyle === 'dashed' && l.borderTopColor === vzorec.stroke;
+      && c.stroke === vzorec.stroke;
+    out.barve.legendaVzorec2 = !!l && l.backgroundColor === c.fill && l.borderTopColor === vzorec.stroke;
+    out.crtkan2 = c.strokeDasharray !== 'none';
+    out.legendaCrtkan2 = !!l && l.borderTopStyle === 'dashed';
   } else out.barve.brezVzorca2 = !sw2;
   out.rozna = !!iz;
   // Povezave: barva, debelina, črtkanje; vzorček v legendi v istem slogu.
@@ -162,7 +166,7 @@ const VRH = `(() => { const g = document.querySelector('header.top').getBounding
 // Pregled meritve sheme (trening in Pomoč): risbe, naslovi, povezave, črke, barve, legenda, napisi.
 function pregledMeritve(kljuc, m, info) {
   const trojica = kljuc.endsWith('triple');
-  const { vzorec, vzorec2, sklep, opomba, enako } = info[kljuc];
+  const { vzorec, vzorec2, sklep, sklepi, crtkan2, opomba, enako } = info[kljuc];
   preveri(`${kljuc}: ${m.risb} ${m.risb === 1 ? 'risba' : 'risbi'} v kartici, največ 327 px, brez preliva`,
     m.vKartici && m.risb === info[kljuc].risb && m.risbe.every(r => r[2] <= 327.5) && !m.preliv, m);
   if (info[kljuc].naslovi.length) preveri(`${kljuc}: naslova risb`, JSON.stringify(m.naslovi) === JSON.stringify(info[kljuc].naslovi), m.naslovi);
@@ -172,10 +176,11 @@ function pregledMeritve(kljuc, m, info) {
       || (p.barva === (r === 'sh-vidi' ? m.rdeca : m.barvaPovezave) && p.crtkana === (r !== 'sh-povezava')))), m.povezave);
   preveri(`${kljuc}: ${m.zetonov} črk, vsaka črka, pika in prečrtanje v svoji celici, črke ${m.velikostCrke && m.velikostCrke.toFixed(1)} px`,
     m.crkeVCelicah && m.pikeVCelicah && m.zetonov === info[kljuc].stevilo && m.velikostCrke >= 11, m);
-  preveri(`${kljuc}: barve celic in legende${m.vzorec2 ? `, ${m.vzorec2} ${m.vzorec2 === 1 ? 'celica' : 'celici'} druge vrste (${vzorec2}) bledejši s črtkanim okvirjem` : ''}`,
-    Object.values(m.barve).every(Boolean) && m.vzorec2 === info[kljuc].vzorec2Celic, m.barve);
+  preveri(`${kljuc}: barve celic in legende${m.vzorec2 ? `, ${m.vzorec2} ${m.vzorec2 === 1 ? 'celica' : 'celici'} druge vrste (${vzorec2}) bledejši s ${crtkan2 ? 'črtkanim' : 'polnim'} okvirjem` : ''}`,
+    Object.values(m.barve).every(Boolean) && m.vzorec2 === info[kljuc].vzorec2Celic
+    && (!m.vzorec2 || (m.crtkan2 === crtkan2 && m.legendaCrtkan2 === crtkan2)), { barve: m.barve, crtkan2: m.crtkan2, legenda: m.legendaCrtkan2 });
   const crte = [['sh-povezava', 'povezava'], ['sh-vidita', 'se vidita'], ['sh-vidi', 'celica izbrisa vidi']].filter(([r]) => info[kljuc].povezave[r]).map(([, n]) => n);
-  const napisi = [vzorec, ...(vzorec2 ? [vzorec2] : []), ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', ...crte, ...(sklep ? [sklep] : []), 'poljubn', ...(opomba ? [opomba] : []), ...(enako ? ['Enako velja'] : [])];
+  const napisi = [...sklepi, vzorec, ...(vzorec2 ? [vzorec2] : []), ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', ...crte, ...(sklep ? [sklep] : []), 'poljubn', ...(opomba ? [opomba] : []), ...(enako ? ['Enako velja'] : [])];
   preveri(`${kljuc}: legenda (${m.rozna ? 'z rožnato celico izbrisa' : 'brez rožnate celice'}) in napisi${opomba ? ' z opombo' : ''}`,
     m.napisi.length === napisi.length && napisi.every((n, i) => m.napisi[i].includes(n)), m.napisi);
   preveri(`${kljuc}: črke v celici vzorca ne segajo v zlati okvir${trojica ? ', celica s tremi črkami' : ''}`, m.crkeVOkvirju && m.triCrke === trojica, m);
@@ -299,6 +304,7 @@ async function main() {
       risb: shemaRisbe(k).length, naslovi: shemaRisbe(k).map(r => r.naslov).filter(Boolean),
       povezave: Object.fromEntries(SHEMA_POVEZAVE.map(([p, r]) => [r, shemaRisbe(k).reduce((n, x) => n + (x[p] || []).length, 0)])),
       vzorec: SHEME_TEHNIK[k].vzorec, vzorec2: SHEME_TEHNIK[k].vzorec2 || null, sklep: SHEME_TEHNIK[k].sklep || null,
+      sklepi: SHEME_TEHNIK[k].risbe ? SHEME_TEHNIK[k].risbe.map(r => r.sklep).filter(Boolean) : [], crtkan2: !!SHEME_TEHNIK[k].vzorec2Crtkan,
       vzorec2Celic: shemaRisbe(k).flatMap(r => r.celice).filter(z => shemaCelica(z).vzorec2).length, opomba: SHEME_TEHNIK[k].opomba || null, enako: !!SHEME_TEHNIK[k].enako, izsek: SHEME_TEHNIK[k].izsek }]))`);
     for (const s of SIRINE) await sirina(b, s, kljuci, info);
     for (const s of SIRINE) for (const a of APLIKACIJE) await pomoc(b, a, s, kljuci, info);

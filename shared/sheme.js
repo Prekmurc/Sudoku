@@ -8,9 +8,9 @@
 
 // Zapis celice: žetoni, ločeni s presledkom – črka (x, y, z, a, b) ali »…« (drugi kandidati);
 // »-« pred žetonom = kandidat za izbris (rdeče prečrtan), »*« na začetku = celica vzorca
-// (jantarna z zlatim okvirjem), »+« na začetku = celica vzorca druge vrste (bledo jantarna s
-// črtkanim zlatim okvirjem – pri W-krilu celici povezave, pri XY-krilu pivot; popravek po pregledu
-// koraka 3). Celica z izbrisom, ki ni celica vzorca, je rožnata. Prazen niz =
+// (jantarna z zlatim okvirjem), »+« na začetku = celica vzorca druge vrste (bledo jantarna z
+// zlatim okvirjem – pri W-krilu celici povezave s črtkanim okvirjem, pri XY-krilu krili s polnim;
+// popravka po pregledu koraka 3 in po ročnem pregledu faze 3a). Celica z izbrisom, ki ni celica vzorca, je rožnata. Prazen niz =
 // celica brez črk (vpisana števka ali samo drugi kandidati, ki za vzorec niso pomembni).
 // shemaVrstice(): vrstice izseka kot nizi zapisov celic, ločenih s presledki; žetoni v celici so
 // ločeni z vejico (»*x,y« = »*x y«), ».« = prazen niz.
@@ -34,7 +34,12 @@ function shemaVrstice(vrstice) {
 // vpisanimi črkami, črte ne gredo čez celice s črkami.
 // Popravek po pregledu koraka 3: vzorec2 = napis celic vzorca druge vrste (»+«) v legendi – pri
 // W-krilu »celici povezave« (prej s celicama para skupaj »celici para in povezave«), pri XY-krilu
-// »pivot« (prej »pivot in krili«); sklep = vrstica s sklepom pod legendo (W-krilo).
+// »krili« (prej »pivot in krili«; po ročnem pregledu faze 3a je pivot poln, krili bledejši – prej
+// obratno); vzorec2Crtkan = okvir celic druge vrste črtkan (W-krilo); sklep = vrstica s sklepom
+// pod legendo (10, 11), pri 9 pod vsako risbo (polje risbe).
+// Sklep pod vsako risbo pri 9 (izrazi iz razlage tehnike – konca, ki se vidita, preostala konca).
+const SHEMA_SKLEP_9 = 'Konca, ki se vidita, ne moreta biti oba x, zato je vsaj eden od preostalih dveh koncev x '
+  + 'in x izbrišeš iz celic, ki vidijo oba ta konca.';
 const SHEME_TEHNIK = {
   'pointing': {
     izsek: 'pas',
@@ -136,6 +141,7 @@ const SHEME_TEHNIK = {
         povezave: ['V2S2 V8S2', 'V3S7 V8S7'],
         vidita: ['V8S2 V8S7'],
         vidi: ['V3S3 V2S2', 'V3S3 V3S7'],
+        sklep: SHEMA_SKLEP_9,
       },
       {
         naslov: 'Zmaj z dvema vrvicama (2-String Kite)',
@@ -153,6 +159,7 @@ const SHEME_TEHNIK = {
         povezave: ['V2S3 V2S8', 'V3S2 V8S2'],
         vidita: ['V2S3 V3S2'],
         vidi: ['V8S8 V2S8', 'V8S8 V8S2'],
+        sklep: SHEMA_SKLEP_9,
       },
     ],
     vzorec: 'konca povezav',
@@ -176,6 +183,7 @@ const SHEME_TEHNIK = {
     vidi: ['V2S8 V2S2', 'V2S8 V5S8'],
     vzorec: 'celici para',
     vzorec2: 'celici povezave',
+    vzorec2Crtkan: true,
     sklep: 'Vsaj ena celica para je a, zato a izbrišeš iz celic, ki vidijo obe.',
     opomba: 'Povezava je lahko tudi stolpec ali blok.',
     drugiVVzorcu: true,
@@ -184,19 +192,20 @@ const SHEME_TEHNIK = {
     izsek: 'mreza',
     celice: shemaVrstice([
       '.    z     x,z    y    x,y  z    y      .    .',
-      'z    +x,y  .      .    .    .    *x,z   z    y',
+      'z    *x,y  .      .    .    .    +x,z   z    y',
       'y    .     .      .    x,z  x,y  .      x    z',
       'y,z  .     .      x    .    .    .      x,y  x,z',
       '.    .     x,y,z  z    y    .    .      x,z  .',
       'x    .     z      .    x,z  y    .      .    x,y',
-      'x    *y,z  .      .    .    .    -z     y    x',
+      'x    +y,z  .      .    .    .    -z     y    x',
       'z    x     y      z    y    x    y      z    .',
       '.    y     .      x,y  .    z    x,y,z  .    .',
     ]),
     vidita: ['V2S2 V2S7', 'V2S2 V7S2'],
     vidi: ['V7S7 V2S7', 'V7S7 V7S2'],
-    vzorec: 'krili',
-    vzorec2: 'pivot',
+    vzorec: 'pivot',
+    vzorec2: 'krili',
+    sklep: 'Eno od kril je z, zato z izbrišeš iz celic, ki vidijo obe krili.',
     opomba: 'Krilo je lahko s pivotom tudi v istem bloku.',
     drugiVVzorcu: true,
   },
@@ -285,7 +294,7 @@ function svgSheme(kljuc, n = 0) {
     const cel = shemaCelica(zapis);
     const r = Math.floor(i / S), c = i % S;
     if (cel.vzorec) {
-      podlage.push(`<rect class="sh-vzorec${cel.vzorec2 ? ' sh-vzorec2' : ''}" x="${x0(c) + 1.75}" y="${y0(r) + 1.75}" width="${C - 3.5}" height="${C - 3.5}"/>`);
+      podlage.push(`<rect class="sh-vzorec${cel.vzorec2 ? ' sh-vzorec2' + (s.vzorec2Crtkan ? ' sh-crtkan' : '') : ''}" x="${x0(c) + 1.75}" y="${y0(r) + 1.75}" width="${C - 3.5}" height="${C - 3.5}"/>`);
     } else if (cel.izbris) {
       podlage.push(`<rect class="sh-izbris" x="${x0(c)}" y="${y0(r)}" width="${C}" height="${C}"/>`);
     }
@@ -334,7 +343,7 @@ function svgSheme(kljuc, n = 0) {
 
 // Element <figure class="shema">: risba (pri 9 dve, vsaka z naslovom nad njo), legenda (celice
 // vzorca, celice vzorca druge vrste – samo, če so na shemi –, celica izbrisa – samo, če je na shemi rožnata celica –, kandidat za izbris, vrste povezav,
-// ki so na shemi), sklep (W-krilo), napis o črkah, opomba in vrstica »enako velja« – ali null, če tehnika sheme
+// ki so na shemi), sklep (10, 11; pri 9 pod vsako risbo), napis o črkah, opomba in vrstica »enako velja« – ali null, če tehnika sheme
 // nima (E1, E2).
 function izrisiShemo(kljuc) {
   const s = SHEME_TEHNIK[kljuc];
@@ -353,6 +362,8 @@ function izrisiShemo(kljuc) {
     const risba = el('div', 'shema-okvir');
     risba.innerHTML = svgSheme(kljuc, n);
     fig.appendChild(risba);
+    // Sklep pod risbo (9 – vsaka risba ima svojega).
+    if (r !== s && r.sklep) fig.appendChild(el('p', 'shema-sklep', r.sklep));
   });
   const celice = risbe.flatMap(r => r.celice);
   const leg = el('div', 'shema-legenda');
@@ -361,7 +372,7 @@ function izrisiShemo(kljuc) {
   leg.appendChild(v);
   if (s.vzorec2 && celice.some(z => shemaCelica(z).vzorec2)) {
     const v2 = el('span');
-    v2.append(el('span', 'shema-sw shema-sw-vzorec2'), s.vzorec2);
+    v2.append(el('span', 'shema-sw shema-sw-vzorec2' + (s.vzorec2Crtkan ? ' shema-sw-crtkan' : '')), s.vzorec2);
     leg.appendChild(v2);
   }
   if (celice.some(z => shemaCelica(z).izbris)) {
