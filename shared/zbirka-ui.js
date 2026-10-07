@@ -3,7 +3,7 @@
    (igra/igra.js, tudi vgrajeni primeri). Podatke da zbirkaKartica() v
    shared/zbirka.js (brez DOM-a), gumbe pa aplikacija: reševalec Odpri/Izbriši,
    igra Igraj/Nadaljuj/Poglej/Izbriši. Slogi so v shared/zbirka.css.
-   Tu je tudi poslušalec sprememb zbirke v drugem zavihku (zbirkaObSpremembiDrugje), značka
+   Tu je tudi vezava gumbov »Izvozi«/»Uvozi« (zbirkaPoveziIzvozUvoz), poslušalec sprememb zbirke v drugem zavihku (zbirkaObSpremembiDrugje), značka
    težavnosti (zbirkaZnacka) in naštevanje tehnik (zbirkaIzrisiTehnike).
    Naloži se za shared/zbirka.js. */
 
@@ -14,6 +14,30 @@
 function zbirkaObSpremembiDrugje(obSpremembi) {
   window.addEventListener('storage', (e) => {
     if (e.key === null || e.key === ZBIRKA_KLJUC || e.key === IGRA_KLJUC) obSpremembi(e);
+  });
+}
+
+// Gumba »Izvozi« in »Uvozi« v oknu zbirke - vezava na DOM, enaka v reševalcu in igri (logika je
+// v shared/zbirka.js: zbirkaIzvozi, zbirkaUvozi, zbirkaPrenesi). `izvozi`/`uvozi` sta gumba,
+// `datoteka` skrito polje <input type="file">, `status(besedilo, napaka)` izpiše sporočilo,
+// `poUvozu()` osveži prikaz, kadar je uvoz zbirko spremenil (aplikacija ve, kaj). Onemogočenost
+// gumbov (igra med ocenjevanjem) nastavlja aplikacija.
+function zbirkaPoveziIzvozUvoz({ izvozi, uvozi, datoteka, status, poUvozu }) {
+  izvozi.addEventListener('click', () => {
+    const izvoz = zbirkaIzvozi();
+    if (izvoz.besedilo) zbirkaPrenesi(izvoz.besedilo);
+    status(izvoz.sporocilo, izvoz.napaka);
+  });
+  uvozi.addEventListener('click', () => datoteka.click());
+  datoteka.addEventListener('change', () => {
+    const f = datoteka.files[0];
+    datoteka.value = ''; // da gre ista datoteka lahko znova skozi "change"
+    if (!f) return;
+    f.text().then(besedilo => {
+      const uvoz = zbirkaUvozi(besedilo);
+      status(uvoz.sporocilo, uvoz.napaka);
+      if (uvoz.spremenjeno) poUvozu();
+    }).catch(e => status('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
   });
 }
 

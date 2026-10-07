@@ -79,6 +79,10 @@ class Element {
     if (this.disabled && tip === 'click') return;
     for (const f of this.poslusalci[tip] || []) f({ preventDefault() {}, stopPropagation() {}, target: this, ...dogodek });
   }
+  // el.click() sproži dogodek click (kot v brskalniku): skrito polje za izbiro datoteke
+  // (»Uvozi«) in povezava za prenos (zbirkaPrenesi()). Izbirnika datotek ni - test
+  // nastavi `files` in sproži "change".
+  click() { this.sprozi('click'); }
   querySelector() { return null; }
   querySelectorAll() { return []; }
   focus() {}

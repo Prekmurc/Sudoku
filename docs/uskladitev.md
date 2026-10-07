@@ -975,6 +975,11 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 - **Predlog:** `zbirkaPoveziIzvozUvoz({ izvozi, uvozi, datoteka, status, obSpremembi })` v
   `shared/zbirka.js` (poleg `zbirkaPrenesi()`, ki tudi potrebuje brskalnik).
 - **Obseg:** majhno.
+- **Narejeno 2026-10-07** (faza 7, korak 3, `docs/faza7-nacrt.md`): `zbirkaPoveziIzvozUvoz({ izvozi,
+  uvozi, datoteka, status, poUvozu })` v `shared/zbirka-ui.js` (ne v `shared/zbirka.js`, ki ga nalaga
+  tudi delavec »Oceni zbirko«); `poUvozu` aplikacije osveži, kar je osvežila prej. Za uporabnika nič.
+  Test `tests/zbirka-izvoz-uvoz.test.js`, scenarij v pravem brskalniku (izbira datoteke in prenos prek
+  DevTools) v `tools/preveri-faza7-brskalnik.js`.
 
 ### 6.6 Sporočila o številu rešitev
 

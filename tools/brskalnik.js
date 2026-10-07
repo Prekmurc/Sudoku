@@ -17,6 +17,8 @@
 //   await b.tipka('"', { code: 'Digit2', shift: true }); // par key/code (QWERTZ)
 //   await b.cakaj('document.getElementById("status").className === "ok"');
 //   await b.posnetek('izhod.png');                     // vsa stran
+//   await b.izberiDatoteko('#libImport', ['zbirka.md']); // klik odpre izbirnik, ta dobi datoteko
+//   const p = await b.prenos('#libExport');            // klik prenese datoteko: { ime, pot, besedilo }
 //   b.napake                                           // napake JS in console.error v strani
 //   await b.zapri();
 //
@@ -169,7 +171,10 @@ async function zazeni({ koren = KOREN } = {}) {
   }
 
   const napake = [];
+  let stPrenosov = 0;
+  const prenosi = new Map(); // guid -> stanje prenosa (Browser.downloadProgress)
   cdp.naDogodek(s => {
+    if (s.method === 'Browser.downloadProgress') prenosi.set(s.params.guid, s.params.state);
     if (s.method === 'Runtime.exceptionThrown') {
       const d = s.params.exceptionDetails;
       napake.push(`napaka JS: ${(d.exception && d.exception.description) || d.text} (${d.url || ''}:${d.lineNumber + 1})`);
@@ -258,6 +263,46 @@ async function zazeni({ koren = KOREN } = {}) {
       for (const type of ['mousePressed', 'mouseReleased']) {
         await cdp.poslji('Input.dispatchMouseEvent', { type, x: t.x, y: t.y, button: 'left', clickCount: 1 });
       }
+    },
+
+    // Izbira datoteke s pravim klikom: klik na element (npr. gumb »Uvozi«, ki pokliče
+    // input.click()) mora odpreti sistemski izbirnik datotek; brskalnik ga ne pokaže, ampak
+    // sporoči (Page.fileChooserOpened), in polje dobi datoteke `poti` (DOM.setFileInputFiles -
+    // sproži "input" in "change" kot prava izbira). Če se izbirnik v 5 s ne odpre, vrže napako.
+    async izberiDatoteko(izbirnik, poti) {
+      await cdp.poslji('Page.setInterceptFileChooserDialog', { enabled: true });
+      try {
+        const odprt = Promise.race([
+          cdp.dogodek('Page.fileChooserOpened'),
+          pocakaj(5000).then(() => null),
+        ]);
+        await b.klikni(izbirnik);
+        const d = await odprt;
+        if (!d) throw new Error(`Klik na ${izbirnik} ni odprl izbire datoteke.`);
+        await cdp.poslji('DOM.setFileInputFiles', { files: poti.map(p => path.resolve(p)), backendNodeId: d.backendNodeId });
+      } finally {
+        await cdp.poslji('Page.setInterceptFileChooserDialog', { enabled: false });
+      }
+    },
+
+    // Prenos datoteke s pravim klikom: brskalnik shrani datoteko v svežo mapo v profilu
+    // (Browser.setDownloadBehavior) z imenom, ki ga predlaga stran. Vrne { ime, pot, besedilo }
+    // ali vrže napako, če se prenos v 10 s ne začne in konča.
+    async prenos(izbirnik) {
+      const mapa = path.join(profil, 'prenosi', String(++stPrenosov));
+      fs.mkdirSync(mapa, { recursive: true });
+      await cdp.poslji('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: mapa, eventsEnabled: true });
+      const zacetek = cdp.dogodek('Browser.downloadWillBegin');
+      await b.klikni(izbirnik);
+      const z = await Promise.race([zacetek, pocakaj(10000).then(() => null)]);
+      if (!z) throw new Error(`Klik na ${izbirnik} v 10 s ni začel prenosa.`);
+      for (let i = 0; i < 200 && prenosi.get(z.guid) !== 'completed'; i++) {
+        if (prenosi.get(z.guid) === 'canceled') throw new Error('Prenos je bil preklican.');
+        await pocakaj(50);
+      }
+      if (prenosi.get(z.guid) !== 'completed') throw new Error(`Prenos (${izbirnik}) se ni končal v 10 s.`);
+      const pot = path.join(mapa, z.suggestedFilename);
+      return { ime: z.suggestedFilename, pot, besedilo: fs.readFileSync(pot, 'utf8') };
     },
 
     // Posnetek vse strani v PNG; z { vsaStran: false } samo vidni del - za odprta

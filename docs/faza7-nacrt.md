@@ -127,6 +127,18 @@ kartici »Uganka«. Nadomestni DOM dobi `click()` na elementu (zdaj ga nima – 
 padel). **Brskalnik:** `tools/brskalnik.js` dobi izbiro datoteke (`DOM.setFileInputFiles`) in prenos v
 mapo (`Browser.setDownloadBehavior`) – O7; scenarij izvozi, izbriše in uvozi v obeh aplikacijah.
 
+**Izvedeno 2026-10-07** (korak 3). `zbirkaPoveziIzvozUvoz()` v `shared/zbirka-ui.js`, `app/zbirka.js` in
+`igra/igra.js` jo pokličeta s svojim `poUvozu` (reševalec: seznam, števec, vrstica »Shranjeno v
+zbirko«; igra: seznam, števec, kartica »Uganka«); konstanti gumbov v igri ostaneta za
+`osveziOcenoGumbe()`. Nov `tests/zbirka-izvoz-uvoz.test.js` (17 testov, za reševalec in igro vse
+naštete točke, še opomba odprte uganke v vrstici pod rešitvijo v reševalcu in onemogočena gumba med
+ocenjevanjem v igri) je bil zelen na stari kodi in je po spremembi nespremenjen. Nadomestni DOM je dobil
+`click()` (sproži dogodek click). `tools/brskalnik.js`: `izberiDatoteko(izbirnik, poti)` (pravi klik
+mora odpreti izbirnik – `Page.setInterceptFileChooserDialog`, `Page.fileChooserOpened`,
+`DOM.setFileInputFiles`) in `prenos(izbirnik)` (`Browser.setDownloadBehavior`, vrne ime, pot in
+besedilo). Scenarij koraka 3 pri 375 in 1280 px v obeh aplikacijah (pravi kliki, pravo okno confirm pri
+»Izbriši vse«) in enak na izhodišču `2fdb542`: opažanja enaka. Posnetek igre brez razlik.
+
 ### 6.8 Okno zbirke v reševalcu (korak 4)
 
 **Zdaj.** Okno Pomoč je od faze 6 v `shared/pomoc.css` (`.dialog`), okno zbirke v reševalcu pa ima

@@ -715,29 +715,20 @@ zbirkaBtn.addEventListener('click', () => {
   odpriDialog(zbirkaDialog);
 });
 
-// Izvoz/uvoz: enako kot v reševalcu (logika v ../shared/zbirka.js).
+// Izvoz/uvoz: vezava v ../shared/zbirka-ui.js, enaka kot v reševalcu. Gumba sta med
+// ocenjevanjem onemogočena (osveziOcenoGumbe()).
 const zbirkaIzvoziBtn = document.getElementById('zbirkaIzvoziBtn');
 const zbirkaUvoziBtn = document.getElementById('zbirkaUvoziBtn');
-zbirkaIzvoziBtn.addEventListener('click', () => {
-  const izvoz = zbirkaIzvozi();
-  if (izvoz.besedilo) zbirkaPrenesi(izvoz.besedilo);
-  zbirkaStatus(izvoz.sporocilo, izvoz.napaka);
-});
-
-const zbirkaDatotekaEl = document.getElementById('zbirkaDatoteka');
-zbirkaUvoziBtn.addEventListener('click', () => zbirkaDatotekaEl.click());
-zbirkaDatotekaEl.addEventListener('change', () => {
-  const datoteka = zbirkaDatotekaEl.files[0];
-  zbirkaDatotekaEl.value = ''; // da gre ista datoteka lahko znova skozi "change"
-  if (!datoteka) return;
-  datoteka.text().then(besedilo => {
-    const uvoz = zbirkaUvozi(besedilo);
-    zbirkaStatus(uvoz.sporocilo, uvoz.napaka);
-    if (!uvoz.spremenjeno) return;
+zbirkaPoveziIzvozUvoz({
+  izvozi: zbirkaIzvoziBtn,
+  uvozi: zbirkaUvoziBtn,
+  datoteka: document.getElementById('zbirkaDatoteka'),
+  status: zbirkaStatus,
+  poUvozu: () => {
     izrisiZbirko();
     osveziGumbZbirke();
     if (igra) izrisiStanje(); // uvoz lahko dopolni težavnost/opombo odprte uganke
-  }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
+  },
 });
 
 // "Izbriši vse": vsa zbirka in vse shranjene igre razen iger primerov (tudi sirote).

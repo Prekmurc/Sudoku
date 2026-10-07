@@ -147,25 +147,17 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && libraryEl.style.display === 'block') zbirkaZapri();
 });
 
-document.getElementById('libExport').addEventListener('click', () => {
-  const izvoz = zbirkaIzvozi();
-  if (izvoz.besedilo) zbirkaPrenesi(izvoz.besedilo);
-  zbirkaStatus(izvoz.sporocilo, izvoz.napaka);
-});
-
-document.getElementById('libImport').addEventListener('click', () => libFileEl.click());
-libFileEl.addEventListener('change', () => {
-  const datoteka = libFileEl.files[0];
-  libFileEl.value = ''; // da gre ista datoteka lahko znova skozi "change"
-  if (!datoteka) return;
-  datoteka.text().then(besedilo => {
-    const uvoz = zbirkaUvozi(besedilo);
-    zbirkaStatus(uvoz.sporocilo, uvoz.napaka);
-    if (!uvoz.spremenjeno) return;
+// Izvoz/uvoz (vezava v ../shared/zbirka-ui.js, enaka kot v igri).
+zbirkaPoveziIzvozUvoz({
+  izvozi: document.getElementById('libExport'),
+  uvozi: document.getElementById('libImport'),
+  datoteka: libFileEl,
+  status: zbirkaStatus,
+  poUvozu: () => {
     zbirkaIzrisiSeznam();
     zbirkaOsveziGumb();
     zbirkaOsveziVrstico();
-  }).catch(e => zbirkaStatus('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
+  },
 });
 
 // "Izbriši vse": vsa zbirka in vse shranjene igre razen iger primerov (tudi sirote).
