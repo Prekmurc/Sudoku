@@ -85,9 +85,8 @@
 .shema-risba{ display:block; width:100%; height:auto; }
 .shema-risba .sh-vzorec{ fill:var(--shema-vzorec-bg); stroke:var(--shema-vzorec-okvir); stroke-width:2.5; }
 /* Celica vzorca druge vrste (W-krilo: celici povezave, XY-krilo: krili – popravka po pregledu
-   koraka 3 in ročnem pregledu faze 3a): bledejša podlaga; pri W-krilu še črtkan okvir. */
+   koraka 3 in ročnem pregledu faze 3a): samo bledejša podlaga, okvir poln kot pri celicah vzorca. */
 .shema-risba .sh-vzorec2{ fill:var(--shema-vzorec2-bg); }
-.shema-risba .sh-vzorec2.sh-crtkan{ stroke-dasharray:4.5 3; }
 .shema-risba .sh-izbris{ fill:var(--shema-izbris-bg); }
 .shema-risba .sh-tanka{ stroke:var(--line); stroke-width:1; }
 .shema-risba .sh-debela{ stroke:var(--ink); stroke-width:2; }
@@ -102,7 +101,6 @@
 .shema-sw{ display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
 .shema-sw-vzorec{ background:var(--shema-vzorec-bg); border:2px solid var(--shema-vzorec-okvir); }
 .shema-sw-vzorec2{ background:var(--shema-vzorec2-bg); border:2px solid var(--shema-vzorec-okvir); }
-.shema-sw-vzorec2.shema-sw-crtkan{ border-style:dashed; }
 .shema-sw-izbris{ background:var(--shema-izbris-bg); }
 .shema-izbris{ color:var(--ink); font-weight:500; text-decoration:line-through var(--red) 2px; font-family:'JetBrains Mono', monospace; margin-right:5px; }
 /* Povezave (sheme 9–11): povezava polna jantarna, celici se vidita črtkana jantarna, celica izbrisa

@@ -249,7 +249,9 @@ drsnika, črke v celicah, barve, povezave in celice druge vrste z izračunanim s
 
 Ročni pregled faze 3a je potrjen 7. 10. 2026 (vse štiri točke). Po njem so bili narejeni še trije
 popravki (pri 11 pivot poln, krili bledejši, okvir pri vseh treh poln; sklep pri 11; sklep pod obema
-risbama pri 9) – preverjeni s testi in v brskalniku, ne ročno.
+risbama pri 9) – preverjeni s testi in v brskalniku, ne ročno. Po zaključku še popravek sheme 10:
+celici povezave s polnim okvirjem (prej črtkan), ločita se samo po bledejši podlagi (ΔE 18,6 od celic
+para) – preverjeno s testi, v brskalniku in na posnetku brez okvirjev, ne ročno.
 
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|

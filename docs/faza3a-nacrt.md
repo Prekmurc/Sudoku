@@ -369,3 +369,23 @@ v napisih), 869 preverb, vse drži. Posnetka sheme 11 pri 375 px – prej:
 
 **Faza 3a je zaključena 2026-10-07.** Naslednja je faza 7 (`docs/uskladitev.md`, »Vrstni red po
 fazi 6«, vrstica 3).
+
+**Popravek po zaključku – narejen 2026-10-07: shema 10, poln okvir.** Celici povezave pri W-krilu sta
+imeli črtkan okvir – po popravku sheme 11 edini črtkani okvir celic. Zdaj je okvir poln kot pri celicah
+para; celici povezave se od celic para ločita samo po bledejši podlagi, enako kot krili od pivota pri
+11. Vzorček »celici povezave« v legendi ima polno obrobo. Črtkane črte povezav (»celici se vidita«,
+»celica izbrisa vidi«) ostanejo. Polje `vzorec2Crtkan` in razreda `sh-crtkan`/`shema-sw-crtkan` so
+odstranjeni.
+
+- **Ali se podlagi ločita brez okvirja** (merjeno, nič spremenjeno): celica para #EFD8A0, celica
+  povezave #FAF0D6 – razlika ΔE 18,6 (CIE76; nad pribl. 10 je razlika jasno vidna), v svetlosti
+  L* 87 proti 95. Bledejša podlaga od bele (prazna celica): ΔE 14,7, L* 95 proti 100 – ta razlika je
+  manjša, a celico povezave od prazne loči še zlati okvir. Posnetek z okvirji, skritimi samo za to
+  meritev, pokaže, da se celici povezave tudi brez okvirja ločita od celic para in od praznih celic.
+  Ista podlaga je pri 11 (krili), ki je bila potrjena.
+- Preverjanje: `tests/sheme.test.js` (W-krilo brez črtkanega okvirja), vsi testi,
+  `tools/preveri-sheme-brskalnik.js` pri 375 in 1280 px v treningu in Pomoči vseh treh aplikacij
+  (celice druge vrste pri 10 in 11 s polnim okvirjem, vzorček v legendi s polno obrobo), 869 preverb,
+  vse drži. Posnetki sheme 10 pri 375 px – prej: [10](slike/faza3a/popravek3-shema-w-wing-375.png),
+  potem: [10](slike/faza3a/poln-okvir-shema-w-wing-375.png), brez okvirjev (samo za meritev):
+  [10](slike/faza3a/poln-okvir-shema-w-wing-brez-okvirja-375.png).
