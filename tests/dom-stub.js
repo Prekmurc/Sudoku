@@ -61,6 +61,11 @@ class Element {
   appendChild(el) { this.children.push(el); return el; }
   append(...kosi) { for (const k of kosi) this.children.push(k instanceof Element ? k : new Besedilo(k)); }
   prepend(el) { this.children.unshift(el); }
+  insertBefore(el, ref) {
+    const i = this.children.indexOf(ref);
+    if (i < 0) this.children.push(el); else this.children.splice(i, 0, el);
+    return el;
+  }
   remove() { /* v testih ni starša */ }
   setAttribute(k, v) { this.attrs[k] = String(v); }
   getAttribute(k) { return this.attrs[k] === undefined ? null : this.attrs[k]; }

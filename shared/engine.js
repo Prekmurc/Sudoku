@@ -970,6 +970,17 @@ function countSolutions(givens, limit = 2, attemptBudget = 50000) {
   return counter.count;
 }
 
+// Vzrok, zakaj uganke ni mogoče igrati, iz rezultata countSolutions(): '' pri eni
+// rešitvi (in brez rezultata), sicer del povedi za igro (»Te uganke ni mogoče igrati:
+// nima rešitve.«, vrstica ocene »· ima več kot eno rešitev«). Reševalec ima svoja
+// sporočila (rešitev kljub temu prikaže).
+function opisSteviloResitev(n) {
+  if (n === 1 || n === undefined) return '';
+  if (n === 0) return 'nima rešitve';
+  if (n === 'unknown') return 'enoličnosti ni bilo mogoče preveriti v razumnem času';
+  return 'ima več kot eno rešitev';
+}
+
 // Rešitev uganke kot polje 81 števk ali null, če je nima (ali če varovalo
 // prekine iskanje). Pri uganki z več rešitvami vrne prvo najdeno - enoličnost
 // preveri countSolutions().

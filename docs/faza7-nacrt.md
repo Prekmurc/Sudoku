@@ -96,6 +96,13 @@ spremembo** (`tests/igra-ui.test.js`; teh sporočil zdaj ne preverja noben test)
 `countSolutions` v kontekstu; vrstica ocene po »Oceni zbirko« (v nadomestnem DOM-u delavec ne obstaja,
 ocena teče v glavni niti). Test najprej z današnjimi besedili, v koraku nato z novimi.
 
+**Izvedeno 2026-10-07** (korak 2). Trije testi v `tests/igra-ui.test.js` (»6.6: …«, vsak čez vse tri
+primere); na stari kodi zeleni, po spremembi prav tako (spremenjena je samo tabela pričakovanih
+besedil). Nadomestni DOM je dobil `insertBefore()` (vrstica ocene ga uporablja – prej je ni preverjal
+noben test). Posnetek igre brez razlik (scenarij teh sporočil ne doseže). D1: nov scenarij
+`tools/preveri-faza7-brskalnik.js` pri 320 in 375 px – vrstica ocene in sporočilo »Začni igro« v
+kartici oziroma oknu, brez preliva; najdaljša vrstica ocene ima pri 320 px tri vrstice, pri 375 px dve.
+
 ### 6.5 Gumba »Izvozi« in »Uvozi« (korak 3)
 
 **Zdaj.** Logika je že skupna (`zbirkaIzvozi()`, `zbirkaUvozi()`, `zbirkaPrenesi()` v

@@ -973,3 +973,102 @@ test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih
   const pomoc = html.slice(html.indexOf('<div id="navodilaDialog"'), html.indexOf('<div id="novaDialog"'));
   assert.equal((pomoc.match(/class="navodila-stopnje"><\/ul>/g) || []).length, 1);
 });
+
+// Faza 7, 6.6 (docs/faza7-nacrt.md): sporočila o številu rešitev v igri - »Začni igro« v oknu
+// »Nova uganka«, »Igraj« pri uvoženi uganki in vrstica ocene po »Oceni zbirko«. Uganke brez
+// rešitve in z več rešitvami izpelje program iz uganke v docs/uganke.md (countSolutions()), kot v
+// niz-danosti.test.js; 'unknown' da nadomestni countSolutions v kontekstu. Vzrok je v vseh treh
+// mestih opisSteviloResitev() (shared/engine.js); »Igraj« je ostal, kot je bil.
+const SPOROCILA_RESITEV = {
+  zacni: {
+    0: 'Te uganke ni mogoče igrati: nima rešitve – preveri dane števke.',
+    2: 'Te uganke ni mogoče igrati: ima več kot eno rešitev.',
+    unknown: 'Te uganke ni mogoče igrati: enoličnosti ni bilo mogoče preveriti v razumnem času.',
+  },
+  igraj: {
+    0: 'Te uganke ni mogoče igrati: nima rešitve.',
+    2: 'Te uganke ni mogoče igrati: ima več kot eno rešitev.',
+    unknown: 'Te uganke ni mogoče igrati: enoličnosti ni bilo mogoče preveriti v razumnem času.',
+  },
+  ocena: {
+    0: 'ocena: Težka → Brez rešitve · nima rešitve',
+    2: 'ocena: Težka → Več rešitev · ima več kot eno rešitev',
+    unknown: 'ocena: brez sprememb · enoličnosti ni bilo mogoče preveriti v razumnem času',
+  },
+};
+
+// Uganke s 0 in 2 rešitvama (iz `danosti`) in uganka, ki ji nadomestni countSolutions vrne 'unknown'.
+function ugankeResitev() {
+  const { run } = loadContext(DATOTEKE, makeDom().globals);
+  const st = d => run(`countSolutions(${JSON.stringify(d)})`);
+  let vec = danosti;
+  for (let i = 0; i < 81 && st(vec) === 1; i++) if (vec[i] !== '0') vec = vec.slice(0, i) + '0' + vec.slice(i + 1);
+  const resitev = run(`solutionOf(${JSON.stringify(danosti)})`);
+  const b = run(`new Board(${JSON.stringify(danosti)})`);
+  const c = [...danosti].findIndex((ch, i) => ch === '0' && (b.cand[i] & ~(1 << Number(resitev[i])) & 0x3fe));
+  const dd = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(x => x !== Number(resitev[c]) && (b.cand[c] & (1 << x)));
+  const brez = danosti.slice(0, c) + dd + danosti.slice(c + 1);
+  const neznana = druge[0];
+  assert.equal(st(brez), 0, 'program potrdi, da rešitve ni');
+  assert.equal(st(vec), 2, 'program potrdi več rešitev');
+  assert.equal(st(neznana), 1, 'uganka za »unknown« ima sicer eno rešitev');
+  return { 0: brez, 2: vec, unknown: neznana };
+}
+const UGANKE_RESITEV = ugankeResitev();
+// Nadomestni countSolutions: za uganko `neznana` 'unknown', sicer pravi.
+const neznanaEnolicnost = run => run(`(() => { const prava = countSolutions;
+  countSolutions = (g, ...r) => g === ${JSON.stringify(UGANKE_RESITEV.unknown)} ? 'unknown' : prava(g, ...r); })()`);
+
+test('6.6: »Začni igro« pri uganki brez natanko ene rešitve', async () => {
+  for (const [primer, d] of Object.entries(UGANKE_RESITEV)) {
+    const dom = makeDom();
+    const { run } = loadContext(DATOTEKE, dom.globals);
+    neznanaEnolicnost(run);
+    dom.klikni('novaBtn');
+    run(`vnosi.forEach((inp, i) => { inp.value = ${JSON.stringify(d)}[i] === '0' ? '' : ${JSON.stringify(d)}[i]; })`);
+    dom.klikni('novaZacni');
+    await cakaj(300); // enoličnost se preveri v setTimeout
+    assert.equal(dom.el('novaStatus').textContent, SPOROCILA_RESITEV.zacni[primer], `primer ${primer}`);
+    assert.equal(dom.el('novaStatus').className, 'dialog-status err');
+    assert.equal(run('zbirkaBeri().length'), 0, 'uganka se ne doda');
+    assert.equal(run('igra'), null, 'igra se ne začne');
+  }
+});
+
+// Zbirka z uvoženimi ugankami vseh treh primerov (težavnost Težka, da ocena predlaga spremembo).
+function zbirkaResitev() {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  neznanaEnolicnost(run);
+  const md = Object.values(UGANKE_RESITEV).map(d => [`- **Danosti:** \`${d.replace(/0/g, '.')}\``,
+    '- **Težavnost:** Težka', '- **Dodano:** 2026-09-20 10:00'].join('\n')).join('\n\n');
+  const p = run(`zbirkaUvozi(${JSON.stringify(md)})`);
+  assert.equal(p.napaka, false, p.sporocilo);
+  assert.equal(run('zbirkaBeri().length'), 3);
+  dom.klikni('zbirkaBtn');
+  return { dom, run };
+}
+
+test('6.6: »Igraj« pri uvoženi uganki brez natanko ene rešitve', () => {
+  for (const [primer, d] of Object.entries(UGANKE_RESITEV)) {
+    const { dom, run } = zbirkaResitev();
+    const g = delKartice(run, 'zb-gumbi', JSON.stringify(d)).children[0];
+    assert.equal(g.textContent, 'Igraj');
+    g.sprozi('click');
+    assert.equal(dom.el('zbirkaStatus').textContent, SPOROCILA_RESITEV.igraj[primer], `primer ${primer}`);
+    assert.equal(dom.el('zbirkaStatus').className, 'dialog-status err');
+    assert.equal(run('igra'), null, 'igra se ne začne');
+  }
+});
+
+test('6.6: vrstica ocene po »Oceni zbirko« pri uganki brez natanko ene rešitve', async () => {
+  const { dom, run } = zbirkaResitev();
+  dom.klikni('oceniBtn'); // delavca v testu ni - ocena teče v glavni niti
+  for (let i = 0; i < 100 && run('!!ocenjevanje'); i++) await cakaj(20);
+  assert.equal(run('!!ocenjevanje'), false, 'ocenjevanje je končano');
+  for (const [primer, d] of Object.entries(UGANKE_RESITEV)) {
+    const vrsticaOcene = run(`zbirkaVrstice.get(${JSON.stringify(d)}).children.find(el => el.className.startsWith('zb-info zb-ocena'))`);
+    assert.ok(vrsticaOcene, `vrstica ocene, primer ${primer}`);
+    assert.equal(vrsticaOcene.textContent, SPOROCILA_RESITEV.ocena[primer], `primer ${primer}`);
+  }
+});

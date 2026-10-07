@@ -985,6 +985,10 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 - **Predlog:** `opisSteviloResitev(n)` v `shared/engine.js` (poleg `countSolutions()`).
   Klicatelj doda samo začetek (»Te uganke ni mogoče igrati: …«).
 - **Obseg:** majhno.
+- **Narejeno 2026-10-07** (faza 7, korak 2, `docs/faza7-nacrt.md`): `opisSteviloResitev(n)` v
+  `shared/engine.js`; v igri ga uporabljajo »Igraj« (besedilo enako), »Začni igro« v oknu »Nova
+  uganka« in vrstica ocene po »Oceni zbirko« (`opisResitev` odstranjen) – pet besedil se je
+  spremenilo. Reševalec ostane (njegova sporočila povedo, da je rešitev kljub temu prikazana).
 
 ### 6.7 Sklanjanje po številu
 

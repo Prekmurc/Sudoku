@@ -694,9 +694,7 @@ function igrajIzZbirke(danosti) {
   if (!igraNalozi(danosti)) {
     const n = countSolutions(danosti);
     if (n !== 1) {
-      zbirkaStatus(n === 0 ? 'Te uganke ni mogoče igrati: nima rešitve.'
-        : n === 'unknown' ? 'Te uganke ni mogoče igrati: enoličnosti ni bilo mogoče preveriti v razumnem času.'
-        : 'Te uganke ni mogoče igrati: ima več kot eno rešitev.', true);
+      zbirkaStatus(`Te uganke ni mogoče igrati: ${opisSteviloResitev(n)}.`, true);
       return;
     }
   }
@@ -802,16 +800,6 @@ function stUgank(n) {
   return `${n} ${sklanjaj(n, ['uganka', 'uganki', 'uganke', 'ugank'])}`;
 }
 
-// Zakaj uganka ni dobila stopnje: countSolutions() v oceniUganko(). Uganke brez
-// natanko ene rešitve (pridejo lahko z uvozom) ni mogoče igrati, zato dobi "Brez
-// rešitve" ali "Več rešitev"; pri nepreverjeni enoličnosti ostane stara težavnost.
-function opisResitev(resitve) {
-  if (resitve === 1 || resitve === undefined) return '';
-  if (resitve === 0) return 'nima rešitve';
-  if (resitve === 'unknown') return 'enoličnosti ni bilo mogoče preveriti';
-  return 'več kot ena rešitev';
-}
-
 // Kaj bi se iz ocene zapisalo v uganko. Uganka brez natanko ene rešitve dobi samo
 // težavnost ("Brez rešitve" ali "Več rešitev"): podatki reševanja bi bili iz ene od
 // več poti (reševalec jih pri taki uganki tudi ne shrani - glej zbirkaPoResevanju v
@@ -860,7 +848,10 @@ function izrisiOceno(danosti, zapis) {
   const z = zapis || zbirkaBeri().find(x => x.danosti === danosti);
   if (!z) return;
   const sprememba = ocenaSprememba(z, o);
-  const razlog = opisResitev(o.resitve);
+  // Zakaj uganka ni dobila stopnje (countSolutions() v oceniUganko()): uganke brez
+  // natanko ene rešitve (pridejo lahko z uvozom) ni mogoče igrati, zato dobi "Brez
+  // rešitve" ali "Več rešitev"; pri nepreverjeni enoličnosti ostane stara težavnost.
+  const razlog = opisSteviloResitev(o.resitve);
   const el = document.createElement('div');
   el.className = 'zb-info zb-ocena' + (sprememba ? ' zb-ocena-nova' : '');
   el.textContent = (sprememba ? `ocena: ${sprememba}` : 'ocena: brez sprememb')
@@ -1278,9 +1269,7 @@ novaZacniBtn.addEventListener('click', () => {
     try {
       const n = countSolutions(danosti);
       if (n !== 1) {
-        novaStatus(n === 0 ? 'Uganka nima rešitve – preveri dane števke.'
-          : n === 'unknown' ? 'Enoličnosti ni bilo mogoče preveriti v razumnem času, zato uganke ne morem ponuditi za igro.'
-          : 'Uganka ima več kot eno rešitev – za igro potrebujem uganko z natanko eno rešitvijo.', true);
+        novaStatus(`Te uganke ni mogoče igrati: ${opisSteviloResitev(n)}${n === 0 ? ' – preveri dane števke' : ''}.`, true);
         return;
       }
       dodajVZbirko(danosti, '', 'rocno');
