@@ -136,15 +136,17 @@ function zbirkaIzrisiSeznam() {
 function zbirkaOdpri() {
   zbirkaStatus('');
   zbirkaIzrisiSeznam();
-  libraryEl.style.display = 'block';
+  libraryEl.classList.add('odprt');
 }
-function zbirkaZapri() { libraryEl.style.display = 'none'; }
+function zbirkaZapri() { libraryEl.classList.remove('odprt'); }
+// Okno je odprto, ko ima razred "odprt" (.dialog v ../shared/pomoc.css).
+const zbirkaOdprta = () => libraryEl.classList.contains('odprt');
 
 libraryBtn.addEventListener('click', zbirkaOdpri);
 document.getElementById('libClose').addEventListener('click', zbirkaZapri);
 libraryEl.addEventListener('click', (e) => { if (e.target === libraryEl) zbirkaZapri(); });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && libraryEl.style.display === 'block') zbirkaZapri();
+  if (e.key === 'Escape' && zbirkaOdprta()) zbirkaZapri();
 });
 
 // Izvoz/uvoz (vezava v ../shared/zbirka-ui.js, enaka kot v igri).
@@ -177,7 +179,7 @@ document.getElementById('libDeleteAll').addEventListener('click', () => {
 // števec, odprt seznam in vrstica "Shranjeno v zbirko" (uganka je morda izbrisana).
 zbirkaObSpremembiDrugje(() => {
   zbirkaOsveziGumb();
-  if (libraryEl.style.display === 'block') zbirkaIzrisiSeznam();
+  if (zbirkaOdprta()) zbirkaIzrisiSeznam();
   if (zbirkaTrenutne) zbirkaOsveziVrstico();
 });
 

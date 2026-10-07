@@ -6,10 +6,10 @@
 <title>Sudoku reševalec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../shared/base.css?v=2026-10-07.1455">
-<link rel="stylesheet" href="../shared/zbirka.css?v=2026-10-07.1455">
-<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-07.1455">
-<link rel="stylesheet" href="app.css?v=2026-10-07.1455">
+<link rel="stylesheet" href="../shared/base.css?v=2026-10-07.1522">
+<link rel="stylesheet" href="../shared/zbirka.css?v=2026-10-07.1522">
+<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-07.1522">
+<link rel="stylesheet" href="app.css?v=2026-10-07.1522">
 </head>
 <body>
 
@@ -83,11 +83,11 @@
   <div id="lightboxScroll"><div id="lightboxInner"></div></div>
 </div>
 
-<div id="library" role="dialog" aria-modal="true" aria-labelledby="libTitle">
-  <div class="lib-panel">
-    <div class="lib-header">
+<div id="library" class="dialog" role="dialog" aria-modal="true" aria-labelledby="libTitle">
+  <div class="dialog-panel">
+    <div class="dialog-glava">
       <h2 id="libTitle">Zbirka ugank</h2>
-      <button type="button" id="libClose" aria-label="Zapri">✕</button>
+      <button type="button" id="libClose" class="dialog-zapri" aria-label="Zapri">✕</button>
     </div>
     <p class="cand-hint">Zbirka je ista kot v igri. Izvoz zapiše vse uganke v datoteko Markdown. Uvoz jih doda obstoječim – pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Brisanje odstrani uganko skupaj s shranjenim napredkom v igri. Vgrajeni primeri (seznam »Primeri po težavnosti«) niso del zbirke in se vanjo ne shranijo.</p>
     <div class="lib-tools">
@@ -133,14 +133,14 @@
 
 <footer class="note">Vse reševanje teče kar v tem brskalniku (nič se ne pošilja nikamor), tudi zbirka ugank se hrani samo v njem. V rešeni mreži je dana števka temna, izpeljana modra.</footer>
 
-<script src="../shared/engine.js?v=2026-10-07.1455"></script>
-<script src="../shared/stanje.js?v=2026-10-07.1455"></script>
-<script src="../shared/zbirka.js?v=2026-10-07.1455"></script>
-<script src="../shared/zbirka-ui.js?v=2026-10-07.1455"></script>
-<script src="../shared/generator.js?v=2026-10-07.1455"></script>
-<script src="../shared/pomoc.js?v=2026-10-07.1455"></script>
-<script src="../shared/sheme.js?v=2026-10-07.1455"></script>
-<script src="app.js?v=2026-10-07.1455"></script>
-<script src="zbirka.js?v=2026-10-07.1455"></script>
+<script src="../shared/engine.js?v=2026-10-07.1522"></script>
+<script src="../shared/stanje.js?v=2026-10-07.1522"></script>
+<script src="../shared/zbirka.js?v=2026-10-07.1522"></script>
+<script src="../shared/zbirka-ui.js?v=2026-10-07.1522"></script>
+<script src="../shared/generator.js?v=2026-10-07.1522"></script>
+<script src="../shared/pomoc.js?v=2026-10-07.1522"></script>
+<script src="../shared/sheme.js?v=2026-10-07.1522"></script>
+<script src="app.js?v=2026-10-07.1522"></script>
+<script src="zbirka.js?v=2026-10-07.1522"></script>
 </body>
 </html>

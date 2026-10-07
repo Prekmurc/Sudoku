@@ -170,6 +170,27 @@ v glavi (O2). Nato še `preveri-videz-brskalnik.js` (okno pokrije zaslon, brez p
 `.lib-panel` odpade, `.dialog-panel` je že na seznamu) in `preveri-pomoc-brskalnik.js` (Pomoč v
 reševalcu je isti razred).
 
+**Izvedeno 2026-10-07** (korak 4). `app/index.html`: okno ima razrede `dialog`, `dialog-panel`,
+`dialog-glava`, `dialog-zapri` (id-ji ostanejo); `app/app.css`: odpadlo je pet pravil (`#library`,
+`.lib-panel`, `.lib-header`, `.lib-header h2`, `#libClose`), `.lib-tools` in `.lib-status` ostaneta (O3);
+`app/zbirka.js`: razred `odprt` na vseh treh mestih (`zbirkaOdpri()`/`zbirkaZapri()`, Escape, osvežitev
+ob dogodku `storage` – `zbirkaOdprta()`), `style.display` pri oknu ni več. `tests/app-zbirka.test.js`
+dobi tri teste (odpiranje in zapiranje – ✕, klik v panelu in ob njem, Escape, Escape pri zaprtem oknu,
+prazna vrstica statusa ob odprtju; Escape ne zapre povečanega prikaza in ne odpre Pomoči, Pomoč se
+odpira in zapira; osvežitev odprtega seznama, zaprtega ne) s pomožno funkcijo `oknoOdprto()` – zeleni
+na stari kodi, po spremembi zamenjana samo ta vrstica. **Brskalnik** (`preveri-faza7-brskalnik.js
+--korak 4`) pri 320, 375 in 1280 px: odprto okno z dvema ugankama in zelenim statusom (pravi klik na
+»Zbirka« in »Izvozi«) primerjano z izhodiščem `2fdb542` na dva načina – (1) izhodišče z O2 (dodan
+`.lib-header{margin-bottom:10px}`) je novemu enako v drevesu (28 elementov), v vseh izračunanih
+lastnostih vseh elementov (razen `-webkit-tap-highlight-color`, ki ga ne nastavi noben slog – privzeta
+vrednost brskalnika je odvisna od prejšnjega posnemanja telefona), v položajih in do piksla; (2) izhodišče brez O2 se razlikuje samo v
+`margin-bottom` glave in višini panela, ki iz njega sledi, elementi pod glavo so 2 px višje. Obnašanje
+(14 opažanj: ✕, klik ob panelu, Escape, Escape pri povečanem prikazu, Pomoč) enako izhodišču. Glajenje
+zaobljenega vogala panela se med dvema zagonoma brskalnika lahko razlikuje za 1–2 v kanalu tudi pri isti
+kodi (preizkušeno), zato primerjava v kvadratu 10 × 10 px tega vogala dopusti razliko do 2.
+`preveri-videz-brskalnik.js` (izbirnik `.lib-panel` odstranjen) in `preveri-pomoc-brskalnik.js`: vse drži.
+Posnetek igre brez razlik.
+
 ### 1.1 Raven kot podatek tehnike (korak 5)
 
 **Zdaj.** Raven je zapisana na štirih mestih: `GEN_LAHKE` … `GEN_EKSPERTNE` v `shared/generator.js`

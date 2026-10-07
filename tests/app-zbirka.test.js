@@ -36,6 +36,9 @@ function zacni(odgovor = true) {
 // Del kartice (edine) uganke v seznamu po razredu (glej shared/zbirka-ui.js).
 const delKartice = (dom, razred) => dom.el('libList').children[0].children.find(el => el.className === razred);
 
+// Ali je okno zbirke odprto (edino mesto, ki ve, kako se okno odpira).
+const oknoOdprto = dom => dom.el('library').classList.contains('odprt');
+
 // Gumb z danim napisom pri (edini) uganki v seznamu.
 function gumb(dom, napis) {
   const vrstica = delKartice(dom, 'zb-gumbi');
@@ -49,7 +52,7 @@ test('reševalec: »Odpri« vpiše danosti v mrežo in zapre okno', () => {
   gumb(dom, 'Odpri').sprozi('click');
   assert.equal(run('currentGivens()'), danosti);
   assert.equal(dom.el('status').textContent, 'Naložena uganka iz zbirke (Težka, dodana 21. 9. 2026 ob 16:33).');
-  assert.equal(dom.el('library').style.display, 'none');
+  assert.equal(oknoOdprto(dom), false);
 });
 
 test('reševalec: »Izbriši« vpraša z datumom in po potrditvi uganko izbriše', () => {
@@ -66,6 +69,95 @@ test('reševalec: »Izbriši« brez potrditve uganko pusti v zbirki', () => {
   gumb(dom, 'Izbriši').sprozi('click');
   assert.equal(vprasanja.length, 1);
   assert.equal(run('zbirkaBeri().length'), 1);
+});
+
+/* ---------- okno zbirke: odpiranje, zapiranje, Escape, osvežitev ---------- */
+
+// Reševalec z eno uganko v zbirki, okno še zaprto.
+function zaprto() {
+  const dom = makeDom();
+  dom.shramba.set('sudoku.zbirka.v1', JSON.stringify([
+    { danosti, tezavnost: 'Težka', izvor: 'rocno', dodano: '2026-09-21 16:33', opomba: '' },
+  ]));
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  return { dom, run };
+}
+
+test('reševalec: okno zbirke se odpre z gumbom in zapre s ✕, klikom ob panelu in tipko Escape', () => {
+  const { dom } = zaprto();
+  assert.equal(oknoOdprto(dom), false, 'ob zagonu je okno zaprto');
+
+  dom.klikni('libraryBtn');
+  assert.equal(oknoOdprto(dom), true, 'gumb »Zbirka« okno odpre');
+  assert.equal(dom.el('libList').children.length, 1, 'seznam je izrisan');
+  // Klik v panelu (cilj ni ozadje okna) okna ne zapre.
+  dom.el('library').sprozi('click', { target: dom.el('libList') });
+  assert.equal(oknoOdprto(dom), true, 'klik v panelu okna ne zapre');
+  dom.klikni('libClose');
+  assert.equal(oknoOdprto(dom), false, '✕ okno zapre');
+
+  dom.klikni('libraryBtn');
+  dom.el('library').sprozi('click', { target: dom.el('library') });
+  assert.equal(oknoOdprto(dom), false, 'klik ob panelu (na ozadju) okno zapre');
+
+  dom.klikni('libraryBtn');
+  dom.tipka({ key: 'Enter' });
+  assert.equal(oknoOdprto(dom), true, 'druga tipka okna ne zapre');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(oknoOdprto(dom), false, 'Escape okno zapre');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(oknoOdprto(dom), false, 'Escape pri zaprtem oknu ga ne odpre');
+
+  // Ponovno odprtje pobriše prejšnje sporočilo.
+  dom.klikni('libraryBtn');
+  dom.klikni('libDeleteAll');
+  assert.ok(dom.el('libStatus').textContent, 'sporočilo po brisanju');
+  dom.klikni('libClose');
+  dom.klikni('libraryBtn');
+  assert.equal(dom.el('libStatus').textContent, '', 'ob odprtju je vrstica statusa prazna');
+});
+
+test('reševalec: Escape zapre okno zbirke, ne povečanega prikaza in ne Pomoči', () => {
+  const { dom, run } = zaprto();
+  run("openLightbox(() => {})");
+  assert.equal(dom.el('lightbox').style.display, 'block');
+  dom.klikni('libraryBtn');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(oknoOdprto(dom), false, 'zbirka je zaprta');
+  assert.equal(dom.el('lightbox').style.display, 'block', 'povečan prikaz ostane odprt');
+  assert.equal(dom.el('pomocDialog').classList.contains('odprt'), false, 'Pomoč se ne odpre');
+
+  // Pomoč se odpira in zapira kot prej (shared/pomoc.js); zbirke ne odpre.
+  dom.klikni('pomocBtn');
+  assert.equal(dom.el('pomocDialog').classList.contains('odprt'), true, 'Pomoč je odprta');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(dom.el('pomocDialog').classList.contains('odprt'), false, 'Escape zapre Pomoč');
+  assert.equal(oknoOdprto(dom), false, 'zbirka ostane zaprta');
+});
+
+test('reševalec: sprememba v drugem zavihku osveži odprt seznam, zaprtega ne izriše', () => {
+  const { dom } = zaprto();
+  const zapis = (d, dodano) => ({ danosti: d, tezavnost: 'Lahka', izvor: 'rocno', dodano, opomba: '' });
+  const druga = loadPuzzles()[3].danosti.replace(/\./g, '0');
+  const tretja = loadPuzzles()[4].danosti.replace(/\./g, '0');
+
+  dom.klikni('libraryBtn');
+  dom.drugZavihek('sudoku.zbirka.v1', JSON.stringify([
+    zapis(danosti, '2026-09-21 16:33'), zapis(druga, '2026-09-22 10:00'),
+  ]));
+  assert.equal(oknoOdprto(dom), true, 'okno ostane odprto');
+  assert.equal(dom.el('libList').children.length, 2, 'odprt seznam je osvežen');
+  assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (2)');
+
+  dom.klikni('libClose');
+  dom.drugZavihek('sudoku.zbirka.v1', JSON.stringify([
+    zapis(danosti, '2026-09-21 16:33'), zapis(druga, '2026-09-22 10:00'), zapis(tretja, '2026-09-23 10:00'),
+  ]));
+  assert.equal(oknoOdprto(dom), false, 'zaprto okno se ne odpre');
+  assert.equal(dom.el('libList').children.length, 2, 'zaprtega seznama ne izriše');
+  assert.equal(dom.el('libraryBtn').textContent, 'Zbirka (3)', 'števec je osvežen');
+  dom.klikni('libraryBtn');
+  assert.equal(dom.el('libList').children.length, 3, 'ob odprtju je seznam nov');
 });
 
 /* ---------- stanje uganke: isti vir kot v igri ---------- */

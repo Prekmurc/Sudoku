@@ -518,41 +518,8 @@
   }
   .save-fields input{ flex:1; min-width:0; }
 
-  #library{
-    display:none;
-    position:fixed;
-    inset:0;
-    z-index:1500;
-    background: rgba(36,48,61,0.6);
-    overflow:auto;
-    padding: 24px 16px;
-  }
-  .lib-panel{
-    max-width:480px;
-    margin:0 auto;
-    background: var(--card);
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:18px;
-  }
-  .lib-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:12px;
-  }
-  .lib-header h2{
-    font-family:'Source Serif 4', serif;
-    font-size:18px;
-    margin:0;
-  }
-  #libClose{
-    width:36px;
-    height:36px;
-    padding:0;
-    border-radius:18px;
-    font-size:16px;
-  }
+  /* okno zbirke (#library): okno, panel, glava in ✕ so skupni razredi .dialog* iz
+     ../shared/pomoc.css (faza 7); tu ostaneta vrstica gumbov in status */
   .lib-tools{
     display:flex;
     gap:10px;

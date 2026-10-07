@@ -1028,6 +1028,11 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 - **Faza 6 (korak c, 2026-10-04):** okno `.dialog` (z oknom Pomoč) je preseljeno v `shared/pomoc.css`,
   ker ga zdaj uporabljajo vse tri aplikacije; okno zbirke v reševalcu (`#library`) in vnosna mreža
   ostaneta v fazi 7.
+- **Faza 7 (korak 4, 2026-10-07, `docs/faza7-nacrt.md`):** okno zbirke v reševalcu ima skupne razrede
+  `.dialog`, `.dialog-panel`, `.dialog-glava`, `.dialog-zapri` (id-ji ostanejo), iz `app/app.css` je
+  odpadlo pet pravil, `app/zbirka.js` odpira in zapira z razredom `odprt` (brez `style.display`). Za
+  uporabnika: odmik pod glavo okna 12 → 10 px, kot v igri (O2); vrstica gumbov in zeleni status
+  ostaneta (O3). Okno ostane samo še vnosna mreža (naloga 9).
 - **Obseg:** srednje.
 
 ### 6.9 Ime tehnike in opis na kartici

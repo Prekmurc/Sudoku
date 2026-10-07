@@ -48,7 +48,7 @@ const MERITEV = `(() => {
   const ime = el => el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.classList.length ? '.' + [...el.classList].join('.') : '');
   const vidno = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
   const cez = (r, p) => r.right > p.right + 0.5 || r.left < p.left - 0.5;
-  const posode = [...document.querySelectorAll('.card, .exercise, .menu-card, .score-bar, .plosca, .stranski, .dialog-panel, .lib-panel, #steps li')]
+  const posode = [...document.querySelectorAll('.card, .exercise, .menu-card, .score-bar, .plosca, .stranski, .dialog-panel, #steps li')]
     .filter(p => vidno(p) && !p.closest('#lightbox'));
   const izPosod = [];
   for (const p of posode) {
