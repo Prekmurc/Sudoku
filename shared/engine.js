@@ -574,6 +574,80 @@ function uniqueRectangle(b) {
   return steps;
 }
 
+// XY-veriga (XY-Chain, docs/xy-veriga-nacrt.md): celice c1, c2, ..., cn, vsaka z natanko
+// dvema kandidatoma; zaporedni celici se vidita in imata skupen kandidat, ki ju povezuje:
+// c1 = {z, a}, c2 = {a, b}, ..., cn = {..., z}. Če c1 ni z, je a; potem c2 ni a, torej je
+// b; ... in cn je z. Vsaj en konec je z, zato z izbrišemo iz celic, ki vidijo oba konca.
+// Celica se v verigi ne ponovi. Od 4 celic naprej (3 celice so XY-Wing), največ 8 (daljše
+// iskanje raste eksponentno, meritev v načrtu, odločitev O2).
+// Za vsak par koncev in števko z ostane ena veriga: najkrajša, pri enaki dolžini
+// leksikografsko najmanjše zaporedje celic. Veriga je zapisana od konca z nižjim
+// položajem. Koraki so urejeni (O3): najkrajša, več izbrisov, prva celica, z, zadnja celica.
+const XY_VERIGA_NAJMANJ = 4;
+const XY_VERIGA_NAJVEC = 8;
+function xyChain(b) {
+  const bival = [];
+  for (let c = 0; c < 81; c++) if (b.grid[c] === 0 && popcount(b.cand[c]) === 2) bival.push(c);
+  if (bival.length < XY_VERIGA_NAJMANJ) return [];
+  const sosedi = new Map();
+  for (const c of bival) sosedi.set(c, bival.filter(p => p !== c && PEERS[c].has(p) && (b.cand[p] & b.cand[c])));
+  const druga = (c, d) => onlyBit(b.cand[c] & ~(1 << d));
+  const manjsa = (p, q) => { for (let i = 0; i < p.length; i++) if (p[i] !== q[i]) return p[i] < q[i]; return false; };
+  const najdene = new Map(); // `${z}|${prvi}|${zadnji}` -> { celice, z }
+  const zabelezi = (pot, z) => {
+    const celice = pot[0] < pot[pot.length - 1] ? pot.slice() : pot.slice().reverse();
+    const kljuc = `${z}|${celice[0]}|${celice[celice.length - 1]}`;
+    const prej = najdene.get(kljuc);
+    if (!prej || celice.length < prej.celice.length
+      || (celice.length === prej.celice.length && manjsa(celice, prej.celice))) najdene.set(kljuc, { celice, z });
+  };
+  for (const s of bival) {
+    for (const z of bitsOf(b.cand[s])) {
+      const pot = [s];
+      const v = new Uint8Array(81); v[s] = 1;
+      // c je zadnja celica poti, e števka, ki jo mora c izločiti v naslednji celici
+      const dfs = (c, e) => {
+        if (pot.length >= XY_VERIGA_NAJVEC) return;
+        for (const n of sosedi.get(c)) {
+          if (v[n] || !(b.cand[n] & (1 << e))) continue;
+          const naprej = druga(n, e);
+          pot.push(n); v[n] = 1;
+          if (naprej === z && pot.length >= XY_VERIGA_NAJMANJ) zabelezi(pot, z);
+          dfs(n, naprej);
+          pot.pop(); v[n] = 0;
+        }
+      };
+      dfs(s, druga(s, z));
+    }
+  }
+  const steps = [];
+  for (const { celice, z } of najdene.values()) {
+    const s = celice[0], n = celice[celice.length - 1];
+    const elim = [];
+    for (let c = 0; c < 81; c++) {
+      if (c === s || c === n || b.grid[c] !== 0 || !(b.cand[c] & (1 << z))) continue;
+      if (PEERS[s].has(c) && PEERS[n].has(c)) elim.push([c, z]);
+    }
+    if (!elim.length) continue;
+    const opis = celice.map(c => `${cellLabel(c)} {${bitsOf(b.cand[c]).join(', ')}}`).join(' – ');
+    // Če c1 ni z, je vsaka celica druga števka od tiste, ki jo je izločila prejšnja.
+    const vrednosti = [];
+    let d = z;
+    for (const c of celice) { d = druga(c, d); vrednosti.push(d); }
+    const sklep = celice.slice(1).map((c, i) => `${cellLabel(c)} je ${vrednosti[i + 1]}`);
+    steps.push({
+      technique: 'XY-Chain', cells: celice, assign: [], eliminate: elim,
+      // Števka z in dolžina (O6); konca bi skoraj določila odgovor.
+      hint: { digits: [z], celic: celice.length },
+      message: `Celice ${opis} tvorijo XY-verigo: vsaka ima natanko dva kandidata, zaporedni celici se vidita in imata skupen kandidat. Če ${cellLabel(s)} ni ${z}, je ${vrednosti[0]} → ${sklep.join(' → ')}. Vsaj eden od koncev ${cellLabel(s)} in ${cellLabel(n)} je torej ${z} → ${z} lahko izbrišeš iz celic, ki vidijo oba konca: ${cellsLabel(elim.map(e => e[0]))}.`
+    });
+  }
+  const zadnja = st => st.cells[st.cells.length - 1];
+  steps.sort((p, q) => p.cells.length - q.cells.length || q.eliminate.length - p.eliminate.length
+    || p.cells[0] - q.cells[0] || p.hint.digits[0] - q.hint.digits[0] || zadnja(p) - zadnja(q));
+  return steps;
+}
+
 const ALL_TECHNIQUES = [
   ['Gol enojček', nakedSingles],
   ['Skriti enojček', hiddenSingles],

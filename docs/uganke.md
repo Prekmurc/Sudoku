@@ -402,3 +402,20 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   indeks 31) se ne uporabi več, ker ga prehitijo enojčki.
 - **Zakaj je tu:** srednja težavnost med `lahka-seme-197` in težkimi ugankami zgoraj; od
   2026-09-20 edina uganka tu, ki v dnevniku `solve()` uporabi Hidden triple.
+
+### xy-veriga-17
+
+- **Danosti (17):** `...2...8..6........9.......1..7..5........6.9..4......8.7....4......51......6..3.`
+- **Vir:** posredoval uporabnik (2026-10-07) kot preizkusno uganko za XY-verigo (tehnika 13,
+  `docs/xy-veriga-nacrt.md`), z verigo V5S4 – V6S6 – V9S6 – V8S5 – V8S3, ki izbriše 3 iz V5S3.
+- **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši.
+- **Značilnost (2026-10-07, pred vklopom XY-verige):** `solve()` jo reši v 77 korakih: Skriti
+  enojček (39), Gol enojček (25), Pointing pair/triple (5), Box-line reduction (4), Naked pair
+  (1), Hidden triple (1), Turbot Fish (1, na indeksu 27) in enkrat `tryBifurcation`, na indeksu
+  koraka 30 od 77 (V4S2≠8); stopnja »Presega tehnike«. V stanju pred poskusom `xyChain()`
+  (meja 4–8 celic) najde štiri verige, prva (najkrajša) je zgornja veriga petih celic.
+- **Po vklopu XY-verige (korak 6 načrta):** pričakovano brez poskusa, stopnja Ekstrem – po
+  verigi petih celic tri korake pozneje potrebuje še verigo šestih celic V5S2 – V4S2 – V8S2 –
+  V8S4 – V8S9 – V8S5 (izbriše 2 iz V5S5). Zapis se ob vklopu osveži.
+- **Zakaj je tu:** preizkusna uganka XY-verige; stanje pred poskusom je testna pozicija v
+  `tests/xy-chain.test.js`.

@@ -1,8 +1,9 @@
 # XY-veriga (tehnika 13, ekspertna raven) – načrt
 
-Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Čaka na potrditev** –
-kode ni spremenjene. Odločeni sta O4 (B – zaporedne številke) in O5 (B – turkizna, z dopolnilom za
-značko »Ekstrem«), 2026-10-07; druge odločitve sledijo po pregledu načrta.
+Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Potrjen 2026-10-07**
+(commit načrta `7a14814`); vse odločitve O1–O13 so v razdelku 13, dopolnitev za korak 2 (značka »Zelo
+težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** korak 1 je narejen (razdelek 14),
+naslednji je korak 2.
 
 Vse številke v načrtu so **izmerjene** na prototipu tehnike v začasni kopiji projekta (motor z vgrajeno
 XY-verigo, ni v repozitoriju), na tem računalniku (i7-7600U, Node 24, Edge brez glave), ne ocenjene.
@@ -81,7 +82,9 @@ meritvi do pribl. 100 000 obiskanih vozlišč v enem klicu). Veriga z devetimi c
 zelo dolga.
 
 **Iskanje** (za vsako celico z dvema kandidatoma in vsako njeno števko z kot začetek): iskanje v globino po
-preprostih poteh do 8 celic; za vsak par koncev in števko z obdrži najkrajšo verigo. Veriga in obrnjena
+preprostih poteh do 8 celic; za vsak par koncev in števko z obdrži najkrajšo verigo (pri enaki dolžini
+leksikografsko najmanjše zaporedje celic – dopolnitev ob koraku 1, da je tudi izbira vmesnih celic po
+pravilu, ne po vrstnem redu iskanja; izbrisi so pri obeh enaki, ker jih določata konca in z). Veriga in obrnjena
 veriga sta ista (zapiše se od konca z nižjim položajem). Preizkusil sem tudi hitrejše iskanje v širino po
 stanjih (celica, števka): na teh 1000 ugankah da isti izid, a v 711 klicih je 636 najdenih najkrajših poti
 ponovilo celico – take je treba zavreči, zato bi lahko zgrešilo preprosto verigo. Iskanje v globino tega
@@ -302,7 +305,15 @@ slogi `shared/base.css` in `shared/zbirka.css`) kaže odločeno različico:
 | značka težavnosti **Ekstrem** (zbirka, kartica »Uganka«, vgrajeni primeri, opis primera v reševalcu) | #6CC8C8 (jasno turkizna) | #05393A | 6,5 : 1 |
 
 Značka »Ekstrem« je opazno temnejša od svetle oznake ravni (razmerje svetlosti 1,6 : 1), a ni polna in
-temna kot »Zelo težka«. Nove barve so spremenljivke v `:root` v `shared/base.css` (`tests/css-paleta.test.js`:
+temna kot »Zelo težka«.
+
+**Dopolnitev 2026-10-07 (korak 2): značka »Zelo težka«.** Zdaj preveč izstopa (polna temna vijolična
+`--purple-dark` z belo pisavo `--purple-dark-ink`). Dobi **enak slog kot nova »Ekstrem«**, v vijolični:
+srednje močna vijolična podlaga in temna vijolična pisava, kontrast vsaj 4,5 : 1; ostati mora **jasno
+temnejša od »Težka«** (svetla vijolična podlaga napredne ravni). Barvi se izbereta v koraku 2 (spremenljivke v
+`:root` v `shared/base.css`, razred `znacka-zelo-tezka` v `shared/zbirka.css`), kontrast preveri test. Po
+koraku 2 Darko dobi **eno sliko vrstice vseh značk težavnosti** (Lahka, Srednja, Težka, Zelo težka, Ekstrem,
+Presega tehnike, Več rešitev, Brez rešitve) in korak 3 se začne šele po njegovem OK. Nove barve so spremenljivke v `:root` v `shared/base.css` (`tests/css-paleta.test.js`:
 nobena druga datoteka jih ne definira znova); razred `.tag.t-expert` v `shared/base.css`,
 `.badge-ekspertna` v `trening/trening.css`, razred značke »Ekstrem« v `shared/zbirka.css` in v
 `ZNACKA_TEZAVNOSTI` (`shared/zbirka-ui.js`; zdaj je »Ekstrem« rdeča kot »Presega tehnike«),
@@ -343,6 +354,15 @@ je še vedno tako). Skupina »Ekstrem · tehnika« v seznamu primerov (reševale
 
 ## 10. Koraki
 
+**Pravila za vse korake** (Darko, 2026-10-07):
+
+- Vsak korak je svoj pogovor, commit in push.
+- Test pred spremembo, zelen na stari kodi (razen koraka 1, kjer funkcije še ni).
+- Če pade test, ki ni predviden v načrtu, ali se spremeni stopnja uganke, ki ni »Presega tehnike«:
+  **ustavi se in poročaj**. Testa ne prilagajaj.
+- Ročni pregled je eden, na koncu naloge (razdelek 11); po posameznem koraku največ pet točk, pri vsaki
+  zakaj avtomatika ne more.
+
 Od najmanj do najbolj tveganega; vsak je svoj pogovor, commit in push (oznaka različice s hookom). Koraki
 1–5 so za uporabnika nevidni (razen barve značke »Ekstrem« v 2), ker tehnika še ni v vrstnem redu;
 tveganje je zbrano v koraku 6, ki ga zato ni mogoče razdeliti (vklop tehnike brez kartice, številke,
@@ -369,7 +389,9 @@ banke in primera podre teste – spodaj). Korak 7 je majhen, a je odvisen od 6.
 
 - **Kaj:** O5 (B, razdelek 7) – spremenljivke barv in `.tag.t-expert` v `shared/base.css`, `.badge-ekspertna` v `trening/trening.css`,
   razred značke »Ekstrem« v `shared/zbirka.css`, `RAZRED_RAVNI.ekspertna` (`tagClass()`), »Ekstrem« v `ZNACKA_TEZAVNOSTI`.
-- **Za uporabnika:** značka »Ekstrem« pri starih zapisih v zbirki (in kartici »Uganka«) ni več rdeča, ampak turkizna.
+- **Za uporabnika:** značka »Ekstrem« pri starih zapisih v zbirki (in kartici »Uganka«) ni več rdeča, ampak turkizna;
+  značka »Zelo težka« ni več polna temna, ampak srednje močna vijolična s temno pisavo (dopolnitev v razdelku 7).
+- **Po koraku:** slika vrstice vseh značk težavnosti za Darka in čakanje na njegov OK pred korakom 3.
 - **Test pred spremembo:** `tests/ravni-tehnik.test.js` – razred za vsako raven iz tabele (ekspertna →
   `t-expert`) in značka »Ekstrem« ≠ »Presega tehnike« (najprej z današnjim, nato z novim pričakovanjem);
   `tests/css-paleta.test.js` (novi barvi samo v `shared/base.css`); kontrast vseh štirih značk ravni in
@@ -548,18 +570,47 @@ Odločitev O13 spodaj (ni nujna za to nalogo, določa pa številko verige).
 
 ## 13. Odločitve
 
-| # | Vprašanje | Možnosti | Predlog |
+Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditvi načrta).
+
+| # | Vprašanje | Možnosti | Odločeno |
 |---|---|---|---|
 | O1 | Najmanjša dolžina | 3 (vključno z XY-krilom) · 4 | **4** – 3 celice so XY-krilo (11), sicer en korak dveh tehnik |
 | O2 | Največja dolžina | 6 · 8 · 10 · brez meje | **8** – 71 od 72 ugank, klic največ 12 ms; brez meje do 66 ms in eksponentna rast |
 | O3 | Katera veriga, če jih je več | najkrajša · največ izbrisov | **najkrajša**, nato največ izbrisov, nato položaj |
-| O4 | Prikaz verige na mreži | A kot zdaj · B zaporedne številke · C črte | **B – odločeno 2026-10-07** |
-| O5 | Barva ekspertne ravni | A temna · B turkizna | **B – odločeno 2026-10-07**; »Ekstrem« jasno turkizna #6CC8C8 s pisavo #05393A (6,5 : 1), razdelek 7 |
+| O4 | Prikaz verige na mreži | A kot zdaj · B zaporedne številke · C črte | **B** – zaporedne številke |
+| O5 | Barva ekspertne ravni | A temna · B turkizna | **B**; »Ekstrem« jasno turkizna #6CC8C8 s pisavo #05393A (6,5 : 1), razdelek 7; dopolnitev: »Zelo težka« dobi enak slog v vijolični (razdelek 7, korak 2) |
 | O6 | Namig (druga stopnja pomoči) | števka z · števka z in dolžina · konca | **števka z in dolžina** |
 | O7 | Območje v »Vadi v uganki« (vaje 1–6 kroga) | števka z · brez območja | **števka z** (kot 7–9) |
 | O8 | »Spoznaj« | sestavljena vaja 4–6 celic z motilcem · stanje prave uganke iz banke | **sestavljena** (kot 9–12, nadzorovana dolžina) |
-| O9 | Generator ponudi Ekstrem | da · ne | **da** – 1,5 s na uganko; pogoj kot pri drugih (vsaj dve srednji) |
-| O10 | Imena primerov | P_15 Ekstrem, Presega → P_16 · Ekstrem kot P_16 | **P_15 Ekstrem, Presega → P_16** (urejeno po stopnji) |
-| O11 | Preizkusna uganka | v `docs/uganke.md` kot `xy-veriga-17` · tudi kot vgrajeni primer | **samo v `docs/uganke.md`**; primer izbere orodje |
+| O9 | Generator ponudi Ekstrem | da · ne | **da** – korak 7 |
+| O10 | Imena primerov | P_15 Ekstrem, Presega → P_16 · Ekstrem kot P_16 | **P_15 Ekstrem, dosedanji P_15 (Presega tehnike) postane P_16** |
+| O11 | Preizkusna uganka | v `docs/uganke.md` kot `xy-veriga-17` · tudi kot vgrajeni primer | **samo v `docs/uganke.md`** (dodana v koraku 1); primer izbere orodje |
 | O12 | Ime in ključ | XY-veriga (XY-Chain), ključ `XY-Chain`, trening `xy-chain` | **tako** |
-| O13 | Mesto BUG+1 (naloga 5) | A pred XY-verigo (napredna 13, veriga postane 14) · B za njo (ekspertna 14) | **A** – razdelek 12; ob nalogi 5 se veriga preštevilči v 14 (ali naloga 5 pred 4) |
+| O13 | Številka verige; mesto BUG+1 (naloga 5) | A pred XY-verigo (napredna 13, veriga postane 14) · B za njo (ekspertna 14) | **XY-veriga je zdaj 13.** O nalogi 5 (BUG+1) Darko odloči po tej nalogi; če jo naredimo, velja **A** in veriga postane 14 |
+
+## 14. Izvedba
+
+### Korak 1 – narejeno 2026-10-07
+
+- **Motor:** `xyChain(b)` v `shared/engine.js` za `uniqueRectangle()`, konstanti `XY_VERIGA_NAJMANJ` (4) in
+  `XY_VERIGA_NAJVEC` (8); **ni** v `ALL_TECHNIQUES`, `RAVNI_TEHNIK` ali `TECHNIQUE_GROUPS`. Korak:
+  `technique: 'XY-Chain'`, `cells` v vrstnem redu verige od konca z nižjim položajem, `eliminate`,
+  `assign: []`, `hint: { digits: [z], celic: n }` (besedilo namiga – O6 – doda korak 4; do takrat
+  `stepHint()` vrne »Števka z.«), `message` po razdelku 5. Iskanje v globino kot v prototipu; dopolnitev:
+  pri enako dolgih verigah z istima koncema in z ostane leksikografsko najmanjše zaporedje celic (razdelek 1).
+- **Preizkusna uganka** `xy-veriga-17` v `docs/uganke.md` (O11) z zapisom »danes s poskusom, po koraku 6 brez«.
+- **Testi:** `tests/xy-chain.test.js` (hiter, 8 testov, pod 0,5 s) – pozicije pred poskusom pri
+  xy-veriga-17, example-app, oakever-ekstrem-17-a in stanje z XY-krilom iz oakever-ekstrem-lv4 (posnetki,
+  skladnost z rešitvijo preveri test); preizkusna: prvi korak V5S4 – V6S6 – V9S6 – V8S5 – V8S3, izbris
+  V5S3≠3, besedilo do znaka; na vseh pozicijah koraki = neodvisno iskanje (4–8 celic, isti vrstni red);
+  XY-krilo ni korak; pet verig z devetimi celicami na preizkusni poziciji ni najdenih; determinizem in
+  vrstni red po pravilu O3; besedilo vseh korakov (sklep »če … potem« izračunan v testu, pravila faze 6).
+  `tests/pocasni/xy-chain-uganke.test.js` (pribl. 16 s, zato med počasnimi – načrt je predvidel eno
+  datoteko): 300 minimalnih ugank, 15 327 stanj do prvega poskusa, v 5757 vsaj ena veriga, 36 147 korakov
+  dolžin 4–8 – noben izbris ne izbriše števke rešitve, koraki so na vseh stanjih natanko neodvisno iskanje.
+  Neodvisno iskanje (razširjanje vseh preprostih poti po plasteh, brez kode motorja) je v
+  `tests/xy-veriga-neodvisno.js`, ker ga uporabljata oba testa. Na stari kodi hitri test pade (7 od 8 –
+  `xyChain` ni funkcija; zelen je samo test skladnosti pozicij).
+- **Izid na preizkusni uganki:** v stanju pred poskusom (korak 31) štiri verige do 8 celic (5, 6, 7, 8
+  celic); prva je Darkova veriga, druga veriga šestih celic iz 34. koraka (razdelek 2). Neodvisno
+  iskanje brez meje najde deset verig (5–11 celic, pet z devetimi), kot v razdelku 2.
