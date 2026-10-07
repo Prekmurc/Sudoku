@@ -503,9 +503,7 @@ function zbirkaKartica(danosti, z, povzetek) {
 }
 
 function zbirkaStKorakov(n) {
-  const r = n % 100;
-  const beseda = r === 1 ? 'korak' : r === 2 ? 'koraka' : (r === 3 || r === 4) ? 'koraki' : 'korakov';
-  return `${n} ${beseda}`;
+  return `${n} ${sklanjaj(n, ['korak', 'koraka', 'koraki', 'korakov'])}`;
 }
 
 function zbirkaPrazno(v) {

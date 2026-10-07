@@ -993,6 +993,12 @@ Glej 1.3 – oznaka koraka pri »Naslednji korak« (»Hidden pair«) se ne ujema
 - **Zdaj:** štiri lastne različice pravila ednina/dvojina/množina.
 - **Predlog:** `sklanjaj(n, ['korak', 'koraka', 'koraki', 'korakov'])` v `shared/engine.js`.
 - **Obseg:** majhno.
+- **Narejeno 2026-10-07** (faza 7, korak 1, `docs/faza7-nacrt.md`): `sklanjaj(n, [ena, dve,
+  triStiri, pet])` v `shared/engine.js` (oblika po `n % 100`) uporablja šest funkcij –
+  `zbirkaStKorakov`, `stUgank`, `stepHint` (gol enojček), `steviloIzbrisov`/`manjkaIzbrisov`,
+  `celicZEnoStevko` in `prejOdstranjenihBesedilo`; mesto `trening/trening.js:693` ne obstaja več.
+  Naštevanja (`glagolManjka`, `manjkaStevk`, neveljavni znaki, sheme, par/trojica) ostanejo.
+  Test `tests/sklanjanje.test.js` (zelen tudi na stari kodi). Za uporabnika brez spremembe.
 
 ### 6.8 CSS
 

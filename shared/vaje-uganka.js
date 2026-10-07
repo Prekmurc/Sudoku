@@ -164,13 +164,10 @@ function vajaIzUganke(danosti, kljuc, rnd = Math.random) {
 
 // "1 izbris", "2 izbrisa", "3 izbrisi", "5 izbrisov".
 function steviloIzbrisov(n) {
-  const m = n % 100;
-  return `${n} ${m === 1 ? 'izbris' : m === 2 ? 'izbrisa' : m === 3 || m === 4 ? 'izbrisi' : 'izbrisov'}`;
+  return `${n} ${sklanjaj(n, ['izbris', 'izbrisa', 'izbrisi', 'izbrisov'])}`;
 }
 function manjkaIzbrisov(n) {
-  const m = n % 100;
-  const glagol = m === 1 ? 'manjka' : m === 2 ? 'manjkata' : m === 3 || m === 4 ? 'manjkajo' : 'manjka';
-  return `${glagol} še ${steviloIzbrisov(n)}`;
+  return `${sklanjaj(n, ['manjka', 'manjkata', 'manjkajo', 'manjka'])} še ${steviloIzbrisov(n)}`;
 }
 function izbrisDrzi(n) {
   if (n === 1) return 'Izbris drži, a ga v tem koraku ne utemelji nobena tehnika.';
@@ -417,9 +414,8 @@ function enotaZaNamig(unit) {
   return { tozilnik: `${vrsta === 'stolpcu' ? 'stolpec' : 'blok'} ${st}`, vNjej: 'v njem' };
 }
 function celicZEnoStevko(n) {
-  const v = n === 1 ? 'v kateri' : 'v katerih';
-  return (n === 1 ? 'je 1 celica' : n === 2 ? 'sta 2 celici' : n <= 4 ? `so ${n} celice` : `je ${n} celic`)
-    + `, ${v} je mogoča samo ena števka`;
+  return `${sklanjaj(n, ['je', 'sta', 'so', 'je'])} ${n} ${sklanjaj(n, ['celica', 'celici', 'celice', 'celic'])}, `
+    + `${sklanjaj(n, ['v kateri', 'v katerih', 'v katerih', 'v katerih'])} je mogoča samo ena števka`;
 }
 
 // Števke 1-9, ki v enoti še niso vpisane.

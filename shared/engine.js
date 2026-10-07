@@ -75,6 +75,14 @@ function numsLabel(nums) {
   return a.length < 2 ? String(a[0]) : `${a.slice(0, -1).join(', ')} in ${a[a.length - 1]}`;
 }
 
+// Oblika besede po številu n (po zadnjih dveh mestih - 101 je kot 1): oblike
+// [1, 2, 3-4, 0 in 5+], npr. sklanjaj(n, ['korak', 'koraka', 'koraki', 'korakov'])
+// ali glagol sklanjaj(n, ['je', 'sta', 'so', 'je']). Skupno vsem trem aplikacijam.
+function sklanjaj(n, [ena, dve, triStiri, pet]) {
+  const m = n % 100;
+  return m === 1 ? ena : m === 2 ? dve : m === 3 || m === 4 ? triStiri : pet;
+}
+
 // Naštevanje izbrisov po celicah: "V1S2 (2), V5S2 (4,7)". Uporabno pri tehnikah,
 // kjer ista celica izgubi več kandidatov (Naked/Hidden par in trojica).
 function elimLabel(elim) {
@@ -841,8 +849,7 @@ function stepHint(step) {
   if (!h) return null;
   if (h.count !== undefined) {
     const n = h.count;
-    const celic = n === 1 ? 'je 1 celica' : n === 2 ? 'sta 2 celici' : n <= 4 ? `so ${n} celice` : `je ${n} celic`;
-    return `V mreži ${celic} z enim samim kandidatom.`;
+    return `V mreži ${sklanjaj(n, ['je', 'sta', 'so', 'je'])} ${n} ${sklanjaj(n, ['celica', 'celici', 'celice', 'celic'])} z enim samim kandidatom.`;
   }
   if (h.unit) return `V ${unitNameLoc(h.unit)}.`;
   const stevke = numsLabel(h.digits);

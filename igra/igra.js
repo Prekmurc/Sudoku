@@ -799,9 +799,7 @@ let ocenjevanje = null; // { danosti: [...], zapisi, i, worker } ali { ..., vGla
 const ocene = new Map(); // danosti -> { tezavnost, podatki } (nepotrjeni predlog)
 
 function stUgank(n) {
-  const r = n % 100;
-  const beseda = r === 1 ? 'uganka' : r === 2 ? 'uganki' : (r === 3 || r === 4) ? 'uganke' : 'ugank';
-  return `${n} ${beseda}`;
+  return `${n} ${sklanjaj(n, ['uganka', 'uganki', 'uganke', 'ugank'])}`;
 }
 
 // Zakaj uganka ni dobila stopnje: countSolutions() v oceniUganko(). Uganke brez

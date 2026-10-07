@@ -1,7 +1,7 @@
 # Faza 7 – ostanek skupne kode – načrt
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, tabela »Vrstni red popravkov«, vrstica 7, in »Vrstni red
-po fazi 6«, naloga 3; točke 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in ostanek 6.8). **Čaka na potrditev.**
+po fazi 6«, naloga 3; točke 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in ostanek 6.8). **Potrjeno 2026-10-07** (odločitve in dopolnitve na koncu razdelka 5).
 
 Izhodišče: commit `2fdb542` (zadnji commit aplikacije pred fazo 7), vseh 557 testov je zelenih
 (`node --test "tests/**/*.test.js"`, 2 min 24 s). Skupna vnosna mreža (6.4 in vnosna mreža iz 6.8)
@@ -56,6 +56,11 @@ samo pri 0 in pri 101 ali več celicah, česar ni (korak ima vsaj eno celico, mr
 zapisane po pravilu slovnice (ne prepisane iz kode); na stari kodi mora biti zelen. Ujamejo tudi
 obstoječi `zbirka-zapis` (kartica), `next-step` (namigi), `tests/pocasni/vaje-uganka` in
 `trening-uganka-ui` (»manjka še N izbrisov«, prej odstranjeni), `trening-enojcki` (namigi E1).
+
+**Izvedeno 2026-10-07** (korak 1). Test preveri `stepHint` in `celicZEnoStevko` pri n = 1–81 (ne
+0–25 in 99–125) – to sta števili celic v mreži, kot pove odstavek »Za uporabnika« zgoraj; tako je
+bil test zasnovan pred zagonom. Na stari kodi zelen (6 testov), po spremembi prav tako; posnetek igre
+brez razlik.
 
 ### 6.6 Sporočila o številu rešitev (korak 2)
 
@@ -196,7 +201,7 @@ je pribl. 20 vrstic v eni datoteki. Če ga vseeno želiš (O6), gre kot korak 6,
 
 ## 3. Koraki
 
-Vsak korak je svoj pogovor, commit in push. Vrstni red od najmanj do najbolj tveganega.
+Vsak korak je svoj commit in push; zaključek (7) ni svoj pogovor – sledi koraku 5 v istem pogovoru (D2). Vrstni red od najmanj do najbolj tveganega.
 
 | Korak | Točka | Tveganje | Test pred spremembo | Preverjanje |
 |---|---|---|---|---|
@@ -243,6 +248,19 @@ spremenita samo besedila, ki jih preverijo testi.
 | O5 | 1.1: banko vaj ustvarim znova? | **Samo za primerjavo** – orodje poženem v ozadju (27 min); če je datoteka enaka razen datuma, je ne zapišem; če ni, se ustavim in vprašam. Pri korakih 1 in 2 (samo besedilne funkcije v `engine.js`) brez tega – zadošča `vaje-banka.test.js`. |
 | O6 | 6.10: izpustim? | **Da** (razdelek 2). |
 | O7 | 6.5: `tools/brskalnik.js` dobi izbiro datoteke in prenos (prek protokola DevTools, brez odvisnosti)? | **Da** – sicer je izvoz/uvoz v pravem brskalniku samo ročna točka. |
+
+### Odločitve (Darko, 2026-10-07)
+
+O1 da. O2 da. O3 da. O4 da. O5 da, samo za primerjavo. O6 da – 6.10 se izpusti (korak 6 odpade). O7 da.
+
+### Dopolnitve (Darko, 2026-10-07)
+
+- **D1 – korak 2:** vrstica ocene v seznamu dobi daljše besedilo (»· enoličnosti ni bilo mogoče preveriti
+  v razumnem času«). V brskalniku pri 320 in 375 px preverim, da se prelomi brez vodoravnega preliva.
+- **D2 – zaključek:** ni svoj pogovor. Po koraku 5 zapišem ročni seznam (razdelek 7) v
+  `docs/rocni-test.md` in počakam na Darkov pregled; fazo zaprem v istem pogovoru.
+- **D3 – ustavitev:** če test pred spremembo na stari kodi ni zelen ali primerjava (posnetek igre,
+  brskalnik, banka vaj) pokaže nepričakovano razliko, se ustavim in poročam. Testa ne prilagajam.
 
 ## 6. Kaj ujame avtomatika in česa ne
 

@@ -90,8 +90,7 @@ function najdiVajo(kljuc,obNajdeni){
 function prejOdstranjenihBesedilo(n,prikazano=false){
   if(!n) return 'Prejšnji koraki niso izbrisali nobenega kandidata.';
   if(prikazano) return `Prečrtane kandidate (${n}) so izbrisali prejšnji koraki – niso del naloge.`;
-  const m=n%100,sam=m===1||m===2?'kandidata':m===3||m===4?'kandidate':'kandidatov';
-  return `Prejšnji koraki so že izbrisali ${n} ${sam} – niso del naloge.`;
+  return `Prejšnji koraki so že izbrisali ${n} ${sklanjaj(n,['kandidata','kandidata','kandidate','kandidatov'])} – niso del naloge.`;
 }
 
 // Postopnost v krogu (docs/vadi-v-uganki-nacrt.md, točka 15): vaje 1-6 imajo območje
