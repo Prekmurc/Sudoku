@@ -12,7 +12,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'app/app.js', 'app/zbirka.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'app/app.js', 'app/zbirka.js'];
 const uganke = loadPuzzles().map(p => ({ ime: p.ime, danosti: p.danosti.replace(/\./g, '0') }));
 const danosti = uganke[0].danosti;
 

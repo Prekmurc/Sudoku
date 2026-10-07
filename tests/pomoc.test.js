@@ -2,7 +2,7 @@
 // Okno Pomoč (shared/pomoc.js, faza 6, korak c) v igri, reševalcu in treningu - v nadomestnem
 // DOM-u: gumb odpre okno, klik ob oknu in Escape ga zapreta, razdelek »Tehnike« ima v vseh treh
 // aplikacijah isto vsebino (poved o ravneh, E1, E2, 1-12 z oznako, imenom, značko ravni ter razlago
-// in posledico), reševalec našteje stopnje, ki jih uganka lahko dobi (brez Ekstrema), v treningu ob
+// in posledico, pri 1-12 zložljivo »Shema«, privzeto zaprto - faza 3a, korak 4), reševalec našteje stopnje, ki jih uganka lahko dobi (brez Ekstrema), v treningu ob
 // odprtem oknu tipke ne gredo v ploščo. Videz okna (pokrije zaslon, brez vodoravnega drsnika, ✕)
 // preverja tools/preveri-pomoc-brskalnik.js.
 // Zagon: node --test "tests/*.test.js"
@@ -14,11 +14,11 @@ const { makeDom } = require('./dom-stub.js');
 const APLIKACIJE = {
   igra: {
     datoteke: ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/zbirka.js', 'shared/zbirka-ui.js',
-      'shared/generator.js', 'shared/pomoc.js', 'igra/shramba.js', 'igra/igra.js'],
+      'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'igra/shramba.js', 'igra/igra.js'],
     okno: 'navodilaDialog', gumbi: ['navodilaBtn', 'navodilaKarticaBtn'], tehnike: 'tehnikeSeznam',
   },
   resevalec: {
-    datoteke: ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js',
+    datoteke: ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js',
       'app/app.js', 'app/zbirka.js'],
     okno: 'pomocDialog', gumbi: ['pomocBtn'], tehnike: 'pomocTehnike',
   },
@@ -71,8 +71,24 @@ for (const ime of Object.keys(APLIKACIJE)) {
       assert.equal(razlaga.textContent, run('TEHNIKE_OPISI')[kljuc].razlaga);
       assert.equal(posledica.tagName, 'P');
       assert.equal(posledica.textContent, run('TEHNIKE_OPISI')[kljuc].posledica);
-      assert.equal(li.children.length, 6);
+      // Faza 3a, korak 4: pri 1-12 pod posledico zložljivo »Shema«, privzeto zaprto; E1, E2 brez.
+      const shema = run('SHEME_TEHNIK')[kljuc];
+      assert.equal(li.children.length, shema ? 7 : 6, `${o}: shema samo pri 1-12`);
+      if (shema) {
+        const d = li.children[6];
+        assert.equal(d.tagName, 'DETAILS');
+        assert.equal(d.className, 'tehnika-shema');
+        assert.equal(!!d.open, false, `${o}: shema privzeto zaprta`);
+        assert.equal(d.children[0].tagName, 'SUMMARY');
+        assert.equal(d.children[0].textContent, 'Shema');
+        const fig = d.children[1];
+        assert.equal(fig.className, 'shema');
+        assert.equal(fig.dataset.tehnika, kljuc);
+        assert.equal(fig.children.filter(c => c.className === 'shema-okvir').map(c => c.innerHTML).join(''),
+          run('shemaRisbe')(kljuc).map((r, n) => run('svgSheme')(kljuc, n)).join(''), `${o}: ista risba kot v treningu`);
+      }
     });
+    assert.ok(/^(E1|E2)$/.test(run('oznakaTehnike')(vaje[0][0])) && ul.children.slice(2).every(li => li.children.length === 7), 'sheme pri vseh 1-12');
   });
 }
 

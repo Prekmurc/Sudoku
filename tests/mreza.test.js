@@ -412,7 +412,7 @@ test('seznami manjkajočih števk: števke, opis, poudarek, skriti seznam', () =
 test('igra na skupni mreži: klik, poudarek, vpis in seznami ustrezajo stanju igre', () => {
   const dom = makeDom();
   const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/zbirka.js',
-    'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'igra/shramba.js', 'igra/igra.js'], dom.globals);
+    'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'igra/shramba.js', 'igra/igra.js'], dom.globals);
   const celice = dom.el('mreza').children;
   assert.equal(celice.length, 81);
   assert.ok(dom.el('mreza').className.includes('prazna'), 'brez uganke je mreža prazna');

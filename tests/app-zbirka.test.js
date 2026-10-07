@@ -14,7 +14,7 @@ const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 // Vrstni red kot <script> v app/index.html.
-const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'app/app.js', 'app/zbirka.js'];
+const DATOTEKE = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'app/app.js', 'app/zbirka.js'];
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 // Danosti vgrajenega primera (PRIMERI v shared/zbirka.js) s '0'.
 const PRIMER = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js']).run("PRIMERI[1].danosti.split('.').join('0')");

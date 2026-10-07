@@ -1,7 +1,8 @@
 /* shared/pomoc.js — okno Pomoč, skupno igri, reševalcu in treningu (faza 6, korak c,
    docs/faza6-nacrt.md): odpiranje in zapiranje okna, seznam »Tehnike« in seznam stopenj ugank.
    Slogi okna so v shared/pomoc.css. Potrebuje DOM; naloži se za shared/engine.js (imena, oznake in
-   opisi tehnik) in shared/generator.js (STOPNJE_UGANK - samo za izpisiStopnje()). */
+   opisi tehnik), shared/generator.js (STOPNJE_UGANK - samo za izpisiStopnje()) in shared/sheme.js
+   (shema vzorca v seznamu »Tehnike« - faza 3a, korak 4; brez nje seznam nima shem). */
 
 // Okno Pomoč (element z razredom .dialog; odprto = razred "odprt"): gumbi ga odprejo, zapre ga
 // gumb z [data-zapri] (✕), klik ob oknu in Escape. Escape ob odprtem oknu ne pride do drugih
@@ -55,7 +56,9 @@ const POMOC_RAVNI = { 't-single': 'lahka', 't-pair': 'srednja', 't-advanced': 'n
 // Razdelek »Tehnike« v okno Pomoč (element el): poved o ravneh in seznam E1, E2, 1-12 z oznako,
 // imenom (angleško ime v oklepaju), značko ravni ter razlago in posledico v dveh odstavkih
 // (TEHNIKE_OPISI - popravek po ročnem pregledu faze 6) - vse iz shared/engine.js, zato je enako
-// v vseh treh aplikacijah.
+// v vseh treh aplikacijah. Pod posledico pri 1-12 zložljivo »Shema«, privzeto zaprto
+// (izrisiShemo() iz shared/sheme.js; faza 3a, korak 4 - 12 odprtih shem bi okno na telefonu
+// podaljšalo za več zaslonov).
 function izrisiTehnike(el) {
   const uvod = document.createElement('p');
   uvod.textContent = 'Tehnike so v treh ravneh: lahke (E1, E2), srednje (1–6) in napredne (7–12) – '
@@ -78,6 +81,15 @@ function izrisiTehnike(el) {
     const posledica = document.createElement('p');
     posledica.textContent = TEHNIKE_OPISI[kljuc].posledica;
     li.append(oznaka, ime, ' ', raven, razlaga, posledica);
+    const shema = typeof izrisiShemo === 'function' ? izrisiShemo(kljuc) : null;
+    if (shema) {
+      const d = document.createElement('details');
+      d.className = 'tehnika-shema';
+      const s = document.createElement('summary');
+      s.textContent = 'Shema';
+      d.append(s, shema);
+      li.appendChild(d);
+    }
     ul.appendChild(li);
   }
   el.append(uvod, ul);

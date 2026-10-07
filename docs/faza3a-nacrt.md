@@ -298,3 +298,48 @@ odrezana. Zdaj `zacniKrog()` po izrisu vaje pomakne stran na vrh (`window.scroll
   [9 Zmaj](slike/faza3a/korak3-shema-turbot-fish-2-375.png),
   [10](slike/faza3a/korak3-shema-w-wing-375.png), [11](slike/faza3a/korak3-shema-xy-wing-375.png),
   [12](slike/faza3a/korak3-shema-unique-rectangle-375.png).
+
+**Popravek po pregledu koraka 3 – narejen 2026-10-07** (Darko je korak 3 pogledal na telefonu; pri 9
+ostaneta obe risbi odprti, brez spremembe).
+
+- **10 · W-krilo.** Prej so bile celici para in celici povezave enake (jantarne z zlatim okvirjem),
+  v legendi skupaj »celici para in povezave«. Zdaj sta celici povezave **celici vzorca druge vrste**:
+  bledejša podlaga (`--shema-vzorec2-bg` #FAF0D6) in **črtkan** zlati okvir – ločita se po odtenku in
+  po obliki okvirja, torej tudi brez razlikovanja barv. Legenda ima dve postavki, »celici para« in
+  »celici povezave« (vzorček s črtkano obrobo). Pod legendo je vrstica s sklepom (`.shema-sklep`,
+  temno besedilo): »Vsaj ena celica para je a, zato a izbrišeš iz celic, ki vidijo obe.«
+- **11 · XY-krilo.** Pivot se prej ni ločil od kril (»pivot in krili«). Zdaj je pivot celica druge
+  vrste (bledejša, črtkan okvir), krili ostaneta polni; legenda »krili« · »pivot«. Pravilo za obe
+  shemi je isto: polne so celice, ki jih vidi celica izbrisa (rdeče črtkane črte gredo do njih),
+  bledejše s črtkanim okvirjem so vezne celice (povezava, pivot). Sklepa pri 11 ni (naloga ga je
+  zahtevala samo pri 10).
+- Zapis: »+« na začetku celice = celica vzorca druge vrste (`shemaCelica().vzorec2`), polji
+  `vzorec2` (napis v legendi) in `sklep` v `SHEME_TEHNIK`. Motor shemo bere kot prej (celice druge
+  vrste so del vzorca – korak W-krila ima vse štiri celice).
+- Preverjanje: `tests/sheme.test.js` (izris in legenda, celici povezave sta konca povezave, pivot
+  {x, y} vidi obe krili, druge sheme brez druge vrste, sklep samo pri 10), v brskalniku izračunan
+  slog (podlaga, isti okvir, črtkan; vzorček v legendi). Posnetka pri 375 px – prej:
+  [10](slike/faza3a/korak3-shema-w-wing-375.png), [11](slike/faza3a/korak3-shema-xy-wing-375.png);
+  potem: [10](slike/faza3a/popravek3-shema-w-wing-375.png),
+  [11](slike/faza3a/popravek3-shema-xy-wing-375.png).
+
+**Korak 4 – narejen 2026-10-07** (sheme v oknu Pomoč, scenarij, `CLAUDE.md`, `docs/uskladitev.md`).
+
+- **Pomoč »Tehnike«** v vseh treh aplikacijah: `izrisiTehnike()` (`shared/pomoc.js`) pri 1–12 pod
+  posledico doda zložljivo »Shema« (`details.tehnika-shema`, privzeto zaprto) z isto risbo kot v
+  treningu (`izrisiShemo()`); E1 in E2 brez. `shared/sheme.js` se zdaj naloži tudi v reševalcu in
+  igri (`app/index.html`, `igra/index.html`, za `shared/pomoc.js`); brez nje seznam nima shem.
+  Slog povzetka »Shema« kot v treningu (modro, polkrepko, 13 px) v `shared/pomoc.css`.
+- **Dolžina okna** (izmerjeno, višina panela): z zaprtimi shemami pri 375 px igra 10 182 px,
+  reševalec 5499, trening 5388; z vsemi dvanajstimi odprtimi pribl. 4200 px več (14 360 / 9677 /
+  9567); pri 1280 px 6100 / 3517 / 3509 zaprte, pribl. 3900 px več odprte.
+- Preverjanje: `tests/pomoc.test.js` (v vseh treh aplikacijah »Shema« pri 1–12, zaprto, ista risba
+  kot v treningu; vsebina razdelka v vseh treh enaka), `tools/preveri-sheme-brskalnik.js` – zdaj tudi
+  Pomoč v igri, reševalcu in treningu pri 375 in 1280 px: »Shema« pri 1–12 zaprta, pravi klik jo
+  odpre, risba v panelu, največ 327 px, brez vodoravnega drsnika (stran in okno), iste meritve kot v
+  treningu (črke v celicah, barve, legenda, napisi), Escape zapre okno; 869 preverb, vse drži.
+  `tools/preveri-pomoc-brskalnik.js` in `tools/preveri-videz-brskalnik.js` brez napak, posnetek igre
+  enak (99 posnetkov). Posnetka v igri pri 375 px: [3 · Očitni par](slike/faza3a/korak4-pomoc-naked-pair-375.png),
+  [10 · W-krilo](slike/faza3a/korak4-pomoc-w-wing-375.png).
+- **Faza 3a je izvedena**; zaključena bo, ko Darko potrdi ročni pregled (`docs/rocni-test.md`,
+  razdelek »Faza 3a – shema vzorca«).
