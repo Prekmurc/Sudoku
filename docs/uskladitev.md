@@ -1060,6 +1060,9 @@ kopija podatka, ki bi moral priti iz `TEHNIKE_OPISI`.
 - **Predlog:** pomožna funkcija v igri `zazeniDelavca(url, sporocilo, korakVGlavniNiti,
   obSporocilu)`. Nizka prednost – podvojitev je znotraj ene aplikacije.
 - **Obseg:** majhno.
+- **Ne bo narejeno** (faza 7, odločitev O6, 2026-10-07, `docs/faza7-nacrt.md`): korist (pribl. 20
+  vrstic v eni datoteki) ne odtehta tveganja – nobena od obeh poti nima testa, nadomestna pot teče
+  samo pri `file://`, pravi delavec samo v brskalniku.
 
 ---
 
@@ -1259,7 +1262,7 @@ komponente, na koncu videz in pomoč.
 | **5 – videz** (zaključeno 2026-10-03, ročni pregled potrjen istega dne, N9 ostane; `docs/faza5-nacrt.md`: koraki 1 `c5a5fbb`, 2 `d331c75`, 3a `a3ebed0`, 3b `cf53202`, 4a `e1c03f3`, 4b `4e1e4dc`; 4.6 in poved iz 1.1 v fazo 6, ostanek 1.1 in 6.8 v fazo 7, 4.3 v »Kasneje«) | 6.8, 4.1, 4.4, 4.2, 4.5, 1.1 (značke ravni); prelivi pri 320–430 px in izbira celice (opombe k delom) | najprej skupni CSS (6.8), nato poenotenje nad njim (bela podlaga je v 6.8 lahko kar privzeta); navigacija na koncu, ko je glava skupna | srednje |
 | **5a – stikalo »Kandidati« v igri** (izvedeno 2026-10-03, ročni pregled potrjen istega dne; `docs/kandidati-stikalo-nacrt.md`: načrt `4048df5`, korak 2 `3097473`, korak 3 `5b9ff90`, korak 4 – scenarij v brskalniku in ročni pregled) | – (glej »Opombe k delom«) | pred fazo 6, ker pomoč opisuje končno stanje igre | določi načrt |
 | **6 – pomoč** (**zaključeno 2026-10-05**: ročni pregled potrjen, E1 in E2 ostaneta, kot sta; zadnji del so novi vgrajeni primeri – 15 primerov P_1–P_15 za vse stopnje in tehnike E1, E2, 1–12, izbor `tools/izberi-primere.js`, seznam »Primeri po težavnosti« v reševalcu, skupine v igri, »Tehnike:« z imeni v kartici »Uganka«; izvedeno 2026-10-04; ročni pregled 2026-10-04, popravki `0999372` in naslednji commit – nova ocena »zelo težke« (7.1, točka 4), mala mreža v reševalcu, primer 2 –; načrt `docs/faza6-nacrt.md`; 5.3 narejena že 2026-09-23; iz 6.8 pride naprej samo okno Pomoč; korak a `37a5f3f`, korak b `3244ee9`, korak c `bc87b22`) | 5.3, 5.5, 5.6, 5.1, 5.2 (dva opisa stopenj v JS, izpis v HTML iz JS), 4.6 (ločila in narekovaji – iz faze 5), 1.1 (poved o ravneh v pomoči igre – iz faze 5) | besedila pomoči opisujejo končno stanje, zato zadnja | majhno–srednje |
-| **7 – ostala koda** (po fazi 6 naloga 3) | 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno zbirke v reševalcu – iz faze 5; okno Pomoč je preseljeno v fazi 6); počasni testi razdeljeni, če tek vseh testov preseže 2 minuti | čiščenje brez vidne spremembe; skupna vnosna mreža (6.4 in vnosna mreža iz 6.8) je od 2026-10-04 v nalogi 9 (povezave) – polje »Niz« v reševalcu iz 2.5 je narejeno posebej (`a348672`, `7e04cb4`) | majhno–srednje |
+| **7 – ostala koda** (po fazi 6 naloga 3; **zaključeno 2026-10-07**, ročni pregled potrjen istega dne, popravkov ni; `docs/faza7-nacrt.md`: koraki 1 `8ab6e27`, 2 `b26f216`, 3 `36c89ed`, 4 `d03f034`, 5 `37ceda8`; 6.10 izpuščena) | 6.5, 6.6, 6.7, 6.10, 1.1 (raven kot polje tehnike, `tagClass()` iz ravni – iz faze 5), 6.8 (okno zbirke v reševalcu – iz faze 5; okno Pomoč je preseljeno v fazi 6); počasni testi razdeljeni, če tek vseh testov preseže 2 minuti | čiščenje brez vidne spremembe; skupna vnosna mreža (6.4 in vnosna mreža iz 6.8) je od 2026-10-04 v nalogi 9 (povezave) – polje »Niz« v reševalcu iz 2.5 je narejeno posebej (`a348672`, `7e04cb4`) | majhno–srednje |
 
 Faze 1–3 odpravijo vsa štiri opažanja iz igre. Fazi 4 in 5 sta največji po številu
 spremenjenih datotek, ne po tveganju: logika tehnik in reševanja se v nobeni ne spremeni.
@@ -1273,7 +1276,7 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 |---|---|---|---|
 | 1 | po fazi 6 | **Oznaka različice pri nalaganju skript in slogov** | da brskalnik po spremembi ne kaže stare različice iz predpomnilnika (prej v »Kasneje«); **narejeno 2026-10-05** – `tools/oznaci-razlicico.js`, `razlicica.json`, pre-commit hook, test `tests/razlicica.test.js`, različica na dnu okna Pomoč; **končano in potrjeno 2026-10-06** (če objava strani na GitHub Pages ne uspe, pomaga prazen commit – kot `a7e3ea9`) |
 | 2 | po fazi 6 | **Faza 3a – dopolnitev primerov** | vgrajeni primeri za vse stopnje in tehnike (**narejeno 2026-10-05** kot zadnji del faze 6 – `tools/izberi-primere.js`); shema vzorca pri razlagi tehnik 1–12 (**izvedeno 2026-10-07**, `docs/faza3a-nacrt.md` – v treningu razdelek »Shema«, v Pomoči vseh treh aplikacij zložljivo pod posledico); **faza 3a je zaključena 2026-10-07** (ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »Faza 3a – shema vzorca«); **naslednja je faza 7** (vrstica 3) |
-| 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); razdelitev testov na hitre in počasne je **narejena 2026-10-05** (`tests/pocasni/`, pravilo v `CLAUDE.md`) |
+| 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); razdelitev testov na hitre in počasne je **narejena 2026-10-05** (`tests/pocasni/`, pravilo v `CLAUDE.md`); **faza 7 je zaključena 2026-10-07** (`docs/faza7-nacrt.md`; ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »Faza 7«; 6.10 izpuščena); **naslednja je XY-veriga** (vrstica 4) |
 | 4 | nove tehnike | **XY-veriga** (ekspertna raven, tehnika 13) | nova tehnika na koncu `ALL_TECHNIQUES`, v `GEN_EKSPERTNE`, `TECHNIQUE_GROUPS`, trening (vaja, kartica, značka EKSPERTNA); stopnja Ekstrem (odločitev 2026-09-24, razdelek 7) se vrne v seznam stopenj v Pomoči (`stopnjeZaPomoc()` v `shared/pomoc.js` jo pokaže sama, ko je `GEN_EKSPERTNE` neprazen); banka vaj znova (`tools/ustvari-banko-vaj.js`); **dodati primer** (vgrajeni primer stopnje Ekstrem – izbor `tools/izberi-primere.js` razširi na ekspertno raven) |
 | 5 | nove tehnike | **BUG+1** | nova tehnika (raven in mesto v vrstnem redu določi načrt); **dodati primer** (vgrajeni primer s to tehniko – izbor `tools/izberi-primere.js` znova) |
 | 6 | videz | **Podlage, legenda, Escape** | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; postavka »tvoje oznake« v legendi »Vadi v uganki«; Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«) |
@@ -1344,6 +1347,11 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   Ni samo slog.
 - **Oznaka različice pri nalaganju skript in slogov** (→ naloga 1; zapisano 2026-10-04 ob zaprtju naloge
   »prečrtanje«), da brskalnik po spremembi ne kaže stare različice iz predpomnilnika.
+
+- **Izklop poteze »povleci za osvežitev« v odprtem oknu ali v celi aplikaciji** (zamisel, ni napaka;
+  zapisano 2026-10-07 ob ročnem pregledu faze 7): na telefonu poteg navzdol na vrhu strani brskalnik
+  razume kot osvežitev; v odprtem oknu (zbirka, Pomoč, Nova uganka) ali v vseh treh aplikacijah bi ga
+  izklopil CSS `overscroll-behavior` (npr. `overscroll-behavior-y: contain`).
 
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 

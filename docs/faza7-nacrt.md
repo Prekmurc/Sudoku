@@ -2,6 +2,7 @@
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, tabela »Vrstni red popravkov«, vrstica 7, in »Vrstni red
 po fazi 6«, naloga 3; točke 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in ostanek 6.8). **Potrjeno 2026-10-07** (odločitve in dopolnitve na koncu razdelka 5).
+**Zaključeno 2026-10-07:** koraki 1 `8ab6e27`, 2 `b26f216`, 3 `36c89ed`, 4 `d03f034`, 5 `37ceda8`; 6.10 izpuščena (O6); ročni pregled (razdelek 7) potrjen istega dne, popravkov ni. Naslednja naloga je XY-veriga (`docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4).
 
 Izhodišče: commit `2fdb542` (zadnji commit aplikacije pred fazo 7), vseh 557 testov je zelenih
 (`node --test "tests/**/*.test.js"`, 2 min 24 s). Skupna vnosna mreža (6.4 in vnosna mreža iz 6.8)

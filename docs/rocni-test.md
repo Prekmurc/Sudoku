@@ -270,11 +270,13 @@ v pravem brskalniku `tools/preveri-faza7-brskalnik.js` (vrstica ocene in »Začn
 po pikslih in slogih proti izhodišču, značke ravni in oznake korakov proti izhodišču); posnetek igre
 brez razlik; banka vaj, ustvarjena znova, enaka razen datuma.
 
+Ročni pregled faze 7 je potrjen 7. 10. 2026 (vse tri točke, telefon), popravkov ni.
+
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
-| 1 | reševalec in igra, telefon | »Zbirka« → »Izvozi«, nato »Uvozi« iste datoteke. | Datoteka se prenese; uvoz pove »že obstoječih brez sprememb: N«. (nepotrjeno) – ni avtomatsko: brskalnik brez glave sistemskega izbirnika datotek in prenosa na telefonu ne odpre (datoteko nastavi neposredno). |
-| 2 | reševalec, telefon | »Zbirka« – odpri, drsi po seznamu, zapri s ✕ in s tapom ob oknu. | Kot prej in kot okno v igri. (nepotrjeno) – ni avtomatsko: dotik in drsenje v pravem telefonu. |
-| 3 | igra, okno »Nova uganka« | Vnesi eno samo števko in klikni »Začni igro«. | »Te uganke ni mogoče igrati: ima več kot eno rešitev.« – se dobro bere. (nepotrjeno) – ni avtomatsko: test preveri, da je besedilo tako, kot je zapisano, ne kako se bere. |
+| 1 | reševalec in igra, telefon | »Zbirka« → »Izvozi«, nato »Uvozi« iste datoteke. | Datoteka se prenese; uvoz pove »že obstoječih brez sprememb: N«. (potrjeno 7. 10. 2026) – ni avtomatsko: brskalnik brez glave sistemskega izbirnika datotek in prenosa na telefonu ne odpre (datoteko nastavi neposredno). |
+| 2 | reševalec, telefon | »Zbirka« – odpri, drsi po seznamu, zapri s ✕ in s tapom ob oknu. | Kot prej in kot okno v igri. (potrjeno 7. 10. 2026) – ni avtomatsko: dotik in drsenje v pravem telefonu. |
+| 3 | igra, okno »Nova uganka« | Vnesi eno samo števko in klikni »Začni igro«. | »Te uganke ni mogoče igrati: ima več kot eno rešitev.« – se dobro bere. (potrjeno 7. 10. 2026) – ni avtomatsko: test preveri, da je besedilo tako, kot je zapisano, ne kako se bere. |
 
 ## Zakaj ročno
 
