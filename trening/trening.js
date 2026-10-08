@@ -380,6 +380,29 @@ function malaStevka(gc,d){return maleStevke(gc).find(cd=>+cd.dataset.d===d)||nul
 function oznaciStevke(cellEls,pari,razred){
   pari.forEach(([si,d])=>{const cd=malaStevka(cellEls[si],d);if(cd)cd.classList.add(razred);});
 }
+// XY-veriga (O4, docs/xy-veriga-nacrt.md): zaporedna številka celice verige (celice koraka
+// `cells` po vrsti, indeksi 0-80) na praznem mestu kandidata - skrita mala števka na tem mestu
+// (.cd.hide, mestoStevilkeVerige()) pokaže številko (razred veriga-st, dataset.d ostane).
+// `ogled` (Rešitev (drži)) doda še peek-veriga: odstrani jih pobrisiVerigo(); številke po
+// pravilnem odgovoru ostanejo. Celica, ki številko že ima, je ne dobi znova.
+function oznaciVerigo(cellEls,idxToSi,cells,ogled){
+  cells.forEach((c,j)=>{
+    const si=idxToSi.get(c);if(si===undefined)return;
+    const cds=maleStevke(cellEls[si]);
+    if(cds.some(cd=>cd.classList.contains('veriga-st'))) return;
+    const d=mestoStevilkeVerige(d=>{const cd=cds.find(x=>+x.dataset.d===d);return !cd||!cd.classList.contains('hide');});
+    const cd=cds.find(x=>+x.dataset.d===d);if(!cd)return;
+    cd.textContent=j+1;
+    cd.classList.remove('hide');cd.classList.add('veriga-st');
+    if(ogled) cd.classList.add('peek-veriga');
+  });
+}
+function pobrisiVerigo(cellEls){
+  cellEls.forEach(c=>{if(!c)return;maleStevke(c).forEach(cd=>{
+    if(!cd.classList.contains('peek-veriga')) return;
+    cd.classList.remove('veriga-st','peek-veriga');cd.classList.add('hide');cd.textContent=cd.dataset.d;
+  });});
+}
 
 // Legenda oznak pri vajah 3-12 v »Spoznaj« (faza 6) - pod »Rešitvijo (drži)« (kdaj 'resitev') in
 // pod »Pravilno!« (kdaj 'odgovor'). Našteje samo vrste celic, ki so takrat na mreži, zato
@@ -391,6 +414,7 @@ function legendaOznak(cellEls,M,kdaj){
   const izbrana=c=>ima(c,'xw-selected')||(M.selClass&&ima(c,M.selClass));
   const pravilna=c=>ima(c,'correct','xw-correct','xw-sf-correct');
   const celice=cellEls.filter(Boolean);
+  const veriga=celice.some(c=>maleStevke(c).some(cd=>ima(cd,'veriga-st')));
   const postavke=[];
   const dodaj=(razred,besedilo)=>postavke.push([razred,besedilo]);
   // Prečrtana števka (pri X-krilu in mečarici je števka besedilo celice izbrisa).
@@ -405,7 +429,9 @@ function legendaOznak(cellEls,M,kdaj){
     const izbira=celice.filter(c=>izbrana(c)&&!pravilna(c));
     if(celice.some(pravilna)) dodaj('sw sw-pravilno','tvoj pravilni odgovor');
     if(!izbira.length){
-      if(vzorec.length) dodaj('sw sw-vzorec','celice vzorca');
+      // XY-veriga (O4): celice z zaporednimi številkami.
+      if(vzorec.length&&veriga) dodaj('sw-veriga','celice verige (po vrsti)');
+      else if(vzorec.length) dodaj('sw sw-vzorec','celice vzorca');
     } else {
       if(vzorec.some(izbrana)) dodaj('sw sw-izbrana-prav','pravilno izbrana celica');
       if(vzorec.some(c=>!izbrana(c))) dodaj('sw sw-vzorec','spregledana celica vzorca');
@@ -425,6 +451,7 @@ function legendaOznak(cellEls,M,kdaj){
     const p=document.createElement('span');
     const sw=document.createElement('span');
     if(razred==='izbris'){sw.className='izbris-vzorec';sw.textContent=precrtana;}
+    else if(razred==='sw-veriga'){sw.className=razred;sw.textContent='1';}
     else sw.className=razred;
     p.append(sw,besedilo);l.appendChild(p);
   }
@@ -629,9 +656,11 @@ function renderExercise(){
   // W-Wing lahko na plošči po naključju obstaja tudi kak drug veljaven vzorec, ki ga
   // preverjanje odgovora v checkPhase1 še vedno sprejme; pri 1 in 2 (vaja iz prave
   // uganke) je odgovor en sam.
+  // solutionVeriga: korak je XY-veriga (generator ga nastavi iz koraka motorja) - celice so po
+  // vrsti verige in dobijo zaporedne številke (O4).
   function exDigitStep(){
     if(!ex.solutionCells) return null;
-    return {cells:ex.solutionCells,eliminate:ex.solutionEliminate,message:ex.solutionMessage};
+    return {cells:ex.solutionCells,eliminate:ex.solutionEliminate,message:ex.solutionMessage,veriga:!!ex.solutionVeriga};
   }
 
   // Vzorec, ki ga pokaže "Rešitev" pri očitnem paru in trojici, X-krilu in mečarici: med
@@ -791,6 +820,7 @@ function renderExercise(){
           step.cells.forEach(cidx=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-hl');});
           step.eliminate.forEach(([cidx])=>{const si=idxToSi.get(cidx);if(si!==undefined)cellEls[si].classList.add('peek-elim');});
           oznaciStevke(cellEls,step.eliminate.filter(([cidx])=>idxToSi.has(cidx)).map(([cidx,d])=>[idxToSi.get(cidx),d]),'peek-izbris');
+          if(step.veriga) oznaciVerigo(cellEls,idxToSi,step.cells,true);
         }
       } else if(M.isXWing||M.isSwordfish||!M.hasPhase2){
         const v=vzorecResitve();
@@ -812,6 +842,7 @@ function renderExercise(){
     if(presek&&!vajaResena) presek.pokaziKorak(false);
     if(enojcek) enojcek.pokazi(false);
     cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris'));});
+    pobrisiVerigo(cellEls);
   }
 
   const hintBtn=document.createElement('button');hintBtn.className='peek-btn';hintBtn.textContent='Namig (drži)';
@@ -894,6 +925,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
         const cd=malaStevka(cellEls[si],dig);
         if(cd) cd.classList.add('elim');
       });
+      // XY-veriga (O4): zaporedne številke po vrsti najdene verige ostanejo.
+      if(match.veriga) oznaciVerigo(cellEls,idxToSi,match.cells,false);
       legendaOdgovora=legendaOznak(cellEls,M,'odgovor');
       checkBtn.style.display='none';nextBtn.style.display='inline-block';
     } else {

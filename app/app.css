@@ -453,6 +453,16 @@
     color: var(--pencil);
   }
   .mcand-empty{ visibility:hidden; }
+  /* XY-veriga (O4, docs/xy-veriga-nacrt.md): zaporedna številka celice verige na praznem mestu
+     kandidata - majhna polna jantarna oznaka v polju kandidata, zato ne sega iz celice in ne
+     prekrije kandidata (kontrast bele na --amber-ink 5,9 : 1) */
+  .mcand-veriga{
+    margin:4%;
+    border-radius:2px;
+    background: var(--amber-ink);
+    color:#fff;
+    font-weight:700;
+  }
   .mcand-elim{
     color: var(--red);
     text-decoration: line-through;
@@ -478,6 +488,7 @@
   }
   .mini-legend .sw-izbris{ background:var(--red-bg); color:var(--red); text-decoration:line-through; }
   .mini-legend .sw-vpis{ background:var(--green-bg); color:var(--green); }
+  .mini-legend .sw-veriga{ background:var(--amber-ink); color:#fff; }
   .mini-container .mini-povecava{ text-align:center; margin:4px 0 0; }
 
   /* ---------- zbirka ugank ---------- */

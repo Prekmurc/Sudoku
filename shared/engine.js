@@ -636,7 +636,8 @@ function xyChain(b) {
     for (const c of celice) { d = druga(c, d); vrednosti.push(d); }
     const sklep = celice.slice(1).map((c, i) => `${cellLabel(c)} je ${vrednosti[i + 1]}`);
     steps.push({
-      technique: 'XY-Chain', cells: celice, assign: [], eliminate: elim,
+      // veriga: celice so v vrstnem redu verige - na mreži dobijo zaporedne številke (O4).
+      technique: 'XY-Chain', cells: celice, assign: [], eliminate: elim, veriga: true,
       // Števka z in dolžina (O6); konca bi skoraj določila odgovor.
       hint: { digits: [z], celic: celice.length },
       message: `Celice ${opis} tvorijo XY-verigo: vsaka ima natanko dva kandidata, zaporedni celici se vidita in imata skupen kandidat. Če ${cellLabel(s)} ni ${z}, je ${vrednosti[0]} → ${sklep.join(' → ')}. Vsaj eden od koncev ${cellLabel(s)} in ${cellLabel(n)} je torej ${z} → ${z} lahko izbrišeš iz celic, ki vidijo oba konca: ${cellsLabel(elim.map(e => e[0]))}.`
@@ -646,6 +647,16 @@ function xyChain(b) {
   steps.sort((p, q) => p.cells.length - q.cells.length || q.eliminate.length - p.eliminate.length
     || p.cells[0] - q.cells[0] || p.hint.digits[0] - q.hint.digits[0] || zadnja(p) - zadnja(q));
   return steps;
+}
+
+// Prikaz verige na mreži (O4, docs/xy-veriga-nacrt.md, razdelek 5): korak s poljem veriga ima
+// v vsaki celici zaporedno številko 1…n (vrstni red korak.cells) na praznem mestu kandidata -
+// celica verige ima dva kandidata, torej sedem praznih mest. Mesto 5, sicer prvo prosto po
+// vrstnem redu spodaj. Isto pravilo v vseh treh izrisih mreže (app/app.js, shared/mreza.js,
+// trening/trening.js). `zasedeno(d)` pove, ali je mesto d zasedeno (kandidat, prečrtan kandidat).
+const MESTA_STEVILKE_VERIGE = [5, 8, 2, 4, 6, 1, 3, 7, 9];
+function mestoStevilkeVerige(zasedeno) {
+  return MESTA_STEVILKE_VERIGE.find(d => !zasedeno(d)) || 0;
 }
 
 const ALL_TECHNIQUES = [

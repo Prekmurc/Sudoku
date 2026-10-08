@@ -115,7 +115,10 @@ function obmocjeZaMrezo(celice){
 // prečrtano = izbrisi - po pravilnem odgovoru so odstranjeni, v "Rešitvi" še ne.
 function legendaKoraka(korak,odstranjeni){
   const l=vEl('div','legenda-vaje');
-  const vz=vEl('span');vz.append(vEl('span','sw sw-vzorec'),'celice vzorca');
+  // XY-veriga (O4): celice verige z zaporednimi številkami, vzorček je številka.
+  const vz=vEl('span');
+  if(korak.veriga) vz.append(vEl('span','sw-veriga','1'),'celice verige (po vrsti)');
+  else vz.append(vEl('span','sw sw-vzorec'),'celice vzorca');
   const iz=vEl('span');iz.append(vEl('span','izbris-vzorec',String(korak.eliminate[0][1])),
     odstranjeni?'izbrisani kandidati':'kandidat za izbris');
   l.append(vz,iz);

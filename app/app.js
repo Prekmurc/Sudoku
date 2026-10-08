@@ -111,6 +111,8 @@ function renderGridInto(container, stepLike, cellSizePx) {
   const elimCells = new Set(stepLike.eliminate.map(([c]) => c));
   const assignMap = new Map(stepLike.assign.map(([c, d]) => [c, d]));
   const patternCells = new Set(stepLike.cells);
+  // XY-veriga (O4): zaporedna številka celice verige na praznem mestu kandidata (mcand-veriga).
+  const veriga = stepLike.veriga ? new Map(stepLike.cells.map((c, j) => [c, j + 1])) : null;
 
   for (let i = 0; i < 81; i++) {
     const cell = document.createElement('div');
@@ -130,10 +132,14 @@ function renderGridInto(container, stepLike, cellSizePx) {
       else if (elimCells.has(i)) cell.classList.add('hl-elimonly');
       const cg = document.createElement('div');
       cg.className = 'mcandgrid';
+      const mestoVerige = veriga && veriga.has(i) ? mestoStevilkeVerige(d => stepLike.snapshotCand[i] & (1 << d)) : 0;
       for (let d = 1; d <= 9; d++) {
         const s = document.createElement('span');
         const has = stepLike.snapshotCand[i] & (1 << d);
-        if (!has) {
+        if (d === mestoVerige) {
+          s.textContent = veriga.get(i);
+          s.className = 'mcand mcand-veriga';
+        } else if (!has) {
           s.className = 'mcand mcand-empty';
         } else {
           s.textContent = d;
@@ -153,7 +159,8 @@ const NAPOTEK_POVECAVA = 'Tapni mrežo za povečavo.';
 // Legenda pod malo mrežo koraka (popravek po ročnem pregledu faze 6): isti izrazi kot v treningu
 // in samo postavke, ki so na mreži - celice vzorca (jantarne, prazne celice vzorca brez vpisa),
 // izbrisani kandidati (vzorček s prečrtano števko prvega izbrisa), vpis (vzorček s števko vpisa).
-// Pogoji so isti kot v renderGridInto(): polna celica pokaže samo števko.
+// Pogoji so isti kot v renderGridInto(): polna celica pokaže samo števko. Pri XY-verigi so
+// celice vzorca »celice verige (po vrsti)« z vzorčkom zaporedne številke (O4).
 function legendaKoraka(s) {
   const prazna = i => s.snapshotGrid[i] === 0;
   const vpisi = s.assign.filter(([c]) => prazna(c));
@@ -168,7 +175,10 @@ function legendaKoraka(s) {
     p.append(sw, besedilo);
     legend.appendChild(p);
   };
-  if (s.cells.some(c => prazna(c) && !vpisane.has(c))) postavka('sw sw-vzorec', '', 'celice vzorca');
+  if (s.cells.some(c => prazna(c) && !vpisane.has(c))) {
+    if (s.veriga) postavka('sw-stevka sw-veriga', '1', 'celice verige (po vrsti)');
+    else postavka('sw sw-vzorec', '', 'celice vzorca');
+  }
   const izbris = s.eliminate.find(([c]) => prazna(c) && !vpisane.has(c));
   if (izbris) postavka('sw-stevka sw-izbris', String(izbris[1]), 'izbrisani kandidati');
   if (vpisi.length) postavka('sw-stevka sw-vpis', String(vpisi[0][1]), 'vpis');

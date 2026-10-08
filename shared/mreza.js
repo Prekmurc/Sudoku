@@ -27,7 +27,8 @@
 //   barva(d)    - barva poudarka števke d (0..3) ali -1
 //   izbrane     - izbrane celice
 //   sosede      - celica, katere vrstica/stolpec/blok se senčijo, ali null
-//   oznake      - oznake koraka (oznakeKoraka) ali null
+//   oznake      - oznake koraka (oznakeKoraka) ali null; z `veriga` (XY-veriga) dobi celica
+//                 verige zaporedno številko na praznem mestu kandidata (razred k-veriga)
 //   vidne       - celice, ki se prikažejo (Set ali seznam), ali null = vse. Ostale
 //                 so prazne, imajo razred "izven" in se na klik ne odzovejo, mreža
 //                 pa razred "delna" - za prikaz dela mreže na pravih mestih (npr.
@@ -142,10 +143,16 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
         const k = p.kandidati[i];
         const m = document.createElement('div');
         m.className = 'kandidati';
+        // XY-veriga (O4): zaporedna številka na mestu, kjer ni ne kandidata ne prečrtanega.
+        const mestoVerige = o.veriga && o.veriga.has(i)
+          ? mestoStevilkeVerige(d => (k | (p.precrtani ? p.precrtani[i] : 0)) & (1 << d)) : 0;
         for (let d = 1; d <= 9; d++) {
           const s = document.createElement('span');
           s.className = 'kand';
-          if (k & (1 << d)) {
+          if (d === mestoVerige) {
+            s.textContent = o.veriga.get(i);
+            s.classList.add('k-veriga');
+          } else if (k & (1 << d)) {
             s.textContent = d;
             const b = barva(d);
             if (b >= 0) s.classList.add('poud', `b${b}`);
@@ -199,17 +206,20 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
 // Oznake prikazanega koraka motorja v danem stanju (stanjeIgre): celice vzorca,
 // kandidati za izbris (celica * 10 + števka), celice z izbrisom in števke za vpis.
 // Samo še neizvedena dejanja (dejanjaKoraka): izveden izbris ni več označen, celica
-// brez odprtih izbrisov izgubi rdečkasto podlago. Brez koraka null.
+// brez odprtih izbrisov izgubi rdečkasto podlago. Pri XY-verigi (korak.veriga) še `veriga`:
+// celica -> zaporedna številka (O4, izris v praznem mestu kandidata). Brez koraka null.
 function oznakeKoraka(korak, stanje) {
   if (!korak) return null;
   const odprta = dejanjaKoraka(korak, stanje).filter(a => !a.opravljeno);
   const izbrisi = odprta.filter(a => a.tip === 'izbris');
-  return {
+  const o = {
     vzorec: new Set(korak.cells),
     izbris: new Set(izbrisi.map(a => a.celica * 10 + a.stevka)),
     izbrisCelice: new Set(izbrisi.map(a => a.celica)),
     vpis: new Map(odprta.filter(a => a.tip === 'vpis').map(a => [a.celica, a.stevka])),
   };
+  if (korak.veriga) o.veriga = new Map(korak.cells.map((c, j) => [c, j + 1]));
+  return o;
 }
 
 /* ---------- seznami manjkajočih števk ---------- */

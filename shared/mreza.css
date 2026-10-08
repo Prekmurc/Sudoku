@@ -142,6 +142,16 @@
 }
 /* števka za vpis v mreži brez kandidatov (pogled.kandidati = null) */
 .celica.k-vpis:not(.dana):not(.vpis){ color: var(--green); font-weight:700; }
+/* XY-veriga (O4, docs/xy-veriga-nacrt.md): zaporedna številka celice verige na praznem mestu
+   kandidata (oznake.veriga) - majhna polna jantarna oznaka v polju kandidata, zato ne sega iz
+   celice in ne prekrije kandidata; enako v reševalcu (.mcand-veriga) in treningu */
+.kand.k-veriga{
+  margin:4%;
+  border-radius:2px;
+  background: var(--amber-ink);
+  color:#fff;
+  font-weight:700;
+}
 .kand.k-izbris{
   color: var(--red);
   font-weight:700;

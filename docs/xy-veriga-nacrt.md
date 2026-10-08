@@ -647,3 +647,38 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
   `zbirkaZnacka()` in slogi reševalca):
 
 ![Značke težavnosti po koraku 2](slike/xy-veriga/znacke-tezavnosti.png)
+
+### Korak 3 – narejeno 2026-10-08
+
+- **Motor:** korak `xyChain()` ima še `veriga: true` (celice v `cells` so po vrsti verige). Mesto številke v
+  celici: `mestoStevilkeVerige(zasedeno)` in `MESTA_STEVILKE_VERIGE` v `shared/engine.js` – mesto 5, sicer prvo
+  prosto po vrstnem redu 8, 2, 4, 6, 1, 3, 7, 9 (načrt je določil prva štiri); isto pravilo v vseh treh izrisih.
+- **Izris:** številka je v polju praznega mesta kandidata (tretjina celice, odmik 4 %), zato po zgradbi ne more
+  segati iz celice ali prekriti kandidata. Polna jantarna oznaka `--amber-ink` (#865C0F) z belo številko,
+  kontrast 5,9 : 1 (`--amber` bi dal 4,6). Reševalec: `renderGridInto()` (`mcand mcand-veriga`) in
+  `legendaKoraka()` (»celice verige (po vrsti)« z vzorčkom »1« namesto »celice vzorca«); igra in »Vadi v uganki«:
+  `oznakeKoraka()` vrne še `veriga` (celica → številka), izris `kand k-veriga` (mesto izbere tudi mimo
+  prečrtanih kandidatov); legenda »Vadi v uganki« (`trening/v-uganki.js`) enako; »Spoznaj« (mreža 9 × 9):
+  `oznaciVerigo()`/`pobrisiVerigo()` v `trening/trening.js` – skrita mala števka na tem mestu pokaže številko
+  (`.cd.veriga-st`), ob »Rešitvi (drži)« začasno, po pravilnem odgovoru (`match.veriga`) trajno; legenda ob
+  »Rešitvi« brez izbire »celice verige (po vrsti)«. **Za korak 5:** generator verige nastavi vaji
+  `solutionVeriga: true` (`exDigitStep().veriga`), korak 6 doda `xyChain` v veje `peekOn()`/`checkPhase1`
+  za 9–12.
+- **Testi:** nov `tests/izris-korakov.test.js` (pred spremembo, zelen na stari in novi kodi) – mala mreža
+  reševalca z legendo in mreža igre s kandidati in brez njih za vseh 631 korakov s posnetkom 9 ugank iz
+  `docs/uganke.md` in rešena mreža, do znaka enako posnetku `tests/posnetki/izris-korakov.json` (narejen na
+  `d6c64db`); nov `tests/veriga-prikaz.test.js` (7 testov, na stari kodi pade 5) – prvo stanje z verigo
+  vsake uganke in stanje pred korakom 31 preizkusne (pri preizkusni uganki je veriga štirih celic že v
+  zgodnejšem stanju, a jo prehitijo lažje tehnike, zato je stanje 31 izbrano izrecno): številke 1–5 v
+  V5S4, V6S6, V9S6, V8S5, V8S3, vse verige vseh stanj po pravilu mesta (tudi celice s kandidatom 5),
+  kandidati in izbrisi nespremenjeni, legenda; »Spoznaj« na vaji XY-krila s poljem veriga. Vsi testi: 622
+  (prej 614), pribl. 2 min (z vzporedno tekočim brskalnikom 3,6 min); posnetek igre brez razlik (99).
+- **Brskalnik:** nov `tools/preveri-veriga-brskalnik.js` – zelen pri 375 in 1280 px: reševalec (koraki 31–34
+  s štirimi verigami 5–8 celic, celica 31 px / 42 px, številka 9 / 12 px; povečava 36 / 52 px, številka
+  10 / 15 px, brez drsnika), igra (tretja stopnja, celica 38 / 56 px), »Spoznaj« (celica 30 / 46 px) – v
+  celici, brez prekrivanja, slog in kontrast, legenda, brez preliva in napak JS. `preveri-vadi-brskalnik.js`
+  (»Spoznaj« 3–12, 1, 2, E1, E2 enako izhodišču `4c47cc0`) in `preveri-videz-brskalnik.js` zelena.
+- **Slika** (mala mreža reševalca pri 375 px, korak 31 preizkusne uganke – veriga vstavljena v scenariju;
+  oznaka koraka je do koraka 6 še ključ »XY-Chain«):
+
+![Zaporedne številke verige po koraku 3](slike/xy-veriga/veriga-korak3.png)

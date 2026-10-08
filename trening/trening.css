@@ -151,6 +151,7 @@ header.top{max-width:560px}
 .legenda-vaje .sw-izbris{background:var(--k-izbris-bg);border:2px solid var(--k-izbris-bg)}
 .legenda-vaje .sw-izbris-okvir{background:var(--k-izbris-bg);border:2px solid var(--red)}
 .legenda-vaje .sw-pravilno{background:var(--green-bg);border:2px solid var(--green)}
+.legenda-vaje .sw-veriga{display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;border-radius:3px;margin-right:5px;background:var(--amber-ink);color:#fff;font-weight:700;font-size:10px;font-family:'JetBrains Mono',monospace}
 .legenda-vaje .izbris-vzorec{color:var(--red);font-weight:700;text-decoration:line-through;font-family:'JetBrains Mono',monospace;margin-right:5px}
 /* pomoč (Namig, Rešitev): okvir ostane do "Skrij"; seznam dejanj kot v igri */
 .vadi-pomoc{padding:10px 14px;border-radius:8px;background:#FFFCE8;border:1px solid #E8DFA0;font-size:13px;line-height:1.6;color:#5A4A12;margin:8px 0 0}
@@ -181,6 +182,9 @@ header.top{max-width:560px}
 .candgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:1px}
 .cd{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:calc(var(--cs)*.27);color:var(--pencil);line-height:1}
 .cd.hide{visibility:hidden}
+/* XY-veriga (O4, docs/xy-veriga-nacrt.md): zaporedna številka celice verige na praznem mestu kandidata
+   (oznaciVerigo() v trening.js) - majhna polna jantarna oznaka kot v igri (.kand.k-veriga) */
+.cd.veriga-st{margin:4%;border-radius:2px;background:var(--amber-ink);color:#fff;font-weight:700}
 /* izbrisana števka: po pravilnem odgovoru (elim) in med "Rešitvijo (drži)" (peek-izbris - peekOff ga
    odstrani, elim ostane); kot .kand.k-izbris pri 1 in 2 (docs/precrtanje-resitev-nacrt.md) */
 .cd:is(.elim,.peek-izbris){color:var(--red);text-decoration:line-through;font-weight:700}

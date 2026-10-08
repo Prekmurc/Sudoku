@@ -1353,6 +1353,12 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   razume kot osvežitev; v odprtem oknu (zbirka, Pomoč, Nova uganka) ali v vseh treh aplikacijah bi ga
   izklopil CSS `overscroll-behavior` (npr. `overscroll-behavior-y: contain`).
 
+- **Scenarij `tools/preveri-pregled6-brskalnik.js` pade** (zapisano 2026-10-08 ob XY-verigi, korak 3; ni
+  popravljeno): pade že pred to nalogo (opaženo v koraku 2 na kodi pred spremembo), pri preverjanju »Tehnike: 14,
+  razlaga in posledica v dveh odstavkih« v oknu Pomoč – verjetno zato, ker so od faze 3a pod posledico
+  še odstavki zložljive sheme (`details.tehnika-shema`), ki jih scenarij šteje zraven. Popraviti je treba
+  scenarij (štetje odstavkov), ne aplikacije.
+
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 
 - **Gumb »Izvedi izbris«**.
