@@ -2,8 +2,8 @@
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Potrjen 2026-10-07**
 (commit načrta `7a14814`); vse odločitve O1–O13 so v razdelku 13, dopolnitev za korak 2 (značka »Zelo
-težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** koraki 1–4 so narejeni (razdelek 14),
-naslednji je korak 5.
+težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** koraki 1–5 so narejeni (razdelek 14),
+naslednji je korak 6.
 
 Vse številke v načrtu so **izmerjene** na prototipu tehnike v začasni kopiji projekta (motor z vgrajeno
 XY-verigo, ni v repozitoriju), na tem računalniku (i7-7600U, Node 24, Edge brez glave), ne ocenjene.
@@ -714,3 +714,25 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
 - **Slika** (razdelek »Shema« pri 375 px, dvojna ločljivost):
 
 ![Shema XY-verige po koraku 4](slike/xy-veriga/shema-korak4.png)
+
+### Korak 5 – narejeno 2026-10-08
+
+- **Generator:** `genXYChain(n)` v `trening/generators.js` (za `genWWing()`), **brez** vnosa v `MODES` (korak 6).
+  Sintetična deska kot pri 9–12: veriga {z, x1} – {x1, x2} – … – {x(n-1), z} z dolžino `4 + n % 3` (4, 5, 6
+  izmenično), števke povezav različne, nezaporedni celici se ne vidita (brez bližnjic); 1–2 celici izbrisa vidita
+  oba konca in imata z ter dve števki, ki jih veriga nima. Motilec 4 ali 5 celic, brez z, izmenično po `n % 2`:
+  `sosednji-se-ne-vidita` (števke so prava veriga, natanko en par zaporednih celic se ne vidi) in
+  `konca-brez-skupne` (zaporedne se vidijo, zadnji konec nima števke prvega – generator preveri, da bi
+  `xyChain()` z njo verigo našel). Vaja je sprejeta samo, če `xyChain()` vrne natanko en korak (načrtovano verigo z
+  načrtovanimi izbrisi) in `xyWing()` nič; rezervni klic `genXYChain(n + 6)` ohrani dolžino in vrsto motilca.
+- **Polja vaje:** kot pri 9–12 (`slots`, `boardGrid`, `boardCand`, `solutionCells` – korak motorja, od konca z
+  nižjim položajem –, `solutionEliminate`, `solutionMessage`, `distractor`, `unitLabel` »XY-veriga: vse celice
+  verige«) in `solutionVeriga: true` (korak 3 – zaporedne številke prek `exDigitStep().veriga`); števka verige je v
+  polju `z`, ne `digit` (tega `buildFullGridLayout()` poudari kot pri verigi ene števke); za test še
+  `celiceVerige` (po vrsti od prvega konca) in `izbris`.
+- **Test** (pred spremembo; na stari kodi pade, ker funkcije ni): nov `tests/trening-xy-chain.test.js`, 8 testov,
+  200 vaj s semenom, pribl. 0,3 s – hiter. Pogoji vzorca in motilca so izračunani iz kandidatov deske.
+- **Izid:** 0,3–0,5 ms na vajo. Na 200 vajah testa: dolžine 4 / 5 / 6 → 67 / 67 / 66, motilca 100 / 100. Na
+  3000 vajah je vseh 12 kombinacij (dolžina × vrsta motilca × dolžina motilca 4 ali 5) zastopanih z 222–278 vajami.
+- **Vsi testi:** 635 (prej 627), pribl. 2 min 20 s; hitri 521 v 50 s. Padel je samo predvideni test oznake
+  različice (pred osvežitvijo). Brskalnik: trening se naloži brez napak JS, kartic je še 14.

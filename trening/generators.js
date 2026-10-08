@@ -893,6 +893,105 @@ function genWWing(n){
   return genWWing(n+2);
 }
 
+/* --- XY-veriga (docs/xy-veriga-nacrt.md, razdelek 6) ---
+   Kot 9-12: sintetična 81-celična deska (prazne so samo celice vaje), preverjena s klicem
+   xyChain() iz shared/engine.js - zahteva se, da najde načrtovano verigo z načrtovanimi
+   izbrisi in nobene druge ter da xyWing() ne najde ničesar. Veriga ima 4-6 celic (po
+   zaporedni številki vaje, izmenično), vsaka z natanko dvema kandidatoma:
+   {z,x1} - {x1,x2} - ... - {x(n-1),z}. Števke povezav so različne, zato imata skupen kandidat
+   samo zaporedni celici in konca (ni krajše verige ne XY-krila); nezaporedni celici se ne
+   vidita (veriga brez bližnjic). Celice izbrisa (1-2) vidijo oba konca in imajo z ter dve
+   števki, ki jih veriga nima (niso celice z dvema kandidatoma).
+   Moteči vzorec (en na vajo, izmenično po zaporedni številki vaje) spodleti pri natanko
+   enem pogoju:
+     'sosednji-se-ne-vidita' - števke tvorijo verigo z isto števko na koncih in celica, ki vidi
+        oba konca, jo ima, a en par zaporednih celic se ne vidi;
+     'konca-brez-skupne' - zaporedne celice se vidijo, celica, ki vidi oba konca, ima števko
+        prvega konca, a zadnji konec je nima (njegova druga števka je w); generator preveri,
+        da bi xyChain() z njo namesto w verigo našel.
+   Polje števke je z, ne digit - tega izris cele mreže v trening.js poudari (veriga ene števke). */
+
+// Pot m celic zunaj `used`: zaporedni celici se vidita (razen para (prekinjen, prekinjen+1),
+// ki se ne vidi), nezaporedni ne.
+function xycPot(m,used,prekinjen){
+  for(let t=0;t<40;t++){
+    const pot=[tfPick(ALL_IDX.filter(i=>!used.has(i)))];
+    while(pot.length<m){
+      const k=pot.length-1,zadnja=pot[k];
+      const pool=ALL_IDX.filter(i=>!used.has(i)&&!pot.includes(i)
+        &&(k===prekinjen?!PEERS[zadnja].has(i):PEERS[zadnja].has(i))
+        &&pot.slice(0,-1).every(p=>!PEERS[p].has(i)));
+      if(!pool.length) break;
+      pot.push(tfPick(pool));
+    }
+    if(pot.length===m) return pot;
+  }
+  return null;
+}
+// Kandidati celic poti iz zaporedja števk: celica i ima števki st[i] in st[i+1].
+function xycKandidati(board,pot,st){pot.forEach((c,i)=>setCell(board,c,[st[i],st[i+1]]));}
+
+function genXYChain(n){
+  const dolzina=4+n%3;
+  const disType=n%2===0?'sosednji-se-ne-vidita':'konca-brez-skupne';
+  for(let attempt=0;attempt<300;attempt++){
+    const ds=shuffle([1,2,3,4,5,6,7,8,9]);
+    // Pravi vzorec: z, x1 ... x(n-1), z.
+    const st=[...ds.slice(0,dolzina),ds[0]];
+    const z=ds[0];
+    const fill=ds.slice(dolzina);
+    const pot=xycPot(dolzina,new Set(),-1);
+    if(!pot) continue;
+    const prvi=pot[0],zadnji=pot[dolzina-1];
+    const ePool=ALL_IDX.filter(i=>!pot.includes(i)&&PEERS[prvi].has(i)&&PEERS[zadnji].has(i));
+    if(!ePool.length) continue;
+    const elim=randSub(ePool,randInt(1,2));
+
+    // Motilec: 4-5 celic, števke najprej tiste, ki jih veriga nima, nikoli z.
+    const m=randInt(4,5);
+    const dds=[...shuffle(fill.slice()),...shuffle(ds.slice(1,dolzina))];
+    const dz=dds[0];
+    const dst=disType==='sosednji-se-ne-vidita'?[...dds.slice(0,m),dz]:dds.slice(0,m+1);
+    const used=new Set([...pot,...elim]);
+    const dpot=xycPot(m,used,disType==='sosednji-se-ne-vidita'?randInt(0,m-2):-1);
+    if(!dpot) continue;
+    const dePool=ALL_IDX.filter(i=>!used.has(i)&&!dpot.includes(i)
+      &&PEERS[dpot[0]].has(i)&&PEERS[dpot[m-1]].has(i));
+    if(!dePool.length) continue;
+    const dElim=tfPick(dePool);
+
+    const board=emptyBoard();
+    xycKandidati(board,pot,st);
+    elim.forEach(i=>setCell(board,i,[z,...randSub(fill,2)]));
+    xycKandidati(board,dpot,dst);
+    setCell(board,dElim,[dz,...randSub([1,2,3,4,5,6,7,8,9].filter(d=>d!==dz&&d!==z),2)]);
+
+    const steps=xyChain(board);
+    if(steps.length!==1) continue;
+    const match=steps[0];
+    if(!match.cells.every(c=>pot.includes(c))||match.cells.length!==dolzina) continue;
+    if(match.eliminate.length!==elim.length||!match.eliminate.every(([c,d])=>d===z&&elim.includes(c))) continue;
+    if(xyWing(board).length) continue;
+    if(disType==='konca-brez-skupne'){
+      const b2={grid:board.grid.slice(),cand:board.cand.slice()};
+      b2.cand[dpot[m-1]]=(1<<dst[m-1])|(1<<dz);
+      if(!xyChain(b2).some(s=>s.cells.length===m&&s.cells.every(c=>dpot.includes(c)))) continue;
+    }
+
+    return{
+      mode:'xy-chain',z,celiceVerige:pot,izbris:elim,
+      slots:slotsFromBoard(board),
+      boardGrid:board.grid,boardCand:board.cand,
+      // Korak motorja; solutionVeriga: celice so po vrsti verige (zaporedne številke, O4).
+      solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
+      solutionVeriga:true,
+      distractor:{type:disType,veriga:dpot,izbris:dElim,cells:[...dpot,dElim]},
+      unitLabel:'XY-veriga: vse celice verige',
+    };
+  }
+  return genXYChain(n+6);
+}
+
 function addLabels(slots,ut,ui){
   for(let i=0;i<9;i++){
     if(ut==='row') slots[i].pos=`V${ui}S${i+1}`;
