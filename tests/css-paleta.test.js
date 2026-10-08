@@ -35,7 +35,8 @@ function drugeCss() {
 test('paleta v shared/base.css ima osnovne barve', () => {
   const p = paleta();
   for (const ime of ['--paper', '--card', '--ink', '--ink2', '--line', '--pencil', '--red', '--red-bg', '--blue',
-    '--blue-bg', '--green', '--green-bg', '--amber', '--amber-bg', '--purple', '--purple-bg', '--purple-dark', '--purple-dark-ink', '--izbira', '--izbira-bg']) {
+    '--blue-bg', '--green', '--green-bg', '--amber', '--amber-bg', '--purple', '--purple-bg', '--purple-dark', '--purple-dark-ink',
+    '--green-ink', '--amber-ink', '--turq', '--turq-bg', '--turq-dark', '--turq-dark-ink', '--izbira', '--izbira-bg']) {
     assert.ok(p.includes(ime), `manjka ${ime}`);
   }
 });

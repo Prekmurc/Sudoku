@@ -44,9 +44,10 @@ header.top{max-width:560px}
 /* Barva značke pove raven tehnike: lahka (E1, E2), srednja (1-6) ali napredna (7-12) - docs/uskladitev.md,
    točka 1.1 (ne tehnike - te ločijo barve izbire v vaji, glej MODES). Iste barve kot oznaka koraka
    v reševalcu in igri (.tag.t-single / .t-pair / .t-advanced v shared/base.css, faza 5, N10). */
-.badge-lahka{background:var(--green-bg);color:var(--green)}
-.badge-srednja{background:var(--amber-bg);color:var(--amber)}
+.badge-lahka{background:var(--green-bg);color:var(--green-ink)}
+.badge-srednja{background:var(--amber-bg);color:var(--amber-ink)}
 .badge-napredna{background:var(--purple-bg);color:var(--purple)}
+.badge-ekspertna{background:var(--turq-bg);color:var(--turq)}
 
 /* --- VAJE --- */
 #trainer{display:none}

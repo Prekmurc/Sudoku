@@ -25,10 +25,23 @@
   --amber-bg: #F1E5C9;
   --purple: #7548A0;
   --purple-bg: #E7DEF0;
-  /* Značka težavnosti »Zelo težka« (shared/zbirka.css): temnejša, polna vijolična z belim
-     besedilom (kontrast 10,0), da se loči od »Težke« (--purple na --purple-bg, 5,1). */
-  --purple-dark: #53307E;
-  --purple-dark-ink: #FFFFFF;
+  /* Pisava značk in oznak ravni (.tag.t-single, .tag.t-pair, .badge-lahka, .badge-srednja):
+     temnejša od --green in --amber, da je kontrast na podlagi vsaj 4,5 : 1 (4,7; z --green 4,1,
+     z --amber 3,7 - XY-veriga, korak 2). Drugod ostaneta --green in --amber. */
+  --green-ink: #2A7355;
+  --amber-ink: #865C0F;
+  /* Ekspertna raven (XY-veriga, docs/xy-veriga-nacrt.md, razdelek 7, O5): turkizna -
+     oznaka koraka .tag.t-expert in značka EKSPERTNA v treningu (kontrast 5,2). */
+  --turq: #0B6B6B;
+  --turq-bg: #D2EFEF;
+  /* Značka težavnosti »Ekstrem« (shared/zbirka.css): jasno turkizna podlaga s temno pisavo
+     (6,5), opazno temnejša od --turq-bg (razmerje svetlosti 1,6). */
+  --turq-dark: #6CC8C8;
+  --turq-dark-ink: #05393A;
+  /* Značka težavnosti »Zelo težka«: enak slog v vijolični - srednje močna podlaga s temno
+     pisavo (6,3), jasno temnejša od »Težke« (--purple-bg, razmerje svetlosti 2,0). */
+  --purple-dark: #B494D1;
+  --purple-dark-ink: #2A1545;
   /* Izbrana celica (shared/mreza.css) in fokus v vnosni mreži (reševalec, okno »Nova
      uganka« v igri) - povsod enako (odločitev A2): modrikasta podlaga in 3 px modra obroba. */
   --izbira: #4A86D8;
@@ -141,7 +154,7 @@ footer.note {
 
 /* oznaka tehnike pri koraku (reševalec, igra); barva po ravni tehnike iz tagClass()
    v shared/engine.js: lahke zeleno, srednje (1-6) jantarno, napredne (7-12) vijolično,
-   poskus s protislovjem rdeče */
+   ekspertne (13) turkizno, poskus s protislovjem rdeče */
 .tag {
   display: inline-block;
   font-family: 'JetBrains Mono', monospace;
@@ -151,8 +164,9 @@ footer.note {
   padding: 3px 8px;
   border-radius: 5px;
 }
-.tag.t-single { background: var(--green-bg); color: var(--green); }
-.tag.t-pair { background: var(--amber-bg); color: var(--amber); }
+.tag.t-single { background: var(--green-bg); color: var(--green-ink); }
+.tag.t-pair { background: var(--amber-bg); color: var(--amber-ink); }
 .tag.t-advanced { background: var(--purple-bg); color: var(--purple); }
+.tag.t-expert { background: var(--turq-bg); color: var(--turq); }
 .tag.t-chain { background: var(--red-bg); color: var(--red); }
 .tag.t-basic { background: var(--blue-bg); color: var(--blue); }

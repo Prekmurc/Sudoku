@@ -191,9 +191,10 @@ async function zazeni({ koren = KOREN } = {}) {
     cdp,
 
     // Odpre stran (pot od korena projekta) v oknu dane velikosti; `mobilno` vklopi
-    // posnemanje telefona (dotik, meta viewport).
-    async odpri(pot, { sirina = 1200, visina = 900, mobilno = false } = {}) {
-      await cdp.poslji('Emulation.setDeviceMetricsOverride', { width: sirina, height: visina, deviceScaleFactor: 1, mobile: mobilno });
+    // posnemanje telefona (dotik, meta viewport); `skala` je gostota pikslov (2 = posnetek v
+    // dvojni ločljivosti, slogi strani enaki).
+    async odpri(pot, { sirina = 1200, visina = 900, mobilno = false, skala = 1 } = {}) {
+      await cdp.poslji('Emulation.setDeviceMetricsOverride', { width: sirina, height: visina, deviceScaleFactor: skala, mobile: mobilno });
       await cdp.poslji('Emulation.setTouchEmulationEnabled', { enabled: mobilno });
       const nalozeno = cdp.dogodek('Page.loadEventFired');
       await cdp.poslji('Page.navigate', { url: osnova + pot });

@@ -922,9 +922,9 @@ function opisTehnike(kljuc) {
 
 // Skupina tehnike za barvo oznake v prikazu koraka (CSS razredi .tag.t-* v
 // shared/base.css) iz ravni (RAVNI_TEHNIK): lahka t-single, srednja t-pair, napredna
-// t-advanced; poskus s protislovjem t-chain, drugo (OBSTALO, NAPAKA, neznan ključ) t-basic.
-// Ekspertna raven barve še nima (t-basic) - dobi jo z XY-verigo.
-const RAZRED_RAVNI = { lahka: 't-single', srednja: 't-pair', napredna: 't-advanced' };
+// t-advanced, ekspertna t-expert (turkizna); poskus s protislovjem t-chain, drugo (OBSTALO,
+// NAPAKA, neznan ključ) t-basic.
+const RAZRED_RAVNI = { lahka: 't-single', srednja: 't-pair', napredna: 't-advanced', ekspertna: 't-expert' };
 function tagClass(tech) {
   if (typeof tech === 'string' && tech.startsWith(POSKUS_KLJUC)) return 't-chain';
   return RAZRED_RAVNI[ravenTehnike(tech)] || 't-basic';

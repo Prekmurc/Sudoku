@@ -10,8 +10,8 @@ const assert = require('node:assert/strict');
 const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
-  files: ['shared/generator.js'],
-  names: ['tagClass', 'TECHNIQUE_GROUPS', 'TRENING_ENOJCKA', 'TRENING_TEHNIKE', 'RAVNI_TEHNIK', 'ravenTehnike',
+  files: ['shared/generator.js', 'shared/zbirka.js', 'shared/zbirka-ui.js'],
+  names: ['tagClass', 'TEZAVNOSTI', 'ZNACKA_TEZAVNOSTI', 'TECHNIQUE_GROUPS', 'TRENING_ENOJCKA', 'TRENING_TEHNIKE', 'RAVNI_TEHNIK', 'ravenTehnike',
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'GEN_EKSPERTNE'],
 });
 
@@ -63,6 +63,33 @@ test('TECHNIQUE_GROUPS: vsaka skupina je v eni ravni, skupine so zaporedni odsek
     assert.equal(ravni.filter(r => g.every(t => r.includes(t))).length, 1, g.join(', '));
   }
   assert.deepEqual([...E.TECHNIQUE_GROUPS.flat()], KLJUCI);
+});
+
+// XY-veriga, korak 2 (docs/xy-veriga-nacrt.md, razdelek 7, O5): ekspertna raven dobi svojo barvo
+// (turkizna, .tag.t-expert), značka težavnosti »Ekstrem« ni več rdeča kot »Presega tehnike«. Tehnike
+// v ekspertni ravni še ni, zato jo test za ta primer doda sam in jo nato odstrani. Pred spremembo je bil
+// test zelen z današnjim pričakovanjem (ekspertna raven t-basic, »Ekstrem« enak »Presega tehnike«).
+test('razred ravni: tehnika v ekspertni ravni dobi t-expert', () => {
+  E.RAVNI_TEHNIK.ekspertna.push('XY-Chain');
+  try {
+    assert.equal(E.ravenTehnike('XY-Chain'), 'ekspertna');
+    assert.equal(E.tagClass('XY-Chain'), 't-expert');
+  } finally {
+    E.RAVNI_TEHNIK.ekspertna.pop();
+  }
+  assert.equal(E.tagClass('XY-Chain'), 't-basic', 'zunaj ravni');
+});
+
+test('značka težavnosti: »Ekstrem« ni »Presega tehnike«, vsaka stopnja ima razred svoje ravni', () => {
+  const razred = t => E.ZNACKA_TEZAVNOSTI[t] || 't-chain';
+  assert.notEqual(razred('Ekstrem'), razred('Presega tehnike'));
+  assert.equal(razred('Ekstrem'), 't-expert znacka-ekstrem');
+  for (const t of ['Presega tehnike', 'Več rešitev', 'Brez rešitve']) assert.equal(razred(t), 't-chain', t);
+  assert.equal(razred('Lahka'), 't-single');
+  assert.equal(razred('Srednja'), 't-pair');
+  assert.equal(razred('Težka'), 't-advanced');
+  assert.equal(razred('Zelo težka'), 't-advanced znacka-zelo-tezka');
+  for (const t of Object.keys(E.ZNACKA_TEZAVNOSTI)) assert.ok(E.TEZAVNOSTI.includes(t), t);
 });
 
 // Po spremembi (RAVNI_TEHNIK in ravenTehnike() v shared/engine.js - edini vir ravni).

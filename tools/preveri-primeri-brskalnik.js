@@ -22,7 +22,7 @@ const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.j
 
 const SKUPINE = ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Presega tehnike'];
 // Barve oznak korakov (shared/base.css): srednja jantarna.
-const JANTARNA = 'rgb(156, 107, 18)'; // --amber #9C6B12
+const JANTARNA = 'rgb(134, 92, 15)'; // --amber-ink #865C0F (pisava značk od XY-verige, korak 2; prej --amber)
 
 let napak = 0;
 function preveri(ime, pogoj, podrobno = '') {

@@ -25,7 +25,11 @@
 //   korak 5 (1.1) - raven kot podatek tehnike pri 375 in 1280 px: značke na karticah treninga
 //     (vrstni red, razred, besedilo, vse lastnosti izračunanega sloga), značke ravni v oknu Pomoč
 //     vseh treh aplikacij (pravi klik na gumb) in oznake korakov v reševalcu po »Reši« na P_14
-//     in P_15 (razred, barva, podlaga) - enake izhodišču.
+//     in P_15 (razred, barva, podlaga) - enake izhodišču. Od XY-verige, korak 2 (docs/xy-veriga-nacrt.md,
+//     razdelek 7) se smeta razlikovati samo barvi pisave lahke in srednje ravni (--green-ink, --amber-ink);
+//     značke težavnosti (zbirkaZnacka() za vseh osem, na beli podlagi in na kartici) in ekspertne ravni
+//     (.tag.t-expert, .badge-ekspertna): izračunan slog = barve iz shared/base.css, kontrast vsaj 4,5 : 1,
+//     »Ekstrem« ≠ »Presega tehnike«; posnetek vrstice značk znacke-tezavnosti.png (dvojna ločljivost).
 //
 //   node tools/preveri-faza7-brskalnik.js [--mapa <mapa>] [--korak 2|3|4|5] [--izhodisce <commit>]
 //
@@ -539,9 +543,91 @@ async function znacke(b, sirina) {
   return o;
 }
 
+// Barve iz :root v shared/base.css (#RRGGBB → »rgb(r, g, b)« kot getComputedStyle).
+function barveIzBase() {
+  const css = fs.readFileSync(path.join(KOREN, 'shared', 'base.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const o = {};
+  for (const [, ime, h] of css.matchAll(/(--[\w-]+)\s*:\s*#([0-9a-f]{6})\s*;/gi)) {
+    o[ime] = `rgb(${[0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)).join(', ')})`;
+  }
+  return o;
+}
+function kontrastRgb(a, c) {
+  const L = x => {
+    const [r, g, bl] = x.match(/\d+/g).slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [l1, l2] = [L(a), L(c)].sort((x, y) => y - x);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+
+// Značke težavnosti (prava zbirkaZnacka() in slogi reševalca) na beli podlagi in na kartici, oznaka
+// koraka .tag.t-expert (reševalec) in .badge-ekspertna (kartica treninga): izračunan slog. Z `posnetek`
+// še posnetek vrstice značk v dvojni ločljivosti.
+async function znackeTezavnosti(b, sirina, posnetek) {
+  await b.odpri('app/index.html', { sirina, visina: posnetek ? 165 : 900, mobilno: sirina < 500, skala: posnetek ? 2 : 1 });
+  await b.cakaj('document.fonts.status === "loaded"', 5000);
+  const o = await b.izvedi(`(() => {
+    const plosca = document.createElement('div');
+    plosca.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--paper);padding:16px;overflow:auto';
+    const vrstica = (oznaka, v) => {
+      const p = document.createElement('p');
+      p.style.cssText = 'margin:0 0 10px;font-size:13px;color:var(--ink2)';
+      p.textContent = oznaka;
+      const r = document.createElement('div');
+      r.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:center';
+      for (const t of TEZAVNOSTI) r.append(zbirkaZnacka(t));
+      v.append(p, r);
+    };
+    vrstica('Na beli podlagi (stran, moje uganke v seznamu zbirke)', plosca);
+    const kartica = document.createElement('div');
+    kartica.className = 'card';
+    vrstica('Na podlagi kartice (kartica »Uganka«, vgrajeni primeri)', kartica);
+    plosca.append(kartica);
+    document.body.append(plosca);
+    const slog = z => ({ besedilo: z.textContent, razred: z.className, barva: getComputedStyle(z).color,
+      podlaga: getComputedStyle(z).backgroundColor });
+    const raven = document.createElement('span');
+    raven.className = 'tag t-expert';
+    raven.textContent = '13 · XY-veriga';
+    kartica.append(raven);
+    const r = { znacke: [...plosca.querySelectorAll('.znacka-tezavnosti')].map(slog), raven: slog(raven) };
+    raven.remove();
+    return r;
+  })()`);
+  if (posnetek) await b.posnetek(posnetek, { vsaStran: false });
+  await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
+  o.badge = await b.izvedi(`(() => { const z = document.createElement('span'); z.className = 'badge badge-ekspertna';
+    z.textContent = 'EKSPERTNA'; document.querySelector('#menu .menu-card').append(z);
+    const s = { barva: getComputedStyle(z).color, podlaga: getComputedStyle(z).backgroundColor }; z.remove(); return s; })()`);
+  return o;
+}
+
 async function korak5(b) {
   const sirine = [375, 1280];
   const nova = {};
+  const B = barveIzBase();
+  const PRICAKOVANO = { 'Lahka': ['--green-ink', '--green-bg'], 'Srednja': ['--amber-ink', '--amber-bg'], 'Težka': ['--purple', '--purple-bg'],
+    'Zelo težka': ['--purple-dark-ink', '--purple-dark'], 'Ekstrem': ['--turq-dark-ink', '--turq-dark'] };
+  for (const s of [...sirine, 'posnetek']) {
+    const z = await znackeTezavnosti(b, s === 'posnetek' ? 900 : s, s === 'posnetek' ? path.join(mapa, 'znacke-tezavnosti.png') : null);
+    console.log(`Značke težavnosti in ekspertne ravni, ${s === 'posnetek' ? '900 px, posnetek' : `${s} px`} (XY-veriga, korak 2)`);
+    preveri('16 značk (osem na beli, osem na kartici)', z.znacke.length === 16, z.znacke.map(x => x.besedilo));
+    for (const x of z.znacke) {
+      const [pis, pod] = PRICAKOVANO[x.besedilo] || ['--red', '--red-bg'];
+      const k = kontrastRgb(x.barva, x.podlaga);
+      preveri(`${x.besedilo}: pisava ${pis} na ${pod}, kontrast ${k.toFixed(2)} ≥ 4,5`, x.barva === B[pis] && x.podlaga === B[pod] && k >= 4.5,
+        [x.barva, x.podlaga]);
+    }
+    const po = t => z.znacke.find(x => x.besedilo === t);
+    preveri('»Ekstrem« ≠ »Presega tehnike«', po('Ekstrem').podlaga !== po('Presega tehnike').podlaga && po('Ekstrem').barva !== po('Presega tehnike').barva);
+    preveri('»Zelo težka« ≠ »Težka«', po('Zelo težka').podlaga !== po('Težka').podlaga);
+    for (const [ime, x] of [['oznaka koraka .tag.t-expert', z.raven], ['značka .badge-ekspertna (trening)', z.badge]]) {
+      const k = kontrastRgb(x.barva, x.podlaga);
+      preveri(`${ime}: pisava --turq na --turq-bg, kontrast ${k.toFixed(2)} ≥ 4,5`, x.barva === B['--turq'] && x.podlaga === B['--turq-bg'] && k >= 4.5,
+        [x.barva, x.podlaga]);
+    }
+  }
   for (const s of sirine) {
     console.log(`Značke ravni, ${s} px (1.1)`);
     const n = nova[s] = await znacke(b, s);
@@ -566,26 +652,38 @@ async function korak5(b) {
     for (const s of sirine) {
       const st = await znacke(bStar, s), n = nova[s];
       console.log(`Primerjava z izhodiščem ${izhodisce}, ${s} px`);
+      // Dovoljena razlika (XY-veriga, korak 2): barva pisave lahke in srednje ravni - lastnosti z
+      // »color« (tudi izpeljane iz currentColor) ali »barva«, natanko stara → nova vrednost.
+      const BARVA_RAVNI = [[/t-single|badge-lahka/, 'rgb(46, 125, 92)', 'rgb(42, 115, 85)'],
+        [/t-pair|badge-srednja/, 'rgb(156, 107, 18)', 'rgb(134, 92, 15)']];
+      // Še nova »Zelo težka« (značka pod seznamom primerov v reševalcu pri P_14) in spremenljivki njenih
+      // barv, ki ju vsak element podeduje iz :root.
+      const ZELO_TEZKA = { '--purple-dark': ['#53307E', '#B494D1'], '--purple-dark-ink': ['#FFFFFF', '#2A1545'],
+        podlaga: ['rgb(83, 48, 126)', 'rgb(180, 148, 209)'], barva: ['rgb(255, 255, 255)', 'rgb(42, 21, 69)'] };
+      const dovoljeno = (x, l, st, nv) => ((l === 'barva' || l.includes('color'))
+        && BARVA_RAVNI.some(([re, s, n]) => re.test(x.razred) && st === s && nv === n))
+        || (l.startsWith('--') && ZELO_TEZKA[l] && ZELO_TEZKA[l][0] === st && ZELO_TEZKA[l][1] === nv)
+        || (/znacka-zelo-tezka/.test(x.razred) && ZELO_TEZKA[l] && ZELO_TEZKA[l][0] === st && ZELO_TEZKA[l][1] === nv);
       const razlike = (a, c) => {
         const out = [];
         a.forEach((x, i) => {
           const y = c[i];
           if (!y) { out.push(`${i}: manjka`); return; }
-          for (const k of Object.keys(x)) if (k !== 'slog' && x[k] !== y[k]) out.push(`${i} ${k}: ${x[k]} → ${y[k]}`);
-          if (x.slog) for (const l of Object.keys(x.slog)) if (x.slog[l] !== y.slog[l]) out.push(`${i} ${l}: ${x.slog[l]} → ${y.slog[l]}`);
+          for (const k of Object.keys(x)) if (k !== 'slog' && x[k] !== y[k] && !dovoljeno(x, k, x[k], y[k])) out.push(`${i} ${k}: ${x[k]} → ${y[k]}`);
+          if (x.slog) for (const l of Object.keys(x.slog)) if (x.slog[l] !== y.slog[l] && !dovoljeno(x, l, x.slog[l], y.slog[l])) out.push(`${i} ${l}: ${x.slog[l]} → ${y.slog[l]}`);
         });
         if (c.length !== a.length) out.push(`število ${a.length} → ${c.length}`);
         return out;
       };
       const rT = razlike(st.trening, n.trening);
-      preveri(`trening: značke (vrstni red, razred, besedilo, vse lastnosti sloga) enake izhodišču`, rT.length === 0, rT.slice(0, 8));
+      preveri(`trening: značke (vrstni red, razred, besedilo, vse lastnosti sloga) enake izhodišču razen pisave lahke in srednje`, rT.length === 0, rT.slice(0, 8));
       for (const a of POMOC5) {
         const r = razlike(st.pomoc[a.ime], n.pomoc[a.ime]);
-        preveri(`Pomoč (${a.ime}): značke ravni (razred, besedilo, vse lastnosti sloga) enake izhodišču`, r.length === 0, r.slice(0, 8));
+        preveri(`Pomoč (${a.ime}): značke ravni (razred, besedilo, vse lastnosti sloga) enake izhodišču razen pisave lahke in srednje`, r.length === 0, r.slice(0, 8));
       }
       for (const p of Object.keys(n.koraki)) {
         const r = razlike(st.koraki[p], n.koraki[p]);
-        preveri(`reševalec ${p}: oznake korakov (razred, besedilo, barva, podlaga) enake izhodišču`, r.length === 0, r.slice(0, 8));
+        preveri(`reševalec ${p}: oznake korakov (razred, besedilo, barva, podlaga) enake izhodišču razen pisave lahke in srednje`, r.length === 0, r.slice(0, 8));
       }
     }
     preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);

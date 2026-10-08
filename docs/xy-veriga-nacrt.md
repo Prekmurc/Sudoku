@@ -303,6 +303,7 @@ slogi `shared/base.css` in `shared/zbirka.css`) kaže odločeno različico:
 |---|---|---|---|
 | ekspertna raven: značka EKSPERTNA (trening), oznaka koraka »13 · XY-veriga« (reševalec, igra), značka ravni v Pomoči – `.tag.t-expert`, `.badge-ekspertna` | #D2EFEF (svetla turkizna) | #0B6B6B | 5,2 : 1 (vijolična napredne ravni 5,0 : 1) |
 | značka težavnosti **Ekstrem** (zbirka, kartica »Uganka«, vgrajeni primeri, opis primera v reševalcu) | #6CC8C8 (jasno turkizna) | #05393A | 6,5 : 1 |
+| značka težavnosti **Zelo težka** (dopolnitev spodaj, izbrano v koraku 2) | #B494D1 (srednje močna vijolična) | #2A1545 | 6,3 : 1 |
 
 Značka »Ekstrem« je opazno temnejša od svetle oznake ravni (razmerje svetlosti 1,6 : 1), a ni polna in
 temna kot »Zelo težka«.
@@ -614,3 +615,35 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
 - **Izid na preizkusni uganki:** v stanju pred poskusom (korak 31) štiri verige do 8 celic (5, 6, 7, 8
   celic); prva je Darkova veriga, druga veriga šestih celic iz 34. koraka (razdelek 2). Neodvisno
   iskanje brez meje najde deset verig (5–11 celic, pet z devetimi), kot v razdelku 2.
+
+### Korak 2 – narejeno 2026-10-08
+
+- **Barve** (spremenljivke v `:root` v `shared/base.css`, `tests/css-paleta.test.js`): `--turq` #0B6B6B na
+  `--turq-bg` #D2EFEF (ekspertna raven – `.tag.t-expert` v `shared/base.css`, `.badge-ekspertna` v
+  `trening/trening.css`), `--turq-dark-ink` #05393A na `--turq-dark` #6CC8C8 (značka »Ekstrem« –
+  `.tag.znacka-ekstrem` v `shared/zbirka.css`, v `ZNACKA_TEZAVNOSTI` razred `t-expert znacka-ekstrem`),
+  `--purple-dark-ink` #2A1545 na `--purple-dark` #B494D1 (»Zelo težka«, imeni spremenljivk ostaneta – prej
+  bela na #53307E). `RAZRED_RAVNI.ekspertna = 't-expert'` (`tagClass()`).
+- **Odstopanje (Darko 2026-10-08):** test kontrasta na stari kodi ni bil zelen – zelena oznaka/značka lahke
+  ravni (#2E7D5C na #DCEEE5) je imela 4,14 : 1, jantarna srednje (#9C6B12 na #F1E5C9) 3,71 : 1. Odločeno:
+  temnejša pisava samo v značkah – `--green-ink` #2A7355 in `--amber-ink` #865C0F (oba 4,73 : 1) v
+  `.tag.t-single`, `.tag.t-pair`, `.badge-lahka`, `.badge-srednja`; `--green` in `--amber` drugod ostaneta.
+- **Kontrast vseh značk** (pisava na podlagi): Lahka 4,73 · Srednja 4,73 · Težka 5,05 · Zelo težka 6,27 ·
+  Ekstrem 6,49 · Presega tehnike, Več rešitev, Brez rešitve 4,60 · ekspertna raven 5,21 · oznaka »drugo«
+  (`t-basic`) 5,15. Razmerje svetlosti podlag »Zelo težka« : »Težka« 2,0, »Ekstrem« : ekspertna raven 1,6.
+- **Testi** (pred spremembo z današnjim pričakovanjem, zeleni na stari kodi razen kontrasta lahke in srednje):
+  `tests/ravni-tehnik.test.js` (tehnika, začasno dodana v ekspertno raven, dobi `t-expert` – prej `t-basic`;
+  »Ekstrem« ≠ »Presega tehnike« – prej enaka), nov `tests/znacke-kontrast.test.js` (kontrast vseh značk
+  ravni in težavnosti iz CSS, »Zelo težka« jasno temnejša od »Težke«, »Zelo težka« in »Ekstrem« srednje
+  močna podlaga s temno pisavo, »Ekstrem« turkizen in temnejši od oznake ravni), `tests/css-paleta.test.js`
+  (nova imena). Vsi testi: 614, pribl. 2 min; posnetek igre brez razlik.
+- **Brskalnik:** `tools/preveri-faza7-brskalnik.js --korak 5` razširjen (izračunan slog vseh značk težavnosti
+  in ekspertne ravni, kontrast, primerjava z izhodiščem dovoli natanko novi pisavi lahke/srednje in novo
+  »Zelo težka«); `tools/brskalnik.js` `odpri()` dobi `skala` (posnetek v dvojni ločljivosti);
+  `tools/preveri-primeri-brskalnik.js` pričakuje `--amber-ink`. Zeleni tudi `preveri-primeri-`, `-pomoc-` in
+  `-videz-brskalnik.js`; `preveri-pregled6-brskalnik.js` pade pri »Tehnike: … v dveh odstavkih« že na HEAD
+  (odstavki shem iz faze 3a) – ni del te naloge.
+- **Slika za Darka:** vrstica vseh osmih značk težavnosti na beli podlagi in na kartici (prava
+  `zbirkaZnacka()` in slogi reševalca):
+
+![Značke težavnosti po koraku 2](slike/xy-veriga/znacke-tezavnosti.png)
