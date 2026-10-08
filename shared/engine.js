@@ -895,8 +895,8 @@ const TEHNIKE_OPISI = {
     ime: 'XY-veriga',
     anglesko: 'XY-Chain',
     povzetek: 'Celice z natanko dvema kandidatoma tvorijo verigo: zaporedni celici se vidita in imata skupen kandidat. Če imata oba konca verige kandidat z, z izbrišeš iz celic, ki vidijo oba konca.',
-    razlaga: 'Poišči zaporedje vsaj štirih celic z natanko dvema kandidatoma. Zaporedni celici se vidita – sta v isti vrstici, stolpcu ali bloku – in imata skupen kandidat, ki ju povezuje: prva celica {z, a} in druga {a, b} si delita a, druga in tretja b, in tako naprej. Zadnja celica ima poleg povezovalne števke spet z, torej imata oba konca verige kandidat z. Veriga treh celic je XY-krilo (11).',
-    posledica: 'Če prva celica ni z, je a. Potem druga ni a, torej je b, tretja ni b … in zadnja celica je z. Vsaj en konec verige je torej z. Iz vseh celic, ki vidijo oba konca, z izbrišeš.',
+    razlaga: 'Poišči zaporedje vsaj štirih celic z natanko dvema kandidatoma. Zaporedni celici se vidita – sta v isti vrstici, stolpcu ali bloku – in imata skupen kandidat, ki ju povezuje: prva celica {z, x} in druga {x, y} si delita x, druga in tretja y, in tako naprej. Zadnja celica ima poleg povezovalne števke spet z, torej imata oba konca verige kandidat z. Veriga treh celic je XY-krilo (11).',
+    posledica: 'Če prva celica ni z, je x. Potem druga ni x, torej je y, tretja ni y … in zadnja celica je z. Vsaj en konec verige je torej z. Iz vseh celic, ki vidijo oba konca, z izbrišeš.',
     navodilo: 'Izberi vse celice verige.',
   },
 };

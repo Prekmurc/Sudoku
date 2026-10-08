@@ -526,4 +526,11 @@ test('XY-veriga: pet celic po vrsti, konca druge vrste z z, celica izbrisa vidi 
   assert.equal(k.length, 1);
   assert.deepEqual(k[0].cells, pot[0] < pot[4] ? pot : [...pot].reverse());
   assert.deepEqual(k[0].hint, { digits: [STEVKA.z], celic: 5 });
+  // Popravek po pregledu koraka 4: razlaga in posledica uporabljata črke sheme - pari v razlagi
+  // sta prvi dve celici verige, posledica sledi vrednostim po verigi.
+  const opis = iz('TEHNIKE_OPISI["xy-chain"]');
+  const pariRazlage = [...opis.razlaga.matchAll(/\{([a-z]), ([a-z])\}/g)].map(m => [m[1], m[2]]);
+  assert.deepEqual(pariRazlage, crke.slice(0, 2), 'pari v razlagi = prvi dve celici sheme');
+  assert.match(opis.razlaga, new RegExp(`si delita ${crke[0][1]}, druga in tretja ${crke[1][1]},`));
+  assert.ok(opis.posledica.startsWith(`Če prva celica ni z, je ${crke[0][1]}. Potem druga ni ${crke[0][1]}, torej je ${crke[1][1]}, tretja ni ${crke[1][1]} … in zadnja celica je z.`), opis.posledica);
 });

@@ -257,8 +257,8 @@ Isti prikaz dobijo igra (»Naslednji korak«, tretja stopnja – `oznakeKoraka()
 |---|---|
 | ime / anglesko | XY-veriga / XY-Chain |
 | povzetek | Celice z natanko dvema kandidatoma tvorijo verigo: zaporedni celici se vidita in imata skupen kandidat. Če imata oba konca verige kandidat z, z izbrišeš iz celic, ki vidijo oba konca. |
-| razlaga | Poišči zaporedje vsaj štirih celic z natanko dvema kandidatoma. Zaporedni celici se vidita – sta v isti vrstici, stolpcu ali bloku – in imata skupen kandidat, ki ju povezuje: prva celica {z, a} in druga {a, b} si delita a, druga in tretja b, in tako naprej. Zadnja celica ima poleg povezovalne števke spet z, torej imata oba konca verige kandidat z. Veriga treh celic je XY-krilo (11). |
-| posledica | Če prva celica ni z, je a. Potem druga ni a, torej je b, tretja ni b … in zadnja celica je z. Vsaj en konec verige je torej z. Iz vseh celic, ki vidijo oba konca, z izbrišeš. |
+| razlaga | Poišči zaporedje vsaj štirih celic z natanko dvema kandidatoma. Zaporedni celici se vidita – sta v isti vrstici, stolpcu ali bloku – in imata skupen kandidat, ki ju povezuje: prva celica {z, x} in druga {x, y} si delita x, druga in tretja y, in tako naprej. Zadnja celica ima poleg povezovalne števke spet z, torej imata oba konca verige kandidat z. Veriga treh celic je XY-krilo (11). |
+| posledica | Če prva celica ni z, je x. Potem druga ni x, torej je y, tretja ni y … in zadnja celica je z. Vsaj en konec verige je torej z. Iz vseh celic, ki vidijo oba konca, z izbrišeš. |
 | navodilo (»Spoznaj«) | Izberi vse celice verige. |
 
 **Namig** (`stepHint()`, O6): »Števka 3 – veriga ima 5 celic.« (števka z in dolžina; samo števka bi pri
@@ -708,6 +708,9 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
 - **Brskalnik:** `tools/preveri-sheme-brskalnik.js` – tehnike s kartico kot prej, shema brez kartice (XY-veriga) v
   razdelku »Shema« vaje »Spoznaj« 12 z zamenjano risbo pri 375 in 1280 px: risba v kartici, 30 črk v svojih
   celicah, barve, povezave, legenda, sklep, opomba – vse drži. Posnetek igre: enako, 99 posnetkov.
+- **Popravek po pregledu (Darko 2026-10-08):** razlaga in posledica prevzameta črke sheme – {z, x} in {x, y} namesto
+  {z, a} in {a, b} (tabela v razdelku 6 popravljena); shema ostane. Test v `tests/sheme.test.js` (pari v razlagi = prvi dve
+  celici sheme, posledica sledi vrednostim po verigi) je na prejšnjem besedilu padel.
 - **Slika** (razdelek »Shema« pri 375 px, dvojna ločljivost):
 
 ![Shema XY-verige po koraku 4](slike/xy-veriga/shema-korak4.png)
