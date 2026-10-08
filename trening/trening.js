@@ -580,7 +580,7 @@ function renderExercise(){
     dlabel.textContent=`Označena števka: ${ex.digit}`;
     div.appendChild(dlabel);
     presek=buildPresekLayout(div,ex,M);
-  } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
+  } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing||M.isXYChain){
     // Oznaka "Označena številka" samo pri Turbot Fish - XY-Wing in Unique Rectangle
     // nista vezani na eno samo številko.
     if(M.isTurbot){
@@ -695,6 +695,10 @@ function renderExercise(){
       ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(', ');(byPair[k]=byPair[k]||[]).push(s.pos);});
       const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
       return `Pari kandidatov: ${lines}. Trije vogali z istim parom morajo ležati v dveh vrsticah, dveh stolpcih in <b>natanko dveh blokih</b> – če je pravokotnik razpet čez štiri bloke, tehnika ne velja.`;
+    } else if(M.isXYChain){
+      // Namig motorja (O6: števka z in dolžina) in pravilo verige.
+      const step=exDigitStep();
+      return `${stepHint({technique:'XY-Chain',hint:{digits:[ex.z],celic:step.cells.length}})} Zaporedni celici se vidita (ista vrstica, stolpec ali blok) in imata skupen kandidat, oba konca pa imata ${ex.z}.`;
     } else if(M.isWWing){
       const byPair={};
       ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(', ');(byPair[k]=byPair[k]||[]).push(s.pos);});
@@ -735,7 +739,7 @@ function renderExercise(){
   }
   function buildSolutionText(){
     if(M.isSingle) return ex.korak.message;
-    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
+    if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing||M.isXYChain){
       const step=exDigitStep();
       return step?step.message:'(ni najdenega vzorca)';
     }
@@ -813,7 +817,7 @@ function renderExercise(){
         enojcek.pokazi(true);
       } else if(presek){
         presek.pokaziKorak(true);
-      } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
+      } else if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing||M.isXYChain){
         const step=exDigitStep();
         if(step){
           const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
@@ -873,6 +877,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     if(selected.length<6||selected.length>9){fb.className='fb err';fb.textContent='Izberi šest do devet celic (vse celice s to števko v treh vrsticah ali stolpcih).';return;}
   } else if(M.isXWing){
     if(selected.length!==4){fb.className='fb err';fb.textContent='Izberi natanko štiri celice.';return;}
+  } else if(M.isXYChain){
+    if(selected.length<4){fb.className='fb err';fb.textContent='Izberi vse celice verige – veriga ima vsaj štiri celice.';return;}
   } else if(M.isPointing||M.isBoxLine){
     if(selected.length<2||selected.length>3){fb.className='fb err';fb.textContent='Izberi dve ali tri celice.';return;}
   } else {
@@ -903,13 +909,14 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
     return;
   }
 
-  if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing){
+  if(M.isXYWing||M.isUR||M.isTurbot||M.isWWing||M.isXYChain){
     // Jedro zaznave je ista koda kot v reševalcu (shared/engine.js xyWing() /
-    // uniqueRectangle() / turbotFish()). Ujemanje se preverja samo po množici izbranih
+    // uniqueRectangle() / turbotFish() / wWing() / xyChain()). Pri XY-verigi so celice koraka
+    // vse celice verige (4-8). Ujemanje se preverja samo po množici izbranih
     // celic - sprejme katero koli veljavno kombinacijo, ne le tiste iz generatorja.
     // (Pri Turbot Fish generator zagotovi, da so na deski vaje vsi vzorci na
     // označeni številki.)
-    const techFn=M.isXYWing?xyWing:M.isUR?uniqueRectangle:M.isWWing?wWing:turbotFish;
+    const techFn=M.isXYWing?xyWing:M.isUR?uniqueRectangle:M.isWWing?wWing:M.isXYChain?xyChain:turbotFish;
     const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
     const selSet=new Set(selected.map(si=>ex.slots[si].idx));
     const match=techFn(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
@@ -935,6 +942,8 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
         ? '<b>To še ni veljavno XY-krilo.</b> Pivot mora imeti natanko dva kandidata, <b>obe krili</b> morata pivota videti (ista vrstica, stolpec ali blok) in si z njim deliti po eno števko, skupna pa jima mora biti tretja števka.'
         : M.isWWing
         ? '<b>To še ni veljavno W-krilo.</b> Celici para morata imeti natanko isti par kandidatov in se <b>ne</b> videti. Celici povezave morata biti edini celici v svoji vrstici, stolpcu ali bloku z drugo števko para, nobena od njiju ne sme biti celica para, in vsaka mora videti po eno celico para.'
+        : M.isXYChain
+        ? '<b>To še ni veljavna XY-veriga.</b> Vsaka celica verige mora imeti natanko dva kandidata, zaporedni celici se morata videti (ista vrstica, stolpec ali blok) in imeti skupen kandidat, oba konca pa isto števko z. Izberi vse celice verige – vsaj štiri.'
         : M.isTurbot
         ? `<b>To še ni veljavna veriga ene števke.</b> Potrebuješ dve povezavi – vrstici, stolpca ali vrstico in stolpec, kjer je ${ex.digit} mogoča samo v dveh celicah; en konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok).`
         : '<b>To še ni veljaven edinstveni pravokotnik.</b> Potrebuješ štiri vogale pravokotnika v dveh vrsticah in dveh stolpcih, ki ležijo v <b>natanko dveh blokih</b>: trije z natanko istim parom kandidatov, četrti z istim parom in še dodatnimi.';

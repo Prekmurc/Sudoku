@@ -49,15 +49,15 @@ function ustvariPomoc(okno, gumbi) {
   return { odpri, zapri, odprto };
 }
 
-// Razdelek »Tehnike« v okno Pomoč (element el): poved o ravneh in seznam E1, E2, 1-12 z oznako,
+// Razdelek »Tehnike« v okno Pomoč (element el): poved o ravneh in seznam E1, E2, 1-13 z oznako,
 // imenom (angleško ime v oklepaju), značko ravni ter razlago in posledico v dveh odstavkih
 // (TEHNIKE_OPISI - popravek po ročnem pregledu faze 6) - vse iz shared/engine.js, zato je enako
-// v vseh treh aplikacijah. Pod posledico pri 1-12 zložljivo »Shema«, privzeto zaprto
+// v vseh treh aplikacijah. Pod posledico pri 1-13 zložljivo »Shema«, privzeto zaprto
 // (izrisiShemo() iz shared/sheme.js; faza 3a, korak 4 - 12 odprtih shem bi okno na telefonu
 // podaljšalo za več zaslonov).
 function izrisiTehnike(el) {
   const uvod = document.createElement('p');
-  uvod.textContent = 'Tehnike so v treh ravneh: lahke (E1, E2), srednje (1–6) in napredne (7–12) – '
+  uvod.textContent = 'Tehnike so v štirih ravneh: lahke (E1, E2), srednje (1–6), napredne (7–12) in ekspertne (13) – '
     + 'v treningu jih kažejo značke na karticah. Stopnja uganke je raven njene najtežje tehnike.';
   const ul = document.createElement('ul');
   ul.className = 'tehnike';

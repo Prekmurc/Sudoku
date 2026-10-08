@@ -161,16 +161,19 @@ test('»Vadi v uganki«: legenda koraka verige »celice verige (po vrsti)«, dru
   }
 });
 
-// »Spoznaj« 9-12 (mreža vaj 9 × 9, buildFullGridLayout): vaja verige pride v koraku 5/6, zato
-// je tu pot preizkušena na vaji XY-krila, ki ji test doda polje veriga (generator verige ga bo
-// nastavil sam): številke ob »Rešitvi (drži)« in po pravilnem odgovoru.
+// »Spoznaj« 13 (mreža vaj 9 × 9, buildFullGridLayout): prava vaja genXYChain() (od koraka 6 -
+// prej vaja XY-krila s poljem veriga, ki ga je dodal test): številke ob »Rešitvi (drži)« in po
+// pravilnem odgovoru. Test si vajo samo zapomni (`zadnja`), polj ji ne dodaja.
 function spoznaj(seme) {
   const dom = makeDom();
   const { run } = loadContext(TRENING, dom.globals);
   run(SEME(seme));
-  run(`var zadnja; { const g = MODES['xy-wing'].gen; MODES['xy-wing'].gen = n => (zadnja = { ...g(n), solutionVeriga: true }); }
-    { const xw = xyWing; xyWing = b => xw(b).map(s => ({ ...s, veriga: true })); }`);
-  run(`mode = 'xy-wing'; exNum = 0; renderExercise();`);
+  run(`var zadnja; { const g = MODES['xy-chain'].gen; MODES['xy-chain'].gen = n => (zadnja = g(n)); }`);
+  run(`mode = 'xy-chain'; exNum = 0; renderExercise();`);
+  const ex = JSON.parse(run('JSON.stringify(zadnja)'));
+  assert.equal(ex.mode, 'xy-chain');
+  assert.equal(ex.solutionVeriga, true, 'polje veriga nastavi generator');
+  assert.ok(ex.solutionCells.length >= 4 && ex.solutionCells.length <= 6, `dolžina ${ex.solutionCells.length}`);
   return { dom, run };
 }
 const gumb = (dom, napis) => vsi(dom.el('exerciseArea')).find(e => e.tagName === 'BUTTON' && e.textContent === napis);
@@ -221,11 +224,39 @@ test('»Spoznaj« (mreža 9 × 9): številke verige po pravilnem odgovoru ostane
   gumb(dom, 'Preveri').sprozi('click');
   assert.match(vsi(dom.el('exerciseArea')).find(e => /^fb\b/.test(e.className)).innerHTML, /Pravilno!/);
   // Pravilen odgovor pokaže korak, ki ga je našel motor (zaporedje njegovih celic).
-  const korak = JSON.parse(run(`JSON.stringify(xyWing({ grid: zadnja.boardGrid, cand: zadnja.boardCand })
+  const korak = JSON.parse(run(`JSON.stringify(xyChain({ grid: zadnja.boardGrid, cand: zadnja.boardCand })
     .find(s => s.cells.length === ${ex.solutionCells.length} && s.cells.every(c => ${JSON.stringify(ex.solutionCells)}.includes(c))))`));
   const prav = pricakovano({ ...ex, solutionCells: korak.cells });
   assert.deepEqual(stevilkeSpoznaj(dom, run), prav);
   gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
   gumb(dom, 'Rešitev (drži)').sprozi('mouseup');
   assert.deepEqual(stevilkeSpoznaj(dom, run), prav, 'po ogledu »Rešitve« ostanejo');
+});
+
+// »Vadi v uganki« 13 (korak 6): po pravilnem odgovoru so na mreži zaporedne številke verige
+// odgovora (prej samo ob »Rešitvi« - oznake odgovora so bile brez polja veriga). Vaja iz prvega
+// zapisa banke z XY-verigo, brez območja; odgovor so izbrisi koraka KT[0] s kliki in Shift+števko.
+test('»Vadi v uganki« (13): številke verige po pravilnem odgovoru', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0; // iskanje vaje se ne izvede - vajo postavi test
+  const { run } = loadContext(TRENING, dom.globals);
+  run(SEME(1));
+  run(`zacniKrog('xy-chain', 'uganka');
+    { const z = VAJE_BANKA.find(z => z.tehnike.includes('XY-Chain'));
+      const { stanja, stopnja } = stanjaVUganki(z.danosti, 'XY-Chain');
+      const v = vajaIzStanja(z.danosti, 'XY-Chain', stanja[0], stopnja); v.izvor = { vrsta: 'banka', seme: z.seme };
+      exNum = 6; izrisiVadi(v, null); }`);
+  const korak = JSON.parse(run('JSON.stringify(vadi.v.KT[0])'));
+  assert.equal(korak.veriga, true);
+  const celice = [];
+  for (const e of vsi(dom.el('exerciseArea'))) if (e.classList && e.classList.contains('celica') && e.dataset.r !== undefined) celice[+e.dataset.r * 9 + +e.dataset.c] = e;
+  const QWERTZ = { 1: '!', 2: '"', 3: '#', 4: '$', 5: '%', 6: '&', 7: '/', 8: '(', 9: ')' };
+  const d = korak.eliminate[0][1];
+  for (const [c] of korak.eliminate) celice[c].sprozi('click'); // »več celic« je pri 1-13 vklopljen
+  dom.tipka({ key: QWERTZ[d], code: `Digit${d}`, shiftKey: true, preventDefault() {} });
+  vsi(dom.el('exerciseArea')).find(e => e.tagName === 'BUTTON' && e.textContent === 'Preveri').sprozi('click');
+  assert.match(vsi(dom.el('exerciseArea')).find(e => /^fb\b/.test(e.className)).innerHTML, /Pravilno!/);
+  const st = [];
+  celice.forEach((cel, i) => { for (const k of vsi(cel)) if (k.classList && k.classList.contains('k-veriga')) st.push([i, k.textContent]); });
+  assert.deepEqual(st.sort((a, b) => a[1] - b[1]), korak.cells.map((c, j) => [c, String(j + 1)]));
 });

@@ -1025,7 +1025,7 @@ izpisiStopnje(document.getElementById('stopnjeNova'), STOPNJE_GENERATORJA, 'opis
 izpisiStopnje(document.getElementById('stopnjeOcena'), stopnjeZaPomoc(), 'opis');
 document.getElementById('stopnjeStrozje').textContent = OPIS_STROZJEGA_ISKANJA;
 
-// Samo stopnje, ki jih generator ustvarja (Ekstrem ne - ekspertne tehnike še ni).
+// Samo stopnje, ki jih generator ustvarja (STOPNJE_GENERATORJA).
 const stopnjeGumbi = STOPNJE_GENERATORJA.map(s => {
   const b = document.createElement('button');
   b.type = 'button';

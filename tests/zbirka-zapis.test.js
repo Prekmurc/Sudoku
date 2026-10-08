@@ -746,11 +746,12 @@ test('zbirkaKartica(): vgrajeni primer (brez zapisa)', () => {
 
 /* ---------- vgrajeni primeri: naslovi, skupine, tehnike ---------- */
 
-test('primeri: imena P_1 … P_15 po vrsti, skupine po stopnji z naslovi', () => {
+test('primeri: imena P_1 … P_16 po vrsti, skupine po stopnji z naslovi', () => {
   assert.deepEqual([...E.PRIMERI.map(p => p.ime)], [...E.PRIMERI.map((_, i) => `P_${i + 1}`)]);
+  assert.equal(E.PRIMERI.length, 16);
   const s = E.zbirkaSkupinePrimerov();
   assert.deepEqual([...s.map(x => x.naslov)],
-    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Presega tehnike']);
+    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstrem · tehnika', 'Presega tehnike']);
   assert.deepEqual([...s.flatMap(x => x.primeri.map(p => p.ime))], [...E.PRIMERI.map(p => p.ime)], 'skupine ohranijo vrstni red');
   assert.equal(E.PRIMERI[E.PRIMERI.length - 1].tezavnost, 'Presega tehnike', 'presega tehnike je zadnji');
 });

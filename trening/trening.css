@@ -172,7 +172,7 @@ header.top{max-width:560px}
    (imena so zgodovinska - nekoč barva tehnike) in .xw-selected pri X-krilu in mečarici.
    Obroba ostane 2,5 px (pri .xw-cell 2 px), da ne prekrije malih števk bolj kot prej. Pred
    pravili "Rešitve" spodaj - podlaga vzorca in izbrisa ima prednost. */
-.gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange){background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2.5px var(--izbira)}
+.gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange,.selected-turq){background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2.5px var(--izbira)}
 .xw-cell.xw-selected{background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
 .gc.correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--green)}
 .gc.elimcell{background:var(--k-izbris-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
@@ -199,6 +199,7 @@ header.top{max-width:560px}
 .cd.hl-indigo{color:var(--indigo)}
 .cd.hl-cyan{color:var(--cyan)}
 .cd.hl-orange{color:var(--orange)}
+.cd.hl-turq{color:var(--turq)}
 .cd.hl-plum{color:var(--plum)}
 .cd.hl-olive{color:var(--olive)}
 /* Turbot Fish ima označeno številko pobarvano že ob prikazu (.hl-plum); ko je
@@ -243,11 +244,11 @@ button.peek-btn:active{background:#F0F2F5}
    izbris rožnat brez okvirja (pravila zgoraj). Da je "Rešitev" prikazana, pove
    .exercise:has(.peek-hl) - celice vzorca dobijo peek-hl samo med držanjem. Celice pravilnega
    odgovora (.correct, .xw-correct, .xw-sf-correct) ostanejo, kot so. */
-.gc.peek-hl:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange):not(.correct),
+.gc.peek-hl:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange,.selected-turq):not(.correct),
 .xw-cell.peek-hl.xw-selected:not(.xw-correct,.xw-sf-correct){box-shadow:inset 0 0 0 2.5px var(--green)!important}
-.exercise:has(.peek-hl) .gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange):not(.peek-hl,.correct),
+.exercise:has(.peek-hl) .gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange,.selected-turq):not(.peek-hl,.correct),
 .exercise:has(.peek-hl) .xw-cell.xw-selected:not(.peek-hl,.xw-correct,.xw-sf-correct){box-shadow:inset 0 0 0 2.5px var(--okvir-napacno)!important}
-.exercise:has(.peek-hl) .gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange):not(.peek-hl,.peek-elim,.correct),
+.exercise:has(.peek-hl) .gc:is(.selected-amber,.selected-purple,.selected-teal,.selected-steel,.selected-rose,.selected-forest,.selected-plum,.selected-olive,.selected-cyan,.selected-orange,.selected-turq):not(.peek-hl,.peek-elim,.correct),
 .exercise:has(.peek-hl) .xw-cell.xw-selected:not(.peek-hl,.peek-elim,.xw-correct,.xw-sf-correct){background:#fff!important}
 
 /* Oba mrežna prikaza 9x9 (X-Wing/Swordfish in XY-Wing/Unique Rectangle) uporabljata
@@ -308,6 +309,7 @@ button.pri-blue{background:var(--blue)}
 button.pri-indigo{background:var(--indigo)}
 button.pri-cyan{background:var(--cyan)}
 button.pri-orange{background:var(--orange)}
+button.pri-turq{background:var(--turq)}
 button.pri-plum{background:var(--plum)}
 button.pri-olive{background:var(--olive)}
 button.pri-slate{background:#3C5A78}

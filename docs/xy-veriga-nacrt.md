@@ -2,8 +2,8 @@
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Potrjen 2026-10-07**
 (commit načrta `7a14814`); vse odločitve O1–O13 so v razdelku 13, dopolnitev za korak 2 (značka »Zelo
-težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** koraki 1–5 so narejeni (razdelek 14),
-naslednji je korak 6.
+težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** koraki 1–6 so narejeni (razdelek 14),
+naslednji je korak 7.
 
 Vse številke v načrtu so **izmerjene** na prototipu tehnike v začasni kopiji projekta (motor z vgrajeno
 XY-verigo, ni v repozitoriju), na tem računalniku (i7-7600U, Node 24, Edge brez glave), ne ocenjene.
@@ -736,3 +736,59 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
   3000 vajah je vseh 12 kombinacij (dolžina × vrsta motilca × dolžina motilca 4 ali 5) zastopanih z 222–278 vajami.
 - **Vsi testi:** 635 (prej 627), pribl. 2 min 20 s; hitri 521 v 50 s. Padel je samo predvideni test oznake
   različice (pred osvežitvijo). Brskalnik: trening se naloži brez napak JS, kartic je še 14.
+
+### Korak 6 – narejeno 2026-10-08
+
+- **Test pred spremembo:** `tests/pocasni/stopnje-ugank.test.js` s posnetkom `tests/posnetki/stopnje-ugank.json`
+  (pomožna `tests/stopnje-ugank.js`), narejenim na `4f4652d`: 680 ugank – vse iz `docs/uganke.md`, 15 primerov,
+  vseh 356 zapisov stare banke in 300 minimalnih. Pri ugankah, ki niso »Presega tehnike« (610), mora ostati
+  težavnost, tehnike poti ocene in ves dnevnik `solve()`; »Presega tehnike« (70) ostane ali postane Ekstrem,
+  dnevnik do prvega poskusa enak. Zelen na stari kodi in po vklopu (pribl. 17 s, med počasnimi).
+- **Koda:** `['XY-Chain', xyChain]` na koncu `ALL_TECHNIQUES`, `RAVNI_TEHNIK.ekspertna`, svoja (šesta) skupina v
+  `TECHNIQUE_GROUPS`, `['xy-chain', 'XY-Chain']` v `TRENING_TEHNIKE` (številka 13 – oznaka koraka
+  »13 · XY-veriga« v reševalcu in igri iz `imeTehnike()`); opis Ekstrema »potrebuje ekspertno tehniko
+  (13 – XY-veriga)«; uvod Pomoči »v štirih ravneh … ekspertne (13)«; igra, Pomoč: »Oceni zbirko … Ekstrem«;
+  trening: kartica 13 (EKSPERTNA), »Pri 1–13« v Pomoči, `MODES['xy-chain']` (`isXYChain`, izbira do 8 celic –
+  največ, kolikor jih ima veriga motorja; pri manj kot štirih »Izberi vse celice verige – veriga ima vsaj štiri
+  celice.«; turkizne `selected-turq`/`hl-turq`/`pri-turq`), veje v `trening.js` (izris 9 × 9, preverjanje z
+  `xyChain()`, rešitev, »Rešitev (drži)«), namig v »Spoznaj« »Števka 3 – veriga ima 5 celic. Zaporedni celici
+  se vidita (ista vrstica, stolpec ali blok) in imata skupen kandidat, oba konca pa imata 3.« (Darko potrdil);
+  »Vadi v uganki«: tožilnik »XY-verigo«, »zaradi nje«, območje »za števko z« (`obmocjeKoraka()`).
+- **Popravek koraka 3, najden v brskalniku:** po pravilnem odgovoru v »Vadi v uganki« ni bilo zaporednih
+  številk – oznake odgovora so bile sestavljene brez polja `veriga` (pri »Rešitvi« so bile). Zdaj jih da
+  `oznakeKoraka()`; nov test v `tests/veriga-prikaz.test.js` (brez popravka pade).
+- **Testi, ki so padli:** vseh 22 iz tabele, nič drugega iz nje; trije zunaj tabele (nastali v korakih 2–5,
+  po tabeli), spremenjeni po Darkovi potrditvi: `izris-korakov` (nov posnetek – prej preverjeno, da se
+  razlikuje samo pri example-app od koraka 53, oakever-ekstrem-17-a od 49 in xy-veriga-17 od 31),
+  `ravni-tehnik` »razred ravni …« (brez začasnega dodajanja v ekspertno raven) in `trening-xy-chain`
+  »vnosa v MODES še ni« (zdaj preveri vnos). Pred orodji so padli še testi banke in primerov in
+  `vaje-uganka` »izberiIzBanke« (banka brez verige) – po orodjih zeleni brez spremembe. Po dogovoru
+  `veriga-prikaz` »Spoznaj« na pravi vaji `genXYChain()`. Seme vaje verige v `vaje-uganka` je 12 (prva
+  minimalna uganka z vajo verige; ista kot P_16).
+- **Stopnje:** nobena uganka, ki ni bila »Presega tehnike«, ni spremenila stopnje. Ekstrem so postale testne
+  example-app (veriga 6 celic), oakever-ekstrem-17-a (7) in xy-veriga-17 (5 in 6) – vse brez poskusa;
+  hard-17-a ostane »Presega tehnike«. Primeri: noben ni spremenil stopnje; dosedanji P_15 (seme 12) ostane
+  »Presega tehnike« z enim poskusom, v tehnikah ima zdaj še 13 (in 4 Skriti par). Med 70 ugankami
+  »Presega tehnike« v posnetku jih je Ekstrem postalo 25 (3 testne, 22 od 65 minimalnih; v načrtu 71 od 220).
+- **Banka vaj** (orodje, 24 min 21 s): 397 zapisov (prej 356) – Lahka 50, Srednja 111, Težka 183, Zelo težka 3,
+  Ekstrem 50; XY-veriga 50 ugank osnovne stopnje Ekstrem, »več celic« 39 % – kot v prototipu.
+- **Primeri** (`tools/izberi-primere.js` z ekspertno ravnijo – O10, 7 min): P_1–P_14 iste uganke; **P_15 Ekstrem**
+  je uganka iz banke s **semenom 194** (24 danih, tehnike E1, E2, 1, 2, 4 in 13, veriga 5 celic) – prototip je
+  izbral seme 53 (veriga 6 celic); po pravilu O10 (krajša veriga, nato nižje seme) ima prednost 194; pogoju
+  ustrezajo tri uganke banke (53, 194, 2031). **P_16** je dosedanji P_15 (seme 12); `STARI_PRIMERI` ostane.
+- **Posnetek igre:** razlike samo v kartici »Uganka« pri oakever-ekstrem-17-a v korakih 85–99 (Ekstrem,
+  »13 XY-veriga« namesto »Presega tehnike« in »ugibanje«); novo izhodišče `tools/posnetki/igra-po-xy-veriga.json`.
+- **Brskalnik:** nov `tools/preveri-vklop-brskalnik.js` pri 375 in 1280 px – vse drži: reševalec (preizkusna
+  uganka brez poskusa, 78 korakov, korak 31 veriga V5S4 – V6S6 – V9S6 – V8S5 – V8S3 z oznako »13 · XY-veriga«
+  v turkizni, številke 1–5 na mali mreži, korak 34 s šestimi, povzetek »13 · XY-veriga (XY-Chain) – 2×«), igra
+  (»Naslednji korak« najde verigo, tretja stopnja s številkami), trening (15 kartic, EKSPERTNA, »Spoznaj« in
+  »Vadi v uganki« s pravimi kliki in Shift+števko QWERTZ → »Pravilno!« s številkami), Pomoč vseh treh (Ekstrem
+  med petimi stopnjami, 15 tehnik, 13 z značko »ekspertna« in shemo), brez preliva in napak JS. Zeleni tudi
+  `preveri-videz-`, `-veriga-`, `-sheme-`, `-vadi-brskalnik.js` (»Spoznaj« 3–12, 1, 2, E1, E2 enako izhodišču) ter – s pričakovanji, posodobljenimi na novo stanje (15 kartic in
+  značk, 16 primerov, primer s poskusom je P_16, primerjava z izhodiščem pred nekdanjim poskusom) –
+  `preveri-pomoc-`, `-primeri-` in `-faza7-brskalnik.js --korak 5`.
+- **Vsi testi:** 638 (prej 635 – nova `stopnje-ugank` (2) in test »Vadi v uganki« v `veriga-prikaz`), 2 min 26 s;
+  hitri 522 v 39 s.
+- **Slika** (mala mreža reševalca pri 375 px, korak 31 preizkusne uganke, brez vstavljanja):
+
+![Korak 31 po vklopu](slike/xy-veriga/vklop-korak31.png)

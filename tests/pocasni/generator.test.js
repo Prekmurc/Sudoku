@@ -102,7 +102,7 @@ test('ravni: vsaka tehnika iz ALL_TECHNIQUES je v natanko eni ravni', () => {
   assert.deepEqual([...E.GEN_LAHKE], ['Gol enojček', 'Skriti enojček'], 'lahke = E1, E2');
   assert.deepEqual([...E.GEN_SREDNJE], [...VSE_TEHNIKE.slice(2, 8)], 'srednje = 1-6');
   assert.deepEqual([...E.GEN_NAPREDNE], [...VSE_TEHNIKE.slice(8, 14)], 'napredne = 7-12');
-  assert.deepEqual([...E.GEN_EKSPERTNE], [], 'ekspertne tehnike (13, XY-veriga) še ni');
+  assert.deepEqual([...E.GEN_EKSPERTNE], ['XY-Chain'], 'ekspertne = 13 XY-veriga');
 });
 
 test('vsaka ustvarjena uganka ima natanko eno rešitev in jo solve() reši brez ugibanja', () => {
@@ -405,8 +405,8 @@ test('oceniTezavnost(): nepreverjena enoličnost da prazno težavnost', () => {
 });
 
 test('oceniUganko(): uganka, ki jo motor reši le z ugibanjem, dobi Presega tehnike', () => {
-  // Do 2026-10-05 vgrajeni "Primer 1 (z ugibanjem)" (uganka example-app iz docs/uganke.md).
-  const danosti = '000800020900000600000000000604000900000720003500000000000056000080009000070000010';
+  // Uganka hard-17-a iz docs/uganke.md (example-app, ki je bila tu do XY-verige, je zdaj Ekstrem).
+  const danosti = '....15....9..8.....6...3...5.....3.8...2...9.......4.....9..62.8........1........';
   assert.equal(E.genPot(danosti, VSE_TEHNIKE), null, 'motor v stalnem vrstnem redu obtiči');
   const o = E.oceniUganko(danosti);
   assert.equal(o.stopnja, null);
@@ -503,9 +503,10 @@ test('PRIMERI: težavnost in tehnike so enake izračunani oceni, reševalec upor
   }
 });
 
-test('PRIMERI: vsaka stopnja in vsaka tehnika E1, E2, 1-12 ima vsaj en primer', () => {
+test('PRIMERI: vsaka stopnja in vsaka tehnika E1, E2, 1-13 ima vsaj en primer', () => {
   const stopnje = new Set(E.PRIMERI.map(p => p.tezavnost));
   for (const s of E.STOPNJE_GENERATORJA) assert.ok(stopnje.has(s.ime), s.ime);
+  assert.ok(stopnje.has('Ekstrem'));
   assert.ok(stopnje.has('Presega tehnike'));
   for (const t of VSE_TEHNIKE) assert.ok(E.PRIMERI.some(p => p.tehnike.includes(t)), t);
   // Glavna tehnika: lahka primer z obema enojčkoma, vsaka srednja in napredna tehnika glavna pri
@@ -520,7 +521,7 @@ test('PRIMERI: vsaka stopnja in vsaka tehnika E1, E2, 1-12 ima vsaj en primer', 
   const zelo = E.PRIMERI.filter(p => p.tezavnost === 'Zelo težka');
   assert.ok(zelo.length === 1 && zelo[0].glavna.length === 2 && zelo[0].glavna.every(t => E.GEN_NAPREDNE.includes(t)));
   assert.deepEqual([...E.PRIMERI.map(p => p.tezavnost)],
-    ['Lahka', ...E.GEN_SREDNJE.map(() => 'Srednja'), ...E.GEN_NAPREDNE.map(() => 'Težka'), 'Zelo težka', 'Presega tehnike']);
+    ['Lahka', ...E.GEN_SREDNJE.map(() => 'Srednja'), ...E.GEN_NAPREDNE.map(() => 'Težka'), 'Zelo težka', 'Ekstrem', 'Presega tehnike']);
 });
 
 test('PRIMERI: srednji in težki primeri držijo meje izbora', () => {

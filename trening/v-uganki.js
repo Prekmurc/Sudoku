@@ -129,9 +129,9 @@ function legendaKoraka(korak,odstranjeni){
 const VADI_TOZILNIK={'Pointing pair/triple':'izločitev izven bloka','Box-line reduction':'izločitev v bloku',
   'Naked pair':'očitni par','Hidden pair':'skriti par','Naked triple':'očitno trojico','Hidden triple':'skrito trojico',
   'X-Wing':'X-krilo','Swordfish':'mečarico','Turbot Fish':'verigo ene števke','W-Wing':'W-krilo','XY-Wing':'XY-krilo',
-  'Unique Rectangle':'edinstveni pravokotnik'};
+  'Unique Rectangle':'edinstveni pravokotnik','XY-Chain':'XY-verigo'};
 // Tehnike ženskega spola ("izbriši kandidate, ki zaradi nje odpadejo"), druge "zaradi njega".
-const VADI_ZENSKI=new Set(['Pointing pair/triple','Box-line reduction','Naked triple','Hidden triple','Swordfish','Turbot Fish']);
+const VADI_ZENSKI=new Set(['Pointing pair/triple','Box-line reduction','Naked triple','Hidden triple','Swordfish','Turbot Fish','XY-Chain']);
 const velika=s=>s[0].toUpperCase()+s.slice(1);
 // Navodilo nad mrežo; z območjem ga pove ("V vrstici 7 poišči skriti par ...", "Za števko 7
 // poišči X-krilo ...").
@@ -393,7 +393,9 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     oznake:()=>enoj
       ?(odgovor?{vzorec:new Set(),izbris:new Set(),izbrisCelice:new Set(),vpis:new Map([odgovor])}
         :pomoc&&pomoc.vrsta==='resitev'?{vzorec:new Set(pomoc.korak.hint&&pomoc.korak.hint.unit||[]),izbris:new Set(),izbrisCelice:new Set(),vpis:new Map(pomoc.korak.assign)}:null)
-      :odgovor?{vzorec:new Set(odgovor.cells),izbris:new Set(odgovor.eliminate.map(([c,d])=>c*10+d)),izbrisCelice:new Set(),vpis:new Map()}
+      :odgovor?{vzorec:new Set(odgovor.cells),izbris:new Set(odgovor.eliminate.map(([c,d])=>c*10+d)),izbrisCelice:new Set(),vpis:new Map(),
+        // XY-veriga (O4): zaporedne številke celic verige tudi po pravilnem odgovoru.
+        veriga:oznakeKoraka(odgovor,stanje).veriga}
       :pomoc&&pomoc.vrsta==='resitev'?oznakeKoraka(pomoc.korak,stanje):null,
     // E1/E2: brez kandidatov, izbrati je mogoče samo prazne celice. Po pravilnem odgovoru
     // izbire ni več.

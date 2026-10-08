@@ -1,7 +1,7 @@
 'use strict';
 // Raven tehnike (faza 7, korak 5 – docs/faza7-nacrt.md, točka 1.1): barva oznake koraka tagClass()
 // za vse ključe, ki jih da solve(), in ravni v vrstnem redu ALL_TECHNIQUES. Pričakovane vrednosti so
-// iz tabele ravni (E1, E2 lahka, 1–6 srednja, 7–12 napredna, ekspertne še ni), ne iz kode. Test je
+// iz tabele ravni (E1, E2 lahka, 1–6 srednja, 7–12 napredna, 13 ekspertna), ne iz kode. Test je
 // napisan pred spremembo in je bil zelen na stari kodi (tagClass() po imenih, ravni GEN_* v
 // shared/generator.js).
 // Zagon: node --test "tests/*.test.js"
@@ -15,19 +15,21 @@ const E = loadEngine(undefined, {
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'GEN_EKSPERTNE'],
 });
 
-// Tabela ravni v vrstnem redu tehnik (E1, E2, 1–12).
+// Tabela ravni v vrstnem redu tehnik (E1, E2, 1–13).
 const LAHKE = ['Gol enojček', 'Skriti enojček'];
 const SREDNJE = ['Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Hidden pair', 'Naked triple', 'Hidden triple'];
 const NAPREDNE = ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'];
+const EKSPERTNE = ['XY-Chain'];
 const RAZRED = new Map([
   ...LAHKE.map(t => [t, 't-single']),
   ...SREDNJE.map(t => [t, 't-pair']),
   ...NAPREDNE.map(t => [t, 't-advanced']),
+  ...EKSPERTNE.map(t => [t, 't-expert']),
 ]);
 const KLJUCI = [...E.ALL_TECHNIQUES.map(([ime]) => ime)]; // polje iz konteksta testa (deepEqual primerja prototip)
 
-test('tagClass(): 14 tehnik po ravni, poskus nov in star, OBSTALO, NAPAKA, neznan ključ', () => {
-  assert.deepEqual(KLJUCI, [...LAHKE, ...SREDNJE, ...NAPREDNE], 'tabela pokrije vse tehnike motorja');
+test('tagClass(): 15 tehnik po ravni, poskus nov in star, OBSTALO, NAPAKA, neznan ključ', () => {
+  assert.deepEqual(KLJUCI, [...LAHKE, ...SREDNJE, ...NAPREDNE, ...EKSPERTNE], 'tabela pokrije vse tehnike motorja');
   for (const t of KLJUCI) assert.equal(E.tagClass(t), RAZRED.get(t), t);
   assert.equal(E.tagClass('Poskus in protislovje (forcing chain)'), 't-chain', 'poskus');
   assert.equal(E.tagClass('Poskus in protislovje (V1S1 = 5)'), 't-chain', 'star zapis poskusa s celico');
@@ -50,7 +52,7 @@ test('ravni v vrstnem redu ALL_TECHNIQUES (GEN_* v shared/generator.js)', () => 
   assert.deepEqual([...E.GEN_LAHKE], LAHKE);
   assert.deepEqual([...E.GEN_SREDNJE], SREDNJE);
   assert.deepEqual([...E.GEN_NAPREDNE], NAPREDNE);
-  assert.deepEqual([...E.GEN_EKSPERTNE], []);
+  assert.deepEqual([...E.GEN_EKSPERTNE], EKSPERTNE);
   assert.deepEqual([...E.GEN_LAHKE, ...E.GEN_SREDNJE, ...E.GEN_NAPREDNE, ...E.GEN_EKSPERTNE], KLJUCI,
     'ravni skupaj so ALL_TECHNIQUES v istem vrstnem redu');
   // Ožje delitve za strogoSrednja so skupaj srednja raven.
@@ -66,18 +68,11 @@ test('TECHNIQUE_GROUPS: vsaka skupina je v eni ravni, skupine so zaporedni odsek
 });
 
 // XY-veriga, korak 2 (docs/xy-veriga-nacrt.md, razdelek 7, O5): ekspertna raven dobi svojo barvo
-// (turkizna, .tag.t-expert), značka težavnosti »Ekstrem« ni več rdeča kot »Presega tehnike«. Tehnike
-// v ekspertni ravni še ni, zato jo test za ta primer doda sam in jo nato odstrani. Pred spremembo je bil
-// test zelen z današnjim pričakovanjem (ekspertna raven t-basic, »Ekstrem« enak »Presega tehnike«).
+// (turkizna, .tag.t-expert), značka težavnosti »Ekstrem« ni več rdeča kot »Presega tehnike«. Do vklopa
+// XY-verige (korak 6) je test tehniko v ekspertno raven dodal sam; od koraka 6 je tam.
 test('razred ravni: tehnika v ekspertni ravni dobi t-expert', () => {
-  E.RAVNI_TEHNIK.ekspertna.push('XY-Chain');
-  try {
-    assert.equal(E.ravenTehnike('XY-Chain'), 'ekspertna');
-    assert.equal(E.tagClass('XY-Chain'), 't-expert');
-  } finally {
-    E.RAVNI_TEHNIK.ekspertna.pop();
-  }
-  assert.equal(E.tagClass('XY-Chain'), 't-basic', 'zunaj ravni');
+  assert.equal(E.ravenTehnike('XY-Chain'), 'ekspertna');
+  assert.equal(E.tagClass('XY-Chain'), 't-expert');
 });
 
 test('značka težavnosti: »Ekstrem« ni »Presega tehnike«, vsaka stopnja ima razred svoje ravni', () => {
@@ -98,7 +93,7 @@ test('RAVNI_TEHNIK in ravenTehnike(): ravni v vrstnem redu tehnik, GEN_* so iste
   assert.deepEqual([...E.RAVNI_TEHNIK.lahka], LAHKE);
   assert.deepEqual([...E.RAVNI_TEHNIK.srednja], SREDNJE);
   assert.deepEqual([...E.RAVNI_TEHNIK.napredna], NAPREDNE);
-  assert.deepEqual([...E.RAVNI_TEHNIK.ekspertna], []);
+  assert.deepEqual([...E.RAVNI_TEHNIK.ekspertna], EKSPERTNE);
   assert.equal(E.GEN_LAHKE, E.RAVNI_TEHNIK.lahka);
   assert.equal(E.GEN_SREDNJE, E.RAVNI_TEHNIK.srednja);
   assert.equal(E.GEN_NAPREDNE, E.RAVNI_TEHNIK.napredna);
@@ -106,6 +101,7 @@ test('RAVNI_TEHNIK in ravenTehnike(): ravni v vrstnem redu tehnik, GEN_* so iste
   for (const t of LAHKE) assert.equal(E.ravenTehnike(t), 'lahka', t);
   for (const t of SREDNJE) assert.equal(E.ravenTehnike(t), 'srednja', t);
   for (const t of NAPREDNE) assert.equal(E.ravenTehnike(t), 'napredna', t);
+  for (const t of EKSPERTNE) assert.equal(E.ravenTehnike(t), 'ekspertna', t);
   for (const k of ['Poskus in protislovje (forcing chain)', 'Poskus in protislovje (V1S1 = 5)', 'OBSTALO', 'NAPAKA', 'Neznana tehnika', undefined]) {
     assert.equal(E.ravenTehnike(k), null, String(k));
   }

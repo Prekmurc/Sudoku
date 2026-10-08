@@ -52,8 +52,14 @@ test(`generator: ${N} vaj, povprečno ${msPerExercise.toFixed(1)} ms na vajo`, t
   assert.ok(msPerExercise < 200);
 });
 
-test('vnosa v MODES še ni (pride s kartico v koraku 6)', () => {
-  assert.equal(E.MODES['xy-chain'], undefined);
+// Korak 6: vnos v MODES s kartico 13 (prej test, da ga še ni).
+test('vnos v MODES: genXYChain, izbira do 8 celic, gumb števila kandidatov', () => {
+  const M = E.MODES['xy-chain'];
+  assert.ok(M, 'MODES[xy-chain]');
+  assert.equal(M.gen, E.genXYChain);
+  assert.equal(M.isXYChain, true);
+  assert.equal(M.pickN, 8);
+  assert.equal(M.showCandidateCount, true);
 });
 
 test('polja vaje: mode, veriga, solutionVeriga, brez polja digit', () => {

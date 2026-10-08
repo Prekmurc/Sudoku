@@ -2,7 +2,7 @@
 // Okno Pomoč (shared/pomoc.js, shared/pomoc.css; faza 6, korak c) v pravem brskalniku: igra,
 // reševalec in trening pri 375 in 1280 px. Gumb »Pomoč« je v glavi (v vrstici nadnaslova ali tik pod njim) in
 // v oknu strani; pravi klik odpre okno, ki pokrije zaslon, panel je v oknu, ni vodoravnega drsnika
-// (ne strani ne okna), razdelek »Tehnike« ima 14 tehnik z značko ravni v barvah oznak korakov;
+// (ne strani ne okna), razdelek »Tehnike« ima 15 tehnik (od vklopa XY-verige) z značko ravni v barvah oznak korakov;
 // okno zaprejo pravi klik na ✕, pravi klik ob panelu in tipka Escape; v strani ni napak JS.
 // Posnetke zaslona shrani v mapo (--mapa, privzeto začasna).
 //
@@ -56,7 +56,7 @@ async function aplikacija(b, a, sirina) {
     const tehnike = [...o.querySelectorAll('.tehnike li')];
     const sonda = v => { const e = document.createElement('span'); e.style.background = 'var(' + v + ')'; document.body.appendChild(e);
       const c = getComputedStyle(e).backgroundColor; e.remove(); return c; };
-    const barve = { 't-single': sonda('--green-bg'), 't-pair': sonda('--amber-bg'), 't-advanced': sonda('--purple-bg') };
+    const barve = { 't-single': sonda('--green-bg'), 't-pair': sonda('--amber-bg'), 't-advanced': sonda('--purple-bg'), 't-expert': sonda('--turq-bg') };
     return { okno: [r.left, r.top, r.width, r.height], zaslon: [innerWidth, innerHeight], panel: [p.left, p.right],
       stranPreliv: d.scrollWidth > d.clientWidth, oknoPreliv: o.scrollWidth > o.clientWidth,
       razdelkov: o.querySelectorAll('.navodila-razdelek').length, tehnik: tehnike.length,
@@ -65,9 +65,9 @@ async function aplikacija(b, a, sirina) {
   preveri('okno pokrije zaslon', m.okno[0] === 0 && m.okno[1] === 0 && Math.round(m.okno[2]) === m.zaslon[0] && Math.round(m.okno[3]) === m.zaslon[1], m);
   preveri('panel je v oknu (levo in desno)', m.panel[0] >= 0 && m.panel[1] <= m.zaslon[0] + 0.5, m.panel);
   preveri('brez vodoravnega drsnika (stran in okno)', !m.stranPreliv && !m.oknoPreliv, m);
-  preveri(`razdelki (${m.razdelkov}) in seznam tehnik (${m.tehnik})`, m.razdelkov >= 4 && m.tehnik === 14, m);
-  preveri('značke ravni: E1, E2 lahka, 1–6 srednja, 7–12 napredna, barve oznak korakov',
-    m.ravni.map(r => r.besedilo).join(',') === ['lahka', 'lahka', ...Array(6).fill('srednja'), ...Array(6).fill('napredna')].join(',')
+  preveri(`razdelki (${m.razdelkov}) in seznam tehnik (${m.tehnik})`, m.razdelkov >= 4 && m.tehnik === 15, m);
+  preveri('značke ravni: E1, E2 lahka, 1–6 srednja, 7–12 napredna, 13 ekspertna, barve oznak korakov',
+    m.ravni.map(r => r.besedilo).join(',') === ['lahka', 'lahka', ...Array(6).fill('srednja'), ...Array(6).fill('napredna'), 'ekspertna'].join(',')
       && m.ravni.every(r => r.ok), m.ravni);
   await b.posnetek(path.join(mapa, `${a.ime}-${sirina}-okno.png`), { vsaStran: false });
   await b.izvedi(`document.querySelector(${JSON.stringify(a.okno)} + ' .tehnike').scrollIntoView({ block: 'start' }); true`);

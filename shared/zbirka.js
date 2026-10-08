@@ -79,9 +79,9 @@ function zbirkaOpisIzvora(z) {
 // v zbirko (tudi ne, ko jih reši reševalec, ali z uvozom) in se ne štejejo; napredek
 // igranja primera je samo v shranjenih igrah (sudoku.igra.v1). '.' = prazna celica.
 // Seznam ustvari izbor tools/izberi-primere.js (ponovi ga ob novi tehniki ali spremembi
-// motorja / generatorja): en primer za vsako stopnjo in vsako tehniko E1, E2, 1-12 - lahka,
-// srednja za vsako tehniko 1-6, težka za vsako tehniko 7-12, zelo težka in presega
-// tehnike. Urejeni so po stopnji in nato po tehniki. Polja: `tezavnost` (oceniUganko() iz
+// motorja / generatorja): en primer za vsako stopnjo in vsako tehniko E1, E2, 1-13 - lahka,
+// srednja za vsako tehniko 1-6, težka za vsako tehniko 7-12, zelo težka, ekstrem za vsako
+// tehniko 13 in presega tehnike. Urejeni so po stopnji in nato po tehniki. Polja: `tezavnost` (oceniUganko() iz
 // shared/generator.js), `glavna` (tehnike, po katerih je primer izbran; pri lahki in pri
 // presega tehnike prazno), `tehnike` (pot ocene - pri vseh primerih natanko tehnike
 // dnevnika solve() -, pri presega tehnike tehnike dnevnika brez poskusa), `ugibanje`
@@ -129,8 +129,11 @@ const PRIMERI = [
   { ime: 'P_14', tezavnost: 'Zelo težka', glavna: ['Turbot Fish', 'XY-Wing'], ugibanje: 0,
     tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Naked pair', 'Hidden pair', 'Turbot Fish', 'XY-Wing'],
     danosti: '741.89................3...8..8..7.9....4...759.....6.2.65913....7.........3....5.' }, // generator, seme 59
-  { ime: 'P_15', tezavnost: 'Presega tehnike', glavna: [], ugibanje: 1,
-    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Unique Rectangle'],
+  { ime: 'P_15', tezavnost: 'Ekstrem', glavna: ['XY-Chain'], ugibanje: 0,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Hidden pair', 'XY-Chain'],
+    danosti: '23.......1...7..8.......9.5..81...5......7.2...1..9..3....9...1..95.8..4.8..6...7' }, // banka, seme 194
+  { ime: 'P_16', tezavnost: 'Presega tehnike', glavna: [], ugibanje: 1,
+    tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Hidden pair', 'Unique Rectangle', 'XY-Chain'],
     danosti: '..3.98.....2...67......5...9..7..4..1....2....6..3..1...4..79...1..6...5.8....1..' }, // genMinimalnaUganka, seme 12
 ];
 

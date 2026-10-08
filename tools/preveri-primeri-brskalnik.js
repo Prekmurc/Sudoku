@@ -20,7 +20,8 @@ const { zazeni } = require('./brskalnik.js');
 const args = process.argv.slice(2);
 const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.join(os.tmpdir(), 'sudoku-preveri-primeri');
 
-const SKUPINE = ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Presega tehnike'];
+// Od vklopa XY-verige (2026-10-08) 16 primerov: P_15 Ekstrem, P_16 presega tehnike.
+const SKUPINE = ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstrem · tehnika', 'Presega tehnike'];
 // Barve oznak korakov (shared/base.css): srednja jantarna.
 const JANTARNA = 'rgb(134, 92, 15)'; // --amber-ink #865C0F (pisava značk od XY-verige, korak 2; prej --amber)
 
@@ -44,8 +45,9 @@ async function resevalec(b, sirina) {
   preveri('skupine po stopnji', JSON.stringify(skupine) === JSON.stringify(SKUPINE), skupine);
   const prazne = sel.deli.filter(d => d === 'O:/x').length;
   preveri('med skupinami ena prazna vrstica', prazne === SKUPINE.length - 1 && !sel.deli[1].startsWith('O:'), sel.deli);
-  preveri('vrstice primerov', sel.vrstice.length === 15 && sel.vrstice[0] === 'P_1 · enojčki' && sel.vrstice[7] === 'P_8 · 7 X-krilo'
-    && /^P_14 · \d+ .+ in \d+ .+$/.test(sel.vrstice[13]) && sel.vrstice[14] === 'P_15 · z ugibanjem', sel.vrstice);
+  preveri('vrstice primerov', sel.vrstice.length === 16 && sel.vrstice[0] === 'P_1 · enojčki' && sel.vrstice[7] === 'P_8 · 7 X-krilo'
+    && /^P_14 · \d+ .+ in \d+ .+$/.test(sel.vrstice[13]) && sel.vrstice[14] === 'P_15 · 13 XY-veriga'
+    && sel.vrstice[15] === 'P_16 · z ugibanjem', sel.vrstice);
 
   const izberi = i => b.izvedi(`(() => { const s = document.getElementById('exampleSelect'); s.value = '${i}';
     s.dispatchEvent(new Event('change')); return true; })()`);
@@ -63,6 +65,9 @@ async function resevalec(b, sirina) {
   await b.posnetek(path.join(mapa, `resevalec-${sirina}-p2.png`), { vsaStran: false });
 
   await izberi(14);
+  const ek = await b.izvedi(`[...document.getElementById('primerOpis').children].map(v => v.textContent)`);
+  preveri('ekstrem: značka in »… in 13 XY-veriga«', /^Ekstrem danih števk: \d+$/.test(ek[0]) && /^Tehnike: E1, E2, .+ in 13 XY-veriga$/.test(ek[1]), ek);
+  await izberi(15);
   const pr = await b.izvedi(`[...document.getElementById('primerOpis').children].map(v => v.textContent)`);
   preveri('presega tehnike: »… in ugibanje«, brez »+«', /^Presega tehnike danih števk: \d+$/.test(pr[0]) && /^Tehnike: E1, E2, .+ in ugibanje$/.test(pr[1]) && !/\+/.test(pr[1]), pr);
   preveri('brez vodoravnega preliva', await brezPreliva(b));
@@ -91,7 +96,7 @@ async function igra(b, sirina) {
       znacka: !!li[1].querySelector('.zb-info .znacka-tezavnosti') }; })()`);
   preveri('razdelek primerov odprt (zbirka prazna)', sez.odprt);
   preveri('skupine po stopnji', JSON.stringify(sez.skupine) === JSON.stringify(SKUPINE), sez.skupine);
-  preveri('15 kartic, v vrstici značka in vse tehnike', sez.kartic === 15 && sez.znacka
+  preveri('16 kartic, v vrstici značka in vse tehnike', sez.kartic === 16 && sez.znacka
     && /^Srednja danih 26 · Tehnike: E1, E2, 1 Izločitev izven bloka in 3 Očitni par$/.test(sez.info[1]), sez.info.slice(0, 3));
   preveri('nič ne sega čez okno', sez.cez === 0, sez.cez);
   // Naslova razdelkov, podnaslovi skupin, podlaga kartic, prekrivanje.
@@ -109,7 +114,7 @@ async function igra(b, sirina) {
     return { moje: [moje.textContent, cs(moje).fontFamily, cs(moje).fontSize], prim: [prim.textContent, cs(prim).fontFamily, cs(prim).fontSize],
       skupina: [cs(sk).fontFamily, cs(sk).fontSize, cs(sk).textTransform], podlaga: cs(kart).backgroundColor,
       card: cs(document.body).getPropertyValue('--card').trim(), crta: cs(razd).borderTopStyle, prekrivanj }; })()`);
-  preveri('naslova razdelkov enakovredna, v pisavi naslovov kartic', sl.moje[0] === 'Moje uganke (0)' && sl.prim[0] === 'Vgrajeni primeri (15)'
+  preveri('naslova razdelkov enakovredna, v pisavi naslovov kartic', sl.moje[0] === 'Moje uganke (0)' && sl.prim[0] === 'Vgrajeni primeri (16)'
     && /Source Serif/.test(sl.moje[1]) && sl.moje[1] === sl.prim[1] && sl.moje[2] === '17px' && sl.prim[2] === '17px', sl);
   preveri('nad primeri ločilna črta', sl.crta === 'solid', sl.crta);
   preveri('podnaslovi skupin drobni in sivi', /JetBrains Mono/.test(sl.skupina[0]) && sl.skupina[1] === '11px' && sl.skupina[2] === 'uppercase', sl.skupina);

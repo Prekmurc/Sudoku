@@ -358,7 +358,7 @@ function delezVecCelic(banka, kljuc) {
 
 // Območje, v katerem naj igralec išče korak (vaje 1-6 kroga, docs/vadi-v-uganki-nacrt.md,
 // točka 15): pri tehnikah z enoto enota koraka (E2, 1-6), pri E1 naključna vrstica,
-// stolpec ali blok celice koraka (kot "Spoznaj" vaje 4-6), pri 7-9 števka, pri W-krilu
+// stolpec ali blok celice koraka (kot "Spoznaj" vaje 4-6), pri 7-9 in 13 števka, pri W-krilu
 // par števk, pri XY-krilu pivot, pri edinstvenem pravokotniku bloka. Vrne
 // { vrsta: 'enota' | 'stevke' | 'pivot' | 'bloki', enota, stevke, celica, bloki,
 // celice (za oznako na mreži ali null), opis ("v stolpcu 5", "na števki 3", "s parom 3 in
@@ -371,7 +371,7 @@ function obmocjeKoraka(korak, rnd = Math.random) {
   }
   const u = korak.unit || (korak.hint && korak.hint.unit);
   if (u) return { vrsta: 'enota', enota: u, celice: u, opis: `v ${unitNameLoc(u)}` };
-  if (t === 'X-Wing' || t === 'Swordfish' || t === 'Turbot Fish') {
+  if (t === 'X-Wing' || t === 'Swordfish' || t === 'Turbot Fish' || t === 'XY-Chain') {
     const d = korak.hint.digits[0];
     return { vrsta: 'stevke', stevke: [d], celice: null, opis: `za števko ${d}` };
   }

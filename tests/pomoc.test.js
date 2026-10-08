@@ -1,8 +1,8 @@
 'use strict';
 // Okno Pomoč (shared/pomoc.js, faza 6, korak c) v igri, reševalcu in treningu - v nadomestnem
 // DOM-u: gumb odpre okno, klik ob oknu in Escape ga zapreta, razdelek »Tehnike« ima v vseh treh
-// aplikacijah isto vsebino (poved o ravneh, E1, E2, 1-12 z oznako, imenom, značko ravni ter razlago
-// in posledico, pri 1-12 zložljivo »Shema«, privzeto zaprto - faza 3a, korak 4), reševalec našteje stopnje, ki jih uganka lahko dobi (brez Ekstrema), v treningu ob
+// aplikacijah isto vsebino (poved o ravneh, E1, E2, 1-13 z oznako, imenom, značko ravni ter razlago
+// in posledico, pri 1-13 zložljivo »Shema«, privzeto zaprto - faza 3a, korak 4), reševalec našteje stopnje, ki jih uganka lahko dobi (z Ekstremom), v treningu ob
 // odprtem oknu tipke ne gredo v ploščo. Videz okna (pokrije zaslon, brez vodoravnega drsnika, ✕)
 // preverja tools/preveri-pomoc-brskalnik.js.
 // Zagon: node --test "tests/*.test.js"
@@ -35,6 +35,7 @@ function nalozi(ime) {
 }
 const RAVNI = { 'E1': 'lahka', 'E2': 'lahka' };
 for (let i = 1; i <= 12; i++) RAVNI[String(i)] = i <= 6 ? 'srednja' : 'napredna';
+RAVNI['13'] = 'ekspertna';
 
 for (const ime of Object.keys(APLIKACIJE)) {
   test(`${ime}: gumb odpre okno Pomoč, klik ob oknu in Escape ga zapreta`, () => {
@@ -52,12 +53,12 @@ for (const ime of Object.keys(APLIKACIJE)) {
     assert.equal(okno.classList.contains('odprt'), false, 'Escape ga zapre');
   });
 
-  test(`${ime}: razdelek »Tehnike« – poved o ravneh, E1, E2, 1-12, značka ravni, razlaga in posledica v svojih odstavkih`, () => {
+  test(`${ime}: razdelek »Tehnike« – poved o ravneh, E1, E2, 1-13, značka ravni, razlaga in posledica v svojih odstavkih`, () => {
     const { dom, run } = nalozi(ime);
     const [uvod, ul] = dom.el(APLIKACIJE[ime].tehnike).children;
-    assert.match(uvod.textContent, /^Tehnike so v treh ravneh: lahke \(E1, E2\), srednje \(1–6\) in napredne \(7–12\)/);
+    assert.match(uvod.textContent, /^Tehnike so v štirih ravneh: lahke \(E1, E2\), srednje \(1–6\), napredne \(7–12\) in ekspertne \(13\)/);
     const vaje = [...run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]')];
-    assert.equal(ul.children.length, 14);
+    assert.equal(ul.children.length, 15);
     ul.children.forEach((li, i) => {
       const [kljuc, tehnika] = vaje[i];
       const [oznaka, ime, , raven, razlaga, posledica] = li.children;
@@ -71,9 +72,9 @@ for (const ime of Object.keys(APLIKACIJE)) {
       assert.equal(razlaga.textContent, run('TEHNIKE_OPISI')[kljuc].razlaga);
       assert.equal(posledica.tagName, 'P');
       assert.equal(posledica.textContent, run('TEHNIKE_OPISI')[kljuc].posledica);
-      // Faza 3a, korak 4: pri 1-12 pod posledico zložljivo »Shema«, privzeto zaprto; E1, E2 brez.
+      // Faza 3a, korak 4: pri 1-13 pod posledico zložljivo »Shema«, privzeto zaprto; E1, E2 brez.
       const shema = run('SHEME_TEHNIK')[kljuc];
-      assert.equal(li.children.length, shema ? 7 : 6, `${o}: shema samo pri 1-12`);
+      assert.equal(li.children.length, shema ? 7 : 6, `${o}: shema samo pri 1-13`);
       if (shema) {
         const d = li.children[6];
         assert.equal(d.tagName, 'DETAILS');
@@ -88,7 +89,7 @@ for (const ime of Object.keys(APLIKACIJE)) {
           run('shemaRisbe')(kljuc).map((r, n) => run('svgSheme')(kljuc, n)).join(''), `${o}: ista risba kot v treningu`);
       }
     });
-    assert.ok(/^(E1|E2)$/.test(run('oznakaTehnike')(vaje[0][0])) && ul.children.slice(2).every(li => li.children.length === 7), 'sheme pri vseh 1-12');
+    assert.ok(/^(E1|E2)$/.test(run('oznakaTehnike')(vaje[0][0])) && ul.children.slice(2).every(li => li.children.length === 7), 'sheme pri vseh 1-13');
   });
 }
 
@@ -99,11 +100,12 @@ test('vsebina razdelka »Tehnike« je v vseh treh aplikacijah enaka', () => {
   assert.equal(besedilo('trening'), igra);
 });
 
-test('reševalec: težavnost – stopnje, ki jih uganka lahko dobi (brez Ekstrema, dokler motor nima ekspertne tehnike)', () => {
+test('reševalec: težavnost – stopnje, ki jih uganka lahko dobi (z Ekstremom, ker motor ima ekspertno tehniko)', () => {
   const { dom, run } = nalozi('resevalec');
   assert.deepEqual(dom.el('pomocStopnje').children.map(li => li.textContent),
-    [...run(`STOPNJE_UGANK.filter(s => s.kljuc !== 'ekstrem').map(s => s.ime.toLowerCase() + ' ' + s.opis)`)]);
-  assert.equal(run('GEN_EKSPERTNE.length'), 0);
+    [...run(`STOPNJE_UGANK.map(s => s.ime.toLowerCase() + ' ' + s.opis)`)]);
+  assert.equal(dom.el('pomocStopnje').children.length, 5);
+  assert.deepEqual([...run('GEN_EKSPERTNE')], ['XY-Chain']);
 });
 
 test('trening: ob odprtem oknu Pomoč tipke ne gredo v ploščo vaje E1', () => {

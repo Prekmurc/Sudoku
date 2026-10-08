@@ -48,10 +48,10 @@ test('TRENING_ENOJCKA in TRENING_TEHNIKE se ujemata s karticami v trening/index.
   assert.deepEqual(Object.keys(E.MODES).sort(), [...vseVaje].sort(), 'MODES v generators.js');
 });
 
-// Enojčka imata oznaki E1 in E2 namesto številke: številke 1-12 ostanejo nespremenjene.
-test('oznake v treningu: E1, E2, nato 1-12', () => {
+// Enojčka imata oznaki E1 in E2 namesto številke: številke 1-13 ostanejo nespremenjene.
+test('oznake v treningu: E1, E2, nato 1-13', () => {
   assert.deepEqual(vseVaje.map(m => E.oznakaTehnike(m)),
-    ['E1', 'E2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
+    ['E1', 'E2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13']);
   assert.equal(E.oznakaTehnike('neznana'), '');
 });
 
@@ -72,23 +72,24 @@ test('TRENING_TEHNIKE vsebuje vse tehnike iz ALL_TECHNIQUES razen enojčkov, vsa
 // Odločitev 2026-09-24: znotraj ravni po zahtevnosti (srednje po Sudoku Explainerju,
 // napredne po SE, Turbot Fish in W-Wing po točkah HoDoKu - docs/tehnike.md), povsod
 // isti vrstni red: motor, pomoč v igri, številke v treningu in pri ugankah.
-test('številke tehnik 1-12 in isti vrstni red kot v ALL_TECHNIQUES', () => {
+test('številke tehnik 1-13 in isti vrstni red kot v ALL_TECHNIQUES', () => {
   assert.deepEqual([...imena], [
     'Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Hidden pair',
     'Naked triple', 'Hidden triple',
     'X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle',
+    'XY-Chain',
   ]);
   assert.deepEqual([...E.ALL_TECHNIQUES.map(([t]) => t)].filter(t => !ENOJCKA.includes(t)), [...imena]);
 });
 
 // Značka kartice v treningu je raven tehnike (docs/uskladitev.md, 1.1): lahka E1, E2,
-// srednja 1-6, napredna 7-12.
-test('značke v treningu: LAHKA za E1-E2, SREDNJA za 1-6, NAPREDNA za 7-12', () => {
+// srednja 1-6, napredna 7-12, ekspertna 13.
+test('značke v treningu: LAHKA za E1-E2, SREDNJA za 1-6, NAPREDNA za 7-12, EKSPERTNA za 13', () => {
   const znacke = new Map([...treningHtml.matchAll(/data-mode="([^"]+)">\s*<span class="badge badge-(\w+)">([^<]+)<\/span>/g)]
     .map(m => [m[1], [m[2], m[3]]]));
   for (const [m] of E.TRENING_ENOJCKA) assert.deepEqual(znacke.get(m), ['lahka', 'LAHKA'], m);
   nacini.forEach((m, i) => {
-    const pricakovano = i < 6 ? ['srednja', 'SREDNJA'] : ['napredna', 'NAPREDNA'];
+    const pricakovano = i < 6 ? ['srednja', 'SREDNJA'] : i < 12 ? ['napredna', 'NAPREDNA'] : ['ekspertna', 'EKSPERTNA'];
     assert.deepEqual(znacke.get(m), pricakovano, `${i + 1}. ${m}`);
   });
 });
@@ -232,7 +233,8 @@ test('imeTehnike(): dogovorjene oblike (docs/faza4-nacrt.md, del 1)', () => {
   assert.equal(E.imeTehnike('Turbot Fish', { anglesko: false }), 'Veriga ene števke');
   // Poskus: brez številke, angleško z veliko začetnico; ključ motorja se ne spremeni.
   const poskus = 'Poskus in protislovje (forcing chain)';
-  assert.ok(E.solve('000800020900000600000000000604000900000720003500000000000056000080009000070000010')
+  // Uganka hard-17-a iz docs/uganke.md (example-app, ki je bila tu do XY-verige, se reši brez poskusa).
+  assert.ok(E.solve('000015000090080000060003000500000308000200090000000400000900620800000000100000000')
     .log.some(s => s.technique === poskus), 'ključ poskusa v dnevniku solve()');
   assert.equal(E.imeTehnike(poskus), 'Poskus in protislovje (Trial and Error)');
   assert.equal(E.imeTehnike(poskus, { stevilka: true }), 'Poskus in protislovje (Trial and Error)');

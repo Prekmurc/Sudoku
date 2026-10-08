@@ -7,7 +7,8 @@
 // podatki, slogi in besedilom); posnetek so zgoščene vrednosti teh nizov.
 //
 // Posnetek je narejen na kodi pred korakom 3 (prikaz zaporedja verige) - prikaz drugih
-// tehnik se ne sme spremeniti niti za znak. Nov posnetek (samo, če je sprememba izrisa
+// tehnik se ne sme spremeniti niti za znak; znova ob vklopu XY-verige (korak 6), ko so
+// koraki od prve verige naprej pri treh ugankah drugi. Nov posnetek (samo, če je sprememba izrisa
 // namerna): node tests/izris-korakov.js --shrani
 const crypto = require('node:crypto');
 const fs = require('node:fs');

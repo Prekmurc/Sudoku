@@ -909,7 +909,8 @@ function genWWing(n){
      'konca-brez-skupne' - zaporedne celice se vidijo, celica, ki vidi oba konca, ima števko
         prvega konca, a zadnji konec je nima (njegova druga števka je w); generator preveri,
         da bi xyChain() z njo namesto w verigo našel.
-   Polje števke je z, ne digit - tega izris cele mreže v trening.js poudari (veriga ene števke). */
+   Polje števke je z, ne digit - tega izris cele mreže v trening.js poudari (veriga ene števke).
+   Vnos v MODES: 'xy-chain' (kartica 13, korak 6). */
 
 // Pot m celic zunaj `used`: zaporedni celici se vidita (razen para (prekinjen, prekinjen+1),
 // ki se ne vidi), nezaporedni ne.
@@ -1123,6 +1124,8 @@ const MODES={
   'w-wing':{gen:genWWing,selClass:'selected-olive',hlClass:'hl-olive',btnClass:'pri-olive',isWWing:true,pickN:4,showCandidateCount:true},
   'xy-wing':{gen:genXYWing,selClass:'selected-cyan',hlClass:'hl-cyan',btnClass:'pri-cyan',isXYWing:true,pickN:3,showCandidateCount:true},
   'unique-rectangle':{gen:genUniqueRectangle,selClass:'selected-orange',hlClass:'hl-orange',btnClass:'pri-orange',isUR:true,pickN:4,showCandidateCount:true},
+  // 13: veriga 4-6 celic (generator), izbrati se da do 8 celic - največ, kolikor jih ima veriga motorja.
+  'xy-chain':{gen:genXYChain,selClass:'selected-turq',hlClass:'hl-turq',btnClass:'pri-turq',isXYChain:true,pickN:8,showCandidateCount:true},
 };
 // Besedilo pod nalogo (povzetek tehnike + navodilo za vajo) je v TEHNIKE_OPISI v
 // shared/engine.js (opisVaje()). Vaje z lastnim opisom naloge (ex.desc: 1, 2, 7, 8 in E1/E2 v

@@ -6,12 +6,12 @@
 <title>Sudoku igra</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../shared/base.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/zbirka.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/mreza.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/plosca.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="igra.css?v=2026-10-08.1149">
+<link rel="stylesheet" href="../shared/base.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/zbirka.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/mreza.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/plosca.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="igra.css?v=2026-10-08.1305">
 </head>
 <body>
 
@@ -210,7 +210,7 @@
     <p><b>Izbriši</b> pri uganki (vpraša za potrditev) jo izbriše iz zbirke skupaj z njenim shranjenim napredkom – v igri in v reševalcu enako. <b>Izbriši vse</b> ob gumbih <b>Izvozi</b>/<b>Uvozi</b> izbriše vso zbirko in ves shranjeni napredek – tudi napredek ugank, ki si jih izbrisal že prej (to naredi tudi, kadar je zbirka že prazna); vgrajeni primeri in napredek pri njih ostanejo. Izbrisa ni mogoče razveljaviti, zato zbirko prej izvozi. Če izbrišeš uganko, ki je odprta, se mreža izprazni.</p>
 
     <h4 class="navodila-podnaslov">Oceni zbirko</h4>
-    <p>Gumb <b>Oceni zbirko</b> vsaki uganki v tvoji zbirki določi težavnost po istih stopnjah kot pri ustvarjanju (<b>Lahka</b>, <b>Srednja</b>, <b>Težka</b>, <b>Zelo težka</b>) in osveži številke tehnik. Ocena je širša od generatorja: stopnjo dobi vsaka uganka, tudi taka, ki nad enojčki zahteva eno samo tehniko. Uganka, ki potrebuje tehnike, ki jih reševalec še ne pozna (brez ugibanja je ne reši), dobi <b>Presega tehnike</b>; uganka, ki nima natanko ene rešitve (lahko pride z uvozom in je ni mogoče igrati), pa <b>Brez rešitve</b> ali <b>Več rešitev</b> – pri njej se popravi samo težavnost. Kadar enoličnosti ni bilo mogoče preveriti, ostane težavnost nespremenjena; razlog piše ob oceni. Ročno vneseni in uvoženi uganki brez težavnosti se ta izračuna sama, ko prideta v zbirko; starejše oznake popravi <b>Oceni zbirko</b>. Napredek se izpisuje sproti in ocenjevanje lahko <b>prekineš</b>; predlagane spremembe se izpišejo pri ugankah v seznamu (<i>staro → novo</i>) in se v zbirko zapišejo šele, ko jih potrdiš z <b>Zapiši ocene</b>. Datum dodajanja, opomba in tvoje reševanje ostanejo nedotaknjeni, pri spremenjenih ugankah pa se osveži datum <b>Ocenjeno</b>.</p>
+    <p>Gumb <b>Oceni zbirko</b> vsaki uganki v tvoji zbirki določi težavnost po stopnjah (<b>Lahka</b>, <b>Srednja</b>, <b>Težka</b>, <b>Zelo težka</b>, <b>Ekstrem</b>) in osveži številke tehnik. Ocena je širša od generatorja: stopnjo dobi vsaka uganka, tudi taka, ki nad enojčki zahteva eno samo tehniko. Uganka, ki potrebuje tehnike, ki jih reševalec še ne pozna (brez ugibanja je ne reši), dobi <b>Presega tehnike</b>; uganka, ki nima natanko ene rešitve (lahko pride z uvozom in je ni mogoče igrati), pa <b>Brez rešitve</b> ali <b>Več rešitev</b> – pri njej se popravi samo težavnost. Kadar enoličnosti ni bilo mogoče preveriti, ostane težavnost nespremenjena; razlog piše ob oceni. Ročno vneseni in uvoženi uganki brez težavnosti se ta izračuna sama, ko prideta v zbirko; starejše oznake popravi <b>Oceni zbirko</b>. Napredek se izpisuje sproti in ocenjevanje lahko <b>prekineš</b>; predlagane spremembe se izpišejo pri ugankah v seznamu (<i>staro → novo</i>) in se v zbirko zapišejo šele, ko jih potrdiš z <b>Zapiši ocene</b>. Datum dodajanja, opomba in tvoje reševanje ostanejo nedotaknjeni, pri spremenjenih ugankah pa se osveži datum <b>Ocenjeno</b>.</p>
 
     <h3 class="navodila-razdelek">Tehnike</h3>
     <p>Oznake so iste kot v treningu, kjer vsako tehniko lahko vadiš – v kratkih vajah ali v pravi uganki. Enojčka imata oznaki <b>E1</b> in <b>E2</b> namesto številke in se pri ugankah ne izpisujeta, ker ju potrebuje vsaka uganka. Z isto oznako je tehnika napisana tudi pri koraku v <b>Naslednji korak</b>, npr. <b>4 · Skriti par</b> (angleško ime pokaže namig miške).</p>
@@ -249,16 +249,16 @@
 
 <footer class="note">Vse teče v tem brskalniku (nič se ne pošilja nikamor). Igra se shrani samodejno po vsaki potezi, skupaj z zgodovino potez.</footer>
 
-<script src="../shared/engine.js?v=2026-10-08.1149"></script>
-<script src="../shared/stanje.js?v=2026-10-08.1149"></script>
-<script src="../shared/mreza.js?v=2026-10-08.1149"></script>
-<script src="../shared/plosca.js?v=2026-10-08.1149"></script>
-<script src="../shared/zbirka.js?v=2026-10-08.1149"></script>
-<script src="../shared/zbirka-ui.js?v=2026-10-08.1149"></script>
-<script src="../shared/generator.js?v=2026-10-08.1149"></script>
-<script src="../shared/pomoc.js?v=2026-10-08.1149"></script>
-<script src="../shared/sheme.js?v=2026-10-08.1149"></script>
-<script src="shramba.js?v=2026-10-08.1149"></script>
-<script src="igra.js?v=2026-10-08.1149"></script>
+<script src="../shared/engine.js?v=2026-10-08.1305"></script>
+<script src="../shared/stanje.js?v=2026-10-08.1305"></script>
+<script src="../shared/mreza.js?v=2026-10-08.1305"></script>
+<script src="../shared/plosca.js?v=2026-10-08.1305"></script>
+<script src="../shared/zbirka.js?v=2026-10-08.1305"></script>
+<script src="../shared/zbirka-ui.js?v=2026-10-08.1305"></script>
+<script src="../shared/generator.js?v=2026-10-08.1305"></script>
+<script src="../shared/pomoc.js?v=2026-10-08.1305"></script>
+<script src="../shared/sheme.js?v=2026-10-08.1305"></script>
+<script src="shramba.js?v=2026-10-08.1305"></script>
+<script src="igra.js?v=2026-10-08.1305"></script>
 </body>
 </html>

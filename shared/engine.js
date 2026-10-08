@@ -674,19 +674,20 @@ const ALL_TECHNIQUES = [
   ['W-Wing', wWing],
   ['XY-Wing', xyWing],
   ['Unique Rectangle', uniqueRectangle],
+  ['XY-Chain', xyChain],
 ];
 
 // Ravni tehnik (docs/faza7-nacrt.md, točka 1.1) - edini vir: stopnja uganke (GEN_LAHKE ...
 // GEN_EKSPERTNE v shared/generator.js so te ravni), barva oznake koraka (tagClass()) in značka
 // ravni v treningu in v oknu Pomoč. Ključi ALL_TECHNIQUES v vrstnem redu tehnik - vrstni red
 // znotraj ravni šteje (genMerePoti() preizkuša napredne po vrsti, »prva, ki zadošča«). Nova
-// tehnika gre v natanko eno raven (XY-veriga med ekspertne).
+// tehnika gre v natanko eno raven.
 const RAVNI_TEHNIK = {
   lahka: ['Gol enojček', 'Skriti enojček'],                                                  // E1, E2
   srednja: ['Pointing pair/triple', 'Box-line reduction', 'Naked pair', 'Hidden pair',
     'Naked triple', 'Hidden triple'],                                                        // 1-6
   napredna: ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'], // 7-12
-  ekspertna: [],                                                                             // 13 XY-veriga, ko bo v motorju
+  ekspertna: ['XY-Chain'],                                                                   // 13 XY-veriga
 };
 // Ključ ravni ('lahka', 'srednja', 'napredna', 'ekspertna') ali null (poskus s protislovjem,
 // OBSTALO, NAPAKA, neznan ključ).
@@ -701,8 +702,8 @@ function ravenTehnike(kljuc) {
 // pa odloča znotraj skupine. Tako reševalec dela tako kot človek - najprej naredi
 // najlažje, šele nato nadaljuje z isto številko.
 // Srednje tehnike (1-6 v TRENING_TEHNIKE) so razdeljene na tri skupine po vrsti
-// vzorca: preseki, para, trojici. Indeksi 0 (enojčki), 1-3 (srednje) in 4 (napredne)
-// so meje ravni (vsaka skupina je v eni ravni RAVNI_TEHNIK - tests/ravni-tehnik.test.js);
+// vzorca: preseki, para, trojici. Indeksi 0 (enojčki), 1-3 (srednje), 4 (napredne) in 5
+// (ekspertne) so meje ravni (vsaka skupina je v eni ravni RAVNI_TEHNIK - tests/ravni-tehnik.test.js);
 // stopnje ugank pa shared/generator.js računa iz ravni, ne iz teh skupin.
 const TECHNIQUE_GROUPS = [
   ['Gol enojček', 'Skriti enojček'],
@@ -710,6 +711,7 @@ const TECHNIQUE_GROUPS = [
   ['Naked pair', 'Hidden pair'],
   ['Naked triple', 'Hidden triple'],
   ['X-Wing', 'Swordfish', 'Turbot Fish', 'W-Wing', 'XY-Wing', 'Unique Rectangle'],
+  ['XY-Chain'],
 ];
 const TECHNIQUE_GROUP_OF = new Map();
 TECHNIQUE_GROUPS.forEach((imena, i) => imena.forEach(ime => TECHNIQUE_GROUP_OF.set(ime, i)));
@@ -726,7 +728,8 @@ function techniqueGroup(name) {
 // Edino mesto teh številk. Vrstni red je
 // ISTI kot v ALL_TECHNIQUES (brez enojčkov): znotraj ravni po zahtevnosti - srednje
 // 1-6 po Sudoku Explainerju, napredne 7-12 po Sudoku Explainerju, Turbot Fish in
-// W-Wing (SE ju ne ocenjuje) po točkah HoDoKu (docs/tehnike.md, odločitev 2026-09-24).
+// W-Wing (SE ju ne ocenjuje) po točkah HoDoKu (docs/tehnike.md, odločitev 2026-09-24), ekspertna
+// 13 XY-veriga (docs/xy-veriga-nacrt.md).
 // Številke niso shranjene nikjer (zbirka in izvoz hranita imena), zato stari izvozi
 // po preštevilčenju pokažejo nove številke.
 // Enojčka sta v treningu z oznakama E1 in E2 (TRENING_ENOJCKA spodaj), poskusa s
@@ -744,6 +747,7 @@ const TRENING_TEHNIKE = [
   ['w-wing', 'W-Wing'],
   ['xy-wing', 'XY-Wing'],
   ['unique-rectangle', 'Unique Rectangle'],
+  ['xy-chain', 'XY-Chain'],
 ];
 
 // Enojčka v treningu (raven lahke, docs/uskladitev.md 1.1): oznaki E1 in E2 namesto
@@ -754,7 +758,7 @@ const TRENING_ENOJCKA = [
   ['hidden-single', 'Skriti enojček'],
 ];
 
-// Oznaka tehnike v treningu in v oknu Pomoč v igri: "E1", "E2" ali "1".."12".
+// Oznaka tehnike v treningu in v oknu Pomoč v igri: "E1", "E2" ali "1".."13".
 function oznakaTehnike(kljuc) {
   const e = TRENING_ENOJCKA.findIndex(([k]) => k === kljuc);
   if (e >= 0) return 'E' + (e + 1);
@@ -889,8 +893,7 @@ const TEHNIKE_OPISI = {
     posledica: 'Če bi bila v četrtem vogalu x ali y, bi v vseh štirih vogalih ostala samo x in y. Potem bi ju lahko po vogalih zamenjal in dobil drugo rešitev, uganka pa ima natanko eno. Zato četrti vogal ne more biti ne x ne y – oba izbrišeš iz njega.',
     navodilo: 'Izberi vse štiri vogale pravokotnika.',
   },
-  // XY-veriga (13, ekspertna raven; docs/xy-veriga-nacrt.md, razdelek 6): opis od koraka 4,
-  // kartica in številka (TRENING_TEHNIKE) šele od vklopa v koraku 6.
+  // XY-veriga (13, ekspertna raven; docs/xy-veriga-nacrt.md, razdelek 6).
   'xy-chain': {
     ime: 'XY-veriga',
     anglesko: 'XY-Chain',

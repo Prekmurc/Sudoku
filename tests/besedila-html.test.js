@@ -80,7 +80,7 @@ test('HTML: besedilo brez poti, imen datotek in razvojnih izrazov', () => {
 
 test('trening/index.html: opisi kartic brez angleških imen tehnik', () => {
   const opisi = [...beri('trening/index.html').matchAll(/<div class="menu-card" data-mode="([^"]+)">[\s\S]*?<\/h3>\s*<p>([\s\S]*?)<\/p>/g)];
-  assert.equal(opisi.length, 14, 'število kartic z opisom');
+  assert.equal(opisi.length, 15, 'število kartic z opisom');
   const angleska = Object.values(E.TEHNIKE_OPISI).flatMap(o => o.anglesko.split(', '));
   for (const [, m, opis] of opisi) {
     for (const a of angleska) assert.ok(!opis.includes(a), `${m}: »${a}« v opisu`);

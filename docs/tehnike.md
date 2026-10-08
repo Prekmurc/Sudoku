@@ -1,6 +1,6 @@
 # Tehnike reševanja (ALL_TECHNIQUES)
 
-Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js), v vrstnem redu uporabe pri reševanju: po ravneh (enojčki, srednje, napredne), znotraj ravni pa po zahtevnosti (razdelek »Vrstni red znotraj ravni« spodaj). Isti vrstni red imajo številke tehnik v treningu in pri ugankah. Stolpec »Vaja v treningu« pove, ali za tehniko obstaja vadbena vaja v `MODES` v [trening/generators.js](../trening/generators.js).
+Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js), v vrstnem redu uporabe pri reševanju: po ravneh (enojčki, srednje, napredne, ekspertne), znotraj ravni pa po zahtevnosti (razdelek »Vrstni red znotraj ravni« spodaj). Isti vrstni red imajo številke tehnik v treningu in pri ugankah. Stolpec »Vaja v treningu« pove, ali za tehniko obstaja vadbena vaja v `MODES` v [trening/generators.js](../trening/generators.js).
 
 | Ime v kodi | Slovensko ime | Kaj počne | Vaja v treningu |
 |---|---|---|---|
@@ -18,6 +18,7 @@ Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js)
 | `wWing` | W-krilo | Poišče dve celici z natanko istim parom kandidatov {a,b}, ki se med sabo ne vidita, in enoto, kjer je b mogoč samo v dveh celicah (močna povezava), od katerih ena vidi prvo, druga pa drugo celico para. Vsaj ena celica para je potem a, zato a izbriše iz celic, ki vidijo obe. V aplikaciji Oakever se tehnika imenuje »Krilo W«. | da |
 | `xyWing` | XY-krilo | Poišče pivota z dvema kandidatoma in dve krili, ki si delita skupnega kandidata, ter ga izbriše iz celic, ki vidijo obe krili. | da |
 | `uniqueRectangle` | Edinstveni pravokotnik | Prepreči smrtonosni vzorec (situacijo z dvema možnima rešitvama) tako, da iz četrte celice pravokotnika izbriše kandidata, ki bi dvoumnost povzročil. | da |
+| `xyChain` | XY-veriga | Poišče verigo 4–8 celic z natanko dvema kandidatoma, v kateri se zaporedni celici vidita in imata skupen kandidat, konca pa imata isti kandidat z; vsaj en konec je z, zato z izbriše iz celic, ki vidijo oba konca. Med več verigami najkrajšo, nato tisto z največ izbrisi (`docs/xy-veriga-nacrt.md`). Ekspertna raven, od 2026-10-08. | da |
 
 ## Imena in sopomenke (odločitev 2026-09-23)
 
@@ -26,8 +27,8 @@ točka 1.3). Uporabnik jih vidi od faze 4 (2026-09-25, `docs/faza4-nacrt.md`) po
 je `imeTehnike()` v `shared/engine.js`, izvoz zbirke `**Tehnike:**` ima slovensko ime brez
 oklepaja. Ključi v `ALL_TECHNIQUES` (dnevnik `solve()`, shramba, `docs/uganke.md`) ostanejo.
 Številke so od 2026-09-24 po vrstnem redu znotraj ravni (razdelek spodaj).
-Ravni so iz točke 1.1: *lahke*, *srednje* (1–6), *napredne* (7–12), *ekspertne* (XY-Chain
-in poznejše verige, zaenkrat prazno).
+Ravni so iz točke 1.1: *lahke*, *srednje* (1–6), *napredne* (7–12), *ekspertne* (13
+XY-veriga, od 2026-10-08).
 
 Enojčka imata od 2026-09-24 v treningu vaji z oznakama **E1** in **E2** namesto številke
 (`TRENING_ENOJCKA` in `oznakaTehnike()` v `shared/engine.js`), zato se številke 1–12 niso
@@ -50,6 +51,7 @@ ne izpisujejo (»tehnike: 1, 3, 7«), ker jih potrebuje vsaka uganka.
 | 10 | napredne | W-krilo (W-Wing) | W-Wing | Krilo W (aplikacija Oakever) |
 | 11 | napredne | XY-krilo (XY-Wing, Y-Wing) | XY-Wing | – |
 | 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1 (motor pozna samo ta tip); nadpojem: smrtonosni vzorec (Deadly Pattern) |
+| 13 | ekspertne | XY-veriga (XY-Chain) | XY-Chain | 4–8 celic; veriga treh celic je XY-krilo (11); oddaljeni par je posebna oblika |
 | – | – | Poskus in protislovje (Trial and Error) | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
 
 »Presek« je skupno ime tehnik 1 in 2 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
@@ -96,7 +98,7 @@ ime funkcije ostaneta.
 ## Vrstni red znotraj ravni (odločitev 2026-09-24)
 
 Meje ravni so dogovorjene (`docs/uskladitev.md`, 1.1): enojčki, srednje 1–6, napredne
-7–12, ekspertne od 13 naprej (XY-veriga, pozneje). Znotraj ravni velja vrstni red po
+7–12, ekspertne od 13 naprej (13 XY-veriga od 2026-10-08). Znotraj ravni velja vrstni red po
 zahtevnosti, in to **povsod enako**: motor (`ALL_TECHNIQUES`, s tem `solve()` in »Naslednji
 korak« v igri), številke v treningu in pri ugankah (`TRENING_TEHNIKE`, ki mora biti
 `ALL_TECHNIQUES` brez enojčkov – preverja `tests/trening-tehnike.test.js`).
@@ -115,6 +117,7 @@ korak« v igri), številke v treningu in pri ugankah (`TRENING_TEHNIKE`, ki mora
 | 10 | W-krilo (W-Wing) | – | 150 |
 | 11 | XY-krilo (XY-Wing) | 4,2 | 160 |
 | 12 | Edinstveni pravokotnik (Unique Rectangle) | 4,5–5,0 | 100 (Type 1) |
+| 13 | XY-veriga (XY-Chain) | 6,6–7,0 (Y-cycles) | 260 |
 
 - **Srednje (1–6) in X-krilo, Mečarica, XY-krilo, Edinstveni pravokotnik:** po Sudoku
   Explainerju (SE). Vir: [Difficulty ratings in Sudoku Explainer
@@ -164,7 +167,7 @@ vsaj 50 ugank osnovne stopnje Težka (prej mečarica 8, X-krilo 42).
 raven najtežje tehnike, ki jo uporabi motor v stalnem vrstnem redu (`genPot()` z vsemi
 tehnikami), šteje se množica različnih tehnik. Lahka = samo enojčki, Srednja = najtežje so
 srednje (1–6), Težka = natanko ena napredna (7–12), Zelo težka = vsaj dve napredni, Ekstrem =
-ekspertna tehnika (13, XY-veriga – še ni v motorju). Uganka, pri kateri motor obtiči, dobi
+ekspertna tehnika (13, XY-veriga – v motorju od 2026-10-08). Uganka, pri kateri motor obtiči, dobi
 »Presega tehnike«, uganka brez rešitve »Brez rešitve«, uganka z več rešitvami »Več rešitev«. Pravila
 »pet ali več tehnik → Zelo težka« ni več; meja štirih tehnik pri Težki velja samo za
 generator. Pogoji generatorja (spodaj) so ostali enaki. Tabela spodaj je zapis meritve

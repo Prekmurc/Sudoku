@@ -6,11 +6,11 @@
 <title>Sudoku trening tehnik</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../shared/base.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/mreza.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/plosca.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-08.1149">
-<link rel="stylesheet" href="trening.css?v=2026-10-08.1149">
+<link rel="stylesheet" href="../shared/base.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/mreza.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/plosca.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-08.1305">
+<link rel="stylesheet" href="trening.css?v=2026-10-08.1305">
 </head>
 <body>
 <header class="top">
@@ -95,6 +95,11 @@
       <h3>Edinstveni pravokotnik (Unique Rectangle)</h3>
       <p>Trije vogali pravokotnika v dveh blokih imajo isti par {x, y}: iz četrtega vogala izbrišeš x in y, sicer bi imela uganka dve rešitvi.</p>
     </div>
+    <div class="menu-card" data-mode="xy-chain">
+      <span class="badge badge-ekspertna">EKSPERTNA</span>
+      <h3>XY-veriga (XY-Chain)</h3>
+      <p>Celice z natanko dvema kandidatoma tvorijo verigo: zaporedni celici se vidita in imata skupen kandidat. Če imata oba konca verige kandidat z, z izbrišeš iz celic, ki vidijo oba konca.</p>
+    </div>
   </div>
   <div id="trainer">
     <button class="back-btn" id="backBtn">← Nazaj na izbiro</button>
@@ -122,11 +127,11 @@
     <p>Izbrana celica je modra. Ob rešitvi in po pravilnem odgovoru so na mreži oznake koraka; kaj pomeni katera barva, pove legenda pod vajo.</p>
 
     <h3 class="navodila-razdelek">Označi izbrane</h3>
-    <p>Pri 1–12 v »Vadi v uganki« si vzorec lahko označiš. Kljukica <b>več celic</b> je vklopljena, zato klik celico doda v izbiro. Izberi celice vzorca in klikni <b>Označi izbrane</b> (ali tipko <kbd>O</kbd>) – celice dobijo vijoličen črtkan okvir, izbira pa je spet prosta. Nato izberi celice, iz katerih izbrišeš kandidata, izbriši števko in pritisni <b>Preveri</b>.</p>
+    <p>Pri 1–13 v »Vadi v uganki« si vzorec lahko označiš. Kljukica <b>več celic</b> je vklopljena, zato klik celico doda v izbiro. Izberi celice vzorca in klikni <b>Označi izbrane</b> (ali tipko <kbd>O</kbd>) – celice dobijo vijoličen črtkan okvir, izbira pa je spet prosta. Nato izberi celice, iz katerih izbrišeš kandidata, izbriši števko in pritisni <b>Preveri</b>.</p>
     <p>Oznake so samo pripomoček: niso obvezne, <b>Preveri</b> jih ne gleda in ne štejejo kot pomoč. Če so vse izbrane celice že označene, <b>Označi izbrane</b> oznake pobriše, <b>Počisti oznake</b> pobriše vse. <b>Razveljavi</b> in <b>Začni znova</b> oznak ne spremenita, nova vaja jih pobriše.</p>
 
     <h3 class="navodila-razdelek">Tipkovnica</h3>
-    <p>Pri E1 in E2: puščice premikajo izbiro, števka izbere števko za vpis (v »Vadi v uganki« jo predlaga), <kbd>Backspace</kbd> predlog pobriše, <kbd>Esc</kbd> počisti izbiro. Pri 1–12 v »Vadi v uganki«: <kbd>Shift</kbd>+števka izbriše ali vrne kandidata, <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> razveljavi / ponovi, <kbd>O</kbd> označi izbrane celice.</p>
+    <p>Pri E1 in E2: puščice premikajo izbiro, števka izbere števko za vpis (v »Vadi v uganki« jo predlaga), <kbd>Backspace</kbd> predlog pobriše, <kbd>Esc</kbd> počisti izbiro. Pri 1–13 v »Vadi v uganki«: <kbd>Shift</kbd>+števka izbriše ali vrne kandidata, <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> razveljavi / ponovi, <kbd>O</kbd> označi izbrane celice.</p>
 
     <h3 class="navodila-razdelek">Tehnike</h3>
     <p>Značka na kartici pove raven tehnike. Oznake so iste kot v igri in reševalcu – tam pri uganki piše npr. <b>Tehnike: E1, E2, 1 Izločitev izven bloka in 3 Očitni par</b>.</p>
@@ -134,17 +139,17 @@
   </div>
 </div>
 
-<script src="../shared/engine.js?v=2026-10-08.1149"></script>
-<script src="../shared/generator.js?v=2026-10-08.1149"></script>
-<script src="../shared/stanje.js?v=2026-10-08.1149"></script>
-<script src="../shared/vaje-uganka.js?v=2026-10-08.1149"></script>
-<script src="../shared/vaje-banka.js?v=2026-10-08.1149"></script>
-<script src="../shared/mreza.js?v=2026-10-08.1149"></script>
-<script src="../shared/plosca.js?v=2026-10-08.1149"></script>
-<script src="../shared/pomoc.js?v=2026-10-08.1149"></script>
-<script src="../shared/sheme.js?v=2026-10-08.1149"></script>
-<script src="generators.js?v=2026-10-08.1149"></script>
-<script src="v-uganki.js?v=2026-10-08.1149"></script>
-<script src="trening.js?v=2026-10-08.1149"></script>
+<script src="../shared/engine.js?v=2026-10-08.1305"></script>
+<script src="../shared/generator.js?v=2026-10-08.1305"></script>
+<script src="../shared/stanje.js?v=2026-10-08.1305"></script>
+<script src="../shared/vaje-uganka.js?v=2026-10-08.1305"></script>
+<script src="../shared/vaje-banka.js?v=2026-10-08.1305"></script>
+<script src="../shared/mreza.js?v=2026-10-08.1305"></script>
+<script src="../shared/plosca.js?v=2026-10-08.1305"></script>
+<script src="../shared/pomoc.js?v=2026-10-08.1305"></script>
+<script src="../shared/sheme.js?v=2026-10-08.1305"></script>
+<script src="generators.js?v=2026-10-08.1305"></script>
+<script src="v-uganki.js?v=2026-10-08.1305"></script>
+<script src="trening.js?v=2026-10-08.1305"></script>
 </body>
 </html>

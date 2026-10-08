@@ -14,6 +14,10 @@
 //     napredno tehniko, vsaj GEN_NAJMANJ_SREDNJIH srednjih in skupaj največ
 //     GEN_TEZKA_NAJVEC tehnik nad enojčki (meje generatorja - ustrezaIskanju);
 //   - zelo težka: generator (ustvariUganko('zelotezka', seme)) z natanko dvema naprednima;
+//   - ekstrem: za vsako tehniko iz GEN_EKSPERTNE uganka iz banke stopnje Ekstrem (če je ni, iz
+//     vira banke), v kateri reševalec to tehniko uporabi natanko enkrat, brez napredne tehnike na
+//     poti in z vsaj GEN_NAJMANJ_SREDNJIH srednjimi (O10 v docs/xy-veriga-nacrt.md - ekspertna
+//     tehnika je edina »težka«); med njimi najkrajša veriga (najmanj celic), nato najnižje seme;
 //   - srednja ali težka tehnika brez ustrezne uganke v banki: iz vira banke (glej izberi());
 //   - presega tehnike: banka takih ugank nima, zato iz istega vira kot banka
 //     (genMinimalnaUganka(seme)), uganka, pri kateri motor obtiči.
@@ -30,7 +34,7 @@ const { loadEngine } = require('../tests/load-engine.js');
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/vaje-banka.js'],
   names: ['VAJE_BANKA', 'genRazvrsti', 'oceniTezavnost', 'ustvariUganko', 'genMinimalnaUganka',
-    'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'GEN_NAJMANJ_SREDNJIH', 'GEN_TEZKA_NAJVEC',
+    'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'GEN_EKSPERTNE', 'GEN_NAJMANJ_SREDNJIH', 'GEN_TEZKA_NAJVEC',
     'OCENA_PRESEGA', 'imeTehnike', 'redTehnike', 'TRENING_TEHNIKE'],
 });
 
@@ -50,16 +54,18 @@ const POSKUS = /protislovje/;
 const oz = (t) => E.GEN_LAHKE.includes(t) ? 'E' + (E.GEN_LAHKE.indexOf(t) + 1)
   : String(E.TRENING_TEHNIKE.findIndex(([, k]) => k === t) + 1);
 
-// Dnevnik solve(): { mnozica tehnik brez poskusa, uporabe po tehnikah, poskusov }.
+// Dnevnik solve(): { mnozica tehnik brez poskusa, uporabe po tehnikah, poskusov, celic - največ
+// celic v koraku tehnike (dolžina verige) }.
 function dnevnik(danosti) {
   const { log } = E.solve(danosti);
-  const uporabe = {};
+  const uporabe = {}, celic = {};
   let poskusov = 0;
   for (const k of log) {
-    if (POSKUS.test(k.technique)) poskusov++;
-    else uporabe[k.technique] = (uporabe[k.technique] || 0) + 1;
+    if (POSKUS.test(k.technique)) { poskusov++; continue; }
+    uporabe[k.technique] = (uporabe[k.technique] || 0) + 1;
+    celic[k.technique] = Math.max(celic[k.technique] || 0, k.cells.length);
   }
-  return { mnozica: new Set(Object.keys(uporabe)), uporabe, poskusov };
+  return { mnozica: new Set(Object.keys(uporabe)), uporabe, poskusov, celic };
 }
 
 const enaki = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
@@ -71,7 +77,7 @@ function opisi(danosti, stopnja, glavna, vir) {
   return {
     danosti, stopnja: o.tezavnost, glavna, vir, mere: o.mere,
     tehnike: uredi(pot || d.mnozica), poskusov: d.poskusov,
-    ujemanje: pot ? enaki(pot, d.mnozica) : true, uporabe: d.uporabe,
+    ujemanje: pot ? enaki(pot, d.mnozica) : true, uporabe: d.uporabe, celic: d.celic,
     danih: [...danosti].filter(c => c !== '0' && c !== '.').length,
   };
 }
@@ -147,6 +153,26 @@ for (let s = 1; s <= ZELOTEZKA_SEMEN && !zelo; s++) {
 }
 if (zelo) izbor.push(zelo);
 else manjka.push(`Zelo težka: v semenih 1-${ZELOTEZKA_SEMEN} ni primera`);
+
+// Ekstrem: za vsako ekspertno tehniko (banka, sicer vir banke).
+const ekstremPogoj = (t, r) => r.ujemanje && r.uporabe[t] === 1 && r.mere.napredne === 0
+  && r.mere.srednje >= E.GEN_NAJMANJ_SREDNJIH && !izbor.some(p => p.danosti === r.danosti);
+const krajsa = (t) => (a, b) => a.celic[t] - b.celic[t] || a.seme - b.seme;
+for (const t of E.GEN_EKSPERTNE) {
+  const ok = zBanke('Ekstrem').filter(r => ekstremPogoj(t, r)).sort(krajsa(t));
+  if (ok.length) { izbor.push({ ...ok[0], glavna: t, kandidatov: ok.length }); continue; }
+  let najden = null;
+  for (let s = 1; s <= VIR_SEMEN && !najden; s++) {
+    const d = E.genMinimalnaUganka(s);
+    if (E.oceniTezavnost(d).tezavnost !== 'Ekstrem') continue;
+    const r = { ...opisi(d, 'Ekstrem', t, 'genMinimalnaUganka, seme ' + s), seme: s };
+    if (ekstremPogoj(t, r)) najden = r;
+  }
+  if (najden) {
+    izbor.push({ ...najden, kandidatov: '0 v banki' });
+    manjka.push(`Ekstrem, ${opisTeh(t)}: v banki ni ustrezne uganke - vzeta je iz vira banke (${najden.vir}).`);
+  } else manjka.push(`Ekstrem, ${opisTeh(t)}: ni primera (banka in semena 1-${VIR_SEMEN})`);
+}
 
 // Presega tehnike (vir banke: genMinimalnaUganka) - prednost en sam poskus
 let presega = null;

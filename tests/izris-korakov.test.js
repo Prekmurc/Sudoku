@@ -3,7 +3,9 @@
 // mreža reševalca z legendo in mreža igre (s kandidati in brez njih) za vse korake vseh ugank
 // iz docs/uganke.md in rešena mreža se primerjajo s posnetkom tests/posnetki/izris-korakov.json,
 // narejenim na kodi pred prikazom zaporedja verige (pomožna datoteka tests/izris-korakov.js).
-// Zaporedne številke verige ne smejo spremeniti prikaza drugih tehnik.
+// Zaporedne številke verige ne smejo spremeniti prikaza drugih tehnik. Nov posnetek ob vklopu
+// XY-verige (korak 6): prej se je razlikoval samo pri example-app (od koraka 53),
+// oakever-ekstrem-17-a (od 49) in xy-veriga-17 (od 31) - tam je namesto poskusa veriga.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');

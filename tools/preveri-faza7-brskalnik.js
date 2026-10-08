@@ -512,8 +512,10 @@ const POMOC5 = [
 
 // Opažanja ene različice (nova ali izhodišče) pri dani širini: značke na karticah treninga (vrstni
 // red, razred, besedilo, slog), značke ravni v oknu Pomoč vseh treh aplikacij (pravi klik na
-// gumb) in oznake korakov v reševalcu po »Reši« na primerih P_14 (dve napredni) in P_15 (poskus).
-async function znacke(b, sirina) {
+// gumb) in oznake korakov v reševalcu po »Reši« na primerih P_14 (dve napredni) in primeru s poskusom
+// (`poskus` - do vklopa XY-verige P_15, od koraka 6 P_16; ista uganka). Oznake korakov so oznake
+// seznama korakov in značka primera, brez značk ravni v (zaprtem) oknu Pomoč.
+async function znacke(b, sirina, poskus = 'P_16') {
   const o = { sirina };
   const pocakajPisave = () => b.cakaj('document.fonts.status === "loaded"', 5000);
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
@@ -530,14 +532,16 @@ async function znacke(b, sirina) {
       razred: z.className, besedilo: z.textContent, slog: (${SLOG})(z) }))`);
   }
   o.koraki = {};
-  for (const p of ['P_14', 'P_15']) {
+  for (const [kljuc, p] of [['P_14', 'P_14'], ['poskus', poskus]]) {
     await b.odpri('app/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
     await pocakajPisave();
     await b.izvedi(`(() => { const s = document.getElementById('exampleSelect');
       s.value = [...s.options].find(x => x.textContent.startsWith('${p} ')).value; s.dispatchEvent(new Event('change')); })()`);
     await b.klikni('#solveBtn');
-    await b.cakaj('document.querySelectorAll(".tag").length > 0', 10000);
-    o.koraki[p] = await b.izvedi(`[...document.querySelectorAll('.tag')].map(z => ({ razred: z.className, besedilo: z.textContent,
+    await b.cakaj('!!lastSolve', 20000);
+    await b.izvedi(`(() => { if (!document.querySelector('#steps .tag')) document.getElementById('openStepsBtn').click(); return true; })()`);
+    await b.cakaj('document.querySelectorAll("#steps .tag").length > 0', 10000);
+    o.koraki[kljuc] = await b.izvedi(`[...document.querySelectorAll('.tag')].filter(z => !z.closest('.dialog')).map(z => ({ razred: z.className, besedilo: z.textContent,
       barva: getComputedStyle(z).color, podlaga: getComputedStyle(z).backgroundColor }))`);
   }
   return o;
@@ -632,14 +636,14 @@ async function korak5(b) {
     console.log(`Značke ravni, ${s} px (1.1)`);
     const n = nova[s] = await znacke(b, s);
     const ravni = n.trening.map(k => k.besedilo).join(' ');
-    preveri('trening: 14 kartic, značke LAHKA ×2, SREDNJA ×6, NAPREDNA ×6 v vrstnem redu kartic',
-      ravni === ['LAHKA', 'LAHKA', ...Array(6).fill('SREDNJA'), ...Array(6).fill('NAPREDNA')].join(' '), ravni);
+    preveri('trening: 15 kartic, značke LAHKA ×2, SREDNJA ×6, NAPREDNA ×6, EKSPERTNA v vrstnem redu kartic',
+      ravni === ['LAHKA', 'LAHKA', ...Array(6).fill('SREDNJA'), ...Array(6).fill('NAPREDNA'), 'EKSPERTNA'].join(' '), ravni);
     preveri('trening: razred značke ustreza besedilu', n.trening.every(k => k.razred === `badge badge-${k.besedilo.toLowerCase()}`),
       n.trening.map(k => k.razred));
     for (const a of POMOC5) {
       const z = n.pomoc[a.ime].map(x => x.besedilo).join(' ');
-      preveri(`Pomoč (${a.ime}): 14 značk lahka ×2, srednja ×6, napredna ×6`,
-        z === ['lahka', 'lahka', ...Array(6).fill('srednja'), ...Array(6).fill('napredna')].join(' '), z);
+      preveri(`Pomoč (${a.ime}): 15 značk lahka ×2, srednja ×6, napredna ×6, ekspertna`,
+        z === ['lahka', 'lahka', ...Array(6).fill('srednja'), ...Array(6).fill('napredna'), 'ekspertna'].join(' '), z);
     }
     for (const p of Object.keys(n.koraki)) preveri(`reševalec ${p}: oznake korakov (${n.koraki[p].length})`, n.koraki[p].length > 10);
   }
@@ -650,7 +654,19 @@ async function korak5(b) {
   const bStar = await zazeni({ koren: star });
   try {
     for (const s of sirine) {
-      const st = await znacke(bStar, s), n = nova[s];
+      const st = await znacke(bStar, s, 'P_15'), n = nova[s];
+      // Vklop XY-verige (korak 6): kartica in značka 13 sta novi (preverjeni zgoraj), v dnevniku
+      // primera s poskusom je pred poskusom korak 13 - za primerjavo z izhodiščem se izpustijo.
+      const brez13 = l => l.filter(x => !/t-expert|badge-ekspertna/.test(x.razred));
+      n.trening = brez13(n.trening); for (const a of POMOC5) n.pomoc[a.ime] = brez13(n.pomoc[a.ime]);
+      // Na mestu nekdanjega poskusa je zdaj veriga, poskus pride pozneje: primerjajo se oznake pred
+      // poskusom v izhodišču; v novem mora poskus ostati (uganka ostane »Presega tehnike«).
+      const iPoskus = st.koraki.poskus.findIndex(x => /t-chain/.test(x.razred) && !/znacka/.test(x.razred));
+      preveri('reševalec poskus: v izhodišču in zdaj je v dnevniku poskus, zdaj pred njim korak 13',
+        iPoskus > 0 && n.koraki.poskus.some((x, i) => i >= iPoskus && /t-chain/.test(x.razred))
+          && n.koraki.poskus.some(x => /t-expert/.test(x.razred) && x.besedilo === '13 · XY-veriga'), iPoskus);
+      n.koraki.poskus = brez13(n.koraki.poskus).slice(0, iPoskus);
+      st.koraki.poskus = st.koraki.poskus.slice(0, iPoskus);
       console.log(`Primerjava z izhodiščem ${izhodisce}, ${s} px`);
       // Dovoljena razlika (XY-veriga, korak 2): barva pisave lahke in srednje ravni - lastnosti z
       // »color« (tudi izpeljane iz currentColor) ali »barva«, natanko stara → nova vrednost.

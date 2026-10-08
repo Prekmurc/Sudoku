@@ -39,6 +39,7 @@ const SEMENA = {
   'W-Wing': 18,
   'XY-Wing': 7,
   'Unique Rectangle': 3,
+  'XY-Chain': 12,
 };
 // Uganka "Presega tehnike" s stanji Pointing pred prvim poskusom.
 const SEME_PRESEGA = 12;
@@ -198,18 +199,27 @@ test('uganka Presega tehnike: stanja so samo pred prvim poskusom s protislovjem'
   // Neodvisno: pot do prvega poskusa in stanja Pointing na njej.
   const b = new E.Board(d);
   const pred = [];
+  // Stanja poti po vrsti (števke in kandidati) - zaporedna številka koraka na poti.
+  const pot = [];
+  const stanjeB = () => b.grid.join('') + '|' + b.cand.join(',');
   let k;
   for (;;) {
     k = E.nextStep(b);
     if (!k || k.technique.startsWith(E.POSKUS_KLJUC)) break;
+    pot.push(stanjeB());
     if (k.technique === kljuc) pred.push(b.grid.join(''));
     E.applyStep(b, k);
   }
   assert.ok(k, 'pot pride do poskusa');
   assert.deepEqual([...r.stanja.map(s => s.grid.join(''))], pred);
-  // Za poskusom je Pointing še kje na poti, a tista stanja niso vaje.
-  const praznihPriPoskusu = b.grid.filter(x => x === 0).length;
-  for (const s of r.stanja) assert.ok(s.praznih > praznihPriPoskusu);
+  // Za poskusom je Pointing še kje na poti, a tista stanja niso vaje: vsako stanje vaje je na
+  // poti pred korakom poskusa (po zaporedni številki koraka - število praznih celic tega ne
+  // pove, ker je pred poskusom lahko veriga, ki samo izbriše kandidate).
+  const korakPoskusa = pot.length;
+  for (const s of r.stanja) {
+    const i = pot.indexOf(s.grid.join('') + '|' + s.cand.join(','));
+    assert.ok(i >= 0 && i < korakPoskusa, `stanje na poti pred poskusom (korak ${i + 1} od ${korakPoskusa})`);
+  }
   E.applyStep(b, k);
   let za = 0;
   for (let i = 0; i < 200 && !b.isSolved(); i++) {
@@ -447,7 +457,7 @@ test('obmocjeKoraka / vObmocju: območje vsebuje korak, drugo območje ga ne (vs
   // Vrste po tehnikah (vrstni red ALL_TECHNIQUES).
   const vrsta = kljuc => E.obmocjeKoraka(vaje.get(kljuc)[0].KT[0]).vrsta;
   assert.equal(JSON.stringify(TEHNIKE.map(vrsta)), JSON.stringify(['enota', 'enota', 'enota', 'enota', 'enota', 'enota', 'enota', 'enota',
-    'stevke', 'stevke', 'stevke', 'stevke', 'pivot', 'bloki']));
+    'stevke', 'stevke', 'stevke', 'stevke', 'pivot', 'bloki', 'stevke']));
   // Brez območja je vsak korak v območju.
   assert.equal(E.vObmocju(vaje.get('X-Wing')[0].KT[0], null), true);
 });

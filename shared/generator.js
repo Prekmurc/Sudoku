@@ -28,8 +28,7 @@
      srednja    - najtežja raven so srednje tehnike (1-6)
      težka      - brez napredne tehnike (7-12) ne gre, ena zadošča; srednjih koliko koli
      zelo težka - ena napredna tehnika ne zadošča (nobena posamezna skupaj z lažjimi)
-     ekstrem    - ekspertna tehnika (13, XY-veriga - še ni v motorju, GEN_EKSPERTNE
-                  je prazen; generator te stopnje ne ponuja)
+     ekstrem    - ekspertna tehnika (13, XY-veriga; generator te stopnje ne ponuja)
    Stopnje se izključujejo in pokrijejo vsako uganko, ki jo motor reši brez ugibanja.
    Na 600 naključnih minimalnih ugankah (meritev 2026-10-04) je delež 55,0 / 23,7 / 19,5 / 1,9 %
    ugank brez ugibanja (pred točko 4 okoli 8 % zelo težkih), 21,2 % vseh pa presega tehnike.
@@ -60,7 +59,7 @@
 const GEN_LAHKE = RAVNI_TEHNIK.lahka;                                   // E1, E2
 const GEN_SREDNJE = RAVNI_TEHNIK.srednja;                               // 1-6
 const GEN_NAPREDNE = RAVNI_TEHNIK.napredna;                             // 7-12
-const GEN_EKSPERTNE = RAVNI_TEHNIK.ekspertna;                           // 13 XY-veriga, ko bo v motorju
+const GEN_EKSPERTNE = RAVNI_TEHNIK.ekspertna;                           // 13 XY-veriga
 // Ožje delitve srednje ravni za strogoSrednja (skupaj so GEN_SREDNJE - tests/ravni-tehnik.test.js).
 const GEN_PRESEKI = ['Pointing pair/triple', 'Box-line reduction'];
 const GEN_PARI = ['Naked pair', 'Hidden pair'];
@@ -118,7 +117,7 @@ const STOPNJE_UGANK = [
     kljuc: 'ekstrem', ime: 'Ekstrem', najvecjaPrednost: 1,
     ustreza: (m) => m.ekspertne >= 1,
     ustrezaIskanju: null,
-    opis: 'potrebuje ekspertno tehniko (XY-veriga – še ni v reševalcu)',
+    opis: 'potrebuje ekspertno tehniko (13 – XY-veriga)',
     opisIskanja: null,
   },
 ];
