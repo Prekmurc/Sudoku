@@ -48,6 +48,15 @@ test('namig golega enojčka »V mreži sta 2 celici …« (stepHint)', () => {
   }
 });
 
+// XY-veriga ima 4-8 celic (XY_VERIGA_NAJMANJ, XY_VERIGA_NAJVEC; docs/xy-veriga-nacrt.md, O1, O2).
+test('namig XY-verige »Števka 3 – veriga ima 5 celic.« (stepHint, 4-8 celic)', () => {
+  for (let n = 4; n <= 8; n++) {
+    const celic = oblika(n, ['celico', 'celici', 'celice', 'celic']);
+    assert.equal(igra(`stepHint({ technique: 'XY-Chain', hint: { digits: [3], celic: ${n} } })`),
+      `Števka 3 – veriga ima ${n} ${celic}.`, `n = ${n}`);
+  }
+});
+
 test('»manjkata še 2 izbrisa« v »Vadi v uganki« (steviloIzbrisov, manjkaIzbrisov)', () => {
   for (const n of STEVILA) {
     const izbris = `${n} ${oblika(n, ['izbris', 'izbrisa', 'izbrisi', 'izbrisov'])}`;

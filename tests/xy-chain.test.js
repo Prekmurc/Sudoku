@@ -189,9 +189,9 @@ test('besedilo koraka: veriga v vrstnem redu, sklep »če … potem«, pravila f
         `koncev ${L(celice[0])} in ${L(celice[celice.length - 1])} je torej ${z} → ${z} lahko izbrišeš iz ` +
         `celic, ki vidijo oba konca: ${E.cellsLabel(k.eliminate.map(e => e[0]))}.`);
       assert.doesNotMatch(k.message, /številk|XY-Chain| - |->|"/, ime);
-      // Namig (O6): števka z in dolžina; besedilo namiga doda korak 4 načrta.
+      // Namig (O6): števka z in dolžina (besedilo od koraka 4 načrta; 4 celice, 5-8 celic).
       assert.deepEqual(plain(k.hint), { digits: [z], celic: celice.length });
-      assert.equal(typeof E.stepHint(k), 'string');
+      assert.equal(E.stepHint(k), `Števka ${z} – veriga ima ${celice.length} ${celice.length === 4 ? 'celice' : 'celic'}.`, ime);
     }
   }
 });

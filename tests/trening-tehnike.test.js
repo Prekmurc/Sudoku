@@ -35,6 +35,9 @@ const imena = E.TRENING_TEHNIKE.map(([, t]) => t);
 const ENOJCKA = ['Gol enojček', 'Skriti enojček'];
 // Vse vaje v treningu: E1, E2, nato 1-12.
 const vseVaje = [...E.TRENING_ENOJCKA.map(([m]) => m), ...nacini];
+// Vsi opisi tehnik: vaje in XY-veriga (13), ki ima opis od koraka 4 (docs/xy-veriga-nacrt.md),
+// kartico in številko pa šele od vklopa v koraku 6 - seznam je pred vklopom in po njem isti.
+const vsiOpisi = vseVaje.includes('xy-chain') ? vseVaje : [...vseVaje, 'xy-chain'];
 
 test('TRENING_ENOJCKA in TRENING_TEHNIKE se ujemata s karticami v trening/index.html in z MODES', () => {
   assert.deepEqual([...E.TRENING_ENOJCKA.map(([m]) => m)], ['naked-single', 'hidden-single']);
@@ -147,12 +150,12 @@ test('»Tehnike:« na ugankah iz docs/uganke.md: vsaka uporabljena tehnika ima o
 
 // Faza 6 (docs/faza6-besedila.md): povzetek (kartica in besedilo pod nalogo), razlaga (kako
 // vzorec prepoznaš), posledica (kaj izbrišeš ali vpišeš in zakaj) in navodilo (kaj izbereš v
-// »Spoznaj«) so izpolnjeni pri vseh 14 tehnikah. Pravila besedil: glagol »izbriši«, druga oseba
+// »Spoznaj«) so izpolnjeni pri vseh 14 vajah in pri XY-verigi. Pravila besedil: glagol »izbriši«, druga oseba
 // ednine, števila z besedo, pari v zavitih oklepajih, brez omembe drugih aplikacij.
 const POLJA_OPISA = ['povzetek', 'razlaga', 'posledica', 'navodilo'];
 test('TEHNIKE_OPISI: vsaka tehnika ima ime, povzetek, razlago, posledico in navodilo', () => {
-  assert.deepEqual(Object.keys(E.TEHNIKE_OPISI).sort(), [...vseVaje].sort());
-  for (const kljuc of vseVaje) {
+  assert.deepEqual(Object.keys(E.TEHNIKE_OPISI).sort(), [...vsiOpisi].sort());
+  for (const kljuc of vsiOpisi) {
     const o = E.TEHNIKE_OPISI[kljuc];
     for (const polje of ['ime', ...POLJA_OPISA]) {
       assert.ok(o[polje], `${kljuc}: ${polje}`);
@@ -166,7 +169,7 @@ test('TEHNIKE_OPISI: vsaka tehnika ima ime, povzetek, razlago, posledico in navo
 });
 
 test('TEHNIKE_OPISI: pravila besedil (izbriši, druga oseba, števila z besedo, pari {x, y})', () => {
-  for (const kljuc of vseVaje) {
+  for (const kljuc of vsiOpisi) {
     for (const polje of POLJA_OPISA) {
       const t = E.TEHNIKE_OPISI[kljuc][polje];
       preveriBesedilo(t, `${kljuc}.${polje}`);
@@ -200,7 +203,7 @@ test('imeTehnike(): vsaka tehnika iz ALL_TECHNIQUES ima slovensko in angleško i
     assert.match(ime, /^[^()]+ \([^()]+\)$/, `${t}: "${ime}" = slovensko (angleško)`);
     assert.notEqual(ime, t, `${t}: ime za prikaz ni ključ motorja`);
   }
-  for (const kljuc of vseVaje) {
+  for (const kljuc of vsiOpisi) {
     const o = E.TEHNIKE_OPISI[kljuc];
     assert.ok(o.ime && o.anglesko, `${kljuc}: ime in anglesko`);
     assert.doesNotMatch(o.ime, /[()]/, `${kljuc}: ime brez oklepaja`);
@@ -255,7 +258,7 @@ test('redTehnike(): vrstni red ALL_TECHNIQUES, nato poskus, nato neznane', () =>
 });
 
 test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
-  for (const kljuc of vseVaje) {
+  for (const kljuc of vsiOpisi) {
     const o = E.TEHNIKE_OPISI[kljuc];
     for (const [polje, t] of Object.entries(o)) {
       assert.doesNotMatch(t, /številk/i, `${kljuc}.${polje}`);
@@ -267,7 +270,7 @@ test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
 // docs/tehnike.md - podtip verige »2-String Kite«, poskus »Trial and Error«. Notranja
 // vrednost step.variant ostane 'Two-String Kite'.
 test('angleški imeni po virih: »2-String Kite« in »Trial and Error«', () => {
-  for (const kljuc of vseVaje) {
+  for (const kljuc of vsiOpisi) {
     for (const [polje, t] of Object.entries(E.TEHNIKE_OPISI[kljuc])) {
       assert.doesNotMatch(t, /Two-String|Forcing Chain/i, `${kljuc}.${polje}`);
     }
@@ -322,6 +325,16 @@ test('sporočila solve() in stepHint() na ugankah iz docs/uganke.md: »števka«
       const namig = E.stepHint(s);
       if (namig) preveriBesedilo(namig, `${p.ime} namig ${i + 1} (${s.technique})`);
     });
+  }
+});
+
+// Namig XY-verige (O6, korak 4): števka z in dolžina - pred vklopom (korak 6) ga v dnevnikih
+// solve() še ni, zato ga preverimo na korakih vseh dolžin (4-8 celic).
+test('namig XY-verige: »števka«, slovenska imena', () => {
+  for (let n = 4; n <= 8; n++) {
+    const namig = E.stepHint({ technique: 'XY-Chain', hint: { digits: [3], celic: n } });
+    assert.match(namig, /^Števka 3 – veriga ima \d celic[e]?\.$/, `${n} celic`);
+    preveriBesedilo(namig, `XY-veriga, ${n} celic`);
   }
 });
 

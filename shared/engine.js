@@ -889,6 +889,16 @@ const TEHNIKE_OPISI = {
     posledica: 'Če bi bila v četrtem vogalu x ali y, bi v vseh štirih vogalih ostala samo x in y. Potem bi ju lahko po vogalih zamenjal in dobil drugo rešitev, uganka pa ima natanko eno. Zato četrti vogal ne more biti ne x ne y – oba izbrišeš iz njega.',
     navodilo: 'Izberi vse štiri vogale pravokotnika.',
   },
+  // XY-veriga (13, ekspertna raven; docs/xy-veriga-nacrt.md, razdelek 6): opis od koraka 4,
+  // kartica in številka (TRENING_TEHNIKE) šele od vklopa v koraku 6.
+  'xy-chain': {
+    ime: 'XY-veriga',
+    anglesko: 'XY-Chain',
+    povzetek: 'Celice z natanko dvema kandidatoma tvorijo verigo: zaporedni celici se vidita in imata skupen kandidat. Če imata oba konca verige kandidat z, z izbrišeš iz celic, ki vidijo oba konca.',
+    razlaga: 'Poišči zaporedje vsaj štirih celic z natanko dvema kandidatoma. Zaporedni celici se vidita – sta v isti vrstici, stolpcu ali bloku – in imata skupen kandidat, ki ju povezuje: prva celica {z, a} in druga {a, b} si delita a, druga in tretja b, in tako naprej. Zadnja celica ima poleg povezovalne števke spet z, torej imata oba konca verige kandidat z. Veriga treh celic je XY-krilo (11).',
+    posledica: 'Če prva celica ni z, je a. Potem druga ni a, torej je b, tretja ni b … in zadnja celica je z. Vsaj en konec verige je torej z. Iz vseh celic, ki vidijo oba konca, z izbrišeš.',
+    navodilo: 'Izberi vse celice verige.',
+  },
 };
 
 // Ime tehnike za prikaz iz ključa v ALL_TECHNIQUES (tudi iz dnevnika solve() in
@@ -945,7 +955,8 @@ function tagClass(tech) {
 // razlaga) iz polja step.hint. Namig ne sme skoraj določiti odgovora: kjer bi ga
 // enota in števka skupaj (skriti enojček, Pointing, Box-line), pove samo enoto;
 // pri X-Wing in Swordfish samo števko in smer, pri Turbot Fish samo števko
-// (naštete enote bi takoj pokazale vzorec). null = tehnika nima namiga in se
+// (naštete enote bi takoj pokazale vzorec), pri XY-verigi števko z in dolžino (O6 v
+// docs/xy-veriga-nacrt.md - konca bi skoraj določila odgovor). null = tehnika nima namiga in se
 // pokaže takoj v celoti (poskus in protislovje).
 function stepHint(step) {
   const h = step.hint;
@@ -960,6 +971,7 @@ function stepHint(step) {
   if (step.technique === 'XY-Wing') return `Pivot ima kandidata ${par}.`;
   if (step.technique === 'W-Wing') return `Celici para imata kandidata ${par}.`;
   if (step.technique === 'Unique Rectangle') return `Pravokotnik tvori par ${par}.`;
+  if (step.technique === 'XY-Chain') return `Števka ${stevke} – veriga ima ${h.celic} ${sklanjaj(h.celic, ['celico', 'celici', 'celice', 'celic'])}.`;
   if (h.lines) return `Števka ${stevke}, v ${h.lineCount === 2 ? 'dveh' : 'treh'} ${h.lines}.`;
   return `Števka ${stevke}.`;
 }

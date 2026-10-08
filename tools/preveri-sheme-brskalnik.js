@@ -26,6 +26,8 @@
 // v panelu, največ 327 px, brez vodoravnega drsnika (stran in okno), z istimi meritvami kot v
 // treningu (črke v celicah, barve, legenda, napisi); izpiše višino okna z zaprtimi in z vsemi
 // odprtimi shemami.
+// XY-veriga, korak 4 (docs/xy-veriga-nacrt.md): shema brez kartice v treningu (do vklopa v koraku 6)
+// se izmeri v razdelku »Shema« vaje »Spoznaj« 12 (risba zamenjana) – iste meritve, posnetek.
 // Posnetke zaslona shrani v mapo (--mapa, privzeto začasna).
 //
 //   node tools/preveri-sheme-brskalnik.js [--mapa <mapa>]
@@ -251,6 +253,32 @@ async function sirina(b, sir, kljuci, info) {
   await pocakaj(b);
 }
 
+// XY-veriga, korak 4 (docs/xy-veriga-nacrt.md): shema tehnike, ki še nima kartice v treningu
+// (vklop je korak 6) – v vaji »Spoznaj« 12 se risba v razdelku »Shema« zamenja s shemo te tehnike
+// (tako bo prikazana po vklopu), nato iste meritve kot pri drugih shemah in posnetek.
+async function brezKartice(b, sir, kljuci, info) {
+  console.log(`trening, ${sir} px – sheme brez kartice: ${kljuci.join(', ')}`);
+  await b.odpri('trening/index.html', { sirina: sir, visina: 900, mobilno: sir < 500 });
+  await b.cakaj('document.fonts.status === "loaded"', 15000);
+  for (const kljuc of kljuci) {
+    await b.izvedi(`document.querySelector('.menu-card[data-mode="unique-rectangle"]').scrollIntoView({ block: 'center' }); true`);
+    await b.klikni('.menu-card[data-mode="unique-rectangle"]');
+    await pocakaj(b);
+    await b.izvedi(`(() => { const d = document.querySelector('#exerciseArea .shema-razdelek');
+      d.replaceChild(izrisiShemo(${JSON.stringify(kljuc)}), d.querySelector('.shema')); d.open = true; return true; })()`);
+    await pocakaj(b, 100);
+    const m = await b.izvedi(MERI);
+    preveri(`${kljuc}: shema v razdelku »Shema« (odprt, za »Razlaga«)`, m.razdelek && m.odprt && m.zaRazlago
+      && (await b.izvedi(`document.querySelector('#exerciseArea .shema').dataset.tehnika`)) === kljuc, m);
+    pregledMeritve(kljuc, m, info);
+    await b.izvedi(`document.querySelector('.shema-razdelek').scrollIntoView({ block: 'start' }); true`);
+    await pocakaj(b, 100);
+    await b.posnetek(path.join(mapa, `shema-${kljuc}-${sir}.png`), { vsaStran: false });
+    await b.klikni('#backBtn');
+    await pocakaj(b);
+  }
+}
+
 // Korak 4: sheme v oknu Pomoč (»Tehnike«) v vseh treh aplikacijah.
 const APLIKACIJE = [
   { ime: 'igra', stran: 'igra/index.html', gumb: '#navodilaBtn', okno: '#navodilaDialog' },
@@ -268,8 +296,9 @@ async function pomoc(b, a, sir, kljuci, info) {
     return { odprto: o.classList.contains('odprt'), visina: o.querySelector('.dialog-panel').scrollHeight,
       sheme: li.map(l => { const d = l.querySelector('details.tehnika-shema'); return d ? [d.querySelector('.shema').dataset.tehnika, d.open, d.querySelector('summary').textContent] : null; }) }; })()`);
   const sheme = zacetek.sheme.filter(Boolean);
-  preveri(`okno odprto; »Shema« pri ${sheme.length} tehnikah (1–12), E1 in E2 brez, vse zaprte`,
-    zacetek.odprto && zacetek.sheme.length === 14 && zacetek.sheme[0] === null && zacetek.sheme[1] === null
+  const vaj = await b.izvedi('TRENING_ENOJCKA.length + TRENING_TEHNIKE.length');
+  preveri(`okno odprto; »Shema« pri ${sheme.length} tehnikah (1–${vaj - 2}), E1 in E2 brez, vse zaprte`,
+    zacetek.odprto && zacetek.sheme.length === vaj && zacetek.sheme[0] === null && zacetek.sheme[1] === null
     && JSON.stringify(sheme.map(x => x[0])) === JSON.stringify(kljuci) && sheme.every(x => x[1] === false && x[2] === 'Shema'), zacetek);
   for (const kljuc of kljuci) {
     const sel = `${a.okno} .tehnika-shema:has(.shema[data-tehnika="${kljuc}"]) > summary`;
@@ -298,7 +327,9 @@ async function main() {
   const b = await zazeni();
   try {
     await b.odpri('trening/index.html', { sirina: 1280, visina: 900 });
-    const kljuci = await b.izvedi('Object.keys(SHEME_TEHNIK)');
+    // Tehnike s kartico v treningu (in v oknu Pomoč) in sheme brez nje (XY-veriga do koraka 6).
+    const kljuci = await b.izvedi('Object.keys(SHEME_TEHNIK).filter(k => TRENING_TEHNIKE.some(([t]) => t === k))');
+    const brez = await b.izvedi('Object.keys(SHEME_TEHNIK).filter(k => !TRENING_TEHNIKE.some(([t]) => t === k))');
     const info = await b.izvedi(`Object.fromEntries(Object.keys(SHEME_TEHNIK).map(k => [k, {
       stevilo: shemaRisbe(k).flatMap(r => r.celice).reduce((n, z) => n + shemaCelica(z).zetoni.filter(t => t.z !== '…').length, 0),
       risb: shemaRisbe(k).length, naslovi: shemaRisbe(k).map(r => r.naslov).filter(Boolean),
@@ -307,6 +338,7 @@ async function main() {
       sklepi: SHEME_TEHNIK[k].risbe ? SHEME_TEHNIK[k].risbe.map(r => r.sklep).filter(Boolean) : [],
       vzorec2Celic: shemaRisbe(k).flatMap(r => r.celice).filter(z => shemaCelica(z).vzorec2).length, opomba: SHEME_TEHNIK[k].opomba || null, enako: !!SHEME_TEHNIK[k].enako, izsek: SHEME_TEHNIK[k].izsek }]))`);
     for (const s of SIRINE) await sirina(b, s, kljuci, info);
+    if (brez.length) for (const s of SIRINE) await brezKartice(b, s, brez, info);
     for (const s of SIRINE) for (const a of APLIKACIJE) await pomoc(b, a, s, kljuci, info);
     const t = izmerjeno.find(x => x.kljuc === 'turbot-fish' && x.sir === 375);
     if (t) console.log(`\n9 · Veriga ene števke pri 375 px, obe risbi odprti: mreža vaje (${t.mrezaRazred}) se začne ${t.mreza} px od vrha strani, spodnji rob »Preveri« ${t.preveri} px.`);

@@ -2,8 +2,8 @@
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Potrjen 2026-10-07**
 (commit načrta `7a14814`); vse odločitve O1–O13 so v razdelku 13, dopolnitev za korak 2 (značka »Zelo
-težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** korak 1 je narejen (razdelek 14),
-naslednji je korak 2.
+težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** koraki 1–4 so narejeni (razdelek 14),
+naslednji je korak 5.
 
 Vse številke v načrtu so **izmerjene** na prototipu tehnike v začasni kopiji projekta (motor z vgrajeno
 XY-verigo, ni v repozitoriju), na tem računalniku (i7-7600U, Node 24, Edge brez glave), ne ocenjene.
@@ -682,3 +682,32 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
   oznaka koraka je do koraka 6 še ključ »XY-Chain«):
 
 ![Zaporedne številke verige po koraku 3](slike/xy-veriga/veriga-korak3.png)
+
+### Korak 4 – narejeno 2026-10-08
+
+- **Besedila** (`TEHNIKE_OPISI['xy-chain']` v `shared/engine.js`, dobesedno po razdelku 6): ime XY-veriga, angleško
+  XY-Chain, povzetek, razlaga, posledica, navodilo. Opis je pred kartico in številko (`TRENING_TEHNIKE`), ki
+  prideta v koraku 6 – do takrat ga uporabnik ne vidi; oznaka koraka je še ključ »XY-Chain«.
+- **Namig** (`stepHint()`, O6): »Števka 3 – veriga ima 5 celic.« (pri štirih celicah »4 celice«, `sklanjaj()`).
+- **Shema 13** (`SHEME_TEHNIK['xy-chain']` v `shared/sheme.js`): veriga V2S2 {z, x} – V2S7 {x, y} – V3S8 {y, a} –
+  V8S8 {a, b} – V8S4 {b, z} (vrstica, blok, stolpec, vrstica), celica izbrisa V8S2 (vidi oba konca), konca
+  druge vrste (»konca«), vmesne celice »celice verige«; povezave »celici se vidita« (štiri) in »celica izbrisa
+  vidi« (dve); sklep in opomba po razdelku 6. Dodatnih 18 črk (skupaj 30) je poiskal program (iskanje v
+  začasni datoteki, ni v repozitoriju): za vsako črko enako število praznih vrstic, stolpcev in blokov, vsaka
+  črka v enoti nič ali vsaj dvakrat, celice na črtah prazne, največ dve črki v celici; na deski iz sheme
+  `xyChain()` najde natanko to verigo z izbrisom z iz V8S2, vseh 12 tehnik iz `ALL_TECHNIQUES` (tudi
+  XY-krilo) nič. Izbrana najredkejša od štirih semen (31, –, 32, 30 črk).
+- **Testi** (pred spremembo; na stari kodi so dosedanji preizkusi zeleni, padejo samo preizkusi novega):
+  `tests/sheme.test.js` – ključi shem = tehnike 1–12 iz `TRENING_TEHNIKE` in XY-veriga (pred vklopom in po
+  njem isti seznam; funkcija tehnike pred vklopom `xyChain`, lažje tehnike vse iz `ALL_TECHNIQUES`), črke v
+  pet različnih števk (prej a = x, b = y – pri W-krilu enakovredno), povezave pri 9–11 in 13, sklep, druga vrsta,
+  izris in nov test zgradbe verige; na stari kodi 25 zelenih, 6 padlih (manjka shema). `tests/trening-tehnike.test.js`
+  – pravila besedil na vseh opisih (14 vaj in XY-veriga) in namig XY-verige; `tests/sklanjanje.test.js` – namig pri
+  4–8 celicah; `tests/xy-chain.test.js` – namig vsakega koraka verige na pozicijah do znaka (prej samo niz). Vsi
+  testi: 627 (prej 622).
+- **Brskalnik:** `tools/preveri-sheme-brskalnik.js` – tehnike s kartico kot prej, shema brez kartice (XY-veriga) v
+  razdelku »Shema« vaje »Spoznaj« 12 z zamenjano risbo pri 375 in 1280 px: risba v kartici, 30 črk v svojih
+  celicah, barve, povezave, legenda, sklep, opomba – vse drži. Posnetek igre: enako, 99 posnetkov.
+- **Slika** (razdelek »Shema« pri 375 px, dvojna ločljivost):
+
+![Shema XY-verige po koraku 4](slike/xy-veriga/shema-korak4.png)

@@ -1,4 +1,4 @@
-/* shared/sheme.js — shema vzorca pri razlagi tehnik 1–12 (faza 3a, docs/faza3a-nacrt.md):
+/* shared/sheme.js — shema vzorca pri razlagi tehnik 1–12 (faza 3a, docs/faza3a-nacrt.md) in 13 (XY-veriga):
    splošna risba vzorca s črkami x, y, z (pri W-krilu a, b) namesto števk, v barvah legende
    treninga (celica vzorca jantarna z zlatim okvirjem, celica izbrisa rožnata, kandidat za izbris
    temen z rdečo črto čez). Podatki SHEME_TEHNIK so po ključu iz TEHNIKE_OPISI (shared/engine.js), izris je
@@ -225,6 +225,31 @@ const SHEME_TEHNIK = {
     opomba: 'Bloka sta lahko tudi eden nad drugim.',
     drugiVVzorcu: true,
   },
+  // XY-veriga (13; docs/xy-veriga-nacrt.md, razdelek 6, korak 4): veriga petih celic {z, x} –
+  // {x, y} – {y, a} – {a, b} – {b, z}, konca (»+«) druge vrste; »vidita« po verigi, »vidi« od
+  // celice izbrisa do obeh koncev. Dodatne črke so poiskane z iskanjem kot pri 9–12: xyChain()
+  // najde natanko to verigo, vse tehnike 1–12 (tudi XY-krilo) nič.
+  'xy-chain': {
+    izsek: 'mreza',
+    celice: shemaVrstice([
+      'z    x     .    .     .    .    x,z   b     b',
+      'y    +z,x  .    .     .    .    *x,y  .     z',
+      'y    .     .    .     .    .    .     *y,a  a',
+      '.    .     .    .     .    .    z     .     z',
+      '.    .     .    .     .    .    .     .     .',
+      '.    .     .    .     .    .    .     .     .',
+      '.    .     .    b     .    .    .     .     b',
+      '.    -z    .    +b,z  .    .    .     *a,b  a',
+      'z    .     .    z     .    .    y     y     .',
+    ]),
+    vidita: ['V2S2 V2S7', 'V2S7 V3S8', 'V3S8 V8S8', 'V8S8 V8S4'],
+    vidi: ['V8S2 V2S2', 'V8S2 V8S4'],
+    vzorec: 'celice verige',
+    vzorec2: 'konca',
+    sklep: 'Vsaj en konec je z, zato z izbrišeš iz celic, ki vidijo oba konca.',
+    opomba: 'Veriga je lahko daljša ali krajša (vsaj štiri celice).',
+    drugiVVzorcu: true,
+  },
 };
 
 const SHEMA_IZSEKI = { vrstica: [1, 9], pas: [3, 9], mreza: [9, 9] };
@@ -268,7 +293,7 @@ function shemaNapisCrk(kljuc) {
   return deli.join('; ') + '.' + (SHEME_TEHNIK[kljuc].drugiVVzorcu ? ' Drugi kandidati so narisani samo v celicah vzorca.' : '');
 }
 
-// Povezave (sheme 9–11): pari celic »V2S2 V8S2« v treh vrstah – povezava (polna jantarna črta,
+// Povezave (sheme 9–11 in 13): pari celic »V2S2 V8S2« v treh vrstah – povezava (polna jantarna črta,
 // vrstica ali stolpec, kjer je števka mogoča samo v teh dveh celicah), vidita (črtkana jantarna,
 // celici vzorca se vidita) in vidi (črtkana rdeča, od celice izbrisa do celice vzorca, ki jo vidi).
 const SHEMA_POVEZAVE = [
