@@ -35,7 +35,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -76,6 +76,7 @@ async function odpri(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
+  await vaja3(b, SEME(4242)); // vaji 1 in 2 sta po shemi - primerja se vaja 3
   await odmakniMisko(b);
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   // Stran ne sme biti pomaknjena do konca, sicer okvir z rešitvijo gumb ob pritisku odmakne
@@ -447,6 +448,7 @@ async function drugVzorec(b, sirina) {
     await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
     await b.izvedi(SEME(seme));
     await b.klikni('.menu-card[data-mode="swordfish"]');
+    await vaja3(b, SEME(seme)); // vaja po shemi (vaja 1) nima drugega vzorca
     await odmakniMisko(b);
     await b.izvedi("document.body.style.paddingBottom = '800px'; true");
     await oznaciVzorec(b);

@@ -47,4 +47,14 @@ async function odmakniMisko(b) {
   await b.izvedi('new Promise(r => setTimeout(r, 300))');
 }
 
-module.exports = { razlikeIzrisa, odmakniMisko };
+// Vaja 3 kroga »Spoznaj« (docs/trening-ucenje-nacrt.md, korak 2): vaji 1 in 2 sta od dela A po
+// shemi in se od izhodišča namerno razlikujeta, zato primerjave z izhodiščem izrišejo vajo 3 (z istim
+// generatorjem kot v izhodišču). Math.random s semenom (koda seme) se nastavi po vaji 2; pri 1 in 2
+// je trojica nastavljena izrecno (nobena vsiljena) in banka brez uporabljenih, kot ob začetku kroga -
+// vaji 1 in 2 tega stanja ne smeta spremeniti.
+async function vaja3(b, seme) {
+  await b.izvedi(`exNum = 2; presekTrojica.pointing = presekTrojica['box-line'] = -1;
+    presekUporabljene.pointing.clear(); presekUporabljene['box-line'].clear(); ${seme}; renderExercise(); true`);
+}
+
+module.exports = { razlikeIzrisa, odmakniMisko, vaja3 };

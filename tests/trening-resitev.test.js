@@ -51,8 +51,9 @@ const VZOREC = {
 };
 const kljuc = a => [...a].sort((x, y) => x - y).join(',');
 
-// Prva vaja tehnike; z drugim = true generator ponavlja, dokler vaja nima drugega veljavnega
-// vzorca (drugi = prvi takšen, `zadnja.drugi`).
+// Vaja 7 kroga tehnike (n = 6 - iste vrste kot vaja 1; vaji 1 in 2 sta od dela A načrta
+// docs/trening-ucenje-nacrt.md po shemi); z drugim = true generator ponavlja, dokler vaja nima
+// drugega veljavnega vzorca (drugi = prvi takšen, `zadnja.drugi`).
 function zacni(tehnika, { seme = 7, drugim = false } = {}) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
@@ -62,7 +63,7 @@ function zacni(tehnika, { seme = 7, drugim = false } = {}) {
       const k = a => [...a].sort((x, y) => x - y).join(',');
       ex.vzorec = v; ex.drugi = drugi(ex).find(d => k(d.cells) !== k(v.cells));
       if (!${drugim} || ex.drugi || i > 2000) return (zadnja = ex); } }; }`);
-  run(`mode = ${JSON.stringify(tehnika)}; exNum = 0; renderExercise();`);
+  run(`mode = ${JSON.stringify(tehnika)}; exNum = 6; renderExercise();`);
   return { dom, run };
 }
 function vsi(el, out = []) {

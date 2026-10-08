@@ -518,6 +518,15 @@ function veljavniVzorci(ex,M){
   return vzorci;
 }
 
+// Vaja po shemi (docs/trening-ucenje-nacrt.md, 1.3): pripis k vrstici nad vajo in vrstica s
+// preslikavo črk v števke tik pod razdelkom »Shema« (O2).
+function pripisPoShemi(ps){return ps.obrnjeno?' · po shemi, obrnjeno':' · po shemi';}
+function vrsticaPoShemi(ps){
+  const crke=ps.crke.length===1?`črka ${ps.crke[0][0]} je števka ${ps.crke[0][1]}.`
+    :`črke so števke: ${ps.crke.map(([c,d])=>`${c} = ${d}`).join(', ')}.`;
+  return ps.obrnjeno?`Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, ${crke}`:`Vaja po shemi zgoraj – iste celice, ${crke}`;
+}
+
 function renderExercise(){
   const M=MODES[mode];
   enojcek=null;vadiPrekini();osveziPomoc=()=>{};
@@ -530,7 +539,8 @@ function renderExercise(){
     area.appendChild(d);return;
   }
   if(nacin==='uganka'){renderVadi();return;}
-  const ex=M.gen(exNum);
+  // Vaji 1 in 2 sta po shemi (docs/trening-ucenje-nacrt.md, del A), kjer je narejena - sicer generator.
+  const ex=genPoShemi(mode,exNum)||M.gen(exNum);
   selected=[];pickedDigits=[];area.innerHTML='';presek=null;
   pomocVaje=false;vajaResena=false;vajaPrav=0;vajaVseh=0;
 
@@ -538,9 +548,10 @@ function renderExercise(){
   // Pod nalogo povzetek tehnike in navodilo (M.desc = opisVaje()) ali povzetek in lasten opis
   // naloge (ex.desc: 1, 2, 7, 8 in E1/E2 v vajah 1-6); razlaga je v razdelku "Razlaga".
   const opis=ex.desc?`${TEHNIKE_OPISI[mode].povzetek} ${ex.desc}`:M.desc;
-  div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
+  div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}${ex.poShemi?pripisPoShemi(ex.poShemi):''}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
   div.appendChild(razdelekRazlaga(mode));
   const shema=razdelekShema(mode);if(shema)div.appendChild(shema);
+  if(ex.poShemi){const p=document.createElement('p');p.className='po-shemi';p.textContent=vrsticaPoShemi(ex.poShemi);div.appendChild(p);}
 
   let cellEls=[],countEls=[];
 

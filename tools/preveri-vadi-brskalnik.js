@@ -31,7 +31,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -688,6 +688,7 @@ async function izris(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
+  await vaja3(b, SEME(4242)); // vaji 1 in 2 sta po shemi - primerja se vaja 3
   await odmakniMisko(b); // :hover s prehodom pod miško ne sme vplivati na primerjavo
   // Pisave (Google Fonts, tudi latin-ext za č/š/ž) se lahko naložijo šele po kliku - širina
   // besedila bi se razlikovala zaradi nalaganja, ne zaradi kode.

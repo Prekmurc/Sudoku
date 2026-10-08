@@ -542,6 +542,69 @@ function genSwordfish(n){
   return genSwordfish(n+10);
 }
 
+/* --- Vaji 1 in 2 »Spoznaj« po shemi (docs/trening-ucenje-nacrt.md, del A) ---
+   Vaja 1 (n = 0) je natanko kot shema tehnike (SHEME_TEHNIK v shared/sheme.js): iste celice,
+   črke so naključne števke (O1). Vaja 2 (n = 1) je ista shema, obrnjena čez glavno diagonalo
+   (O16, vrstica postane stolpec), z novimi števkami (O17). Funkcija tehnike na vaji najde natanko
+   korak sheme - to se preveri ob vsaki vaji. genPoShemi() vrne null pri vajah 3-9, pri tehniki
+   brez sheme in pri tehniki, za katero vaja po shemi še ni narejena - takrat je vaja M.gen(n).
+   Vaja ima ista polja kot vaja iste tehnike iz generatorja in še poShemi = { obrnjeno, crke }
+   (crke: [[črka, števka]] - preslikava za vrstico nad mrežo). Korak 2: 7 · X-krilo, 8 · Mečarica. */
+// Obrat čez glavno diagonalo: VrSc -> VcSr (celica 0-80).
+function obrniCelico(i){return (i%9)*9+Math.floor(i/9);}
+
+// 7 in 8: mreža ene števke - celice x iz sheme (»*« vzorec, »-« izbris), nič ni treba dodati.
+function genRibaPoShemi(mode,obrnjeno){
+  const sf=mode==='swordfish';
+  const digit=randInt(1,9);
+  const grid=Array.from({length:81},()=>false),vzorec=[],izbris=[];
+  SHEME_TEHNIK[mode].celice.forEach((zapis,i)=>{
+    const c=shemaCelica(zapis);
+    if(!c.zetoni.some(t=>t.z==='x')) return;
+    const idx=obrnjeno?obrniCelico(i):i;
+    grid[idx]=true;
+    if(c.vzorec) vzorec.push(idx);
+    if(c.zetoni.some(t=>t.izbris)) izbris.push(idx);
+  });
+  vzorec.sort((a,b)=>a-b);izbris.sort((a,b)=>a-b);
+  // Preverba z motorjem: natanko en korak, celice vzorca in izbrisi sheme.
+  const koraki=(sf?swordfish:xWing)({grid:new Array(81).fill(0),cand:grid.map(h=>h?1<<digit:0)});
+  const k=koraki.length===1?koraki[0]:null;
+  if(!k||[...k.cells].sort((a,b)=>a-b).join()!==vzorec.join()
+    ||k.eliminate.map(([c])=>c).sort((a,b)=>a-b).join()!==izbris.join()) return null;
+  const rc=i=>[Math.floor(i/9),i%9];
+  const vrsticeVzorca=new Set(vzorec.map(i=>Math.floor(i/9)));
+  // Baza so vrstice, če noben izbris ni v vrstici vzorca (izbrisi so v stolpcih vzorca).
+  const baseIsRow=izbris.every(i=>!vrsticeVzorca.has(Math.floor(i/9)));
+  const bases=[...new Set(vzorec.map(i=>baseIsRow?Math.floor(i/9):i%9))].sort((a,b)=>a-b);
+  const crosses=[...new Set(vzorec.map(i=>baseIsRow?i%9:Math.floor(i/9)))].sort((a,b)=>a-b);
+  const baseName=baseIsRow?'vrsticah':'stolpcih',crossName=baseIsRow?'stolpcih':'vrsticah';
+  const ex={
+    grid,digit,elimCells:izbris.map(rc),bases,crosses,baseIsRow,baseName,crossName,
+    baseLabels:bases.map(b=>(baseIsRow?'V':'S')+(b+1)).join(', '),
+    crossLabels:crosses.map(c=>(baseIsRow?'S':'V')+(c+1)).join(', '),
+    mode,poShemi:{obrnjeno,crke:[['x',digit]]},
+  };
+  if(sf){
+    ex.sfCells=vzorec.map(rc);
+    ex.unitLabel=`Mečarica za števko ${digit}`;
+    ex.desc=`Števka ${digit}: poišči tri ${baseIsRow?'vrstice':'stolpce'}, v katerih je ${digit} mogoča samo v istih treh ${crossName}, in izberi vse celice ${predlogSZ(digit)} ${digit} v teh treh ${baseName}.`;
+  } else {
+    ex.rect=vzorec.map(rc);
+    ex.unitLabel=`X-krilo za števko ${digit}`;
+    ex.desc=`Števka ${digit}: poišči ${baseIsRow?'dve vrstici':'dva stolpca'}, v katerih je ${digit} mogoča samo v istih dveh ${crossName}, in izberi štiri vogale.`;
+  }
+  return ex;
+}
+
+// Vaja po shemi za vajo n kroga (0 = vaja 1, 1 = vaja 2) ali null (vaja je M.gen(n)).
+function genPoShemi(mode,n){
+  if(n!==0&&n!==1) return null;
+  if(typeof SHEME_TEHNIK==='undefined'||!SHEME_TEHNIK[mode]) return null;
+  if(mode==='x-wing'||mode==='swordfish') return genRibaPoShemi(mode,n===1);
+  return null;
+}
+
 /* --- XY-Wing in Unique Rectangle ---
    Drugače kot ostale tehnike ti dve delujeta na pravih odnosih "katera celica
    vidi katero" po celi mreži, zato generatorja sestavita celo 81-celično desko:

@@ -22,7 +22,9 @@ const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
 
 // Vaja tehnike s semenom; pogoj (koda v kontekstu, ex => bool) - generator ponavlja, dokler ga
-// vaja ne izpolni (zadnja = vaja na zaslonu).
+// vaja ne izpolni (zadnja = vaja na zaslonu). Vaja 7 kroga (n = 6): vaji 1 in 2 sta od dela A
+// načrta docs/trening-ucenje-nacrt.md po shemi, vaja 7 pa je iste vrste kot vaja 1 (n % 3 in n % 2
+// sta 0 - vrstica pri 3-6, vrstice pri 7 in 8).
 function zacni(tehnika, seme = 7, pogoj = 'ex => true') {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
@@ -30,6 +32,7 @@ function zacni(tehnika, seme = 7, pogoj = 'ex => true') {
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen, p = ${pogoj};
     MODES[${JSON.stringify(tehnika)}].gen = n => { for (let i = 0; ; i++) { const ex = g(n); if (p(ex) || i > 500) return (zadnja = ex); } }; }`);
   run(`zacniKrog(${JSON.stringify(tehnika)}, 'spoznaj')`);
+  run('exNum = 6; renderExercise()');
   return { dom, run };
 }
 function vsi(el, out = []) {
@@ -169,9 +172,9 @@ const NAMIG_ISCI = {
 for (const tehnika of ['x-wing', 'swordfish']) {
   for (const vrstice of [true, false]) {
     test(`namig ${tehnika}, vaja ${vrstice ? 'z vrsticami' : 's stolpci'}: štetje po vrsticah in stolpcih, besedilo po tehniki`, () => {
-      // Smer da generator po številki vaje (soda - vrstice, liha - stolpci): druga vaja kroga.
+      // Smer da generator po številki vaje (soda - vrstice, liha - stolpci): vaja 8 kroga.
       const { dom, run } = zacni(tehnika, 3);
-      if (!vrstice) { run('exNum = 1'); run('renderExercise()'); }
+      if (!vrstice) { run('exNum = 7'); run('renderExercise()'); }
       assert.equal(run('zadnja.baseIsRow'), vrstice, 'vaja v želeni smeri');
       const grid = run('zadnja.grid'), bases = run('zadnja.bases');
       const namig = medPomocjo(dom, 'namig', () => videnOkvir(dom).innerHTML);

@@ -563,3 +563,41 @@ Potrjeno 2026-10-08: O1–O16 po predlogu (O8 in O16 že prej Darkovi), O17 po p
   se (okvir med pritiskom skrit). Scenarij zato primerja s `4e1e4dc` (`--izhodisce`). Mehanizem
   (`mouseleave` ob pritisku) je v stikalu odstranjen.
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 652 zelenih v 2 min 37 s (hitrih 535).
+
+### Korak 2 – del A: osnova ter 7 in 8 (2026-10-08)
+
+- **Pred korakom (svoj commit `135f6c4`):** `preveri-presek-` in `preveri-enojcki-brskalnik.js` primerjata z
+  izhodiščem `c7eb185` (zaprtje XY-verige, vseh 15 kartic; prej `4c47cc0` brez kartice 13 – razdelek
+  korak 1); presek primerja 3–13, enojcki šteje 13 kartic. Oba zelena.
+- **Koda:**
+  - `trening/generators.js`: `genPoShemi(mode, n)` (n = 0 vaja 1, n = 1 vaja 2; `null` pri vajah 3–9,
+    tehniki brez sheme in še ne narejeni – zdaj vse razen 7 in 8), `obrniCelico(i)` (VrSc → VcSr),
+    `genRibaPoShemi()` za 7 in 8: celice x iz `SHEME_TEHNIK` (»*« vzorec, »-« izbris), naključna
+    števka, preverba z `xWing()`/`swordfish()` (natanko en korak – vzorec in izbrisi sheme; sicer
+    `null` in vaja iz generatorja), `baseIsRow` iz izbrisov, druga polja kot pri generatorju, še
+    `poShemi = { obrnjeno, crke }`. Vaji 1 in 2 Math.random ne porabita pred odločitvijo, zato je vaja 3
+    pri istem semenu enaka kot prej.
+  - `trening/trening.js`: `genPoShemi(mode, exNum) || M.gen(exNum)`, pripis »· po shemi« / »· po shemi,
+    obrnjeno« (`pripisPoShemi()`), vrstica s preslikavo tik za razdelkom »Shema« (`vrsticaPoShemi()`:
+    »Vaja po shemi zgoraj – iste celice, črka x je števka 4.« / »Vaja po obrnjeni shemi zgoraj – vrstice
+    sheme so stolpci, črka x je števka 4.«).
+  - `trening/trening.css`: `.po-shemi` (13 px, polkrepko, `--ink`).
+- **Priprava (zelena na stari kodi):** zagon vseh testov na kodi s spremembo je pokazal dva testa, ki
+  sta vajo 1 kroga uporabljala kot naključno vajo – `trening-legenda` (legenda in namig pri 7 in 8,
+  razdelek »Razlaga«) in `trening-resitev` (7 in 8). Oba sta prešla na vajo 7 (n = 6 – iste vrste kot
+  vaja 1 pri vseh tehnikah, n % 3 in n % 2 sta 0), smer »s stolpci« na vajo 8; na stari kodi 32/32
+  zelenih, na novi tudi. (Načrt je predlagal vajo 3 ali poznejšo z isto vrsto vaje; vaja 3 je pri 3–6
+  blok, zato vaja 7.) Drugi testi niso padli. Primerjave z izhodiščem v `preveri-presek-`,
+  `-enojcki-`, `-vadi-` in `-izbira-brskalnik.js` izrišejo vajo 3 (`vaja3()` v
+  `tools/primerjava-slogov.js`: `exNum = 2`, seme po vaji 2, `presekTrojica` = -1, prazna
+  `presekUporabljene`); v `preveri-izbira` tudi iskanje drugega vzorca mečarice.
+- **Test:** nov `tests/trening-po-shemi.test.js` (19 testov): na stari kodi jih 14 pade, 5 varoval
+  »nespremenjeno« (vaja 3, E1 in »Vadi v uganki«, različne števke) drži; na novi 19/19.
+- **Brskalnik:** nov `tools/preveri-po-shemi-brskalnik.js` – 48 ✓ (14 s): shema odprta nad mrežo,
+  preslikava med njo in mrežo v kartici, celice = shema (vaja 2 obrnjena), pravi kliki → »Pravilno!«
+  pri vajah 1 in 2, 375 in 1280 px. Primerjave: `presek` 79 ✓, `enojcki` 330 ✓, `vadi` 364 ✓,
+  `izbira` 708 ✓ – vse drži (prvi zagon je padel na moji napaki v `vaja3()` – manjkajoče podpičje za
+  semenom –, ne na primerjavi). Še `sheme` 939 ✓, `videz` 339 ✓, `stikalo` 25 ✓, `vklop` 87 ✓ – vse
+  drži.
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 671 zelenih v 2 min 40 s (hitrih 554 v 42 s).
+
