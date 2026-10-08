@@ -274,6 +274,11 @@ kbd{
 /* izbira stopnje pri "Ustvari uganko" */
 .stopnje{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
 .stopnje button{ flex:1; min-width:96px; font-size:13px; padding:9px 10px; }
+/* Okno široko kot na računalniku (panel 480 px): vseh pet stopenj v eni vrstici; na telefonu 3 + 2. */
+@media (min-width: 520px){
+  .stopnje{ flex-wrap:nowrap; }
+  .stopnje button{ min-width:0; padding:9px 4px; white-space:nowrap; }
+}
 .stopnje button.izbrana{ border-color: var(--blue); color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
 
 .prilepi{

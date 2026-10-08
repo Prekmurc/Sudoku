@@ -1098,7 +1098,7 @@ preštevilčenjem 1–12 (1.1, `docs/tehnike.md`).
 | **Srednja** | najtežja raven so srednje tehnike (1–6) |
 | **Težka** | brez napredne tehnike (7–12) ne gre, **ena zadošča** (od 2026-10-04; prej: natanko ena na poti) |
 | **Zelo težka** | **ena napredna ne zadošča** – nobena posamezna skupaj z lažjimi (od 2026-10-04; prej: vsaj dve na poti) |
-| **Ekstrem** | ekspertna tehnika (13, XY-veriga – ko bo uvedena) |
+| **Ekstrem** | ekspertna tehnika (13, XY-veriga – od 2026-10-08; generator jo ponudi od istega dne) |
 
 Število srednjih tehnik stopnje ne spremeni: Težka ostane Težka, ne glede na to, koliko
 srednjih tehnik uporabi.
@@ -1277,7 +1277,7 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 | 1 | po fazi 6 | **Oznaka različice pri nalaganju skript in slogov** | da brskalnik po spremembi ne kaže stare različice iz predpomnilnika (prej v »Kasneje«); **narejeno 2026-10-05** – `tools/oznaci-razlicico.js`, `razlicica.json`, pre-commit hook, test `tests/razlicica.test.js`, različica na dnu okna Pomoč; **končano in potrjeno 2026-10-06** (če objava strani na GitHub Pages ne uspe, pomaga prazen commit – kot `a7e3ea9`) |
 | 2 | po fazi 6 | **Faza 3a – dopolnitev primerov** | vgrajeni primeri za vse stopnje in tehnike (**narejeno 2026-10-05** kot zadnji del faze 6 – `tools/izberi-primere.js`); shema vzorca pri razlagi tehnik 1–12 (**izvedeno 2026-10-07**, `docs/faza3a-nacrt.md` – v treningu razdelek »Shema«, v Pomoči vseh treh aplikacij zložljivo pod posledico); **faza 3a je zaključena 2026-10-07** (ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »Faza 3a – shema vzorca«); **naslednja je faza 7** (vrstica 3) |
 | 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); razdelitev testov na hitre in počasne je **narejena 2026-10-05** (`tests/pocasni/`, pravilo v `CLAUDE.md`); **faza 7 je zaključena 2026-10-07** (`docs/faza7-nacrt.md`; ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »Faza 7«; 6.10 izpuščena); **naslednja je XY-veriga** (vrstica 4) |
-| 4 | nove tehnike | **XY-veriga** (ekspertna raven, tehnika 13) | nova tehnika na koncu `ALL_TECHNIQUES`, v `GEN_EKSPERTNE`, `TECHNIQUE_GROUPS`, trening (vaja, kartica, značka EKSPERTNA); stopnja Ekstrem (odločitev 2026-09-24, razdelek 7) se vrne v seznam stopenj v Pomoči (`stopnjeZaPomoc()` v `shared/pomoc.js` jo pokaže sama, ko je `GEN_EKSPERTNE` neprazen); banka vaj znova (`tools/ustvari-banko-vaj.js`); **dodati primer** (vgrajeni primer stopnje Ekstrem – izbor `tools/izberi-primere.js` razširi na ekspertno raven) |
+| 4 | nove tehnike | **XY-veriga** (ekspertna raven, tehnika 13) | nova tehnika na koncu `ALL_TECHNIQUES`, v `GEN_EKSPERTNE`, `TECHNIQUE_GROUPS`, trening (vaja, kartica, značka EKSPERTNA); stopnja Ekstrem (odločitev 2026-09-24, razdelek 7) se vrne v seznam stopenj v Pomoči (`stopnjeZaPomoc()` v `shared/pomoc.js` jo pokaže sama, ko je `GEN_EKSPERTNE` neprazen); banka vaj znova (`tools/ustvari-banko-vaj.js`); **dodati primer** (vgrajeni primer stopnje Ekstrem – izbor `tools/izberi-primere.js` razširi na ekspertno raven); **naloga 4 je zaključena 2026-10-08** (`docs/xy-veriga-nacrt.md`; sedem korakov `970f5d1`, `d6c64db`, `38d65a5`, `fdcef03`/`a25e5c0`, `4f4652d`, `e058ac7`, `e4ff9fc` – generator ponudi tudi Ekstrem; ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »XY-veriga«; popravek po pregledu: gumbi stopenj v »Nova uganka« na računalniku v eni vrstici); **naslednja je odločitev o nalogi 5** (BUG+1 – mesto v vrstnem redu, O13 v `docs/xy-veriga-nacrt.md`, razdelek 12: če jo naredimo, velja A in XY-veriga postane 14) |
 | 5 | nove tehnike | **BUG+1** | nova tehnika (raven in mesto v vrstnem redu določi načrt); **dodati primer** (vgrajeni primer s to tehniko – izbor `tools/izberi-primere.js` znova) |
 | 6 | videz | **Podlage, legenda, Escape** | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; postavka »tvoje oznake« v legendi »Vadi v uganki«; Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«) |
 | 7 | igra | **Označevanje celic** | zaznamki celic v igri (v treningu že so – »Označi izbrane (O)«, `shared/plosca.js`) |
@@ -1358,6 +1358,16 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   razlaga in posledica v dveh odstavkih« v oknu Pomoč – verjetno zato, ker so od faze 3a pod posledico
   še odstavki zložljive sheme (`details.tehnika-shema`), ki jih scenarij šteje zraven. Popraviti je treba
   scenarij (štetje odstavkov), ne aplikacije.
+
+- **»Rešitev (drži)« v treningu kot stikalo** (zapisano 2026-10-08 ob ročnem pregledu XY-verige): klik
+  pokaže rešitev, ponoven klik jo skrije – pri držanju ni mogoče brati besedila. Velja za vse tehnike
+  (»Spoznaj«; »Namig (drži)« ima isto obliko – ali tudi ta, določi načrt). Povezano s »gumb ›drži‹ na dnu
+  strani« spodaj, ki bi ga stikalo odpravilo.
+- **Prva vaja »Spoznaj« pri vsaki tehniki z enako razporeditvijo kot shema** (**visoka prednost**; zapisano
+  2026-10-08 ob ročnem pregledu XY-verige): črke sheme (`SHEME_TEHNIK` v `shared/sheme.js`) zamenjane s
+  števkami, da prva vaja nadaljuje risbo iz razdelka »Shema«.
+- **»Vadi v uganki« 13: krajše verige najprej** (samo zamisel; zapisano 2026-10-08 ob ročnem pregledu
+  XY-verige): pri izbiri vaje XY-verige prednost stanjem s krajšo verigo, vsaj v prvih vajah kroga.
 
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 

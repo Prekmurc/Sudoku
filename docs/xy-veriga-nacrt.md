@@ -2,8 +2,9 @@
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Potrjen 2026-10-07**
 (commit načrta `7a14814`); vse odločitve O1–O13 so v razdelku 13, dopolnitev za korak 2 (značka »Zelo
-težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** vseh sedem korakov je narejenih (razdelek 14);
-naloga čaka na Darkov pregled in ročni pregled (razdelek 11, `docs/rocni-test.md`).
+težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** naloga je **zaključena 2026-10-08** – vseh sedem korakov
+je narejenih (razdelek 14), ročni pregled potrjen istega dne (razdelek 11, `docs/rocni-test.md`). Naslednja je odločitev
+o nalogi 5 (BUG+1, razdelek 12, O13).
 
 Vse številke v načrtu so **izmerjene** na prototipu tehnike v začasni kopiji projekta (motor z vgrajeno
 XY-verigo, ni v repozitoriju), na tem računalniku (i7-7600U, Node 24, Edge brez glave), ne ocenjene.
@@ -828,3 +829,13 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
   ocena Ekstrem), izbira po osvežitvi, Pomoč; reševalec – ista uganka vtipkana v polje Niz, »Reši« brez poskusa, oznaka
   »13 · XY-veriga«; brez napak JS. Posnetek igre: enako, 99 posnetkov.
 - **Vsi testi:** 640 (prej 638), hitri 523.
+
+### Zaključek – 2026-10-08
+
+- **Ročni pregled** (razdelek 11): vseh pet točk potrjenih (telefon in računalnik).
+- **Popravek po pregledu:** gumbi stopenj v oknu »Nova uganka« – na računalniku vseh pet v eni vrstici, na telefonu
+  3 + 2 (`igra/igra.css`: od širine okna 520 px brez prelamljanja, manjši vodoravni odmik, napis v eni vrstici; pod
+  520 px nespremenjeno – pri 320 px ostane 2 + 2 + 1 kot prej). `tools/preveri-generator-brskalnik.js` preveri
+  postavitev pri 320, 375, 430, 520, 768 in 1280 px (napisi brez preliva, gumbi enako visoki, v panelu).
+- **V »Kasneje«** (`docs/uskladitev.md`): »Rešitev (drži)« kot stikalo, prva vaja »Spoznaj« z razporeditvijo sheme
+  (visoka prednost), »Vadi v uganki« 13 s krajšimi verigami najprej.

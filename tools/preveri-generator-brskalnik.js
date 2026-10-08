@@ -1,6 +1,8 @@
 'use strict';
 // XY-veriga, korak 7 (generator ponudi Ekstrem - O9 v docs/xy-veriga-nacrt.md) v pravem brskalniku
 // pri 375 in 1280 px:
+//   - gumbi stopenj (popravek po ročnem pregledu 2026-10-08): pri 375 in 430 px 3 + 2, pri 320 px 2 + 2 + 1
+//     (kot prej), od 520 px vseh pet v eni vrstici; napisi brez preliva, gumbi enako visoki, v panelu;
 //   - igra, okno »Nova uganka«: pet gumbov stopenj (zadnji »Ekstrem« z namigom merila iskanja), seznam
 //     meril generatorja s petimi stopnjami, gumbi v panelu, brez vodoravnega preliva strani in okna;
 //   - pravi klik na »Ekstrem« in »Ustvari uganko«: iskanje v delavcu (generator-worker.js) najde uganko,
@@ -64,6 +66,25 @@ async function ustvariEkstrem(b) {
   await klikniEl(b, `document.getElementById('ustvariBtn')`);
   await b.cakaj('!!window.najdena', 35000);
   return b.izvedi('({ ...window.najdena, zDelavcem: window.zDelavcem })');
+}
+
+// Postavitev gumbov stopenj (popravek po ročnem pregledu 2026-10-08): na telefonu 3 + 2, na računalniku
+// vseh pet v eni vrstici; napis v eni vrstici, brez preliva iz gumba, gumbi v panelu, enako visoki.
+async function postavitevGumbov(b, sirina, vrstice) {
+  await b.odpri('igra/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
+  await b.izvedi(`document.getElementById('novaBtn').click(); true`);
+  const g = await b.izvedi(`(() => { const pr = document.querySelector('#novaDialog .dialog-panel').getBoundingClientRect();
+    const gumbi = [...document.querySelectorAll('#stopnjeGumbi button')].map(el => { const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el); return { top: Math.round(r.top), h: Math.round(r.height), sirina: Math.round(r.width),
+        vPanelu: r.left >= pr.left - 0.5 && r.right <= pr.right + 0.5, preliv: el.scrollWidth > el.clientWidth,
+        padding: s.padding }; });
+    return gumbi; })()`);
+  const poVrsticah = [];
+  for (const x of g) { const v = poVrsticah.find(v => v.top === x.top); if (v) v.n++; else poVrsticah.push({ top: x.top, n: 1 }); }
+  preveri(`${sirina} px: gumbi stopenj ${vrstice.join(' + ')}`, JSON.stringify(poVrsticah.map(v => v.n)) === JSON.stringify(vrstice), g);
+  preveri(`${sirina} px: napisi v eni vrstici, brez preliva, gumbi enako visoki in v panelu`,
+    g.every(x => !x.preliv && x.vPanelu && x.h === g[0].h), g);
+  return g;
 }
 
 async function igra(b, sirina) {
@@ -157,6 +178,10 @@ async function resevalec(b, sirina, danosti) {
   const b = await zazeni();
   fs.mkdirSync(mapa, { recursive: true });
   try {
+    console.log('Gumbi stopenj');
+    await postavitevGumbov(b, 320, [2, 2, 1]); // tako je bilo že pred popravkom (slog velja od 520 px)
+    for (const sirina of [375, 430]) await postavitevGumbov(b, sirina, [3, 2]);
+    for (const sirina of [520, 768, 1280]) await postavitevGumbov(b, sirina, [5]);
     for (const sirina of [375, 1280]) {
       const d = await igra(b, sirina);
       await resevalec(b, sirina, d);
