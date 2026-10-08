@@ -14,10 +14,10 @@
 // kliki in ohranitev po osvežitvi; barve poudarka iz nastavitev igre (sudoku.igra.poud)
 // pri E1 in pri vajah 1 in 2.
 //
-// Druge tehnike (3-12; 1 in 2 od točke 16 v docs/vadi-v-uganki-nacrt.md primerja
+// Druge tehnike (3-13; 1 in 2 od točke 16 v docs/vadi-v-uganki-nacrt.md primerja
 // preveri-vadi-brskalnik.js) morajo ostati enake: z Math.random s semenom se vsaka vaja
-// izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto 4e1e4dc -
-// zadnji commit faze 5 »videz«, docs/faza5-nacrt.md; prej 10503c2) in v trenutni kodi; primerja se innerHTML območja vaje in
+// izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto c7eb185 -
+// zaprtje XY-verige, vseh 15 kartic; prej 4c47cc0, 4e1e4dc in 10503c2) in v trenutni kodi; primerja se innerHTML območja vaje in
 // izračunani slogi vseh njegovih elementov.
 //
 //   node tools/preveri-enojcki-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
@@ -34,7 +34,7 @@ const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-enojcki'));
-const izhodisce = arg('--izhodisce', '4c47cc0');
+const izhodisce = arg('--izhodisce', 'c7eb185');
 const KOREN = path.join(__dirname, '..');
 
 const BARVA = { oznacena: 'rgb(227, 238, 251)', neaktivna: 'rgb(233, 235, 238)', poud: 'rgb(246, 192, 38)', lastna: 'rgb(255, 128, 128)' };
@@ -303,7 +303,7 @@ async function drugeTehnike(sirine) {
   // Vaji 1 in 2 sta od izbire uganke po stopnji (docs/vadi-v-uganki-nacrt.md, točka 16) iz
   // drugih ugank banke - primerja ju tools/preveri-vadi-brskalnik.js s svojim izhodiščem.
   const vse = [...html.matchAll(/data-mode="([^"]+)"/g)].map(m => m[1]).filter(m => !IME[m]);
-  preveri('druge tehnike: 12 kartic (1-12)', vse.length === 12, vse);
+  preveri('druge tehnike: 13 kartic (1-13)', vse.length === 13, vse);
   const nacini = vse.filter(m => m !== 'pointing' && m !== 'box-line');
 
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));

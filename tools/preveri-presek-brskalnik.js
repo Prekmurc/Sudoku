@@ -6,9 +6,9 @@
 // (skrita celica se ne izbere, pravilna izbira -> "Pravilno!" in oznake koraka), brez
 // napak JS; posnetke zaslona shrani v mapo (--mapa, privzeto začasna).
 //
-// Druge tehnike (3-12) morajo ostati enake: z Math.random s semenom se vsaka
+// Druge tehnike (3-13) morajo ostati enake: z Math.random s semenom se vsaka
 // vaja izriše v izhodišču (izvleček commita --izhodisce z git archive, privzeto
-// 4e1e4dc - zadnji commit faze 5 »videz«, docs/faza5-nacrt.md; prej 7429363) in v
+// c7eb185 - zaprtje XY-verige, vseh 15 kartic; prej 4c47cc0, 4e1e4dc in 7429363) in v
 // trenutni kodi; primerja se
 // innerHTML območja vaje in izračunani slogi vseh njegovih elementov. E1 in E2 sta od
 // naloge »Pripomočki za E1/E2« (2026-09-28) na plošči iz shared/plosca.js in se od
@@ -29,7 +29,7 @@ const { razlikeIzrisa, odmakniMisko } = require('./primerjava-slogov.js');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-presek'));
-const izhodisce = arg('--izhodisce', '4c47cc0');
+const izhodisce = arg('--izhodisce', 'c7eb185');
 const KOREN = path.join(__dirname, '..');
 
 const SIVA = 'rgb(228, 232, 236)'; // --izven-bg v shared/mreza.css
@@ -151,11 +151,11 @@ async function izris(b, mode, sirina) {
 
 async function drugeTehnike(sirine) {
   const vse = ['naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple',
-    'x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle'];
+    'x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle', 'xy-chain'];
   const brez = ['pointing', 'box-line', 'naked-single', 'hidden-single'];
   const html = fs.readFileSync(path.join(KOREN, 'trening', 'index.html'), 'utf8');
   const nacini = [...html.matchAll(/data-mode="([^"]+)"/g)].map(m => m[1]).filter(m => !brez.includes(m));
-  preveri('druge tehnike: 10 kartic (3-12)', nacini.length === 10 && vse.every(m => nacini.includes(m)), nacini);
+  preveri('druge tehnike: 11 kartic (3-13)', nacini.length === 11 && vse.every(m => nacini.includes(m)), nacini);
 
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
   const tar = path.join(star, 'izhodisce.tar');
