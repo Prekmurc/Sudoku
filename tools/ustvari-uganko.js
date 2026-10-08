@@ -4,11 +4,11 @@
 // argumentov in izpis.
 //
 // Zagon iz korena projekta:
-//   node tools/ustvari-uganko.js <lahka|srednja|tezka|zelotezka> [--seme N] [--poskusov M]
+//   node tools/ustvari-uganko.js <lahka|srednja|tezka|zelotezka|ekstrem> [--seme N] [--poskusov M]
 //
 // Kategorije (stopnje generatorja, ustrezaIskanju v shared/generator.js). Mere so
 // iz množice različnih tehnik, ki jih motor v stalnem vrstnem redu uporabi
-// (genRazvrsti); srednje = 1-6, napredne = 7-12 (docs/uskladitev.md, razdelek 7):
+// (genRazvrsti); srednje = 1-6, napredne = 7-12, ekspertne = 13 (docs/uskladitev.md, razdelek 7):
 //   lahka      - reši se samo z enojčki (brez zapisanih kandidatov).
 //   srednja    - vsaj dve različni srednji tehniki, naprednih pa ne. To orodje tu
 //                zahteva še par IN trojico na poti (moznosti.strogoSrednja), da so
@@ -17,7 +17,8 @@
 //   tezka      - natanko ena napredna tehnika, vsaj dve srednji, skupaj največ
 //                štiri tehnike nad enojčki.
 //   zelotezka  - vsaj dve različni napredni in vsaj dve srednji tehniki.
-// Stopnje Ekstrem (ekspertna tehnika) generator ne ustvarja.
+//   ekstrem    - ekspertna tehnika (13 XY-veriga) in vsaj dve srednji (od XY-verige,
+//                korak 7 - O9 v docs/xy-veriga-nacrt.md).
 // Pri vseh mora solve() (vse tehnike) uganko rešiti brez ugibanja. Njegov dnevnik
 // se lahko od poti razlikuje, ker se solve() "usidra" na številko prejšnjega koraka
 // in zanjo vzame tudi zahtevnejšo tehniko pred enojčkom z drugo številko; iz istega

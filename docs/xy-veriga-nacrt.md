@@ -2,8 +2,8 @@
 
 Načrt 2026-10-07 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4). **Potrjen 2026-10-07**
 (commit načrta `7a14814`); vse odločitve O1–O13 so v razdelku 13, dopolnitev za korak 2 (značka »Zelo
-težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** koraki 1–6 so narejeni (razdelek 14),
-naslednji je korak 7.
+težka«) v razdelku 7, pravila za vse korake v razdelku 10. **Stanje:** vseh sedem korakov je narejenih (razdelek 14);
+naloga čaka na Darkov pregled in ročni pregled (razdelek 11, `docs/rocni-test.md`).
 
 Vse številke v načrtu so **izmerjene** na prototipu tehnike v začasni kopiji projekta (motor z vgrajeno
 XY-verigo, ni v repozitoriju), na tem računalniku (i7-7600U, Node 24, Edge brez glave), ne ocenjene.
@@ -792,3 +792,39 @@ Vse odločil Darko 2026-10-07 (O4 in O5 ob pregledu predlogov, druge ob potrditv
 - **Slika** (mala mreža reševalca pri 375 px, korak 31 preizkusne uganke, brez vstavljanja):
 
 ![Korak 31 po vklopu](slike/xy-veriga/vklop-korak31.png)
+
+### Korak 7 – narejeno 2026-10-08
+
+- **Generator** (`shared/generator.js`): Ekstrem dobi `ustrezaIskanju` – ekspertna tehnika in vsaj dve različni srednji
+  (`m.ekspertne >= 1 && m.srednje >= GEN_NAJMANJ_SREDNJIH`; podmnožica `ustreza`) – in `opisIskanja` »potrebuje
+  ekspertno tehniko (13 – XY-veriga) in vsaj dve srednji«; `STOPNJE_GENERATORJA` ima zato pet stopenj.
+  `OPIS_STROZJEGA_ISKANJA`: »… pri srednji, težki, zelo težki in ekstremni zahteva vsaj dve različni srednji
+  tehniki …« (razdelek 8). Komentarji v `igra/generator-worker.js` in `tools/ustvari-uganko.js` (ta sprejme
+  `ekstrem` sam, ker bere `STOPNJE_GENERATORJA`).
+- **Igra:** peti gumb »Ekstrem« v oknu »Nova uganka« in peta vrstica seznama meril nastaneta sama iz
+  `STOPNJE_GENERATORJA`; v Pomoči (`igra/index.html`) »izbereš stopnjo (… zelo težka, ekstrem)« in »s težavnostjo svoje
+  stopnje (… Zelo težka ali Ekstrem)«. Postavitev gumbov (`.stopnje` v `igra/igra.css`) je nespremenjena: pri 375 px
+  3 + 2, pri 1280 px 4 + 1 – peti gumb sam v drugi vrstici čez vso širino.
+- **Testi pred spremembo** (zelena na stari kodi): `tests/pocasni/generator.test.js` »generator: uganka vsake stopnje
+  generatorja – ena rešitev, brez ugibanja, ocena = stopnja« (za vsako stopnjo iz `STOPNJE_GENERATORJA` seme –
+  Ekstrem 3, prvo, ki da uganko; countSolutions 1, `solve()` brez ugibanja, `oceniUganko()` ista stopnja, merilo
+  iskanja, nobena druga stopnja generatorja, isto seme – ista uganka; pri Ekstremu še ekspertna in dve srednji ter
+  XY-veriga v dnevniku); `tests/igra-ui.test.js` »gumbi stopenj v oknu »Nova uganka« iz STOPNJE_GENERATORJA, Pomoč jih
+  našteje« (napisi in ključi gumbov, izbira zadnjega ostane po osvežitvi, naštevanji v HTML Pomoči = imena
+  `STOPNJE_GENERATORJA`, poved o strožjem generatorju omeni vsako stopnjo razen lahke). Merilo iskanja kot podmnožica
+  stopnje je že preverjal test »merilo iskanja je ožje od stopnje …« (vse kombinacije mer, tudi ekspertne).
+- **Dopolnitev načrta – testi, ki padejo:** načrt koraka 7 jih ni naštel; pred spremembo sem določil dva, ki zapisujeta
+  nasprotje O9, in padla sta natanko ta (in `tests/razlicica.test.js` do osvežitve oznake): `pocasni/generator` »stopnje:
+  ključi, imena in opisi« (generator ima štiri stopnje, Ekstrem `ustrezaIskanju`/`opisIskanja` `null` → pet stopenj,
+  opis iskanja Ekstrema) in »neznana stopnja ali stopnja brez generatorja vrže napako« (`oceniStopnjo('ekstrem')` vrže
+  napako → »neznana stopnja vrže napako«, vse stopnje imajo generator). Drugih padlih testov ni bilo.
+- **Čas iskanja Ekstrema:** v Node (semena 1–300, kot v razdelku 3) 25 ugank, 1,30 s na najdeno uganko, seme povprečno
+  0,11 s, največ 0,53 s. V brskalniku (Edge brez glave, delavec, pravi kliki, 1280 px) 40 iskanj: povprečje 1,26 s
+  (dva zagona: 2,02 s pri 10 in 1,00 s pri 30 iskanjih), mediana pribl. 0,8–1,2 s, največ 5,8 s; povprečno 9,6 semen.
+  Meja 30 s je daleč.
+- **Brskalnik:** nov `tools/preveri-generator-brskalnik.js` pri 375 in 1280 px – vse drži: okno »Nova uganka« (pet gumbov,
+  namig, seznam meril, v panelu, brez preliva), pravi kliki »Ekstrem« → »Ustvari uganko« (delavec najde uganko; v zbirki
+  Ekstrem, izvor generator, značka v kartici, sporočilo; `countSolutions()` 1, `solve()` brez ugibanja z XY-verigo,
+  ocena Ekstrem), izbira po osvežitvi, Pomoč; reševalec – ista uganka vtipkana v polje Niz, »Reši« brez poskusa, oznaka
+  »13 · XY-veriga«; brez napak JS. Posnetek igre: enako, 99 posnetkov.
+- **Vsi testi:** 640 (prej 638), hitri 523.

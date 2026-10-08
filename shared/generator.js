@@ -28,7 +28,7 @@
      srednja    - najtežja raven so srednje tehnike (1-6)
      težka      - brez napredne tehnike (7-12) ne gre, ena zadošča; srednjih koliko koli
      zelo težka - ena napredna tehnika ne zadošča (nobena posamezna skupaj z lažjimi)
-     ekstrem    - ekspertna tehnika (13, XY-veriga; generator te stopnje ne ponuja)
+     ekstrem    - ekspertna tehnika (13, XY-veriga)
    Stopnje se izključujejo in pokrijejo vsako uganko, ki jo motor reši brez ugibanja.
    Na 600 naključnih minimalnih ugankah (meritev 2026-10-04) je delež 55,0 / 23,7 / 19,5 / 1,9 %
    ugank brez ugibanja (pred točko 4 okoli 8 % zelo težkih), 21,2 % vseh pa presega tehnike.
@@ -41,14 +41,16 @@
                       (GEN_NAJMANJ_SREDNJIH), da ne stoji na eni sami tehniki nad
                       enojčki, pri težki pa še največ štiri različne tehnike nad enojčki
                       (GEN_TEZKA_NAJVEC), da ustvarjena Težka ostane jasno pod Zelo težko.
-                      Stopnja brez ustrezaIskanju (Ekstrem) se ne ustvarja.
+                      Stopnja brez ustrezaIskanju se ne ustvarja (Ekstrem ga ima od
+                      XY-verige, korak 7).
    Vsak ustrezaIskanju je podmnožica svojega ustreza, sicer bi ustvarjena uganka pri
    "Oceni zbirko" dobila drugo težavnost, kot jo ima v zbirki. To preverja
    tests/pocasni/generator.test.js.
 
    Iskanje traja v povprečju 0,3 s (lahka), 0,8 s (srednja), 1,0 s (težka) in 4,0 s
    (zelo težka - uganko da pribl. vsako 38. seme), najdlje pribl. 10 s (meritev 2026-10-04,
-   docs/tehnike.md).
+   docs/tehnike.md); ekstrem pribl. 1,3 s (uganko da pribl. vsako 12. seme, seme največ 0,5 s -
+   meritev 2026-10-08 v Node, docs/xy-veriga-nacrt.md).
 
    Z moznosti.strogoSrednja zahteva srednja stopnja par IN trojico na poti - to je
    merilo za testne uganke v docs/uganke.md (uporablja ga tools/ustvari-uganko.js).
@@ -116,9 +118,10 @@ const STOPNJE_UGANK = [
   {
     kljuc: 'ekstrem', ime: 'Ekstrem', najvecjaPrednost: 1,
     ustreza: (m) => m.ekspertne >= 1,
-    ustrezaIskanju: null,
+    // Generator ponudi Ekstrem od XY-verige, korak 7 (O9 v docs/xy-veriga-nacrt.md).
+    ustrezaIskanju: (m) => m.ekspertne >= 1 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
     opis: 'potrebuje ekspertno tehniko (13 – XY-veriga)',
-    opisIskanja: null,
+    opisIskanja: 'potrebuje ekspertno tehniko (13 – XY-veriga) in vsaj dve srednji',
   },
 ];
 
@@ -129,7 +132,7 @@ const STOPNJE_GENERATORJA = STOPNJE_UGANK.filter(s => s.ustrezaIskanju);
 // popravek po ročnem pregledu faze 6: en seznam stopenj, ne dva). Števili morata ustrezati
 // GEN_NAJMANJ_SREDNJIH in GEN_TEZKA_NAJVEC, tako kot opisIskanja zgoraj.
 const OPIS_STROZJEGA_ISKANJA = 'Generator je strožji od ocene, ker ponudi samo uganke, ki so za svojo '
-  + 'stopnjo tipične: pri srednji, težki in zelo težki zahteva vsaj dve različni srednji tehniki, pri '
+  + 'stopnjo tipične: pri srednji, težki, zelo težki in ekstremni zahteva vsaj dve različni srednji tehniki, pri '
   + 'težki pa še, da je vseh tehnik nad enojčki največ štiri.';
 
 function stopnjaUganke(kljuc) {

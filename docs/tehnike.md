@@ -163,6 +163,12 @@ rešljivimi 55,0 % lahkih, 23,7 % srednjih, 19,5 % težkih in 1,9 % zelo težkih
 seme, najdlje 9,6 s – meja v igri je 30 s). Banka vaj ima zdaj pri vseh naprednih tehnikah po
 vsaj 50 ugank osnovne stopnje Težka (prej mečarica 8, X-krilo 42).
 
+**Generator ponudi Ekstrem od 2026-10-08** (XY-veriga, korak 7, odločitev O9 v
+[xy-veriga-nacrt.md](xy-veriga-nacrt.md)): merilo iskanja je ekspertna tehnika in vsaj dve različni
+srednji (`GEN_NAJMANJ_SREDNJIH`). Uganko da pribl. vsako 12. seme (25 od semen 1–300); v Node 1,3 s na
+najdeno uganko (seme največ 0,5 s), v brskalniku (Edge brez glave, delavec, 40 iskanj) povprečno 1,0–2,0 s,
+največ 5,8 s.
+
 **Opredelitev stopenj od 2026-09-24** ([uskladitev.md](uskladitev.md), razdelek 7): stopnja je
 raven najtežje tehnike, ki jo uporabi motor v stalnem vrstnem redu (`genPot()` z vsemi
 tehnikami), šteje se množica različnih tehnik. Lahka = samo enojčki, Srednja = najtežje so
@@ -195,7 +201,7 @@ več kot eno srednjo. Spodnja meja to odpravi.
 | Težka | 1–6 + ena iz 7–12 | **≥ 2** iz 1–6 + **natanko 1** iz 7–12, skupaj ≤ 4 | 8,0 % | 2,1 s |
 | Zelo težka | 1–12 | **≥ 2** iz 1–6 + **≥ 2** iz 7–12 | 5,9 % | 2,1 s |
 | Presega tehnike (prej Ekstrem) | vse + poskus | motor uganke brez ugibanja ne reši | 21,4 % vseh izkopanih | – |
-| Ekstrem (od 2026-09-24) | ekspertne (13) | vsaj ena ekspertna tehnika – generator je ne ponuja | – | – |
+| Ekstrem (od 2026-09-24) | ekspertne (13) | vsaj ena ekspertna tehnika; generator (od 2026-10-08) še **≥ 2** iz 1–6 | – | 1,3 s (Node, 2026-10-08) |
 
 Minimum velja **samo za iskanje v generatorju** (kaj gumb »Ustvari uganko« ustvari), ne za
 razvrščanje že znanih ugank: `oceniUganko()` (gumb »Oceni zbirko« v igri) mora ostati pokrivajoč,

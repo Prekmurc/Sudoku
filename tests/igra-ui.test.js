@@ -976,6 +976,37 @@ test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih
   assert.equal((pomoc.match(/class="navodila-stopnje"><\/ul>/g) || []).length, 1);
 });
 
+// Gumbi stopenj v oknu »Nova uganka« so natanko STOPNJE_GENERATORJA (XY-veriga, korak 7 – O9: od
+// takrat tudi Ekstrem); izbira se zapomni po osvežitvi. Besedila Pomoči, ki stopnje generatorja
+// naštejejo v HTML, se ujemajo z istim seznamom, poved o strožjem generatorju omeni vsako stopnjo
+// razen lahke.
+test('gumbi stopenj v oknu »Nova uganka« iz STOPNJE_GENERATORJA, Pomoč jih našteje', () => {
+  let { dom, run } = zacni();
+  const stopnje = [...run('STOPNJE_GENERATORJA.map(s => s.kljuc)')];
+  const imena = [...run('STOPNJE_GENERATORJA.map(s => s.ime)')];
+  assert.deepEqual(dom.el('stopnjeGumbi').children.map(b => b.textContent), imena);
+  assert.deepEqual([...run('stopnjeGumbi.map(g => g.kljuc)')], stopnje);
+  // Zadnja stopnja: klik jo izbere in zapomni (tudi po osvežitvi strani).
+  const zadnji = dom.el('stopnjeGumbi').children[stopnje.length - 1];
+  zadnji.sprozi('click');
+  assert.equal(run('izbranaStopnja'), stopnje[stopnje.length - 1]);
+  assert.equal(zadnji.getAttribute('aria-pressed'), 'true');
+  ({ dom, run } = osveziStran(dom));
+  assert.equal(run('izbranaStopnja'), stopnje[stopnje.length - 1]);
+  assert.ok(dom.el('stopnjeGumbi').children[stopnje.length - 1].classList.contains('izbrana'));
+  // Pomoč (igra/index.html): naštete stopnje generatorja.
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'igra', 'index.html'), 'utf8');
+  const nasteto = (zacetek) => {
+    const i = html.indexOf(zacetek);
+    assert.ok(i >= 0, zacetek);
+    return [...html.slice(i, html.indexOf(')', i)).matchAll(/<b>([^<]+)<\/b>/g)].map(m => m[1]);
+  };
+  assert.deepEqual(nasteto('izbereš stopnjo ('), imena.map(i => i.toLowerCase()));
+  assert.deepEqual(nasteto('s težavnostjo svoje stopnje ('), imena);
+  const strozje = run('OPIS_STROZJEGA_ISKANJA');
+  for (const ime of imena.slice(1)) assert.ok(strozje.includes(ime.toLowerCase().slice(0, -1)), `poved o generatorju: ${ime}`);
+});
+
 // Faza 7, 6.6 (docs/faza7-nacrt.md): sporočila o številu rešitev v igri - »Začni igro« v oknu
 // »Nova uganka«, »Igraj« pri uvoženi uganki in vrstica ocene po »Oceni zbirko«. Uganke brez
 // rešitve in z več rešitvami izpelje program iz uganke v docs/uganke.md (countSolutions()), kot v

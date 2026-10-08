@@ -4,7 +4,7 @@
    izbrane stopnje ali ne poteče meja. Ker zanka nit zaseda, prekinitev naredi
    igra.js s terminate() - sporočila za ustavitev tu ni.
 
-   Sporočilo vanj:  { stopnja: 'lahka'|'srednja'|'tezka'|'zelotezka', meja: ms }
+   Sporočilo vanj:  { stopnja: ključ iz STOPNJE_GENERATORJA ('lahka' … 'ekstrem'), meja: ms }
    Sporočila iz njega:
      { tip: 'napredek', poskusi, ms }  po vsakem semenu
      { tip: 'najdena', danosti, stopnja, seme, poskusi, ms }
@@ -21,7 +21,7 @@ onmessage = (e) => {
   const stopnja = e.data && e.data.stopnja;
   const meja = (e.data && e.data.meja) || PRIVZETA_MEJA;
   try {
-    // Stopnja brez merila iskanja (Ekstrem) se ne ustvarja.
+    // Stopnja brez merila iskanja se ne ustvarja.
     if (!STOPNJE_GENERATORJA.includes(stopnjaUganke(stopnja))) throw new Error('Neznana stopnja: ' + stopnja);
     const zacetek = Date.now();
     let poskusi = 0;

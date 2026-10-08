@@ -77,15 +77,14 @@ test('stopnje: ključi, imena in opisi', () => {
     assert.equal(typeof s.ustreza, 'function', `stopnja ${s.kljuc} mora imeti merilo`);
     assert.equal(E.stopnjaUganke(s.kljuc), s);
   }
-  // Generator ponuja štiri stopnje; Ekstrem (ekspertna tehnika) nima merila iskanja.
-  assert.deepEqual([...E.STOPNJE_GENERATORJA].map(s => s.kljuc), ['lahka', 'srednja', 'tezka', 'zelotezka']);
+  // Generator ponuja vseh pet stopenj (Ekstrem od XY-verige, korak 7 - O9 v docs/xy-veriga-nacrt.md).
+  assert.deepEqual([...E.STOPNJE_GENERATORJA].map(s => s.kljuc), ['lahka', 'srednja', 'tezka', 'zelotezka', 'ekstrem']);
   for (const s of E.STOPNJE_GENERATORJA) {
     assert.equal(typeof s.ustrezaIskanju, 'function', `stopnja ${s.kljuc} mora imeti merilo iskanja`);
     // Opis merila generatorja (okno "Nova uganka", namig na gumbu) - docs/uskladitev.md 5.2.
     assert.ok(s.opisIskanja, `stopnja ${s.kljuc} mora imeti opis merila iskanja`);
   }
-  assert.equal(E.stopnjaUganke('ekstrem').ustrezaIskanju, null);
-  assert.equal(E.stopnjaUganke('ekstrem').opisIskanja, null);
+  assert.equal(E.stopnjaUganke('ekstrem').opisIskanja, 'potrebuje ekspertno tehniko (13 – XY-veriga) in vsaj dve srednji');
   assert.equal(E.stopnjaUganke('ni-take'), null);
 });
 
@@ -312,6 +311,38 @@ test('merilo iskanja je ožje od stopnje, stopnje se izključujejo in pokrijejo 
   assert.ok(preverjenih > 20, 'preverjenih mora biti več kombinacij mer');
 });
 
+// Uganka vsake stopnje, ki jo generator ponudi (STOPNJE_GENERATORJA; od XY-verige, korak 7 – O9 v
+// docs/xy-veriga-nacrt.md – tudi Ekstrem): natanko ena rešitev, solve() jo reši brez ugibanja, ocena
+// ("Oceni zbirko") je ista stopnja, ustreza merilu iskanja in nobeni drugi stopnji generatorja.
+// Seme za Ekstrem je prvo, ki da uganko te stopnje (preverjeno ob pisanju testa s pogojem O9:
+// ekspertna tehnika in vsaj dve srednji).
+const SEMENA_GENERATORJA = { ...SEMENA, ekstrem: 3 };
+test('generator: uganka vsake stopnje generatorja – ena rešitev, brez ugibanja, ocena = stopnja', () => {
+  for (const s of E.STOPNJE_GENERATORJA) {
+    const seme = SEMENA_GENERATORJA[s.kljuc];
+    assert.ok(seme, `seme za stopnjo ${s.kljuc}`);
+    const u = uganke[s.kljuc] || E.ustvariUganko(s.kljuc, seme);
+    assert.ok(u, `seme ${seme} mora dati uganko stopnje ${s.kljuc}`);
+    assert.equal(u.stopnja, s.kljuc);
+    assert.equal(u.seme, seme);
+    assert.equal(E.countSolutions(u.danosti), 1, `${s.kljuc}: natanko ena rešitev`);
+    const { board, log } = E.solve(u.danosti);
+    assert.ok(board.isSolved(), `${s.kljuc}: solve() jo reši`);
+    assert.ok(!log.some(k => /protislovje/.test(k.technique)), `${s.kljuc}: brez ugibanja`);
+    assert.equal(E.oceniUganko(u.danosti).tezavnost, s.ime, `${s.kljuc}: ocena`);
+    const m = E.genRazvrsti(u.danosti);
+    assert.ok(s.ustrezaIskanju(m), `${s.kljuc}: merilo iskanja`);
+    if (s.kljuc === 'ekstrem') {
+      assert.ok(m.ekspertne >= 1 && m.srednje >= E.GEN_NAJMANJ_SREDNJIH, 'ekstrem: ekspertna in vsaj dve srednji');
+      assert.ok(log.some(k => k.technique === 'XY-Chain'), 'ekstrem: XY-veriga v dnevniku solve()');
+    }
+    for (const d of E.STOPNJE_GENERATORJA) {
+      assert.equal(!!E.oceniStopnjo(d.kljuc, u.danosti).ustreza, d.kljuc === s.kljuc, `${s.kljuc} pri oceni za ${d.kljuc}`);
+    }
+    if (!uganke[s.kljuc]) assert.equal(E.ustvariUganko(s.kljuc, seme).danosti, u.danosti, `${s.kljuc}: isto seme, ista uganka`);
+  }
+});
+
 test('stopnje se izključujejo: uganka ustreza samo svoji', () => {
   for (const [kljuc, u] of Object.entries(uganke)) {
     for (const s of E.STOPNJE_GENERATORJA) {
@@ -466,9 +497,10 @@ test('strogoSrednja zahteva par in trojico na poti', () => {
   assert.ok(pot.some(ime => E.GEN_TROJICE.includes(ime)), 'trojica na poti');
 });
 
-test('neznana stopnja ali stopnja brez generatorja vrže napako', () => {
+// Stopnje brez generatorja ni več (Ekstrem ga ima od XY-verige, korak 7) - napako vrže neznana.
+test('neznana stopnja vrže napako', () => {
   assert.throws(() => E.oceniStopnjo('ni-take', '0'.repeat(81)), /Neznana stopnja/);
-  assert.throws(() => E.oceniStopnjo('ekstrem', '0'.repeat(81)), /Neznana stopnja/);
+  assert.ok(E.STOPNJE_UGANK.every(s => s.ustrezaIskanju), 'vse stopnje imajo generator');
 });
 
 // Težavnost in tehnike vgrajenih primerov (PRIMERI v shared/zbirka.js) so zapisane v seznamu

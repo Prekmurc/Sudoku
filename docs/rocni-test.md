@@ -278,6 +278,25 @@ Ročni pregled faze 7 je potrjen 7. 10. 2026 (vse tri točke, telefon), popravko
 | 2 | reševalec, telefon | »Zbirka« – odpri, drsi po seznamu, zapri s ✕ in s tapom ob oknu. | Kot prej in kot okno v igri. (potrjeno 7. 10. 2026) – ni avtomatsko: dotik in drsenje v pravem telefonu. |
 | 3 | igra, okno »Nova uganka« | Vnesi eno samo števko in klikni »Začni igro«. | »Te uganke ni mogoče igrati: ima več kot eno rešitev.« – se dobro bere. (potrjeno 7. 10. 2026) – ni avtomatsko: test preveri, da je besedilo tako, kot je zapisano, ne kako se bere. |
 
+## XY-veriga – tehnika 13, ekspertna raven (vse tri aplikacije)
+
+Načrt: `docs/xy-veriga-nacrt.md` (razdelek 11). Samodejno preverjeno: motor (`tests/xy-chain.test.js`,
+`tests/pocasni/xy-chain-uganke.test.js` – noben izbris na 15 000 stanjih ne izbriše števke rešitve),
+ocena ugank (`tests/pocasni/stopnje-ugank.test.js` – nobena uganka, ki ni bila »Presega tehnike«, ne
+spremeni stopnje), izris številk verige (`tests/veriga-prikaz.test.js`, `tests/izris-korakov.test.js`),
+kontrast značk (`tests/znacke-kontrast.test.js`), vaja »Spoznaj« (`tests/trening-xy-chain.test.js`),
+generator Ekstrem (`tests/pocasni/generator.test.js`, `tests/igra-ui.test.js`); v pravem brskalniku
+`tools/preveri-veriga-`, `-vklop-` in `-generator-brskalnik.js`. Preizkusna uganka `xy-veriga-17`
+(niz za polje **Niz**): `...2...8..6........9.......1..7..5........6.9..4......8.7....4......51......6..3.`
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening (meni) in igra (»Zbirka« → »Vgrajeni primeri«, P_14 in P_15), telefon in računalnik | Poglej kartico 13 v meniju treninga ob 7–12, nato v igri primera P_14 (Zelo težka) in P_15 (Ekstrem) drug ob drugem; ustvari še uganko »Ekstrem« in odpri »Zbirka«. | Ekspertna raven (EKSPERTNA) in značka »Ekstrem« sta jasno turkizni, ločita se od vijolične »Zelo težka« in rdeče »Presega tehnike« (P_16); »Ekstrem« ni videti črn. (nepotrjeno) – ni avtomatsko: testi merijo kontrast, ne zaznave barv na tvojem zaslonu. |
+| 2 | reševalec | Prilepi preizkusno uganko v polje Niz, »Reši«, »Pokaži korake reševanja«; pri korakih 31 in 34 »Pokaži na mreži« in tap na malo mrežo (povečava). | Iz zaporednih številk 1–5 (31) oziroma 1–6 (34) in besedila koraka razbereš, kako gre veriga in zakaj se števka izbriše. (nepotrjeno) – ni avtomatsko: razumljivost prikaza ni merljiva. |
+| 3 | trening, »Spoznaj« 13 | Reši nekaj vaj s štirimi, petimi in šestimi celicami (dolžina se izmenjuje po vajah); pri eni poglej »Namig« in »Rešitev (drži)«. | Naloga je jasna; motilec (veriga, ki ni prava) je pošten – ne zavaja s skoraj pravim vzorcem, a ga ločiš od prave verige. (nepotrjeno) – ni avtomatsko: didaktika. |
+| 4 | trening, »Vadi v uganki« 13 | Pri vaji z daljšo verigo (5–8 celic) odpri »Namig«, nato »Rešitev«; izbriši števko in »Preveri«. | Namig (»Števka z – veriga ima n celic.«) pomaga, ne pove preveč; rešitev in zaporedne številke na mreži pokažejo verigo po vrsti, tudi po »Pravilno!«. (nepotrjeno) – ni avtomatsko: ali pomoč res pomaga, presodi samo človek. |
+| 5 | igra | »Nova uganka« → Niz: preizkusna uganka → »Začni igro«; rešuj z »Naslednji korak« do verige (korak 31): ime → »Pokaži več« → »Pokaži rešitev«, nato izvedi izbris sam. | Tri stopnje se berejo smiselno (»13 · XY-veriga« → števka in dolžina → razlaga s številkami na mreži); po izbrisu »✓ Korak je izveden.« (nepotrjeno) – ni avtomatsko: celoten potek s tvojimi kliki in branjem treh stopenj. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
