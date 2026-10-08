@@ -13,6 +13,9 @@ let mode=null,nacin='spoznaj',exNum=0,selected=[],pickedDigits=[],scoreRight=0,s
 let pomocVaje=false,vajaResena=false,vajaPrav=0,vajaVseh=0,sPomocjo=0,stetoObPreveri=false;
 // Delna mreža vaj 1 in 2 (buildPresekLayout) ali null.
 let presek=null;
+// Namig in Rešitev v »Spoznaj« (stikali, renderExercise): osveziPomoc() ob spremembi izbire,
+// preveriSPomocjo(f) za »Preveri« - nastavi ju vsaka vaja.
+let osveziPomoc=()=>{},preveriSPomocjo=f=>f();
 // Plošča vaje E1/E2 (buildSingleLayout) ali null; kljukici "več hkrati" in "senči" ostaneta
 // med vajami kroga.
 let enojcek=null,vecHkratiKrog=false,senciKrog=false;
@@ -133,6 +136,7 @@ function makeCell(slot,si,M){
       const idx=selected.indexOf(si);
       if(idx>=0){selected.splice(idx,1);gc.classList.remove(M.selClass);}
       else if(selected.length<M.pickN){selected.push(si);gc.classList.add(M.selClass);}
+      osveziPomoc();
     });
   }
   return gc;
@@ -190,7 +194,7 @@ function buildPresekLayout(div,ex,M){
     const ii=selected.indexOf(i);
     if(ii>=0) selected.splice(ii,1);
     else if(selected.length<M.pickN) selected.push(i);
-    izrisi();
+    izrisi();osveziPomoc();
   }});
   const oznakeKoraka=()=>({
     vzorec:new Set(ex.solutionCells),
@@ -202,7 +206,8 @@ function buildPresekLayout(div,ex,M){
     mreza.izrisi({
       grid:ex.grid,danosti:ex.danosti,kandidati:ex.kandidati,
       barva:d=>!korak&&d===ex.digit?0:-1,
-      izbrane:korak?[]:selected,sosede:null,
+      // Izbira je vidna tudi ob odprti Rešitvi (O12), po pravilnem odgovoru je ni več.
+      izbrane:korak&&vajaResena?[]:selected,sosede:null,
       oznake:korak?oznakeKoraka():null,
       vidne:ex.vidne,
     });
@@ -258,7 +263,7 @@ function buildFullGridLayout(div,ex,M){
 // izbrana vnaprej in je ni mogoče odizbrati, označena števka (E2, vaje 1-3) prav tako;
 // drugi gumbi števk so takrat onemogočeni. Pod mrežo je niz števk 1-9 za vpis
 // (pickedDigits); tipka s števko ga izbere prek obVpisu.
-// "Rešitev (drži)" pokaže korak z oznakami koraka (enota skritega enojčka jantarno,
+// "Rešitev" pokaže korak z oznakami koraka (enota skritega enojčka jantarno,
 // celica zeleno s števko); pravilen odgovor postane poteza vpis (števci in seznami se
 // osvežijo), mreža je nato zaklenjena (samoZaOgled, brez zelene obrobe - trening.css).
 function buildSingleLayout(div,ex,M){
@@ -322,7 +327,7 @@ function buildSingleLayout(div,ex,M){
   }
   div.appendChild(stevkeEl);
 
-  // Oznake koraka: med "Rešitev (drži)" korak vaje, po pravilnem odgovoru vpisana celica.
+  // Oznake koraka: ob odprti "Rešitvi" korak vaje, po pravilnem odgovoru vpisana celica.
   const oznake=()=>{
     if(!prikaz&&!odgovor) return null;
     const vpis=new Map(odgovor?[odgovor]:[]);
@@ -383,7 +388,7 @@ function oznaciStevke(cellEls,pari,razred){
 // XY-veriga (O4, docs/xy-veriga-nacrt.md): zaporedna številka celice verige (celice koraka
 // `cells` po vrsti, indeksi 0-80) na praznem mestu kandidata - skrita mala števka na tem mestu
 // (.cd.hide, mestoStevilkeVerige()) pokaže številko (razred veriga-st, dataset.d ostane).
-// `ogled` (Rešitev (drži)) doda še peek-veriga: odstrani jih pobrisiVerigo(); številke po
+// `ogled` (Rešitev) doda še peek-veriga: odstrani jih pobrisiVerigo(); številke po
 // pravilnem odgovoru ostanejo. Celica, ki številko že ima, je ne dobi znova.
 function oznaciVerigo(cellEls,idxToSi,cells,ogled){
   cells.forEach((c,j)=>{
@@ -404,7 +409,7 @@ function pobrisiVerigo(cellEls){
   });});
 }
 
-// Legenda oznak pri vajah 3-12 v »Spoznaj« (faza 6) - pod »Rešitvijo (drži)« (kdaj 'resitev') in
+// Legenda oznak pri vajah 3-12 v »Spoznaj« (faza 6) - pod »Rešitvijo« (kdaj 'resitev') in
 // pod »Pravilno!« (kdaj 'odgovor'). Našteje samo vrste celic, ki so takrat na mreži, zato
 // ista barva ne pomeni dveh stvari (rožnata z rdečim okvirjem je ob »Rešitvi« napačno izbrana
 // celica izbrisa, po odgovoru celica z izbrisom). Vzorčki imajo iste spremenljivke barv kot
@@ -461,7 +466,7 @@ function legendaOznak(cellEls,M,kdaj){
 // Izbris vzorca pri 3-6 kot pari [si, števka] (indeksi v ex.slots): pri očitnem paru/trojici
 // (celice ps s števkami ds) števke ds v drugih celicah enote, pri skritem (M.hasPhase2) druge
 // števke v celicah vzorca. Isti izračun prečrta izbris po pravilnem odgovoru (checkPhase1,
-// checkPhase2) in ob "Rešitvi (drži)" (peekOn) - docs/precrtanje-resitev-nacrt.md.
+// checkPhase2) in ob "Rešitvi" (peekOn) - docs/precrtanje-resitev-nacrt.md.
 function izbrisPodmnozice(ex,M,ps,ds){
   if(M.hasPhase2) return ps.flatMap(si=>ex.slots[si].c.filter(d=>!ds.has(d)).map(d=>[si,d]));
   return ex.slots.flatMap((slot,si)=>ps.includes(si)||!slot.c?[]:slot.c.filter(d=>ds.has(d)).map(d=>[si,d]));
@@ -515,7 +520,7 @@ function veljavniVzorci(ex,M){
 
 function renderExercise(){
   const M=MODES[mode];
-  enojcek=null;vadiPrekini();
+  enojcek=null;vadiPrekini();osveziPomoc=()=>{};
   if(exNum>=MAX_EX){
     area.innerHTML='';const d=document.createElement('div');d.className='exercise';
     const pct=scoreTotal>0?Math.round(scoreRight/scoreTotal*100):0;
@@ -568,6 +573,7 @@ function renderExercise(){
             const ii=selected.indexOf(si);
             if(ii>=0){selected.splice(ii,1);cell.classList.remove('xw-selected');}
             else if(selected.length<(M.isSwordfish?9:4)){selected.push(si);cell.classList.add('xw-selected');}
+            osveziPomoc();
           });
         }
         xg.appendChild(cell);
@@ -637,17 +643,17 @@ function renderExercise(){
     }
     phase2.appendChild(digitBtnsDiv);
     const ch2=document.createElement('button');ch2.className='pri '+M.btnClass;ch2.textContent='Preveri '+p2word;
-    ch2.addEventListener('click',()=>preveri(()=>checkPhase2(ex,M,cellEls,ch2,nextBtn,fb),fb));
+    ch2.addEventListener('click',()=>preveriSPomocjo(()=>checkPhase2(ex,M,cellEls,ch2,nextBtn,fb)));
     phase2.appendChild(ch2);
   }
 
-  checkBtn.addEventListener('click',()=>preveri(()=>checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2),fb));
+  checkBtn.addEventListener('click',()=>preveriSPomocjo(()=>checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2)));
   btnRow.appendChild(checkBtn);btnRow.appendChild(nextBtn);
   div.appendChild(btnRow);
   if(phase2) div.appendChild(phase2);
   div.appendChild(fb);
 
-  // --- Namig in Rešitev gumba (prikaže se samo med držanjem) ---
+  // --- Namig in Rešitev (stikali: klik odpre, drugi klik zapre) ---
   const peekRow=document.createElement('div');peekRow.className='peek-row';
 
   // Korak shared logike, ki ga je generator preveril in shranil (glej
@@ -849,18 +855,34 @@ function renderExercise(){
     pobrisiVerigo(cellEls);
   }
 
-  const hintBtn=document.createElement('button');hintBtn.className='peek-btn';hintBtn.textContent='Namig (drži)';
-  const solBtn=document.createElement('button');solBtn.className='peek-btn';solBtn.textContent='Rešitev (drži)';
-
-  // Drži za prikaz (miška + dotik)
-  ['mousedown','touchstart'].forEach(evt=>{
-    hintBtn.addEventListener(evt,e=>{e.preventDefault();peekOn(hintOverlay,buildHintText(),false);});
-    solBtn.addEventListener(evt,e=>{e.preventDefault();peekOn(solOverlay,buildSolutionText(),true);});
-  });
-  ['mouseup','mouseleave','touchend','touchcancel'].forEach(evt=>{
-    hintBtn.addEventListener(evt,()=>peekOff(hintOverlay));
-    solBtn.addEventListener(evt,()=>peekOff(solOverlay));
-  });
+  // Namig in Rešitev sta stikali (docs/trening-ucenje-nacrt.md, del B): klik odpre, drugi klik
+  // zapre (napis »Skrij namig« / »Skrij rešitev«, aria-pressed); odprt je kvečjemu eden - drugi
+  // gumb zamenja vsebino (odprto: null, 'namig' ali 'resitev'). Pomoč se šteje ob prvem odprtju
+  // (peekOn -> oznaciPomoc). Nova vaja se izriše na novo, zato je pomoč zaprta.
+  let odprto=null;
+  const hintBtn=document.createElement('button');hintBtn.type='button';hintBtn.className='peek-btn';
+  const solBtn=document.createElement('button');solBtn.type='button';solBtn.className='peek-btn';
+  function napisiPomoci(){
+    hintBtn.textContent=odprto==='namig'?'Skrij namig':'Namig';hintBtn.setAttribute('aria-pressed',String(odprto==='namig'));
+    solBtn.textContent=odprto==='resitev'?'Skrij rešitev':'Rešitev';solBtn.setAttribute('aria-pressed',String(odprto==='resitev'));
+  }
+  function pokaziPomoc(){
+    if(odprto==='namig') peekOn(hintOverlay,buildHintText(),false);
+    else if(odprto==='resitev') peekOn(solOverlay,buildSolutionText(),true);
+  }
+  function skrijPomoc(){peekOff(hintOverlay);peekOff(solOverlay);}
+  function preklopiPomoc(kaj){skrijPomoc();odprto=odprto===kaj?null:kaj;pokaziPomoc();napisiPomoci();}
+  hintBtn.addEventListener('click',()=>preklopiPomoc('namig'));
+  solBtn.addEventListener('click',()=>preklopiPomoc('resitev'));
+  napisiPomoci();
+  // Izbira ob odprti Rešitvi (O12, B): oznake in besedilo se prilagodijo novi izbiri - kot nov
+  // pritisk z drugo izbiro prej. Pokliče se ob kliku celice (makeCell, X-krilo in mečarica, delna
+  // mreža 1 in 2); E1 in E2 izbiro in oznake koraka izriše plošča skupaj.
+  osveziPomoc=()=>{if(odprto==='resitev'){skrijPomoc();pokaziPomoc();}};
+  // »Preveri« (O13): pomoč se pred presojo skrije (oznake Rešitve se ne mešajo z oznakami
+  // odgovora); pri rešeni vaji ostane zaprta, sicer se znova odpre s stanjem po presoji (napačen
+  // odgovor izprazni izbiro; pravilna 1. faza pri 4 in 6 vaje še ne reši).
+  preveriSPomocjo=(f)=>{skrijPomoc();preveri(f,fb);if(vajaResena)odprto=null;pokaziPomoc();napisiPomoci();};
 
   peekRow.appendChild(hintBtn);peekRow.appendChild(solBtn);
   div.appendChild(peekRow);

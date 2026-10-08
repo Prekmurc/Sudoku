@@ -549,7 +549,19 @@ const ODGOVOR_3_12 = ['naked-pair', 'x-wing', 'xy-wing'];
 // pokaže pod gumbom, jo sicer zamakne za svojo višino, gumb uide izpod miške in mouseleave
 // rešitev skrije (tudi v izhodišču 4e1e4dc - docs/oznake-nacrt.md, razdelek 8). Prostor pod
 // vsebino to prepreči, mreže ne spremeni.
+// Od naloge trening-ucenje (korak 1, docs/trening-ucenje-nacrt.md) je »Rešitev« stikalo: pravi
+// klik jo odpre, pravi klik na »Skrij rešitev« zapre (prostor pod vsebino ni več potreben).
+// Pritisk miške ostane za gumb »Rešitev (drži)« (izhodišče).
+async function klikniPomoc(b, napis) {
+  await b.izvedi(`[...document.querySelectorAll('.peek-btn')].find(x => x.textContent === ${JSON.stringify(napis)}).setAttribute('data-klik', '1'); true`);
+  await b.klikni('.peek-btn[data-klik="1"]');
+  await b.izvedi(`document.querySelectorAll('[data-klik]').forEach(e => e.removeAttribute('data-klik')); true`);
+}
 async function drziResitev(b, fn) {
+  if (!(await b.izvedi(`[...document.querySelectorAll('.peek-btn')].some(x => x.textContent === 'Rešitev (drži)')`))) {
+    await klikniPomoc(b, 'Rešitev');
+    try { return await fn(); } finally { await klikniPomoc(b, 'Skrij rešitev'); }
+  }
   await b.izvedi("document.body.style.paddingBottom = '800px'; true");
   const t = await b.izvedi(`(() => { const g = [...document.querySelectorAll('.peek-btn')].find(x => x.textContent === 'Rešitev (drži)');
     g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
@@ -685,9 +697,9 @@ async function izris(b, mode, sirina) {
     // potem kot v izhodišču), primerja se vse drugo. Enako vrstica z imenom tehnike (.ex-label):
     // od popravkov po koraku 1 faze 3a je večja in temna.
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
-    k.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
-    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label')]; sk.forEach(e => { e.style.display = 'none'; });
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    k.querySelectorAll('.shema-razdelek, .peek-row').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row')]; sk.forEach(e => { e.style.display = 'none'; });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     return { html: k.innerHTML, slogi };
   })()`);

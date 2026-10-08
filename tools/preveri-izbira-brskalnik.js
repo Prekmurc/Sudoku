@@ -82,8 +82,15 @@ async function odpri(b, mode, sirina) {
   // izpod miške (docs/uskladitev.md, »Kasneje«) - prostor pod vsebino tega ne dopusti.
   await b.izvedi("document.body.style.paddingBottom = '800px'; true");
 }
-// Pravi pritisk miške na »Rešitev (drži)«; fn se izvede med držanjem.
+// »Rešitev«: fn se izvede, ko je prikazana. Od naloge trening-ucenje (korak 1,
+// docs/trening-ucenje-nacrt.md) je gumb stikalo - pravi klik na »Rešitev« jo odpre, pravi klik na
+// »Skrij rešitev« zapre; v izhodišču (gumb »Rešitev (drži)«) pravi pritisk miške, fn med držanjem.
+const starGumbResitve = b => b.izvedi(`[...document.querySelectorAll('.peek-btn')].some(x => x.textContent === 'Rešitev (drži)')`);
 async function drziResitev(b, fn) {
+  if (!(await starGumbResitve(b))) {
+    await klikniGumb(b, 'Rešitev');
+    try { await pocakaj(b); return await fn(); } finally { await klikniGumb(b, 'Skrij rešitev'); await odmakniMisko(b); }
+  }
   const t = await b.izvedi(`(() => { const g = [...document.querySelectorAll('.peek-btn')].find(x => x.textContent === 'Rešitev (drži)');
     g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
   await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x: t.x, y: t.y });
@@ -94,8 +101,14 @@ async function drziResitev(b, fn) {
   }
 }
 // »Rešitev« z dogodkom v strani (brez miške) - za posnetke s captureBeyondViewport, ki med pravim
-// pritiskom za trenutek spremenijo okno: gumb dobi mouseleave in »Rešitev« se skrije.
+// pritiskom za trenutek spremenijo okno: gumb dobi mouseleave in »Rešitev« se skrije (izhodišče).
+// Stikalo (nova koda) se odpre in zapre s klikom v strani.
 async function resitevBrezMiske(b, fn) {
+  if (!(await starGumbResitve(b))) {
+    const klik = napis => b.izvedi(`[...document.querySelectorAll('.peek-btn')].find(x => x.textContent === ${JSON.stringify(napis)}).click(); true`);
+    await klik('Rešitev');
+    try { await pocakaj(b); return await fn(); } finally { await klik('Skrij rešitev'); await pocakaj(b); }
+  }
   const sprozi = tip => b.izvedi(`[...document.querySelectorAll('.peek-btn')].find(x => x.textContent === 'Rešitev (drži)')
     .dispatchEvent(new MouseEvent('${tip}', { bubbles: true, cancelable: true })); true`);
   await sprozi('mousedown');
@@ -211,9 +224,9 @@ const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'b
 const OCITNI = ['naked-pair', 'naked-triple'];
 // Razdelek »Shema« (faza 3a) v izhodišču ni, vrstica z imenom tehnike (.ex-label) je od popravkov
 // po koraku 1 faze 3a večja in temna - med meritvijo sta skrita, primerja se vse drugo.
-const izris = (b, mode) => b.izvedi(`(() => { const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-label')]; sk.forEach(e => { e.style.display = 'none'; });
-  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label')), ocitni = ${OCITNI.includes(mode)};
-  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
+const izris = (b, mode) => b.izvedi(`(() => { const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-label, #exerciseArea .peek-row')]; sk.forEach(e => { e.style.display = 'none'; });
+  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row')), ocitni = ${OCITNI.includes(mode)};
+  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek, .peek-row').forEach(e => e.remove());
   const dovoljeno = {};
   vsi.forEach((e, i) => {
     if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];

@@ -12,6 +12,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
+const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -53,10 +54,7 @@ function stevke(dom, razred) {
 }
 const celice = (dom, razred) => vsi(dom.el('exerciseArea'))
   .filter(e => e.dataset && e.dataset.si !== undefined && e.classList.contains(razred)).map(e => +e.dataset.si).sort((a, b) => a - b);
-function medResitvijo(dom, f) {
-  gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
-  try { return f(); } finally { gumb(dom, 'Rešitev (drži)').sprozi('mouseup'); }
-}
+const medResitvijo = (dom, f) => medPomocjo(dom, 'resitev', f);
 const pari = p => [...p].map(([si, d]) => `${si}:${d}`).sort();
 // Izbris očitnega vzorca (celice cells, števke ds): števke ds v drugih celicah enote.
 const izbrisOcitnih = (run, cells, ds) => pari(run('zadnja.slots').flatMap((s, si) =>

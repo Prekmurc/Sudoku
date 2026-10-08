@@ -13,6 +13,7 @@
 //   await b.izvedi('currentGivens()');                 // izraz v strani (tudi let/const skript)
 //   await b.fokus('#nizDanosti'); await b.vtipkaj('8....1...');  // kot tipkovnica
 //   await b.klikni('#solveBtn');                       // pravi klik miške na sredino elementa
+//   await b.tapni('#solveBtn');                        // pravi dotik (pri odpri(..., { mobilno: true }))
 //   await b.tipka('Enter');                            // ena tipka
 //   await b.tipka('"', { code: 'Digit2', shift: true }); // par key/code (QWERTZ)
 //   await b.cakaj('document.getElementById("status").className === "ok"');
@@ -264,6 +265,21 @@ async function zazeni({ koren = KOREN } = {}) {
       for (const type of ['mousePressed', 'mouseReleased']) {
         await cdp.poslji('Input.dispatchMouseEvent', { type, x: t.x, y: t.y, button: 'left', clickCount: 1 });
       }
+    },
+
+    // Pravi dotik (tap) na sredino elementa - Input.dispatchTouchEvent (začetek in konec dotika);
+    // brskalnik iz njega sam sproži click, kot na telefonu. Smiselno pri odpri(..., { mobilno: true }).
+    async tapni(izbirnik) {
+      const t = await b.izvedi(`(() => {
+        const el = document.querySelector(${JSON.stringify(izbirnik)});
+        if (!el) return null;
+        el.scrollIntoView({ block: 'center', inline: 'center' });
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      })()`);
+      if (!t) throw new Error(`Ni elementa ${izbirnik}.`);
+      await cdp.poslji('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: t.x, y: t.y }] });
+      await cdp.poslji('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     },
 
     // Izbira datoteke s pravim klikom: klik na element (npr. gumb »Uvozi«, ki pokliče

@@ -15,6 +15,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
+const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
 
 const RESEVALEC = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js',
   'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'app/app.js', 'app/zbirka.js'];
@@ -198,12 +199,12 @@ test('»Spoznaj« (mreža 9 × 9): številke verige ob »Rešitvi (drži)«, po 
   for (const seme of [1, 2, 3]) {
     const { dom, run } = spoznaj(seme);
     const ex = JSON.parse(run('JSON.stringify(zadnja)'));
-    gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
+    odpriPomoc(dom, 'resitev');
     assert.deepEqual(stevilkeSpoznaj(dom, run), pricakovano(ex), `seme ${seme}`);
     const legenda = vsi(dom.el('exerciseArea')).find(e => e.className === 'legenda-vaje');
     assert.ok(legenda.children[0].textContent.endsWith('celice verige (po vrsti)'), legenda.children[0].textContent);
     assert.equal(legenda.children[0].children[0].textContent, '1');
-    gumb(dom, 'Rešitev (drži)').sprozi('mouseup');
+    zapriPomoc(dom, 'resitev');
     assert.deepEqual(stevilkeSpoznaj(dom, run), [], `seme ${seme}: po spustu`);
     // Skrite male števke so po spustu spet skrite in imajo svojo števko.
     for (const cel of vsi(dom.el('exerciseArea')).filter(e => e.dataset && e.dataset.si !== undefined)) {
@@ -228,8 +229,8 @@ test('»Spoznaj« (mreža 9 × 9): številke verige po pravilnem odgovoru ostane
     .find(s => s.cells.length === ${ex.solutionCells.length} && s.cells.every(c => ${JSON.stringify(ex.solutionCells)}.includes(c))))`));
   const prav = pricakovano({ ...ex, solutionCells: korak.cells });
   assert.deepEqual(stevilkeSpoznaj(dom, run), prav);
-  gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
-  gumb(dom, 'Rešitev (drži)').sprozi('mouseup');
+  odpriPomoc(dom, 'resitev');
+  zapriPomoc(dom, 'resitev');
   assert.deepEqual(stevilkeSpoznaj(dom, run), prav, 'po ogledu »Rešitve« ostanejo');
 });
 

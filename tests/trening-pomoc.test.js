@@ -16,6 +16,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
+const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
 
 // Vrstni red kot <script> v trening/index.html.
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
@@ -124,19 +125,19 @@ for (const { tehnika: t, n, pravilno, napacno } of PRIMERI) {
     assert.ok(!imaOznako(dom));
   });
 
-  for (const [napis, dogodek] of [['Namig (drži)', 'mousedown'], ['Rešitev (drži)', 'touchstart']]) {
+  for (const [kaj, napis] of [['namig', 'Namig'], ['resitev', 'Rešitev']]) {
     test(`${tehnika}: ${napis} - vaja se ne šteje nikamor in dobi oznako "s pomočjo"`, () => {
       const { dom, run } = zacni_();
       napacno(dom, run);
       assert.equal(rezultat(dom), '0/1');
-      // Kratek ogled: pritisk in takoj spust.
-      gumb(dom, napis).sprozi(dogodek);
-      gumb(dom, napis).sprozi(dogodek === 'mousedown' ? 'mouseup' : 'touchend');
+      // Kratek ogled: odpri in takoj zapri.
+      odpriPomoc(dom, kaj);
+      zapriPomoc(dom, kaj);
       assert.equal(rezultat(dom), '0/0', 'že šteti poskus te vaje se odšteje');
       assert.equal(pomoc(dom), ' · s pomočjo: 1');
       // Ponoven ogled iste vaje se ne šteje dvakrat.
-      gumb(dom, 'Namig (drži)').sprozi('mousedown');
-      gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
+      odpriPomoc(dom, 'namig');
+      odpriPomoc(dom, 'resitev');
       assert.equal(pomoc(dom), ' · s pomočjo: 1');
       napacno(dom, run);
       assert.equal(rezultat(dom), '0/0', 'napačen poskus po pomoči se ne šteje');
@@ -152,14 +153,14 @@ for (const { tehnika: t, n, pravilno, napacno } of PRIMERI) {
     const { dom, run } = zacni_();
     pravilno(dom, run);
     assert.equal(rezultat(dom), '1/1');
-    gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
+    odpriPomoc(dom, 'resitev');
     assert.equal(rezultat(dom), '1/1');
     assert.equal(pomoc(dom), '');
   });
 
   test(`${tehnika}: "Naslednja vaja" ponastavi pomoč, povzetek pove število vaj s pomočjo`, () => {
     const { dom, run } = zacni_();
-    gumb(dom, 'Namig (drži)').sprozi('mousedown');
+    odpriPomoc(dom, 'namig');
     pravilno(dom, run);
     assert.equal(rezultat(dom), '0/0');
     gumb(dom, 'Naslednja vaja →').sprozi('click');
@@ -411,14 +412,14 @@ test('tipkovnica pri enojčkih po stopnjah (tudi pari QWERTZ key/code)', () => {
   assert.deepEqual(izb(run), []);
 });
 
-test('enojčka: "Rešitev (drži)" z oznakami koraka, pravilen odgovor postane poteza in zaklene mrežo', () => {
+test('enojčka: "Rešitev" z oznakami koraka, pravilen odgovor postane poteza in zaklene mrežo', () => {
   const { dom, run } = zacni('hidden-single', 0);
   const [c, d] = run('zadnja.korak.assign[0]'), u = enota(run);
-  gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
+  odpriPomoc(dom, 'resitev');
   let cs = celice(dom);
   assert.ok(ima(cs[c], 'k-vpis') && cs[c].textContent === String(d), 'celica koraka zeleno s števko');
   for (const x of u) if (x !== c) assert.ok(ima(cs[x], 'k-vzorec'), `enota ${x}`);
-  gumb(dom, 'Rešitev (drži)').sprozi('mouseup');
+  zapriPomoc(dom, 'resitev');
   assert.ok(cs.every(x => !ima(x, 'k-vpis') && !ima(x, 'k-vzorec')), 'po spustu ni oznak');
   assert.equal(cs[c].textContent, '');
 

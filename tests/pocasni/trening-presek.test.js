@@ -155,6 +155,7 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
 /* ---------- prikaz v treningu (trening/trening.js) v nadomestnem DOM-u ---------- */
 
 const { makeDom } = require('../dom-stub.js');
+const { odpriPomoc, zapriPomoc } = require('../pomoc-stikali.js');
 const DATOTEKE_UI = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
   'shared/vaje-banka.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 
@@ -261,8 +262,8 @@ for (const mode of Object.keys(MODE)) {
     // Po pravilnem odgovoru se nič več ne izbere, oznake ostanejo tudi po ogledu rešitve.
     celice[napacne[0]].sprozi('click');
     assert.deepEqual(izbrane(), []);
-    gumbUI(dom, 'Rešitev (drži)').sprozi('mousedown');
-    gumbUI(dom, 'Rešitev (drži)').sprozi('mouseup');
+    odpriPomoc(dom, 'resitev');
+    zapriPomoc(dom, 'resitev');
     assert.ok(ex.solutionCells.every(i => razredi(celice[i]).includes('k-vzorec')));
     assert.equal(rezultatUI(dom), '1/2', 'ogled po pravilnem odgovoru ne spremeni rezultata');
   });
@@ -271,18 +272,16 @@ for (const mode of Object.keys(MODE)) {
     const { dom, run } = odpri(mode);
     const ex = JSON.parse(JSON.stringify(run('zadnja')));
     const celice = run('presek.mreza.celice');
-    const g = gumbUI(dom, 'Rešitev (drži)');
-    g.sprozi('mousedown');
+    odpriPomoc(dom, 'resitev');
     assert.ok(ex.solutionCells.every(i => razredi(celice[i]).includes('k-vzorec')), 'med držanjem je vzorec označen');
     assert.ok(!celice.some(imaPoudarek), 'med držanjem ni poudarka');
-    g.sprozi('mouseup');
+    zapriPomoc(dom, 'resitev');
     assert.ok(!celice.some(c => razredi(c).includes('k-vzorec')), 'po spustu oznak ni');
     assert.ok(celice.some(imaPoudarek), 'poudarek je spet vklopljen');
-    const n = gumbUI(dom, 'Namig (drži)');
-    n.sprozi('mousedown');
+    odpriPomoc(dom, 'namig');
     const namig = vsi(dom.el('exerciseArea')).find(e => /peek-overlay/.test(e.className) && /visible/.test(e.className));
     const polozaji = ex.solutionCells.map(i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`).join(', ');
     assert.ok(namig && namig.html.includes(`Kandidat ${ex.digit} se v `) && namig.html.includes(polozaji), namig && namig.html);
-    n.sprozi('mouseup');
+    zapriPomoc(dom, 'namig');
   });
 }

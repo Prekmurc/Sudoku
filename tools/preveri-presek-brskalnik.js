@@ -141,9 +141,9 @@ async function izris(b, mode, sirina) {
     // potem kot v izhodišču), primerja se vse drugo. Enako vrstica z imenom tehnike (.ex-label):
     // od popravkov po koraku 1 faze 3a je večja in temna.
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
-    k.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
-    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label')]; sk.forEach(e => { e.style.display = 'none'; });
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    k.querySelectorAll('.shema-razdelek, .peek-row').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row')]; sk.forEach(e => { e.style.display = 'none'; });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     return { html: k.innerHTML, slogi };
   })()`);

@@ -13,6 +13,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
+const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -43,10 +44,7 @@ const videnOkvir = dom => vse(dom).find(e => e.className === 'peek-overlay visib
 const legende = el => vsi(el).filter(e => e.className === 'legenda-vaje')
   .map(l => l.children.map(p => [p.children[0].className, p.children[1].textContent]));
 const besedila = l => l.map(([, b]) => b);
-function medResitvijo(dom, f) {
-  gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
-  try { return f(); } finally { gumb(dom, 'Rešitev (drži)').sprozi('mouseup'); }
-}
+const medResitvijo = (dom, f) => medPomocjo(dom, 'resitev', f);
 // Pravilen odgovor z izbiro v stanju (kot v drugih testih »Spoznaj«) in klikom »Preveri«.
 function odgovori(dom, run, tehnika) {
   if (tehnika === 'x-wing' || tehnika === 'swordfish') {
@@ -176,9 +174,7 @@ for (const tehnika of ['x-wing', 'swordfish']) {
       if (!vrstice) { run('exNum = 1'); run('renderExercise()'); }
       assert.equal(run('zadnja.baseIsRow'), vrstice, 'vaja v želeni smeri');
       const grid = run('zadnja.grid'), bases = run('zadnja.bases');
-      gumb(dom, 'Namig (drži)').sprozi('mousedown');
-      const namig = videnOkvir(dom).innerHTML;
-      gumb(dom, 'Namig (drži)').sprozi('mouseup');
+      const namig = medPomocjo(dom, 'namig', () => videnOkvir(dom).innerHTML);
       const [delV, delS] = namig.split(' · po stolpcih: ');
       assert.ok(delV.startsWith(`Pojavitve ${run('zadnja.digit')} po vrsticah: `) && delS, namig);
       assert.ok(namig.endsWith(NAMIG_ISCI[tehnika]), namig);

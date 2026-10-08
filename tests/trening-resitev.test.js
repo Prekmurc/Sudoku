@@ -11,6 +11,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
+const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -75,8 +76,7 @@ const sRazredom = (dom, razred) => vsi(dom.el('exerciseArea'))
   .filter(e => e.classList.contains(razred)).map(e => +(e.dataset.idx ?? e.dataset.si)).sort((a, b) => a - b);
 const besediloResitve = dom => vsi(dom.el('exerciseArea')).filter(e => e.className === 'peek-overlay visible').map(e => e.innerHTML).join('');
 function medResitvijo(dom, f) {
-  gumb(dom, 'Rešitev (drži)').sprozi('mousedown');
-  try { return f(); } finally { gumb(dom, 'Rešitev (drži)').sprozi('mouseup'); }
+  return medPomocjo(dom, 'resitev', f);
 }
 
 for (const tehnika of ['x-wing', 'swordfish', 'naked-triple']) {

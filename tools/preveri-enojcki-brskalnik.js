@@ -190,9 +190,9 @@ async function vaja(b, mode, n, sirina) {
   await b.posnetek(path.join(mapa, `${IME[mode]}-${n + 1}-${sirina}-pravilno.png`));
 }
 
-// Stikala seznamov s pravimi kliki in ohranitev po osvežitvi; "Rešitev (drži)".
+// Stikala seznamov s pravimi kliki in ohranitev po osvežitvi; "Rešitev" (stikalo).
 async function stikalaInResitev(b) {
-  console.log('Trening, E2 vaja 1, 375 px: stikala, osvežitev, Rešitev (drži)');
+  console.log('Trening, E2 vaja 1, 375 px: stikala, osvežitev, Rešitev');
   await odpri(b, 'hidden-single', 0, 375, 77);
   const vidni = () => b.izvedi(`[...document.querySelectorAll('.vaja-enojcek .seznam')].map(s => !s.hidden)`);
   preveri('privzeto so seznami skriti', (await vidni()).every(v => !v));
@@ -202,14 +202,15 @@ async function stikalaInResitev(b) {
   await b.odpri('trening/index.html', { sirina: 375, visina: 1000, mobilno: true });
   await b.klikni('.menu-card[data-mode="hidden-single"]');
   preveri('po osvežitvi ostaneta vklopljena', JSON.stringify(await vidni()) === '[true,false,true]', await vidni());
-  await b.izvedi(`[...document.querySelectorAll('.peek-btn')][1].dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); true`);
+  // »Rešitev« je od naloge trening-ucenje (korak 1) stikalo: pravi klik odpre, drugi zapre.
+  await b.klikni('.peek-row .peek-btn:nth-child(2)');
   const r = await b.izvedi(`(() => { const c = enojcek.plosca.mreza.celice;
     return { vpis: c.filter(e => e.classList.contains('k-vpis')).length, vzorec: c.filter(e => e.classList.contains('k-vzorec')).length }; })()`);
-  preveri('»Rešitev (drži)«: celica koraka zeleno, enota jantarno', r.vpis === 1 && r.vzorec >= 1, r);
+  preveri('»Rešitev«: celica koraka zeleno, enota jantarno', r.vpis === 1 && r.vzorec >= 1, r);
   await b.posnetek(path.join(mapa, 'E2-1-375-resitev.png'));
-  await b.izvedi(`[...document.querySelectorAll('.peek-btn')][1].dispatchEvent(new MouseEvent('mouseup', { bubbles: true })); true`);
+  await b.klikni('.peek-row .peek-btn:nth-child(2)');
   const r2 = await b.izvedi(`enojcek.plosca.mreza.celice.filter(e => e.classList.contains('k-vpis') || e.classList.contains('k-vzorec')).length`);
-  preveri('po spustu ni oznak', r2 === 0, r2);
+  preveri('po drugem kliku ni oznak', r2 === 0, r2);
 }
 
 // Senčenje (kljukica "senči", dopolnitev D2) in poudarek po pravilnem odgovoru (D1):
@@ -289,9 +290,9 @@ async function izris(b, mode, sirina) {
     // potem kot v izhodišču), primerja se vse drugo. Enako vrstica z imenom tehnike (.ex-label):
     // od popravkov po koraku 1 faze 3a je večja in temna.
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
-    k.querySelectorAll('.shema-razdelek').forEach(e => e.remove());
-    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label')]; sk.forEach(e => { e.style.display = 'none'; });
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    k.querySelectorAll('.shema-razdelek, .peek-row').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row')]; sk.forEach(e => { e.style.display = 'none'; });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     return { html: k.innerHTML, slogi };
   })()`);

@@ -1,13 +1,20 @@
 # Trening – učenje (vaji 1 in 2 po shemi, »Namig« in »Rešitev« kot stikali) – načrt
 
 Načrt 2026-10-08 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4a – pred nalogo 5, BUG+1; obe
-postavki sta bili v »Kasneje«, zapisani ob ročnem pregledu XY-verige). **Stanje: čaka na potrditev.** Koda
-se do potrditve ne spreminja. O nalogi 5 (BUG+1) Darko odloči po tej nalogi.
+postavki sta bili v »Kasneje«, zapisani ob ročnem pregledu XY-verige). **Stanje: potrjeno 2026-10-08** (commit načrta `b630fe9`; odločitve v razdelku 6), izvedba po korakih
+(razdelek 7). O nalogi 5 (BUG+1) Darko odloči po tej nalogi.
 
 **Dopolnitev 2026-10-08** (pred potrditvijo, Darkove odločitve): O8 spremenjen – pri 9 sta po shemi
 vaja 1 (prva risba, Nebotičnik) in vaja 2 (druga risba, Zmaj); nova O16 – pri drugih tehnikah s shemo je
 tudi vaja 2 po shemi, a obrnjeni čez diagonalo (vrstica postane stolpec). Preverba obrata je v razdelku
 1.8, popravljeni so koraki (4), ročni pregled (5) in odločitve (6; novi še O17 in O18).
+
+**Potrditev 2026-10-08:** O1–O16 po načrtu (O12 možnost B), O17 nove števke in polnila, **O18 drugače od
+predloga** – pri 11 je vaja 2 zrcaljena levo-desno (stolpec 1 postane 9, 2 postane 8 …), oznaka »· po
+shemi, zrcaljeno«; motor mora najti natanko ta korak (preverjeno, 1.8). Pravila izvedbe: vsak korak svoj
+pogovor, commit in push; test pred spremembo; če pade test, ki ga načrt ne predvideva, se izvedba ustavi
+in poroča (testa se ne prilagaja); manjkajoč del načrta s testom se sme popraviti in se poroča, razen če
+bi popravek spremenil kaj zunaj načrta.
 
 Izhodišče: commit `c7eb185`, vseh 640 testov zelenih v 2 min 19 s.
 
@@ -26,7 +33,7 @@ vaj in shemah iz `shared/sheme.js`, ne ocenjene.
   E2 (brez sheme) se ne spremenita.
 - **Obrat deluje pri vseh tehnikah, kjer je predviden** (1–8, 10–13; razdelek 1.8): motor na obrnjeni vaji
   najde natanko obrnjen korak sheme, pri 1 in 2 na vseh 89 primernih stanjih iz banke. Pri 11 je vzorec
-  sheme simetričen glede na diagonalo, zato ima vaja 2 vzorec na istih mestih kot vaja 1 (O18).
+  sheme simetričen glede na diagonalo, zato je vaja 2 pri 11 namesto obrnjene zrcaljena levo-desno (O18).
 - **Izvedljivo je pri vseh 13** (razdelek 1.4). Načini so trije:
   - **7, 8** neposredno iz sheme (mreža ene števke, samo x);
   - **3–6 in 9–13** sestavljena vaja kot zdaj, celice in črke iz sheme, drugi kandidati naključni in
@@ -82,11 +89,13 @@ naključne druge števke. Preslikava je napisana nad mrežo (1.3).
 ### 1.3 Kako uporabnik ve, da je to vaja po shemi (O2)
 
 - **Vrstica nad vajo:** »11 · XY-krilo (XY-Wing) · Vaja 1 / 9 · po shemi«, pri vaji 2 »… · Vaja 2 / 9 · po
-  shemi, obrnjeno«. Pri 9 je pri obeh vajah »· po shemi«.
+  shemi, obrnjeno«, pri 11 »· po shemi, zrcaljeno« (O18). Pri 9 je pri obeh vajah »· po shemi«.
 - **Vrstica tik nad mrežo** (pod razdelkom »Shema«, razred `po-shemi`):
   - vaja 1: »Vaja po shemi zgoraj – iste celice, črke so števke: x = 4, y = 7, z = 2.«;
   - vaja 2: »Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črke so števke: x = 4, y = 7.«
     (pri 3–6 »vrstica sheme je stolpec«);
+  - vaja 2 pri 11: »Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8
+    …, črke so števke: x = 4, y = 7, z = 2.«;
   - pri 9: »Vaja po prvi risbi sheme zgoraj (Nebotičnik) – iste celice, …« in »Vaja po drugi risbi sheme
     zgoraj (Zmaj z dvema vrvicama) – iste celice, …«.
   
@@ -210,7 +219,7 @@ programom na kodi motorja (skript v začasni mapi, pribl. 3 min):
 | 7 · X-krilo, 8 · Mečarica | vzorec v stolpcih, izbrisi v vrsticah (pri 7 so vogali V2S2, V2S7, V7S2, V7S7 na istih mestih – simetrični glede na diagonalo –, izbrisi pa v vrsticah 2 in 7 namesto v stolpcih) | A: natanko obrnjen korak, lažje nič. B: vsi koraki = obrnjeni pri vseh 9 števkah |
 | 9 · Veriga ene števke | brez obrata – druga risba, Zmaj (O8) | A: natanko korak druge risbe, podtip Zmaj, lažje nič (to preverja že test sheme). B: s polnili kot vaja 1 – pribl. 93 % (Nebotičnik 94 %, 1.4). Obe risbi bi se dali tudi obrniti (A drži), a vaja 2 je po O8 Zmaj |
 | 10 · W-krilo | povezava v stolpcu (V2S8–V8S8) | A: natanko obrnjen korak, lažje nič. B: vsi koraki = obrnjeni, uspeh **100 %** |
-| 11 · XY-krilo | **vzorec na istih mestih** – pivot V2S2 in izbris V7S7 sta na diagonali, krili V2S7 in V7S2 sta si zrcalni, zato samo zamenjata kandidata ({x, z} ↔ {y, z}); druge celice s črkami so obrnjene (O18) | kot 10, **100 %** |
+| 11 · XY-krilo | **zrcaljena levo-desno** (O18; obrnjena bi imela vzorec na istih mestih – pivot V2S2 in izbris V7S7 sta na diagonali, krili V2S7 in V7S2 zrcalni): pivot V2S8, krili V2S3 in V7S8, izbris V7S3 | obrat: kot 10, **100 %**; zrcaljenje: natanko zrcaljen korak, lažje nič, na 1000 vajah vsi koraki = zrcaljeni, **100 %** |
 | 12 · Edinstveni pravokotnik | bloka 1 in 4 – eden nad drugim | kot 10, **100 %** |
 | 13 · XY-veriga | veriga V2S2 – V7S2 – V8S3 – V8S8 – V4S8, izbris V2S8 | kot 10, **100 %**; veriga se začne v V2S2 kot na shemi, zato gredo zaporedne številke 1–5 po istih celicah sheme |
 
@@ -229,8 +238,12 @@ programom na kodi motorja (skript v začasni mapi, pribl. 3 min):
   ostane. Pri 1, 2 in 9 se XY-veriga ne preverja in ne prikazuje.
 
 **Obrat deluje povsod, pri 11 pa je malo viden.** Vzorec XY-krila na shemi je simetričen glede na
-diagonalo, zato je vaja 2 pri 11 po obliki vzorca enaka vaji 1. Razlikujejo se števke (O17), kandidata
-kril in razporeditev drugih celic. Možnosti so v O18.
+diagonalo, zato bi bila obrnjena vaja 2 pri 11 po obliki vzorca enaka vaji 1. **Odločitev O18: pri 11 je
+vaja 2 zrcaljena levo-desno** (VrSc → VrS(10 − c): stolpec 1 postane 9, 2 postane 8 …; skladi se
+zamenjajo, stolpci v skladu obrnejo – tudi to je simetrija sudokuja). Vzorec: pivot V2S8, krili V2S3
+{x, z} in V7S8 {y, z}, izbris z iz V7S3. Preverjeno kot obrat: na deski iz zrcaljene sheme funkcija
+XY-krila najde natanko en korak – zrcaljen korak sheme –, lažje tehnike nič; na 1000 vajah s polnili so
+vsi koraki vseh tehnik natanko zrcaljeni koraki izvirne (0 neskladij), uspeh 100 %.
 
 **Vaja 2 kaže tudi vrstico »Enako velja …« pod shemo.** Pri 1 in 2 je to »Enako velja za stolpec namesto
 vrstice«, pri 3–6 »… za stolpec ali blok«, pri 7 in 8 »… z zamenjanimi vrsticami in stolpci«. Opomba
@@ -259,7 +272,7 @@ Sprememba je torej samo v »Spoznaj«. Pri »Vadi v uganki« je predlagana še m
 - **Odprt je kvečjemu eden** (O11), kot v »Vadi v uganki«: klik na drugi gumb zamenja vsebino.
 - **Pomoč se šteje ob prvem odprtju**, kot zdaj ob prvem pritisku (`oznaciPomoc()`). Zapiranje in ponovno
   odpiranje ne spremenita ničesar.
-- **Izbira ob odprti Rešitvi** (O12, predlog B): izbira deluje naprej, oznake Rešitve se sproti prilagodijo
+- **Izbira ob odprti Rešitvi** (O12, odločeno B): izbira deluje naprej, oznake Rešitve se sproti prilagodijo
   izbiri. Okvir pove, kaj je pravilno in kaj ne; pri 3, 5, 7 in 8 se prikazani vzorec lahko zamenja
   (`vzorecResitve()`). To je isto, kot je zdaj pri vsakem novem pritisku z drugo izbiro, le brez spuščanja.
   Pri 1 in 2 se izbira med Rešitvijo zdaj ne vidi (mreža skrije izbiro, dokler je korak prikazan). Pri
@@ -305,16 +318,16 @@ pravilen odgovor ga zapre). Tako »Namig« in »Rešitev« v treningu povsod del
   - 7, 8: števka na natanko istih mestih kot x na shemi.
   - 9–13: gostejša mreža kot pri drugih vajah (23–46 praznih celic, drugod 8–11). Celice zunaj vzorca
     imajo poleg črk še 1–2 kandidata, ki jih shema ne riše.
-- **Vaja 2** pri 1–8 in 10–13: ista shema, obrnjena čez diagonalo, z novimi števkami. V vrstici nad vajo
+- **Vaja 2** pri 1–8, 10, 12 in 13: ista shema, obrnjena čez diagonalo, z novimi števkami. V vrstici nad vajo
   »· po shemi, obrnjeno«, nad mrežo »Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črke so
   števke: …«. Kar je na shemi v vrstici, je v stolpcu:
   - 1, 2: levi sklad, blok in stolpec;
   - 3–6: stolpec, izrisan navpično;
   - 7, 8: vzorec v stolpcih, izbrisi v vrsticah;
   - 10: povezava v stolpcu; 12: bloka eden nad drugim; 13: veriga z istim začetkom in številčenjem;
-  - 11: vzorec na istih mestih, krili zamenjata kandidata (1.8, O18).
   
-  Pri 9 je vaja 2 Zmaj z dvema vrvicama po drugi risbi, neobrnjen, »· po shemi«.
+  Pri 11 je vaja 2 zrcaljena levo-desno, »· po shemi, zrcaljeno«: pivot V2S8, krili V2S3 in V7S8 (1.8,
+  O18). Pri 9 je vaja 2 Zmaj z dvema vrvicama po drugi risbi, neobrnjen, »· po shemi«.
 - **Vaje 3–9** so take kot zdaj.
 - **»Namig« in »Rešitev«** v »Spoznaj« se odpreta s klikom in ostaneta odprta. Besedilo je berljivo, stran
   se da drseti, izbira deluje. Zapreta se z drugim klikom (napis »Skrij …«), s pravilnim odgovorom ali z
@@ -362,8 +375,9 @@ potem že uporabljajo stikalo.
 - **Brskalnik:** `tools/brskalnik.js` dobi `tapni(izbirnik)` (dotik prek `Input.dispatchTouchEvent`).
   Nov `tools/preveri-stikalo-brskalnik.js` pri 375 (dotik) in 1280 px (miška):
   - okvir ostane po kliku in po drsenju strani;
-  - na dnu strani (1280 × 1000) ostane odprt – na izhodišču `c7eb185` se skrije; scenarij pokaže, da je
-    napaka iz »Kasneje« odpravljena;
+  - na dnu strani (1280 × 1000) ostane odprt – na izhodišču se skrije; scenarij pokaže, da je napaka iz
+    »Kasneje« odpravljena (popravek ob izvedbi: izhodišče je `4e1e4dc`, kjer je bila napaka izmerjena –
+    v `c7eb185` se v brskalniku brez glave ne pokaže več, razdelek 7);
   - besedilo okvirja se da označiti;
   - pritisnjen slog (izračunan);
   - brez preliva in napak JS.
@@ -429,12 +443,13 @@ potem že uporabljajo stikalo.
 
 ### Korak 4 – del A, 9–13
 
-- **Kaj:** cela mreža iz sheme – pri 9 vaja 1 prva risba, vaja 2 druga risba; pri 10–13 vaja 2 obrnjena.
+- **Kaj:** cela mreža iz sheme – pri 9 vaja 1 prva risba, vaja 2 druga risba; pri 10, 12 in 13 vaja 2 obrnjena, pri 11 zrcaljena levo-desno (O18).
   Celice s črko so prazne celice vaje, druge sive. Polnila: pri 9 1–2 na celico; pri 10–13 do vsaj treh
   kandidatov zunaj vzorca, celice vzorca natanko s črkami, »…« v celici vzorca 1–2 polnili. Ponavljanje do
   preverbe. Polja kot pri zdajšnjih vajah (pri 9 `digit` in `variant`, pri 13 `z` in `solutionVeriga`).
 - **Test pred spremembo:** `trening-po-shemi` za 9–13 (200 vaj 1 in 200 vaj 2 vsake):
-  - mesta, celice vzorca in izbrisi = shema (pri vaji 2 obrnjena, pri 9 druga risba);
+  - mesta, celice vzorca in izbrisi = shema (pri vaji 2 obrnjena, pri 11 zrcaljena, pri 9 druga risba);
+  - oznaka »· po shemi, zrcaljeno« in vrstica o zrcaljenju pri 11;
   - funkcija tehnike natanko korak sheme, pri 9 podtip po risbi (vaja 1 Nebotičnik, vaja 2 Zmaj);
   - celice z dvema kandidatoma samo v vzorcu (10–13);
   - »Preveri« → »Pravilno!«, »Rešitev«, številke verige pri 13 (pri vaji 2 veriga z začetkom v V2S2, kot
@@ -480,14 +495,16 @@ naslednja je odločitev o nalogi 5).
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
 | 1 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: tapni »Rešitev«, preberi besedilo, podrsaj stran gor in dol, tapni »Skrij rešitev«; nato tapni »Namig« in »Rešitev« zapored. | Ostane odprta med branjem in drsenjem, brez povečave ob dotiku in brez »dvojnega« odziva; drugi gumb zamenja vsebino. | Dotik je v brskalniku brez glave samo posnemanje – pravi telefon ima svoje zamike, povečavo in odziv na dvojni dotik. |
-| 2 | trening, »Spoznaj«, telefon | Vaji 1 in 2 pri 4 · Skriti par, 10 · W-krilo, 11 · XY-krilo in 13 · XY-veriga, vaja 2 pri 9 · Veriga ene števke: primerjaj mrežo s shemo nad njo. | Takoj vidiš, da je vaja 1 narisana po shemi, vaja 2 po obrnjeni shemi (vrstice so stolpci), pri 9 po drugi risbi; preslikava »x = …« in pojasnilo obrata sta jasna; pri 11 je jasno, da je vaja 2 obrnjena, čeprav je vzorec na istih mestih (O18); gosta mreža pri 10 in 13 je še pregledna. | Presoja razumljivosti in preglednosti. |
+| 2 | trening, »Spoznaj«, telefon | Vaji 1 in 2 pri 4 · Skriti par, 10 · W-krilo, 11 · XY-krilo in 13 · XY-veriga, vaja 2 pri 9 · Veriga ene števke: primerjaj mrežo s shemo nad njo. | Takoj vidiš, da je vaja 1 narisana po shemi, vaja 2 po obrnjeni shemi (vrstice so stolpci), pri 9 po drugi risbi; preslikava »x = …« in pojasnilo obrata sta jasna; pri 11 je jasno, da je vaja 2 zrcaljena levo-desno (O18); gosta mreža pri 10 in 13 je še pregledna. | Presoja razumljivosti in preglednosti. |
 | 3 | trening, »Spoznaj« | Vaji 1 in 2 pri 1 · Izločitev izven bloka in 2 · Izločitev v bloku. | Jasno je, da sta blok in vrstica (pri vaji 2 blok in stolpec) ista kot na shemi (pri vaji 2 na obrnjeni), čeprav shema kaže ves pas. | Presoja (O5). |
 | 4 | trening, »Spoznaj« | 3 · Očitni par (vaja 2): odpri »Rešitev«, nato izberi eno celico vzorca in eno zunaj njega; odgovori napačno, nato pravilno. | Okvirji izbire se sproti spreminjajo (zelen / temno rdeč); ob napačnem odgovoru Rešitev ostane, ob pravilnem se zapre. Obnašanje je razumljivo. | Presoja, ali je sprotno prilagajanje (O12) razumljivo. |
 | 5 | trening, »Vadi v uganki« | 4 · Skriti par: odpri »Namig«, zapri ga z drugim klikom; odpri »Rešitev«, zapri jo s »Skrij«. | Oba načina delujeta; napis in slog gumba sta jasna. | Presoja skladnosti z »Spoznaj«. |
 
 ## 6. Odločitve
 
-| # | Vprašanje | Možnosti | Predlog |
+Potrjeno 2026-10-08: O1–O16 po predlogu (O8 in O16 že prej Darkovi), O17 po predlogu, O18 drugače.
+
+| # | Vprašanje | Možnosti | Predlog / odločitev |
 |---|---|---|---|
 | O1 | Števke za črke | stalne (x = 1, y = 2 …) · naključne | **naključne**, preslikava napisana nad mrežo (1.2) |
 | O2 | Kako uporabnik ve, da je vaja po shemi | samo »· po shemi« nad vajo · še vrstica s preslikavo · nič | **»· po shemi« in vrstica s preslikavo** (vaja 2 »· po shemi, obrnjeno« in »Vaja po obrnjeni shemi zgoraj – …«); shema je ob prvi vaji vedno odprta (1.3) |
@@ -500,14 +517,49 @@ naslednja je odločitev o nalogi 5).
 | O9 | Trojica v krogu pri 1 in 2 | pri 1 med vajami 3–9, pri 2 sta trojici vaji 1 in 2 po shemi · kot zdaj | **tako** (1.6) |
 | O10 | Napis stikal | »Skrij namig« / »Skrij rešitev« in pritisnjen slog · napis ostane, samo slog | **»Skrij …« in slog**, kot »Pokaži/Skrij« v reševalcu |
 | O11 | Namig in Rešitev hkrati | kvečjemu eden odprt · neodvisna | **kvečjemu eden**, kot v »Vadi v uganki« |
-| O12 | Izbira ob odprti Rešitvi | A: klik v mrežo zapre Rešitev · B: ostane odprta, oznake sledijo izbiri (pri 1 in 2 je izbira vidna) | **B** – kot nov pritisk z drugo izbiro zdaj, brez spuščanja |
+| O12 | Izbira ob odprti Rešitvi | A: klik v mrežo zapre Rešitev · B: ostane odprta, oznake sledijo izbiri (pri 1 in 2 je izbira vidna) | **odločeno 2026-10-08: B** – kot nov pritisk z drugo izbiro zdaj, brez spuščanja |
 | O13 | »Preveri« | pravilen odgovor zapre, napačen pusti · vedno zapre | **pravilen zapre, napačen pusti**, kot v »Vadi v uganki« |
 | O14 | »Vadi v uganki« | tudi drugi klik zapre (»Skrij« ostane) · brez sprememb | **tudi drugi klik zapre** – enako v vsem treningu |
 | O15 | Vrstni red | B najprej · A najprej | **B najprej** (razdelek 4) |
 | O16 | Vaja 2 pri tehnikah s shemo (razen 9) | po shemi, obrnjeni čez diagonalo · kot zdaj | **odločeno 2026-10-08: obrnjena** – vaja 1 natanko kot shema, vaja 2 obrnjena (vrstica postane stolpec), nad vajo »· po shemi, obrnjeno«; vaje 3–9 kot zdaj; deluje pri vseh (1.8) |
-| O17 | Števke in uganka vaje 2 | nove naključne (pri 1 in 2 drug korak s seznama) · iste kot vaja 1, samo obrnjene | **nove** – vaja 2 je nova naloga, isti odgovor bi si igralec zapomnil (1.2) |
-| O18 | Vaja 2 pri 11 · XY-krilo (vzorec sheme je simetričen glede na diagonalo – po obratu na istih mestih) | obrnjena kot drugod · vaja 2 kot zdaj (`M.gen(1)`) | **obrnjena kot drugod** – enotno pravilo; razlikujejo se števke, kandidata kril in druge celice (1.8) |
+| O17 | Števke in uganka vaje 2 | nove naključne (pri 1 in 2 drug korak s seznama) · iste kot vaja 1, samo obrnjene | **odločeno 2026-10-08: nove** števke in polnila – vaja 2 je nova naloga, isti odgovor bi si igralec zapomnil (1.2) |
+| O18 | Vaja 2 pri 11 · XY-krilo (vzorec sheme je simetričen glede na diagonalo – po obratu na istih mestih) | obrnjena kot drugod · vaja 2 kot zdaj (`M.gen(1)`) · zrcaljena levo-desno | **odločeno 2026-10-08: zrcaljena levo-desno** (stolpec 1 postane 9 …), oznaka »· po shemi, zrcaljeno«; motor najde natanko zrcaljen korak (1.8); predlog je bil »obrnjena kot drugod« |
 
 ## 7. Izvedba
 
-(Dopolnjuje se po korakih.)
+### Korak 1 – del B: »Namig« in »Rešitev« kot stikali (2026-10-08)
+
+- **Koda:**
+  - `trening/trening.js`: gumba se odzivata na `click` (`preklopiPomoc()`), stanje `odprto` (null / 'namig' /
+    'resitev'), napis in `aria-pressed` (`napisiPomoci()`). `osveziPomoc()` ob kliku celice (`makeCell`,
+    X-krilo in mečarica, delna mreža 1 in 2) na novo izriše »Rešitev«. »Preveri« gre prek
+    `preveriSPomocjo()`: pomoč se pred presojo skrije in po njej znova odpre, pri rešeni vaji ostane
+    zaprta. Pri 1 in 2 je izbira ob odprti »Rešitvi« vidna (`izbrane: korak && vajaResena ? [] : selected`).
+    Ime `preveriVajo` ni bilo mogoče, ker je to funkcija v `shared/vaje-uganka.js`.
+  - `trening/v-uganki.js`: drugi klik na gumb odprtega okvirja ga zapre (O14), napisa in `aria-pressed`.
+  - `trening/trening.css`: pritisnjen slog `.peek-row button[aria-pressed="true"]` (podlaga okvirja
+    #FFFCE8, polna obroba) – velja tudi v »Vadi v uganki«.
+  - `trening/index.html`: besedilo Pomoči (»… odpreš s klikom in zapreš z drugim klikom …«).
+- **Testi:** nov `tests/trening-stikalo.test.js` (12 testov; na kodi pred korakom vsi padli). Pomožne
+  funkcije šestih testov (`trening-pomoc`, `trening-legenda`, `trening-resitev`, `trening-precrtanje`,
+  `veriga-prikaz`, `pocasni/trening-presek`) so v skupni `tests/pomoc-stikali.js` (`odpriPomoc`,
+  `zapriPomoc`, `medPomocjo`). Najprej v prehodni obliki, ki je pri gumbu »… (drži)« uporabila pritisk:
+  na stari kodi 127/127 zelenih. Po spremembi je prehodna veja odstranjena. Pričakovanja so ostala.
+- **Brskalnik:**
+  - `tools/brskalnik.js` ima `tapni()`;
+  - nov `tools/preveri-stikalo-brskalnik.js` – vse drži;
+  - »Rešitev« s klikom odpirajo `preveri-izbira-`, `-vadi-`, `-enojcki-` in `-veriga-brskalnik.js`
+    (prva dva v izhodišču s pritiskom – po napisu gumba);
+  - primerjave z izhodiščem v `preveri-presek-`, `-enojcki-`, `-vadi-` in `-izbira-brskalnik.js` izpustijo
+    `.peek-row`.
+
+  Izid: `izbira`, `vadi`, `veriga` in `stikalo` – vse drži. `presek` in `enojcki` padeta pri primerjavi
+  z izhodiščem `4c47cc0`, ker meni od vklopa XY-verige (`e058ac7`) ima kartico 13, izhodišče pa ne
+  (»10 kartic« / »12 kartic« in klik kartice `xy-chain` v izhodišču). To ni zaradi tega koraka, scenarija
+  nista prilagojena (sporočeno). Začasni kopiji brez kartice 13 (zunaj repozitorija): vse drži, »Spoznaj«
+  3–12 enak izhodišču pri 375 in 1200 px.
+- **Odstopanje od načrta:** napaka na dnu strani se v `c7eb185` v brskalniku brez glave ne pokaže več
+  (stran se ob pritisku ne zamakne – nad gumbom sta zdaj razdelka »Razlaga« in »Shema«), v `4e1e4dc` pa
+  se (okvir med pritiskom skrit). Scenarij zato primerja s `4e1e4dc` (`--izhodisce`). Mehanizem
+  (`mouseleave` ob pritisku) je v stikalu odstranjen.
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 652 zelenih v 2 min 37 s (hitrih 535).

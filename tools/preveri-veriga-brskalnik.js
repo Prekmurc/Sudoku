@@ -163,23 +163,20 @@ async function trening(b, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
   await b.izvedi(`{ const g = MODES['xy-wing'].gen; MODES['xy-wing'].gen = n => (window.zadnjaVaja = { ...g(n), solutionVeriga: true }); }
     zacniKrog('xy-wing', 'spoznaj'); document.body.style.paddingBottom = '800px'; true`);
-  // Pravi pritisk miške na »Rešitev (drži)«.
-  const t = await b.izvedi(`(() => { const g = [...document.querySelectorAll('.peek-btn')].find(x => x.textContent === 'Rešitev (drži)');
-    g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
-  await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x: t.x, y: t.y });
-  await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mousePressed', x: t.x, y: t.y, button: 'left', clickCount: 1 });
+  // Pravi klik na »Rešitev« (od naloge trening-ucenje, korak 1, stikalo; prej pritisk »Rešitev (drži)«).
+  await b.klikni('.peek-row .peek-btn:nth-child(2)');
   try {
     await new Promise(r => setTimeout(r, 300));
     const m = await b.izvedi(`(${MERI})('.g9', '.cd.veriga-st', '.gc')`);
-    pregledOznak('»Rešitev (drži)«', m, await b.izvedi('zadnjaVaja.solutionCells'));
+    pregledOznak('»Rešitev«', m, await b.izvedi('zadnjaVaja.solutionCells'));
     const legenda = await b.izvedi(`[...document.querySelectorAll('.legenda-vaje > span')].map(s => s.textContent)`);
     preveri('legenda »celice verige (po vrsti)«', legenda[0] === '1celice verige (po vrsti)', legenda);
     preveri('brez vodoravnega preliva', !(await preliv(b)));
   } finally {
-    await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseReleased', x: t.x, y: t.y, button: 'left', clickCount: 1 });
+    await b.klikni('.peek-row .peek-btn:nth-child(2)');
   }
   await new Promise(r => setTimeout(r, 200));
-  preveri('po spustu ni številk', (await b.izvedi(`document.querySelectorAll('.g9 .veriga-st').length`)) === 0);
+  preveri('po drugem kliku ni številk', (await b.izvedi(`document.querySelectorAll('.g9 .veriga-st').length`)) === 0);
 }
 
 (async () => {

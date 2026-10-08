@@ -291,8 +291,9 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   btnRow.append(checkBtn,nextBtn);div.appendChild(btnRow);
   const fb=vEl('div','fb');div.appendChild(fb);
 
-  // Pomoč (6c): "Namig" in "Rešitev" s klikom, okvir ostane do "Skrij" (ne "drži" kot v
-  // "Spoznaj"). Vsak ogled = vaja s pomočjo (oznaciPomoc). pomoc = { vrsta: 'namig' |
+  // Pomoč (6c): "Namig" in "Rešitev" s klikom, okvir ostane do "Skrij" ali do drugega klika na
+  // gumb odprtega okvirja (O14 v docs/trening-ucenje-nacrt.md - napis "Skrij namig" / "Skrij
+  // rešitev" in aria-pressed kot v "Spoznaj"). Vsak ogled = vaja s pomočjo (oznaciPomoc). pomoc = { vrsta: 'namig' |
   // 'resitev', korak } ali null; korak se izbere ob prvem odprtju in ostane, dokler je
   // okvir odprt.
   let pomoc=null;
@@ -311,11 +312,20 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     return KTob.reduce((naj,k)=>izbrisanih(k)>izbrisanih(naj)?k:naj,KTob[0]);
   }
   function odpriPomoc(vrsta){
+    // Drugi klik na gumb odprtega okvirja ga zapre (O14).
+    if(pomoc&&pomoc.vrsta===vrsta){pomoc=null;plosca.izrisi();izrisiPomoc();return;}
     oznaciPomoc();
     pomoc={vrsta,korak:pomoc?pomoc.korak:korakPomoci()};
     plosca.izrisi();izrisiPomoc();
   }
+  function napisiPomoci(){
+    const vrsta=pomoc&&pomoc.vrsta;
+    namigBtn.textContent=vrsta==='namig'?'Skrij namig':'Namig';namigBtn.setAttribute('aria-pressed',String(vrsta==='namig'));
+    resitevBtn.textContent=vrsta==='resitev'?'Skrij rešitev':'Rešitev';resitevBtn.setAttribute('aria-pressed',String(vrsta==='resitev'));
+  }
+  napisiPomoci();
   function izrisiPomoc(){
+    napisiPomoci();
     pomocEl.innerHTML='';pomocEl.hidden=!pomoc;
     if(!pomoc) return;
     const k=pomoc.korak,p=vEl('p','pomoc-msg');
