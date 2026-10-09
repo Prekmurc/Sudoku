@@ -164,13 +164,15 @@ test('»Vadi v uganki«: legenda koraka verige »celice verige (po vrsti)«, dru
 
 // »Spoznaj« 13 (mreža vaj 9 × 9, buildFullGridLayout): prava vaja genXYChain() (od koraka 6 -
 // prej vaja XY-krila s poljem veriga, ki ga je dodal test): številke ob »Rešitvi (drži)« in po
-// pravilnem odgovoru. Test si vajo samo zapomni (`zadnja`), polj ji ne dodaja.
+// pravilnem odgovoru. Test si vajo samo zapomni (`zadnja`), polj ji ne dodaja. Vaja 7 kroga (exNum = 6):
+// vaji 1 in 2 sta od dela A načrta docs/trening-ucenje-nacrt.md po shemi (mimo MODES[].gen), vaja 7 je
+// iste vrste kot vaja 1 (dolžina verige 4 + n % 3, motilec po n % 2).
 function spoznaj(seme) {
   const dom = makeDom();
   const { run } = loadContext(TRENING, dom.globals);
   run(SEME(seme));
   run(`var zadnja; { const g = MODES['xy-chain'].gen; MODES['xy-chain'].gen = n => (zadnja = g(n)); }`);
-  run(`mode = 'xy-chain'; exNum = 0; renderExercise();`);
+  run(`mode = 'xy-chain'; exNum = 6; renderExercise();`);
   const ex = JSON.parse(run('JSON.stringify(zadnja)'));
   assert.equal(ex.mode, 'xy-chain');
   assert.equal(ex.solutionVeriga, true, 'polje veriga nastavi generator');

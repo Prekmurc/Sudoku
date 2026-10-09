@@ -161,8 +161,9 @@ async function igra(b, sirina) {
 async function trening(b, sirina) {
   console.log(`Trening »Spoznaj« (mreža 9 × 9), ${sirina} px`);
   await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
+  // Vaja 7 kroga (exNum = 6): vaji 1 in 2 sta od naloge trening-ucenje (korak 4) po shemi, mimo MODES[].gen.
   await b.izvedi(`{ const g = MODES['xy-wing'].gen; MODES['xy-wing'].gen = n => (window.zadnjaVaja = { ...g(n), solutionVeriga: true }); }
-    zacniKrog('xy-wing', 'spoznaj'); document.body.style.paddingBottom = '800px'; true`);
+    zacniKrog('xy-wing', 'spoznaj'); exNum = 6; renderExercise(); document.body.style.paddingBottom = '800px'; true`);
   // Pravi klik na »Rešitev« (od naloge trening-ucenje, korak 1, stikalo; prej pritisk »Rešitev (drži)«).
   await b.klikni('.peek-row .peek-btn:nth-child(2)');
   try {

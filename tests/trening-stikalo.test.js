@@ -28,8 +28,8 @@ const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
 
 // Vaja »Spoznaj« tehnike; pogoj (koda v kontekstu, ex => bool) - generator ponavlja, dokler ga vaja
-// ne izpolni (zadnja = vaja na zaslonu). Pri 3-6 vaja 7 kroga (n: 6): vaji 1 in 2 sta od dela A načrta
-// docs/trening-ucenje-nacrt.md po shemi (mimo MODES[].gen), vaja 7 je iste vrste kot vaja 1 (n % 3 = 0).
+// ne izpolni (zadnja = vaja na zaslonu). Pri 3-6 in 13 vaja 7 kroga (n: 6): vaji 1 in 2 sta od dela A načrta
+// docs/trening-ucenje-nacrt.md po shemi (mimo MODES[].gen), vaja 7 je iste vrste kot vaja 1 (n % 3 in n % 2 sta 0).
 function zacni(tehnika, { n = 0, seme = 7, pogoj = 'ex => true' } = {}) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
@@ -201,7 +201,7 @@ test('4 · Skriti par: pravilna 1. faza Rešitev pusti, pravilna 2. faza jo zapr
 });
 
 test('13 · XY-veriga: pravilen odgovor ob odprti Rešitvi zapre okvir, zaporedne številke ostanejo', () => {
-  const { dom, run } = zacni('xy-chain');
+  const { dom, run } = zacni('xy-chain', { n: 6 });
   const n = run('zadnja.solutionCells.length');
   gumb(dom, 'Rešitev').sprozi('click');
   assert.equal(vse(dom).filter(e => e.classList.contains('veriga-st')).length, n, 'številke ob Rešitvi');

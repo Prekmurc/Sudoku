@@ -645,3 +645,55 @@ Potrjeno 2026-10-08: O1–O16 po predlogu (O8 in O16 že prej Darkovi), O17 po p
   z izhodiščem: v izhodiščnem brskalniku so bili vsi elementi brez slogov (`display: block`, brez podlag).
   Ponovni zagon sam: 708 ✓.
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 699 zelenih v 2 min 26 s (hitrih 582 v 42 s).
+
+### Korak 4 – del A: 9–13 (2026-10-09)
+
+- **Koda:**
+  - `trening/generators.js`: `genPolnaPoShemi(mode, n)` – do `POLNA_POSKUSOV` (500) poskusov
+    `poskusPolnePoShemi()`. Cela mreža 9 × 9: celice s črko na risbi so prazne celice vaje, druge sive
+    (kot pri generatorjih teh tehnik).
+    - 9: vaja 1 po prvi risbi (Nebotičnik), vaja 2 po drugi (Zmaj), obe brez obrata (O8); 10, 12, 13:
+      vaja 2 obrnjena (`obrniCelico()`, O16); 11: vaja 2 zrcaljena levo-desno (`zrcaliCelico(i)` –
+      VrSc → VrS(10 − c), O18).
+    - Črke so naključne različne števke, polnila druge števke (O3): pri 9 1–2 v vsaki celici; pri 10–13
+      celice vzorca natanko s črkami (»…« 1–2 polnili), druge celice 1–2 polnili in vsaj trije kandidati.
+    - Preverba: funkcija tehnike (`POLNA_FN`) na deski vaje najde natanko korak sheme (XY-krilo vrne isti
+      vzorec dvakrat – šteje kot eden), pri 9 podtip risbe. Lažje tehnike se na polnilih lahko oglasijo
+      (1.5).
+    - Polja kot pri generatorju tehnike (9 `digit`, `variant`; 10 `digits`, `pair`, `link`; 13 `z`,
+      `celiceVerige`, `izbris`, `solutionVeriga`), `poShemi` pri 11 vaji 2 `zrcaljeno: true`, pri 9
+      `risba = { st, ime }`.
+  - `trening/trening.js`: `pripisPoShemi()` »· po shemi, zrcaljeno« (11, vaja 2); `vrsticaPoShemi()` »Vaja
+    po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, črke so števke:
+    …« in pri 9 »Vaja po prvi risbi sheme zgoraj (Nebotičnik) – iste celice, črka x je števka 4.« /
+    »… po drugi risbi sheme zgoraj (Zmaj z dvema vrvicama) …«.
+- **Delež uspešnih poskusov** (4000 poskusov vaje 1 / vaje 2): 9 · Veriga ene števke 93,6 / 94,2 %,
+  10 · W-krilo, 11 · XY-krilo, 12 · Edinstveni pravokotnik in 13 · XY-veriga 100 / 100 %. Poskus traja
+  0,2–0,3 ms, vaja povprečno 0,2–0,3 ms, najdlje 1 ms.
+- **Test:** `tests/trening-po-shemi.test.js` – 25 novih testov (200 vaj 1 in 200 vaj 2 vsake tehnike;
+  preslikave – druga risba, obrat, zrcaljenje – izračunane v testu iz `SHEME_TEHNIK`) in razširjena testa
+  »null« in »besedila«. Na stari kodi jih je 26 padlo, 5 varoval (vaja 3 enaka `M.gen(2)`) je držalo; na
+  novi 77/77 v pribl. 15 s. Eno pričakovanje novega testa je bilo napačno in je popravljeno: prag
+  različnih preslikav (pri eni črki jih je mogočih samo 9, pri dveh 72), kot pri koraku 3.
+- **Prestavljeni testi** (po dovoljenju iz koraka 3; zeleni na stari kodi pred prestavitvijo, 20/20):
+  `trening-stikalo` (test 13 · XY-veriga) in `veriga-prikaz` (dva testa »Spoznaj« 13). Padala sta samo
+  zato, ker si vajo zapomnita prek `MODES[].gen`, vaja 1 po shemi gre mimo njega. Zdaj delata na vaji 7
+  (n = 6 – ista dolžina verige 4 + n % 3 in isti motilec po n % 2).
+- **Prestavljena scenarija** (isti vzrok): `preveri-veriga-` (»Spoznaj« XY-krila s poljem veriga) in
+  `preveri-vklop-brskalnik.js` (»Spoznaj« 13, oznaka »Vaja 7 / …«) na vajo 7. Na stari kodi: `vklop` 87 ✓;
+  `veriga` v prvem zagonu padel v delu igre (»Igra, 1280 px« – izjema v strani, igre korak ne zadeva),
+  ponovni zagon 141 ✓. Na novi kodi oba držita (141 ✓, 87 ✓).
+- **Brskalnik:** `tools/preveri-po-shemi-brskalnik.js` za 9–13 pri 375 in 1280 px – skupaj 304 ✓. Preveri:
+  - oznaka (»· po shemi, obrnjeno« / »· po shemi, zrcaljeno« / pri 9 »· po shemi«), shema odprta,
+    preslikava med njo in mrežo, mreža in celice v kartici, brez preliva;
+  - prazne celice = celice s črko na risbi (druga risba, obrnjena, zrcaljena);
+  - male števke 8,13 px pri 375 px (celica 30,1 px), 12,42 px pri 1280 px (celica 46 px), vsaka v svoji
+    celici – enako kot pri vajah iz generatorja;
+  - pravi kliki → »Pravilno!«, pri 13 številke 1–5 po vrsti sheme, 1 v V2S2;
+  - posnetki mreže (gostota) za ročni pregled, točka 2.
+
+  Primerjave: `presek` 79 ✓, `enojcki` 330 ✓, `vadi` 364 ✓, `izbira` 708 ✓, `stikalo` 25 ✓, `sheme`
+  939 ✓, `videz` 339 ✓ – vse drži (zagnani zaporedno).
+- **Opažanje (ni spremenjeno):** namig pri 11 · XY-krilo pravi »ena trojica ima prave števke, a eno krilo
+  pivota ne vidi« – opisuje motilca iz generatorja, ki ga vaja po shemi nima.
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 729 zelenih v 2 min 39 s (hitrih 612 v 48 s).

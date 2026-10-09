@@ -550,7 +550,8 @@ function genSwordfish(n){
    brez sheme in pri tehniki, za katero vaja po shemi še ni narejena - takrat je vaja M.gen(n).
    Vaja ima ista polja kot vaja iste tehnike iz generatorja in še poShemi = { obrnjeno, crke }
    (crke: [[črka, števka]] - preslikava za vrstico nad mrežo; pri 3-6 še vrstica: true - shema je ena
-   vrstica). Korak 2: 7 · X-krilo, 8 · Mečarica; korak 3: 3-6. */
+   vrstica; pri 11 vaja 2 zrcaljeno: true namesto obrnjeno - O18; pri 9 risba = { st, ime } - O8).
+   Korak 2: 7 · X-krilo, 8 · Mečarica; korak 3: 3-6; korak 4: 9-13. */
 // Obrat čez glavno diagonalo: VrSc -> VcSr (celica 0-80).
 function obrniCelico(i){return (i%9)*9+Math.floor(i/9);}
 
@@ -684,12 +685,79 @@ function genPodmnozicaPoShemi(mode,obrnjeno){
   return null;
 }
 
+// 9-13: cela mreža iz sheme (9 × 9) - celice s črko so prazne celice vaje, druge sive (kot pri
+// generatorjih teh tehnik). Pri 9 je vaja 1 po prvi risbi (Nebotičnik), vaja 2 po drugi (Zmaj), obe
+// brez obrata (O8); pri 10, 12, 13 je vaja 2 obrnjena čez diagonalo (O16), pri 11 zrcaljena levo-desno
+// (O18 - vzorec sheme je simetričen glede na diagonalo). Polnila (O3) so druge števke: pri 9 1-2 v
+// vsaki celici; pri 10-13 imajo celice vzorca natanko črke (»…« 1-2 polnili), druge celice 1-2
+// polnili in vsaj tri kandidate - celice z dvema kandidatoma so samo celice vzorca. Poskus se
+// preveri z motorjem: funkcija tehnike najde natanko korak sheme (pri 9 podtip risbe; XY-krilo vrne
+// isti vzorec dvakrat). Lažje tehnike na polnilih se lahko oglasijo, kot pri vajah iz generatorja (1.5).
+const POLNA_FN={'turbot-fish':()=>turbotFish,'w-wing':()=>wWing,'xy-wing':()=>xyWing,'unique-rectangle':()=>uniqueRectangle,'xy-chain':()=>xyChain};
+const POLNA_POSKUSOV=500;
+// Zrcaljenje levo-desno: VrSc -> VrS(10 - c).
+function zrcaliCelico(i){return Math.floor(i/9)*9+8-i%9;}
+
+// En poskus: vaja ali null (poskus ne ustreza).
+function poskusPolnePoShemi(mode,n){
+  const turbot=mode==='turbot-fish';
+  const risba=shemaRisbe(mode)[turbot?n:0];
+  const vaja2=n===1&&!turbot;
+  const zrcaljeno=vaja2&&mode==='xy-wing',obrnjeno=vaja2&&!zrcaljeno;
+  const naMrezo=zrcaljeno?zrcaliCelico:obrnjeno?obrniCelico:i=>i;
+  const celice=risba.celice.map(shemaCelica);
+  const crke=SHEMA_CRKE.filter(c=>celice.some(cel=>cel.zetoni.some(t=>t.z===c)));
+  const st=shuffle([1,2,3,4,5,6,7,8,9]);
+  const stevka=Object.fromEntries(crke.map((c,i)=>[c,st[i]]));
+  const polnila=st.slice(crke.length);
+  const board=emptyBoard(),vzorec=[],vzorec2=[],izbris=[];
+  celice.forEach((cel,i)=>{
+    if(!cel.zetoni.length) return;
+    const idx=naMrezo(i);
+    const c=cel.zetoni.filter(t=>t.z!=='…').map(t=>stevka[t.z]);
+    const drugi=cel.zetoni.some(t=>t.z==='…');
+    const k=turbot||drugi?randInt(1,2):cel.vzorec?0:Math.max(randInt(1,2),3-c.length);
+    const p=randSub(polnila,k);
+    setCell(board,idx,[...c,...p]);
+    if(cel.vzorec) (cel.vzorec2?vzorec2:vzorec).push(idx);
+    for(const t of cel.zetoni) if(t.izbris) for(const d of t.z==='…'?p:[stevka[t.z]]) izbris.push(idx*10+d);
+  });
+  const koraki=POLNA_FN[mode]()(board);
+  const urejeno=a=>[...a].sort((x,y)=>x-y).join();
+  if(!koraki.length||new Set(koraki.map(k=>urejeno(k.cells)+'|'+urejeno(k.eliminate.map(([c,d])=>c*10+d)))).size!==1) return null;
+  const k=koraki[0];
+  if(urejeno(k.cells)!==urejeno([...vzorec,...vzorec2])||urejeno(k.eliminate.map(([c,d])=>c*10+d))!==urejeno(izbris)) return null;
+  if(turbot&&k.variant!==['Skyscraper','Two-String Kite'][n]) return null;
+  const ex={
+    mode,slots:slotsFromBoard(board),boardGrid:board.grid,boardCand:board.cand,
+    solutionCells:k.cells,solutionEliminate:k.eliminate,solutionMessage:k.message,
+    poShemi:{obrnjeno,zrcaljeno,crke:crke.map(c=>[c,stevka[c]])},
+  };
+  if(turbot){
+    ex.poShemi.risba={st:n+1,ime:risba.naslov.replace(/ \(.*\)$/,'')};
+    return Object.assign(ex,{digit:stevka.x,variant:k.variant,unitLabel:`Veriga ene števke: ${stevka.x}`});
+  }
+  if(mode==='w-wing') return Object.assign(ex,{digits:[stevka.a,stevka.b],pair:vzorec,link:vzorec2,unitLabel:'W-krilo: celici para in celici povezave'});
+  if(mode==='xy-wing') return Object.assign(ex,{unitLabel:'XY-krilo: pivot in dve krili'});
+  if(mode==='unique-rectangle') return Object.assign(ex,{unitLabel:'Edinstveni pravokotnik: štirje vogali'});
+  return Object.assign(ex,{z:stevka.z,celiceVerige:k.cells,izbris:k.eliminate.map(([c])=>c),solutionVeriga:true,unitLabel:'XY-veriga: vse celice verige'});
+}
+
+function genPolnaPoShemi(mode,n){
+  for(let poskus=0;poskus<POLNA_POSKUSOV;poskus++){
+    const ex=poskusPolnePoShemi(mode,n);
+    if(ex) return ex;
+  }
+  return null;
+}
+
 // Vaja po shemi za vajo n kroga (0 = vaja 1, 1 = vaja 2) ali null (vaja je M.gen(n)).
 function genPoShemi(mode,n){
   if(n!==0&&n!==1) return null;
   if(typeof SHEME_TEHNIK==='undefined'||!SHEME_TEHNIK[mode]) return null;
   if(mode==='x-wing'||mode==='swordfish') return genRibaPoShemi(mode,n===1);
   if(PODMNOZICE_FN[mode]) return genPodmnozicaPoShemi(mode,n===1);
+  if(POLNA_FN[mode]) return genPolnaPoShemi(mode,n);
   return null;
 }
 

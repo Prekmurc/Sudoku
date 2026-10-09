@@ -520,11 +520,15 @@ function veljavniVzorci(ex,M){
 
 // Vaja po shemi (docs/trening-ucenje-nacrt.md, 1.3): pripis k vrstici nad vajo in vrstica s
 // preslikavo črk v števke tik pod razdelkom »Shema« (O2).
-function pripisPoShemi(ps){return ps.obrnjeno?' · po shemi, obrnjeno':' · po shemi';}
+// Pri 11 je vaja 2 zrcaljena levo-desno (O18), pri 9 po prvi oziroma drugi risbi sheme (O8).
+function pripisPoShemi(ps){return ps.obrnjeno?' · po shemi, obrnjeno':ps.zrcaljeno?' · po shemi, zrcaljeno':' · po shemi';}
 function vrsticaPoShemi(ps){
   const crke=ps.crke.length===1?`črka ${ps.crke[0][0]} je števka ${ps.crke[0][1]}.`
     :`črke so števke: ${ps.crke.map(([c,d])=>`${c} = ${d}`).join(', ')}.`;
-  return ps.obrnjeno?`Vaja po obrnjeni shemi zgoraj – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`:`Vaja po shemi zgoraj – iste celice, ${crke}`;
+  if(ps.obrnjeno) return `Vaja po obrnjeni shemi zgoraj – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`;
+  if(ps.zrcaljeno) return `Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${crke}`;
+  if(ps.risba) return `Vaja po ${ps.risba.st===1?'prvi':'drugi'} risbi sheme zgoraj (${ps.risba.ime}) – iste celice, ${crke}`;
+  return `Vaja po shemi zgoraj – iste celice, ${crke}`;
 }
 
 function renderExercise(){

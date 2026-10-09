@@ -147,8 +147,10 @@ async function trening(b, sirina) {
   // »Spoznaj« s pravimi kliki.
   await b.izvedi(`{ const g = MODES['xy-chain'].gen; MODES['xy-chain'].gen = n => (window.zadnjaVaja = g(n)); } true`);
   await klikniEl(b, `[...document.querySelector('.menu-card[data-mode="xy-chain"]').querySelectorAll('.nacin-btn')].find(x => x.textContent === 'Spoznaj')`);
+  // Vaja 7 kroga (exNum = 6): vaji 1 in 2 sta od naloge trening-ucenje (korak 4) po shemi, mimo MODES[].gen.
+  await b.izvedi('exNum = 6; renderExercise(); true');
   const ex = await b.izvedi('({ celice: zadnjaVaja.solutionCells, oznaka: document.querySelector(".ex-label").textContent })');
-  preveri('»Spoznaj«: oznaka »13 · XY-veriga (XY-Chain) · Vaja 1 / …«', ex.oznaka.startsWith('13 · XY-veriga (XY-Chain) · Vaja 1 /'), ex.oznaka);
+  preveri('»Spoznaj«: oznaka »13 · XY-veriga (XY-Chain) · Vaja 7 / …«', ex.oznaka.startsWith('13 · XY-veriga (XY-Chain) · Vaja 7 /'), ex.oznaka);
   for (const c of ex.celice) {
     await klikniEl(b, `document.querySelector('.g9 .gc[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"]')`);
   }

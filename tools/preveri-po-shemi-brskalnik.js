@@ -17,6 +17,16 @@
 //     števka (ni števka črke), črke so natanko števke črk v celici, drugi kandidati natanko pri »…«;
 //   - pravi kliki na celice vzorca in »Preveri« (pri 4 in 6 še pravi kliki na števke in 2. faza)
 //     → »Pravilno!«.
+// Korak 4: 9 · Veriga ene števke (vaja 1 prva risba, vaja 2 druga), 10 · W-krilo, 12 · Edinstveni
+// pravokotnik, 13 · XY-veriga (vaja 2 obrnjena), 11 · XY-krilo (vaja 2 zrcaljena levo-desno) pri 375 in
+// 1280 px:
+//   - oznaka (»· po shemi«, »· po shemi, obrnjeno«, »· po shemi, zrcaljeno«), shema odprta, preslikava
+//     med njo in mrežo 9 × 9, mreža in vse celice v kartici, brez vodoravnega preliva;
+//   - prazne celice na mreži = celice s črko na risbi (iz SHEME_TEHNIK, razčlenjeno tu; obrat /
+//     zrcaljenje / druga risba);
+//   - male števke berljive: izračunana velikost pisave (izpis, vsaj 8 px), vsaka v svoji celici;
+//   - pravi kliki na celice vzorca → »Pravilno!«, pri 13 številka 1 v V2S2 in 1-5 po vrsti sheme;
+//   - posnetek mreže (gostota) za ročni pregled: <ključ>-vaja<n>-<širina>.png.
 //
 //   node tools/preveri-po-shemi-brskalnik.js [--mapa <mapa>]
 //
@@ -150,6 +160,74 @@ async function vajaPodmnozice(b, kljuc, n, sirina) {
   preveri(`${ime}: pravi kliki na celice vzorca${skrita ? ' in števke' : ''} → »Pravilno!«`, /\bok\b/.test(fb.cls) && fb.besedilo.startsWith('Pravilno!'), fb);
 }
 
+// 9-13: celice s črko na risbi vaje n (pri 9 druga risba, pri 11 zrcaljeno, sicer obrnjeno), vzorec in
+// veriga sheme (pri 13: V2S2, nato po povezavah »vidita«) - razčlenjeno v strani iz SHEME_TEHNIK.
+const RISBA_VAJE = (kljuc, n) => `(() => {
+  const kljuc = ${JSON.stringify(kljuc)}, s = SHEME_TEHNIK[kljuc], n = ${n}, risba = s.risbe ? s.risbe[n] : s;
+  const obrni = i => (i % 9) * 9 + Math.floor(i / 9), zrcali = i => Math.floor(i / 9) * 9 + 8 - i % 9;
+  const naMrezo = n === 0 || s.risbe ? i => i : kljuc === 'xy-wing' ? zrcali : obrni;
+  const celice = [], vzorec = [];
+  risba.celice.forEach((z, i) => {
+    const t = z.replace(/^[*+]/, '').split(' ').filter(Boolean);
+    if (!t.length) return;
+    celice.push(naMrezo(i));
+    if (/^[*+]/.test(z)) vzorec.push(naMrezo(i));
+  });
+  const iz = v => (+v[1] - 1) * 9 + (+v[3] - 1);
+  const veriga = kljuc === 'xy-chain' ? [iz('V2S2'), ...s.vidita.map(p => iz(p.split(' ')[1]))].map(naMrezo) : null;
+  const u = a => a.sort((p, q) => p - q);
+  return { celice: u(celice), vzorec: u(vzorec), veriga, naslov: risba.naslov || null };
+})()`;
+
+const STANJE_MREZE = `(() => {
+  const ex = document.querySelector('#exerciseArea .exercise'), k = ex.getBoundingClientRect();
+  const sh = ex.querySelector('details.shema-razdelek'), ps = ex.querySelector('.po-shemi'), m = ex.querySelector('.g9');
+  const r = e => e ? e.getBoundingClientRect() : null, [rs, rp, rm] = [r(sh), r(ps), r(m)];
+  const v = e => !!e && e.left >= k.left - 0.5 && e.right <= k.right + 0.5;
+  const prazne = [...m.querySelectorAll('.gc[data-si]')];
+  const vidne = prazne.flatMap(c => [...c.querySelectorAll('.cd')].filter(d => !d.classList.contains('hide')).map(d => [c, d]));
+  const vCeli = vidne.every(([c, d]) => { const a = c.getBoundingClientRect(), b = d.getBoundingClientRect();
+    return b.left >= a.left - 0.5 && b.right <= a.right + 0.5 && b.top >= a.top - 0.5 && b.bottom <= a.bottom + 0.5; });
+  return { oznaka: ex.querySelector('.ex-label').textContent, preslikava: ps ? ps.textContent : null,
+    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rs.bottom <= rp.top + 0.5 && rp.bottom <= rm.top + 0.5,
+    vKartici: v(rs) && v(rp) && v(rm) && [...m.querySelectorAll('.gc')].every(c => v(c.getBoundingClientRect())),
+    prazne: prazne.map(c => +c.dataset.r * 9 + +c.dataset.c).sort((p, q) => p - q),
+    velikosti: [...new Set(vidne.map(([, d]) => getComputedStyle(d).fontSize))],
+    celica: Math.round(prazne[0].getBoundingClientRect().width * 10) / 10, vCeli,
+    preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth };
+})()`;
+
+async function vajaMreze(b, kljuc, n, sirina) {
+  const sh = await b.izvedi(RISBA_VAJE(kljuc, n)), s = await b.izvedi(STANJE_MREZE);
+  const ime = `${kljuc}, vaja ${n + 1}, ${sirina} px`;
+  const pripis = n === 0 || kljuc === 'turbot-fish' ? 'po shemi' : kljuc === 'xy-wing' ? 'po shemi, zrcaljeno' : 'po shemi, obrnjeno';
+  preveri(`${ime}: oznaka »· ${pripis}«`, s.oznaka.endsWith(`· Vaja ${n + 1} / 9 · ${pripis}`), s.oznaka);
+  preveri(`${ime}: shema odprta, preslikava med shemo in mrežo, mreža in celice v kartici`, s.shemaOdprta && s.vrstniRed && s.vKartici, s);
+  const zacetek = kljuc === 'turbot-fish'
+    ? `Vaja po ${n === 0 ? 'prvi' : 'drugi'} risbi sheme zgoraj (${sh.naslov.split(' (')[0]}) – iste celice, črka x je števka `
+    : n === 0 ? 'Vaja po shemi zgoraj – iste celice, črke so števke: '
+    : kljuc === 'xy-wing' ? 'Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, črke so števke: '
+    : 'Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črke so števke: ';
+  preveri(`${ime}: preslikava »${s.preslikava}«`, !!s.preslikava && s.preslikava.startsWith(zacetek), s.preslikava);
+  const kje = n === 0 ? 'shemi' : kljuc === 'turbot-fish' ? 'drugi risbi' : kljuc === 'xy-wing' ? 'zrcaljeni shemi' : 'obrnjeni shemi';
+  preveri(`${ime}: prazne celice = celice s črko na ${kje} (${sh.celice.length})`, JSON.stringify(s.prazne) === JSON.stringify(sh.celice), [s.prazne, sh.celice]);
+  const px = s.velikosti.map(parseFloat);
+  console.log(`    male števke ${s.velikosti.join(', ')}, celica ${s.celica} px`);
+  preveri(`${ime}: male števke vsaj 8 px in vsaka v svoji celici`, px.length > 0 && px.every(v => v >= 8) && s.vCeli, s.velikosti);
+  preveri(`${ime}: brez vodoravnega preliva`, !s.preliv);
+  await b.izvedi(`document.querySelector('#exerciseArea .g9').scrollIntoView({ block: 'center' }); true`);
+  await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`), { vsaStran: false });
+  for (const c of sh.vzorec) await b.klikni(`#exerciseArea .g9 .gc[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"]`);
+  await klikniGumb(b, 'Preveri');
+  const fb = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .fb'); return { cls: f.className, besedilo: f.textContent }; })()`);
+  preveri(`${ime}: pravi kliki na celice vzorca → »Pravilno!«`, fb.cls.split(' ').includes('ok') && fb.besedilo.startsWith('Pravilno!'), fb);
+  if (sh.veriga) {
+    const st = await b.izvedi(`[...document.querySelectorAll('#exerciseArea .g9 .gc[data-si]')].flatMap(c =>
+      [...c.querySelectorAll('.veriga-st')].map(d => [+c.dataset.r * 9 + +c.dataset.c, +d.textContent])).sort((p, q) => p[1] - q[1]).map(([i]) => i)`);
+    preveri(`${ime}: številke verige 1-${sh.veriga.length} po vrsti sheme, 1 v V2S2`, JSON.stringify(st) === JSON.stringify(sh.veriga), [st, sh.veriga]);
+  }
+}
+
 async function main() {
   fs.mkdirSync(mapa, { recursive: true });
   const b = await zazeni();
@@ -174,6 +252,16 @@ async function main() {
         await vajaPodmnozice(b, kljuc, 0, sirina);
         await klikniGumb(b, 'Naslednja vaja →');
         await vajaPodmnozice(b, kljuc, 1, sirina);
+      }
+      for (const kljuc of ['turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle', 'xy-chain']) {
+        console.log(`${kljuc}, ${sirina} px`);
+        await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
+        await b.izvedi(SEME(20261009));
+        await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
+        await pocakaj(b);
+        await vajaMreze(b, kljuc, 0, sirina);
+        await klikniGumb(b, 'Naslednja vaja →');
+        await vajaMreze(b, kljuc, 1, sirina);
       }
     }
   } finally {

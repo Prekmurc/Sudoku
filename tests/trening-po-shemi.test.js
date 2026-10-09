@@ -19,6 +19,15 @@
 //     5 je vzorec en sam (kot ga sprejme »Preveri«);
 //   - vsaka celica s kandidati ima vsaj dva, vsaka nevpisana števka je v vsaj dveh celicah;
 //   - »Preveri« (pri 4 in 6 z 2. fazo) → »Pravilno!«, oznaka in vrstica s preslikavo, vaja 3 enaka M.gen(2).
+// Korak 4: 9 · Veriga ene števke (vaja 1 prva risba – Nebotičnik, vaja 2 druga – Zmaj, obe brez obrata, O8),
+// 10 · W-krilo, 12 · Edinstveni pravokotnik, 13 · XY-veriga (vaja 2 obrnjena, O16), 11 · XY-krilo (vaja 2
+// zrcaljena levo-desno, O18), na 200 vajah 1 in 200 vajah 2 vsake s semenom:
+//   - prazne celice vaje = celice s črko na risbi (pri vaji 2 obrnjene / zrcaljene), druge sive;
+//   - črke v celicah natanko kot na shemi; polnila (O3): pri 9 1-2 v vsaki celici, pri 10-13 celice vzorca
+//     natanko s črkami (»…« 1-2 polnili), druge celice 1-2 polnili in vsaj trije kandidati;
+//   - funkcija tehnike najde natanko korak sheme (pri 9 podtip po risbi); celice z dvema kandidatoma samo
+//     v vzorcu (10-13); pri 13 veriga po vrsti sheme z začetkom v V2S2;
+//   - »Preveri« → »Pravilno!«, »Rešitev«, številke verige pri 13, oznaka in vrstica (zrcaljeno, risba).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -305,9 +314,171 @@ for (const tehnika of Object.keys(PODMNOZICE)) {
   });
 }
 
+// ---------- Korak 4: 9-13 (cela mreža) ----------
+const POLNE = {
+  'turbot-fish': { fn: 'turbotFish', vaja2: 'risba', label: 'po shemi' },
+  'w-wing': { fn: 'wWing', vaja2: 'obrnjeno', label: 'po shemi, obrnjeno' },
+  'xy-wing': { fn: 'xyWing', vaja2: 'zrcaljeno', label: 'po shemi, zrcaljeno' },
+  'unique-rectangle': { fn: 'uniqueRectangle', vaja2: 'obrnjeno', label: 'po shemi, obrnjeno' },
+  'xy-chain': { fn: 'xyChain', vaja2: 'obrnjeno', label: 'po shemi, obrnjeno' },
+};
+const zrcali = i => Math.floor(i / 9) * 9 + 8 - i % 9;
+const imeCelice = i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`;
+const izImena = s => { const [, v, c] = s.match(/^V(\d)S(\d)$/); return (v - 1) * 9 + (c - 1); };
+
+// Risba vaje n (pri 9 druga risba za vajo 2) in preslikava celic sheme na mrežo vaje.
+function risbaVaje(tehnika, n) {
+  const s = SHEME[tehnika];
+  const risba = s.risbe ? s.risbe[n] : s;
+  const naMrezo = n === 0 || POLNE[tehnika].vaja2 === 'risba' ? i => i : POLNE[tehnika].vaja2 === 'zrcaljeno' ? zrcali : obrni;
+  return { risba, naMrezo };
+}
+
+const vajePolne = new Map();
+function vajePolneMreze(tehnika, n) {
+  const kljuc = `${tehnika}/${n}`;
+  if (!vajePolne.has(kljuc)) {
+    const { run } = loadContext(DATOTEKE, makeDom().globals);
+    run(SEME(200 + n));
+    vajePolne.set(kljuc, JSON.parse(run(`JSON.stringify(Array.from({ length: ${VAJ} }, () => genPoShemi('${tehnika}', ${n})))`)));
+  }
+  return vajePolne.get(kljuc);
+}
+
+// Celice gc na mreži 9 × 9 vaje (prazne – s si), indeks iz data-r / data-c.
+const gcCelice = dom => vObmocju(dom).filter(e => /^gc\b/.test(e.className) && e.dataset.si !== undefined);
+const idxCelice = e => +e.dataset.r * 9 + +e.dataset.c;
+
+for (const tehnika of Object.keys(POLNE)) {
+  const P = POLNE[tehnika];
+  for (const n of [0, 1]) {
+    const { risba, naMrezo } = risbaVaje(tehnika, n);
+    const shema = risba.celice.map(celicaSheme);
+    const crkeSheme = CRKE.filter(c => shema.some(s => s.crke.includes(c)));
+    const sCrko = shema.map((s, i) => s.prazna ? -1 : i).filter(i => i >= 0);
+    const prazne = urejeno(sCrko.map(naMrezo));
+    const vzorec = urejeno(shema.map((s, i) => s.vzorec ? naMrezo(i) : -1).filter(i => i >= 0));
+    const opisVaje = n === 0 ? (risba.naslov ? 'prva risba' : 'shema') : P.vaja2 === 'risba' ? 'druga risba' : P.vaja2 === 'zrcaljeno' ? 'zrcaljena shema' : 'obrnjena shema';
+    const ime = `${tehnika}, vaja ${n + 1} (${opisVaje})`;
+
+    test(`${ime}: celice, črke in polnila iz sheme; motor najde natanko korak sheme (${VAJ} vaj)`, () => {
+      const vaje = vajePolneMreze(tehnika, n);
+      const preslikave = new Set();
+      for (const [v, ex] of vaje.entries()) {
+        assert.ok(ex, `vaja ${v}: vaja po shemi je`);
+        assert.equal(ex.mode, tehnika);
+        assert.deepEqual(ex.slots.map(s => s.idx), prazne, `vaja ${v}: prazne celice = celice s črko`);
+        for (let i = 0; i < 81; i++) assert.equal(ex.boardGrid[i] === 0, prazne.includes(i), `vaja ${v}: celica ${imeCelice(i)} prazna/siva`);
+        assert.deepEqual(ex.poShemi.crke.map(([c]) => c), crkeSheme, `vaja ${v}: črke v preslikavi`);
+        const crka = Object.fromEntries(ex.poShemi.crke);
+        const stevkeCrk = crkeSheme.map(c => crka[c]);
+        assert.equal(new Set(stevkeCrk).size, crkeSheme.length, `vaja ${v}: različne števke črk`);
+        preslikave.add(stevkeCrk.join());
+        const kand = idx => [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(d => ex.boardCand[idx] & (1 << d));
+        const izbrisi = [];
+        for (const i of sCrko) {
+          const s = shema[i], idx = naMrezo(i), c = kand(idx), polnila = c.filter(d => !stevkeCrk.includes(d));
+          const kje = `vaja ${v}, ${imeCelice(idx)}`;
+          assert.deepEqual(c.filter(d => stevkeCrk.includes(d)), urejeno(s.crke.map(z => crka[z])), `${kje}: črke`);
+          if (tehnika === 'turbot-fish' || s.drugi) assert.ok(polnila.length >= 1 && polnila.length <= 2, `${kje}: 1-2 polnili`);
+          else if (s.vzorec) assert.equal(polnila.length, 0, `${kje}: celica vzorca natanko s črkami`);
+          else assert.ok(polnila.length >= 1 && polnila.length <= 2 && c.length >= 3, `${kje}: 1-2 polnili, vsaj trije kandidati`);
+          if (tehnika !== 'turbot-fish' && !s.vzorec) assert.ok(c.length >= 3, `${kje}: zunaj vzorca vsaj trije kandidati`);
+          for (const z of s.izbris) for (const d of z === '…' ? polnila : [crka[z]]) izbrisi.push(idx * 10 + d);
+        }
+        if (tehnika !== 'turbot-fish') for (const idx of prazne) if (kand(idx).length === 2) assert.ok(vzorec.includes(idx), `vaja ${v}: celica z dvema kandidatoma ${imeCelice(idx)} je v vzorcu`);
+        const izid = JSON.parse(motor(`(() => { const b = Object.create(Board.prototype); b.grid = ${JSON.stringify(ex.boardGrid)}; b.cand = ${JSON.stringify(ex.boardCand)};
+          return JSON.stringify(${P.fn}(b).map(k => ({ celice: [...k.cells].sort((a, b) => a - b), izbris: k.eliminate.map(([c, s]) => c * 10 + s).sort((a, b) => a - b), podtip: k.variant || '', vrsta: k.cells }))); })()`));
+        const razlicni = [...new Map(izid.map(k => [JSON.stringify([k.celice, k.izbris]), k])).values()];
+        assert.equal(razlicni.length, 1, `vaja ${v}: en sam korak (${JSON.stringify(razlicni)})`);
+        assert.deepEqual(razlicni[0].celice, vzorec, `vaja ${v}: celice vzorca`);
+        assert.deepEqual(razlicni[0].izbris, urejeno(izbrisi), `vaja ${v}: izbrisi`);
+        assert.deepEqual(urejeno(ex.solutionCells), vzorec, `vaja ${v}: solutionCells`);
+        assert.deepEqual(urejeno(ex.solutionEliminate.map(([c, d]) => c * 10 + d)), urejeno(izbrisi), `vaja ${v}: solutionEliminate`);
+        assert.ok(ex.solutionMessage, `vaja ${v}: sporočilo motorja`);
+        if (tehnika === 'turbot-fish') {
+          assert.equal(razlicni[0].podtip, ['Skyscraper', 'Two-String Kite'][n], `vaja ${v}: podtip po risbi`);
+          assert.equal(ex.variant, razlicni[0].podtip);
+          assert.equal(ex.digit, crka.x);
+        }
+        if (tehnika === 'xy-chain') {
+          // Veriga po vrsti sheme (povezave »vidita«), z začetkom v V2S2 – tudi pri vaji 2.
+          const veriga = [izImena('V2S2')];
+          for (const p of SHEME[tehnika].vidita) veriga.push(izImena(p.split(' ')[1]));
+          assert.deepEqual(ex.solutionCells, veriga.map(naMrezo), `vaja ${v}: vrstni red verige`);
+          assert.equal(ex.solutionCells[0], izImena('V2S2'));
+          assert.equal(ex.solutionVeriga, true);
+          assert.equal(ex.z, crka.z);
+        }
+      }
+      // Pri eni črki je možnih 9 preslikav, pri dveh 72, pri treh 504.
+      assert.ok(preslikave.size >= [0, 9, 50, VAJ / 2, VAJ / 2, VAJ / 2][crkeSheme.length], `števke so naključne: ${preslikave.size} različnih`);
+    });
+
+    test(`${ime}: »Preveri« s celicami vzorca → »Pravilno!«, »Rešitev«, oznaka in vrstica s preslikavo`, () => {
+      for (const seme of [3, 7]) {
+        const { dom } = krog(tehnika, seme, n);
+        const vrstica = poShemi(dom).textContent;
+        const crke = (crkeSheme.length === 1 ? [['x', vrstica.match(/črka x je števka (\d)\.$/)[1]]]
+          : vrstica.match(/črke so števke: (.*)\.$/)[1].split(', ').map(p => p.split(' = ')));
+        assert.deepEqual(crke.map(([c]) => c), crkeSheme);
+        const preslikava = crkeSheme.length === 1 ? `črka x je števka ${crke[0][1]}.` : `črke so števke: ${crke.map(([c, d]) => `${c} = ${d}`).join(', ')}.`;
+        const pricakovana = n === 0 && !risba.naslov ? `Vaja po shemi zgoraj – iste celice, ${preslikava}`
+          : risba.naslov ? `Vaja po ${n === 0 ? 'prvi' : 'drugi'} risbi sheme zgoraj (${risba.naslov.replace(/ \(.*\)$/, '')}) – iste celice, ${preslikava}`
+          : P.vaja2 === 'zrcaljeno' ? `Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${preslikava}`
+          : `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, ${preslikava}`;
+        assert.equal(vrstica, pricakovana, `seme ${seme}`);
+        assert.match(vaja(dom).innerHTML, new RegExp(`^<p class="ex-label">[^<]* · Vaja ${n + 1} / 9 · ${n === 0 ? 'po shemi' : P.label}</p>`));
+        const otroci = vaja(dom).children, i = otroci.indexOf(poShemi(dom));
+        assert.equal(otroci[i - 1].className, 'shema-razdelek');
+        assert.deepEqual(urejeno(gcCelice(dom).map(idxCelice)), prazne, 'prazne celice na mreži');
+        medPomocjo(dom, 'resitev', () => {
+          assert.deepEqual(urejeno(gcCelice(dom).filter(c => c.classList.contains('peek-hl')).map(idxCelice)), vzorec, `seme ${seme}: »Rešitev« – vzorec`);
+        });
+        for (const c of gcCelice(dom).filter(c => vzorec.includes(idxCelice(c)))) c.sprozi('click');
+        gumb(dom, 'Preveri').sprozi('click');
+        assert.match(fb(dom).className, /\bok\b/, `seme ${seme}`);
+        assert.match(fb(dom).innerHTML, /^<b>Pravilno!/, `seme ${seme}`);
+        if (tehnika === 'xy-chain') {
+          // Zaporedne številke verige po pravilnem odgovoru: 1 v V2S2, nato po vrsti sheme.
+          const st = new Map();
+          for (const c of gcCelice(dom)) for (const cd of vsi(c)) if (cd.classList && cd.classList.contains('veriga-st')) st.set(idxCelice(c), +cd.textContent);
+          const veriga = [izImena('V2S2'), ...SHEME[tehnika].vidita.map(p => izImena(p.split(' ')[1]))].map(naMrezo);
+          assert.deepEqual([...st.entries()].sort((a, b) => a[1] - b[1]).map(([idx]) => idx), veriga, `seme ${seme}: številke verige`);
+          assert.equal(st.get(izImena('V2S2')), 1);
+        }
+      }
+    });
+  }
+
+  test(`${tehnika}: vaji 1 in 2 imata vsaka svoje števke (O17)`, () => {
+    let razlicni = 0;
+    for (const seme of SEMENA) {
+      const { dom, run } = krog(tehnika, seme);
+      const p1 = poShemi(dom).textContent.match(/črk[ae] .*$/)[0];
+      run('exNum++; renderExercise()');
+      if (poShemi(dom).textContent.match(/črk[ae] .*$/)[0] !== p1) razlicni++;
+    }
+    assert.ok(razlicni >= SEMENA.length / 2, `različnih: ${razlicni} / ${SEMENA.length}`);
+  });
+
+  test(`${tehnika}: vaja 3 je pri istem semenu enaka izhodu generatorja, brez oznake po shemi`, () => {
+    for (const seme of [11, 22]) {
+      const { dom, run } = krog(tehnika, 1, 2);
+      run(`${SEME(seme)} renderExercise()`);
+      const kandidati = gcCelice(dom).map(c => `${idxCelice(c)}:${vsi(c).filter(e => e.dataset && e.dataset.d && !e.classList.contains('hide')).map(e => e.dataset.d).join('')}`);
+      run(SEME(seme));
+      const gen = JSON.parse(run(`JSON.stringify(MODES['${tehnika}'].gen(2).slots.map(s => s.idx + ':' + s.c.join('')))`));
+      assert.deepEqual(kandidati, gen, `seme ${seme}`);
+      assert.equal(poShemi(dom), undefined);
+      assert.doesNotMatch(vaja(dom).innerHTML, /po shemi/);
+    }
+  });
+}
+
 test('genPoShemi: vaje 3-9, E1, E2 in tehnike brez vaje po shemi dajo null (vaja iz generatorja)', () => {
   const { run } = loadContext(DATOTEKE, makeDom().globals);
-  for (const n of [2, 3, 8]) for (const t of ['x-wing', 'swordfish', ...Object.keys(PODMNOZICE)]) assert.equal(run(`genPoShemi('${t}', ${n})`), null, `${t}, vaja ${n + 1}`);
+  for (const n of [2, 3, 8]) for (const t of ['x-wing', 'swordfish', ...Object.keys(PODMNOZICE), ...Object.keys(POLNE)]) assert.equal(run(`genPoShemi('${t}', ${n})`), null, `${t}, vaja ${n + 1}`);
   for (const t of ['naked-single', 'hidden-single']) for (const n of [0, 1]) assert.equal(run(`genPoShemi('${t}', ${n})`), null, `${t}, vaja ${n + 1}`);
 });
 
@@ -326,7 +497,7 @@ test('E1 in »Vadi v uganki« nimata vaje po shemi', () => {
 });
 
 test('besedila vaje po shemi: brez »številk«, ločila (pomišljaj, brez ravnih narekovajev)', () => {
-  for (const tehnika of ['x-wing', 'swordfish', ...Object.keys(PODMNOZICE)]) for (const n of [0, 1]) {
+  for (const tehnika of ['x-wing', 'swordfish', ...Object.keys(PODMNOZICE), ...Object.keys(POLNE)]) for (const n of [0, 1]) {
     const { dom } = krog(tehnika, 8, n);
     for (const b of [vaja(dom).innerHTML.replace(/<[^>]*>/g, ' '), poShemi(dom).textContent]) {
       assert.doesNotMatch(b, /številk/i, b);
