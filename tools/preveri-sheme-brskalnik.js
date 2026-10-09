@@ -72,7 +72,7 @@ const meri = (exIzraz, dIzraz, zaIzraz, barve) => `(() => {
   const st = getComputedStyle(ex), notranja = [e.left + parseFloat(st.paddingLeft), e.right - parseFloat(st.paddingRight)];
   out.risbe = svgi.map(svg => { const r = svg.getBoundingClientRect(); return [r.left, r.right, r.width, r.height]; });
   out.vKartici = out.risbe.every(r => r[0] >= notranja[0] - 0.5 && r[1] <= notranja[1] + 0.5);
-  out.naslovi = [...d.querySelectorAll('.shema-naslov')].map(n => n.textContent);
+  out.naslovi = [...d.querySelectorAll('.shema-naslov, .shema-druga > summary')].map(n => n.textContent);
   const vse = (sel) => svgi.flatMap(svg => [...svg.querySelectorAll(sel)]);
   const svg = svgi[0], k = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
   // Celice: vsak <text> mora biti v pravokotniku svoje celice (36 enot, rob 1.5).
@@ -138,9 +138,19 @@ const meri = (exIzraz, dIzraz, zaIzraz, barve) => `(() => {
   out.napisi = [...d.querySelectorAll('.shema-legenda > span, .shema-sklep, .shema-crke, .shema-opomba, .shema-enako')].map(e => e.textContent);
   return out;
 })()`;
-// V treningu: razdelek v kartici vaje, takoj za »Razlaga« (pred mrežo vaje).
+// V treningu: razdelek v kartici vaje, tik nad mrežo vaje (v »Vadi v uganki« nad ploščo z mrežo) – popravek
+// po ročnem pregledu naloge 4a (docs/trening-ucenje-nacrt.md); prej takoj za »Razlaga«.
 const MERI = meri(`document.querySelector('#exerciseArea .exercise')`, `ex.querySelector('.shema-razdelek')`,
-  `(() => { const o = [...ex.children]; return o.indexOf(d) === o.findIndex(x => x.classList.contains('razlaga-tehnike')) + 1; })()`, BARVE_TRENING);
+  `(() => { const n = d.nextElementSibling; return !!n && ['vaja-presek', 'layout-row', 'layout-col', 'layout-block', 'xw-grid', 'g9', 'vaja-uganka'].some(r => n.classList.contains(r)); })()`, BARVE_TRENING);
+// Ob vaji (popravek po ročnem pregledu naloge 4a): vse besedilo sheme nad risbo, od risbe do mreže samo
+// kratek razmik (pri 9 vmes zaprt razdelek »Druga oblika«), pri 9 odprta ena risba.
+const NAD = `(() => { const d = document.querySelector('#exerciseArea .shema-razdelek'), f = d.querySelector('figure.shema');
+  const okv = [...f.children].filter(c => c.classList.contains('shema-okvir'));
+  const prva = okv[0].getBoundingClientRect(), zadnja = okv[okv.length - 1].getBoundingClientRect();
+  const besedilo = [...f.children].filter(c => !c.classList.contains('shema-okvir') && !c.classList.contains('shema-druga'));
+  return { nad: besedilo.length > 0 && besedilo.every(c => c.getBoundingClientRect().bottom <= prva.top + 0.5),
+    razmik: Math.round(d.nextElementSibling.getBoundingClientRect().top - zadnja.bottom), odprtih: okv.length,
+    druga: [...f.children].filter(c => c.classList.contains('shema-druga')).map(c => [c.open, c.querySelector('summary').textContent]) }; })()`;
 // V oknu Pomoč: razdelek tehnike k v panelu, takoj za odstavkom posledice.
 const MERI_POMOC = (okno, k) => meri(`document.querySelector(${JSON.stringify(okno)} + ' .dialog-panel')`,
   `[...ex.querySelectorAll('.tehnika-shema')].find(x => x.querySelector('.shema').dataset.tehnika === ${JSON.stringify(k)})`,
@@ -166,12 +176,15 @@ const VRH = `(() => { const g = document.querySelector('header.top').getBounding
     mreza: m ? Math.round(m.getBoundingClientRect().top + scrollY) : null, mrezaRazred: m ? m.className : null }; })()`;
 
 // Pregled meritve sheme (trening in Pomoč): risbe, naslovi, povezave, črke, barve, legenda, napisi.
-function pregledMeritve(kljuc, m, info) {
+function pregledMeritve(kljuc, m, info, vaja = false) {
   const trojica = kljuc.endsWith('triple');
   const { vzorec, vzorec2, sklep, sklepi, opomba, enako } = info[kljuc];
   preveri(`${kljuc}: ${m.risb} ${m.risb === 1 ? 'risba' : 'risbi'} v kartici, največ 327 px, brez preliva`,
     m.vKartici && m.risb === info[kljuc].risb && m.risbe.every(r => r[2] <= 327.5) && !m.preliv, m);
-  if (info[kljuc].naslovi.length) preveri(`${kljuc}: naslova risb`, JSON.stringify(m.naslovi) === JSON.stringify(info[kljuc].naslovi), m.naslovi);
+  // Ob vaji je druga risba v razdelku »Druga oblika: …« (ime brez angleškega v oklepaju).
+  if (info[kljuc].naslovi.length) preveri(`${kljuc}: naslova risb`, vaja
+    ? m.naslovi.length === 2 && info[kljuc].naslovi.every((n, i) => m.naslovi[i].includes(n.replace(/ \(.*\)$/, '')))
+    : JSON.stringify(m.naslovi) === JSON.stringify(info[kljuc].naslovi), m.naslovi);
   const pov = Object.entries(m.povezave);
   preveri(`${kljuc}: povezave ${pov.map(([r, p]) => p.stevilo).join('/')} – barva, črtkanje, vzorček v legendi`,
     pov.every(([r, p]) => p.stevilo === info[kljuc].povezave[r] && p.enako && (p.stevilo === 0
@@ -182,7 +195,10 @@ function pregledMeritve(kljuc, m, info) {
     Object.values(m.barve).every(Boolean) && m.vzorec2 === info[kljuc].vzorec2Celic
     && (!m.vzorec2 || (m.crtkan2 === false && m.legendaCrtkan2 === false)), { barve: m.barve, crtkan2: m.crtkan2, legenda: m.legendaCrtkan2 });
   const crte = [['sh-povezava', 'povezava'], ['sh-vidita', 'se vidita'], ['sh-vidi', 'celica izbrisa vidi']].filter(([r]) => info[kljuc].povezave[r]).map(([, n]) => n);
-  const napisi = [...sklepi, vzorec, ...(vzorec2 ? [vzorec2] : []), ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', ...crte, ...(sklep ? [sklep] : []), 'poljubn', ...(opomba ? [opomba] : []), ...(enako ? ['Enako velja'] : [])];
+  const legenda = [vzorec, ...(vzorec2 ? [vzorec2] : []), ...(m.rozna ? ['celica izbrisa'] : []), 'za izbris', ...crte];
+  const ostalo = [...(sklep ? [sklep] : []), 'poljubn', ...(opomba ? [opomba] : []), ...(enako ? ['Enako velja'] : [])];
+  // V Pomoči sklep pod vsako risbo, nato legenda; ob vaji legenda, sklep odprte risbe, napisi, na koncu sklep druge oblike.
+  const napisi = vaja ? [...legenda, ...sklepi.slice(0, 1), ...ostalo, ...sklepi.slice(1)] : [...sklepi, ...legenda, ...ostalo];
   preveri(`${kljuc}: legenda (${m.rozna ? 'z rožnato celico izbrisa' : 'brez rožnate celice'}) in napisi${opomba ? ' z opombo' : ''}`,
     m.napisi.length === napisi.length && napisi.every((n, i) => m.napisi[i].includes(n)), m.napisi);
   preveri(`${kljuc}: črke v celici vzorca ne segajo v zlati okvir${trojica ? ', celica s tremi črkami' : ''}`, m.crkeVOkvirju && m.triCrke === trojica, m);
@@ -204,16 +220,27 @@ async function sirina(b, sir, kljuci, info) {
     preveri(`${kljuc}, Spoznaj: vaja začne na vrhu strani, glava v oknu (prej ${pred.y})`, vrh.y === 0 && vrh.glava >= 0, vrh);
     if (sir < 500) console.log(`    · ${kljuc}: mreža vaje (${vrh.mrezaRazred}) od ${vrh.mreza} px, spodnji rob »Preveri« ${vrh.preveri} px od vrha (${vrh.preveri > 667 ? 'pod' : 'nad'} 667, ${vrh.preveri > 812 ? 'pod' : 'nad'} 812)`);
     izmerjeno.push({ kljuc, sir, ...vrh });
+    const nad = await b.izvedi(NAD);
+    preveri(`${kljuc}, Spoznaj: besedilo sheme nad risbo, risba ${nad.razmik} px nad mrežo${info[kljuc].risb > 1 ? ', ena odprta risba, druga oblika zaprta' : ''}`,
+      nad.nad && nad.razmik >= 0 && nad.razmik <= (info[kljuc].risb > 1 ? 60 : 30) && nad.odprtih === 1
+      && JSON.stringify(nad.druga) === JSON.stringify(info[kljuc].risb > 1 ? [[false, `Druga oblika: ${info[kljuc].naslovi[1].replace(/ \(.*\)$/, '')}`]] : []), nad);
+    if (info[kljuc].risb > 1) {
+      // Druga oblika na zahtevo: pravi klik na »Druga oblika: …«, nato se izmerita obe risbi.
+      await b.izvedi(`document.querySelector('.shema-druga > summary').scrollIntoView({ block: 'center' }); true`);
+      await b.klikni('.shema-druga > summary');
+      await pocakaj(b, 150);
+      preveri(`${kljuc}, Spoznaj: pravi klik odpre drugo obliko`, await b.izvedi(`document.querySelector('.shema-druga').open`));
+    }
     const m = await b.izvedi(MERI);
-    preveri(`${kljuc}, Spoznaj: razdelek »Shema« odprt, takoj za »Razlaga«`, m.razdelek && m.odprt && m.povzetek === 'Shema' && m.zaRazlago, m);
-    pregledMeritve(kljuc, m, info);
+    preveri(`${kljuc}, Spoznaj: razdelek »Shema« odprt, tik nad mrežo vaje`, m.razdelek && m.odprt && m.povzetek === 'Shema' && m.zaRazlago, m);
+    pregledMeritve(kljuc, m, info, true);
     const ime = await b.izvedi(IME);
     preveri(`${kljuc}, Spoznaj: ime tehnike kontrast ${ime.kontrast.toFixed(1)} : 1, ${ime.velikost} px`, ime.kontrast >= 4.5 && ime.velikost >= 14, ime);
     await b.izvedi(`document.querySelector('.shema-razdelek').scrollIntoView({ block: 'start' }); true`);
     await pocakaj(b, 100);
     await b.posnetek(path.join(mapa, `shema-${kljuc}-${sir}.png`), { vsaStran: false });
     if (info[kljuc].risb > 1) {
-      await b.izvedi(`document.querySelectorAll('.shema-razdelek .shema-naslov')[1].scrollIntoView({ block: 'start' }); true`);
+      await b.izvedi(`document.querySelector('.shema-razdelek .shema-druga').scrollIntoView({ block: 'start' }); true`);
       await pocakaj(b, 100);
       await b.posnetek(path.join(mapa, `shema-${kljuc}-2-${sir}.png`), { vsaStran: false });
     }
@@ -238,7 +265,7 @@ async function sirina(b, sir, kljuci, info) {
     await b.klikni(`.menu-card[data-mode="${kljuc}"] .nacin-btn.vadi`);
     await b.cakaj(`!!document.querySelector('#exerciseArea .vaja-uganka')`, 15000);
     const m3 = await b.izvedi(MERI);
-    preveri(`${kljuc}, Vadi v uganki: razdelek »Shema« zaprt`, m3.razdelek && !m3.odprt && m3.zaRazlago, m3);
+    preveri(`${kljuc}, Vadi v uganki: razdelek »Shema« zaprt, tik nad ploščo z mrežo`, m3.razdelek && !m3.odprt && m3.zaRazlago, m3);
     const ime3 = await b.izvedi(IME);
     preveri(`${kljuc}, Vadi v uganki: ime tehnike kontrast ${ime3.kontrast.toFixed(1)} : 1, ${ime3.velikost} px`, ime3.kontrast >= 4.5 && ime3.velikost >= 14, ime3);
     await b.klikni('#backBtn');
@@ -341,7 +368,7 @@ async function main() {
     if (brez.length) for (const s of SIRINE) await brezKartice(b, s, brez, info);
     for (const s of SIRINE) for (const a of APLIKACIJE) await pomoc(b, a, s, kljuci, info);
     const t = izmerjeno.find(x => x.kljuc === 'turbot-fish' && x.sir === 375);
-    if (t) console.log(`\n9 · Veriga ene števke pri 375 px, obe risbi odprti: mreža vaje (${t.mrezaRazred}) se začne ${t.mreza} px od vrha strani, spodnji rob »Preveri« ${t.preveri} px.`);
+    if (t) console.log(`\n9 · Veriga ene števke pri 375 px, odprta risba vaje: mreža vaje (${t.mrezaRazred}) se začne ${t.mreza} px od vrha strani, spodnji rob »Preveri« ${t.preveri} px.`);
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } finally {
     await b.zapri();

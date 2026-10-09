@@ -76,12 +76,16 @@ function razdelekRazlaga(m){
 // (popravek po pregledu koraka 2 - prej zaprt), v "Vadi v uganki" zaprt; odprt ali zaprt ostane
 // med vajami kroga (shemaKrog, zacniKrog() ga nastavi po shemaPrivzetoOdprta()). Ogled ne šteje
 // kot pomoč - shema je splošna. Tehnika brez sheme (E1, E2) razdelka nima: null.
+// Ob vaji je vse besedilo sheme nad risbo, razdelek pa stoji tik nad mrežo vaje (popravek po ročnem
+// pregledu naloge 4a - izrisiShemo(m, { vaja: true })); pri 9 je odprta samo risba, ki ustreza vaji
+// (risba = 0 Nebotičnik, 1 Zmaj - risbaVaje9()), druga oblika je pod njo na zahtevo.
 let shemaKrog=true;
 function shemaPrivzetoOdprta(m,n){
   return n==='spoznaj';
 }
-function razdelekShema(m){
-  const fig=izrisiShemo(m);
+function risbaVaje9(varianta){return varianta==='Two-String Kite'?1:0;}
+function razdelekShema(m,risba){
+  const fig=izrisiShemo(m,{vaja:true,risba});
   if(!fig)return null;
   const d=document.createElement('details');d.className='shema-razdelek';d.open=shemaKrog;
   const s=document.createElement('summary');s.textContent='Shema';
@@ -547,13 +551,14 @@ function motilecPravokotnika(ex){
 // preslikavo črk v števke tik pod razdelkom »Shema« (O2).
 // Pri 11 je vaja 2 zrcaljena levo-desno (O18), pri 9 po prvi oziroma drugi risbi sheme (O8).
 function pripisPoShemi(ps){return ps.obrnjeno?' · po shemi, obrnjeno':ps.zrcaljeno?' · po shemi, zrcaljeno':' · po shemi';}
+// Vrstica je nad razdelkom »Shema«, vaja pa pod shemo (popravek po ročnem pregledu naloge 4a).
 function vrsticaPoShemi(ps){
   const crke=ps.crke.length===1?`črka ${ps.crke[0][0]} je števka ${ps.crke[0][1]}.`
     :`črke so števke: ${ps.crke.map(([c,d])=>`${c} = ${d}`).join(', ')}.`;
-  if(ps.obrnjeno) return `Vaja po obrnjeni shemi zgoraj – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`;
-  if(ps.zrcaljeno) return `Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${crke}`;
-  if(ps.risba) return `Vaja po ${ps.risba.st===1?'prvi':'drugi'} risbi sheme zgoraj (${ps.risba.ime}) – iste celice, ${crke}`;
-  return `Vaja po shemi zgoraj – iste celice, ${crke}`;
+  if(ps.obrnjeno) return `Vaja pod shemo je obrnjena – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`;
+  if(ps.zrcaljeno) return `Vaja pod shemo je zrcaljena – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${crke}`;
+  if(ps.risba) return `Vaja pod shemo (${ps.risba.ime}) – iste celice, ${crke}`;
+  return `Vaja pod shemo – iste celice, ${crke}`;
 }
 
 function renderExercise(){
@@ -579,8 +584,9 @@ function renderExercise(){
   const opis=ex.desc?`${TEHNIKE_OPISI[mode].povzetek} ${ex.desc}`:M.desc;
   div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}${ex.poShemi?pripisPoShemi(ex.poShemi):''}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
   div.appendChild(razdelekRazlaga(mode));
-  const shema=razdelekShema(mode);if(shema)div.appendChild(shema);
   if(ex.poShemi){const p=document.createElement('p');p.className='po-shemi';p.textContent=vrsticaPoShemi(ex.poShemi);div.appendChild(p);}
+  // Razdelek »Shema« se vstavi tik nad mrežo vaje, ko je postavitev zgrajena (spodaj).
+  const shema=razdelekShema(mode,M.isTurbot?risbaVaje9(ex.variant):undefined);
 
   let cellEls=[],countEls=[];
 
@@ -639,6 +645,10 @@ function renderExercise(){
   } else {
     const layout=buildLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
+  }
+  if(shema){
+    const mreza=[...div.children].find(e=>['vaja-presek','layout-row','layout-col','layout-block','xw-grid','g9'].some(r=>e.classList.contains(r)));
+    div.insertBefore(shema,mreza||null);
   }
 
   // Gumb za stevilo kandidatov - vidnost je lastnost tehnike (M.showCandidateCount), ne poseben primer po imenu tehnike

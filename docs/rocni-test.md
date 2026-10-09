@@ -319,6 +319,15 @@ Vaji 1 in 2 sta po shemi v vsakem krogu »Spoznaj« (ob vsakem kliku na kartico 
 | 4 | trening, »Spoznaj« | 3 · Očitni par, vaja 2: odpri »Rešitev«, nato izberi eno celico vzorca in eno zunaj njega; odgovori napačno, nato pravilno. | Okvirji izbire se sproti spreminjajo (zelen / temno rdeč); ob napačnem odgovoru »Rešitev« ostane odprta, ob pravilnem se zapre; obnašanje je razumljivo. (nepotrjeno) – ni avtomatsko: presoja, ali je sprotno prilagajanje (O12) razumljivo. |
 | 5 | trening, »Vadi v uganki« | 4 · Skriti par: odpri »Namig«, zapri ga z drugim klikom na gumb; odpri »Rešitev«, zapri jo s »Skrij« v okvirju. | Oba načina delujeta; napis (»Skrij namig« / »Skrij rešitev«) in pritisnjen slog gumba sta jasna in enaka kot v »Spoznaj«. (nepotrjeno) – ni avtomatsko: presoja skladnosti z »Spoznaj«. |
 
+Pregled 9. 10. 2026: točke 1, 3, 4 in 5 so potrjene; pri točki 2 sta dva popravka (spodaj, točki 6 in 7 –
+preverjeno samodejno v `tests/trening-shema-vaja.test.js`, `tools/preveri-po-shemi-brskalnik.js` in
+`tools/preveri-sheme-brskalnik.js`).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 6 | trening, »Spoznaj« in »Vadi v uganki«, telefon | Odpri vaji 1 in 2 pri 4 · Skriti par, 10 · W-krilo in 13 · XY-veriga, nato še »Vadi v uganki« pri 4 in odpri »Shema«. | Vse besedilo sheme (legenda, sklep, napis o črkah, opombe) je nad risbo; nad razdelkom »Shema« je vrstica »Vaja pod shemo – …« (pri vaji 2 »Vaja pod shemo je obrnjena – …«); risba stoji tik nad mrežo vaje, tako da primerjaš shemo in mrežo brez drsenja čez besedilo; v »Vadi v uganki« je med risbo in mrežo samo niz »Poudari števko«. (nepotrjeno) – ni avtomatsko: presoja, ali je primerjava sheme in mreže zdaj res lažja. |
+| 7 | trening, »Spoznaj« in »Vadi v uganki«, 9 · Veriga ene števke | Vaja 1 (Nebotičnik) in vaja 2 (Zmaj) v »Spoznaj«, nato »Vadi v uganki«: odpri »Shema«, tapni »Druga oblika: …« in ga zapri; primerjaj še z oknom Pomoč → Tehnike → 9 → Shema. | Ob vaji je odprta samo risba, ki ustreza vaji (pri vaji 1 Nebotičnik, pri vaji 2 Zmaj z dvema vrvicama, v »Vadi v uganki« oblika iskanega koraka); pod njo je zaprta povezava »Druga oblika: …«, ki pokaže drugo risbo s sklepom; vrstica nad shemo pove obliko (»Vaja pod shemo (Nebotičnik) – …«); Pomoč kaže obe risbi kot prej. (nepotrjeno) – ni avtomatsko: presoja, ali je povezava na drugo obliko opazna in razumljiva. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

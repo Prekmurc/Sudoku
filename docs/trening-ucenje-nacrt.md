@@ -2,7 +2,8 @@
 
 Načrt 2026-10-08 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4a – pred nalogo 5, BUG+1; obe
 postavki sta bili v »Kasneje«, zapisani ob ročnem pregledu XY-verige). **Stanje: potrjeno 2026-10-08** (commit načrta `b630fe9`; odločitve v razdelku 6), izvedba po korakih
-(razdelek 7). O nalogi 5 (BUG+1) Darko odloči po tej nalogi.
+(razdelek 7). O nalogi 5 (BUG+1) Darko odloči po tej nalogi – **odločeno 2026-10-09: naloga 5 gre v »Kasneje«**
+(z XY-verigo ni potrebna), naslednja je naloga 4b »Spoznaj: druga faza – izbris«.
 
 **Dopolnitev 2026-10-08** (pred potrditvijo, Darkove odločitve): O8 spremenjen – pri 9 sta po shemi
 vaja 1 (prva risba, Nebotičnik) in vaja 2 (druga risba, Zmaj); nova O16 – pri drugih tehnikah s shemo je
@@ -488,7 +489,7 @@ potem že uporabljajo stikalo.
 ### Zaključek
 
 Ročni pregled (razdelek 5), vpis v `docs/rocni-test.md`, `docs/uskladitev.md` (naloga 4a zaključena,
-naslednja je odločitev o nalogi 5).
+naslednja je naloga 4b – odločitev o nalogi 5 je sprejeta 2026-10-09: v »Kasneje«).
 
 ## 5. Ročni pregled (enkrat, na koncu naloge)
 
@@ -760,3 +761,35 @@ Potrjeno 2026-10-08: O1–O16 po predlogu (O8 in O16 že prej Darkovi), O17 po p
   `stikalo` 25 ✓, `sheme` 939 ✓, `videz` 339 ✓ – vse drži.
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 801 zelenih v 3 min 16 s (hitrih 635 v 49 s).
 - **Naloga ni zaprta** – čaka na Darkov pregled (ročni seznam v `docs/rocni-test.md`, razdelek »Trening – učenje«).
+
+### Popravka po ročnem pregledu (2026-10-09)
+
+Ročni pregled (`docs/rocni-test.md`): točke 1, 3, 4 in 5 potrjene, pri točki 2 dva popravka.
+
+- **Popravek 1 – besedilo nad shemo, shema tik nad mrežo** (»Spoznaj« in »Vadi v uganki«, vseh 13 tehnik;
+  Pomoč ostane, kot je):
+  - `shared/sheme.js`: `izrisiShemo(kljuc, { vaja: true })` – vse besedilo (naslov risbe, legenda, sklep,
+    napis o črkah, opombe) nad risbo, risba zadnja; brez možnosti (Pomoč) kot prej;
+  - `trening/trening.js`: razdelek »Shema« se vstavi tik pred mrežo vaje; vrstica s preslikavo in oznaka
+    »Označena števka« sta nad njim. Vrstica s preslikavo: »Vaja pod shemo – iste celice, …«, »Vaja pod shemo je
+    obrnjena – vrstice sheme so stolpci, …« (pri 3–6 »vrstica sheme je stolpec«), »Vaja pod shemo je zrcaljena –
+    …« (11), »Vaja pod shemo (Nebotičnik) – iste celice, …« / »(Zmaj z dvema vrvicama)« (9);
+  - `trening/v-uganki.js`: razdelek tik nad ploščo (`.vaja-uganka`), vrstica z uganko nad njim. Med risbo in
+    mrežo je samo niz »Poudari števko«, ki je del plošče;
+  - `trening/trening.css`: razmik nad risbo (8 px) in nad razdelkom »Druga oblika«.
+- **Popravek 2 – pri 9 odprta samo risba vaje:** `izrisiShemo(kljuc, { vaja: true, risba })` – odprta je
+  samo risba `risba` (0 Nebotičnik, 1 Zmaj), druga je pod njo v zaprtem `<details class="shema-druga">`
+  »Druga oblika: Zmaj z dvema vrvicama« / »Druga oblika: Nebotičnik« (sklep in risba). V »Spoznaj« po
+  podtipu vaje (`risbaVaje9(ex.variant)` – vaje po shemi in vaje iz generatorja), v »Vadi v uganki« po
+  podtipu prvega koraka vaje (`KT[0].variant`). Pomoč kaže obe risbi.
+- **Test pred spremembo:** nov `tests/trening-shema-vaja.test.js` (29 testov) – na stari kodi 28 padlo,
+  varovalo Pomoči drži. Testi, ki so preverjali staro postavitev (`tests/sheme.test.js` – »takoj za
+  Razlaga«, dve risbi pri 9 – in besedila v `tests/trening-po-shemi.js`), so posodobljeni na novo zahtevo.
+- **Brskalnik:** `preveri-po-shemi-brskalnik.js` – preslikava nad shemo, besedilo sheme nad risbo, risba tik
+  nad mrežo (razmik izpisan), pri 9 odprta ena risba in zaprta »Druga oblika« – 372 ✓;
+  `preveri-sheme-brskalnik.js` – razdelek tik nad mrežo (»Vadi v uganki« nad ploščo), besedilo nad risbo,
+  pri 9 pravi klik na »Druga oblika« odpre drugo risbo, nato meritve obeh – 967 ✓. Drugi: `presek` 79 ✓,
+  `enojcki` 330 ✓, `vadi` 362 ✓ (dve preverbi prečrtanih kandidatov sta pogojni – vaja brez prej
+  izbrisanih kandidatov), `izbira` 708 ✓, `videz` 339 ✓, `pomoc` 66 ✓ – vse drži.
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 830 zelenih v 3 min 20 s (hitrih 664 v 56 s).
+- **Naloga ni zaprta** – čaka na Darkov pregled (točki 6 in 7 v `docs/rocni-test.md`).

@@ -368,8 +368,12 @@ function svgSheme(kljuc, n = 0) {
 // Element <figure class="shema">: risba (pri 9 dve, vsaka z naslovom nad njo), legenda (celice
 // vzorca, celice vzorca druge vrste – samo, če so na shemi –, celica izbrisa – samo, če je na shemi rožnata celica –, kandidat za izbris, vrste povezav,
 // ki so na shemi), sklep (10, 11; pri 9 pod vsako risbo), napis o črkah, opomba in vrstica »enako velja« – ali null, če tehnika sheme
-// nima (E1, E2).
-function izrisiShemo(kljuc) {
+// nima (E1, E2). Tako je v Pomoči.
+// Ob vaji v treningu (moznosti.vaja – popravek po ročnem pregledu naloge 4a, docs/trening-ucenje-nacrt.md):
+// vse besedilo (naslov risbe, legenda, sklep, napis o črkah, opombe) je nad risbo, risba je zadnja – shema
+// stoji tik nad mrežo vaje. Z moznosti.risba (pri 9 – risba, ki ustreza vaji) je odprta samo ta risba,
+// druga oblika je pod njo v zaprtem razdelku <details class="shema-druga"> »Druga oblika: …« (sklep in risba).
+function izrisiShemo(kljuc, moznosti = {}) {
   const s = SHEME_TEHNIK[kljuc];
   if (!s) return null;
   const el = (tag, razred, besedilo) => {
@@ -381,14 +385,14 @@ function izrisiShemo(kljuc) {
   const fig = el('figure', 'shema');
   fig.dataset.tehnika = kljuc;
   const risbe = shemaRisbe(kljuc);
-  risbe.forEach((r, n) => {
-    if (r.naslov) fig.appendChild(el('p', 'shema-naslov', r.naslov));
-    const risba = el('div', 'shema-okvir');
-    risba.innerHTML = svgSheme(kljuc, n);
-    fig.appendChild(risba);
-    // Sklep pod risbo (9 – vsaka risba ima svojega).
-    if (r !== s && r.sklep) fig.appendChild(el('p', 'shema-sklep', r.sklep));
-  });
+  // Deli risbe n: naslov (pri 9), risba, sklep pod njo (9 – vsaka risba ima svojega).
+  const deliRisbe = n => {
+    const r = risbe[n];
+    const okvir = el('div', 'shema-okvir');
+    okvir.innerHTML = svgSheme(kljuc, n);
+    return { naslov: r.naslov ? el('p', 'shema-naslov', r.naslov) : null, okvir,
+      sklep: r !== s && r.sklep ? el('p', 'shema-sklep', r.sklep) : null };
+  };
   const celice = risbe.flatMap(r => r.celice);
   const leg = el('div', 'shema-legenda');
   const v = el('span');
@@ -428,10 +432,28 @@ function izrisiShemo(kljuc) {
     p.append(sw, napis);
     leg.appendChild(p);
   }
-  fig.appendChild(leg);
-  if (s.sklep) fig.appendChild(el('p', 'shema-sklep', s.sklep));
-  fig.appendChild(el('p', 'shema-crke', shemaNapisCrk(kljuc)));
-  if (s.opomba) fig.appendChild(el('p', 'shema-opomba', s.opomba));
-  if (s.enako) fig.appendChild(el('p', 'shema-enako', s.enako));
+  const besedilo = [leg];
+  if (s.sklep) besedilo.push(el('p', 'shema-sklep', s.sklep));
+  besedilo.push(el('p', 'shema-crke', shemaNapisCrk(kljuc)));
+  if (s.opomba) besedilo.push(el('p', 'shema-opomba', s.opomba));
+  if (s.enako) besedilo.push(el('p', 'shema-enako', s.enako));
+  const dodaj = (...e) => e.forEach(x => { if (x) fig.appendChild(x); });
+  if (!moznosti.vaja) {
+    risbe.forEach((r, n) => { const d = deliRisbe(n); dodaj(d.naslov, d.okvir, d.sklep); });
+    dodaj(...besedilo);
+    return fig;
+  }
+  const izbrana = moznosti.risba != null && risbe.length > 1 ? [moznosti.risba] : risbe.map((r, n) => n);
+  const deli = izbrana.map(deliRisbe);
+  dodaj(...deli.map(d => d.naslov), besedilo[0], ...deli.map(d => d.sklep), ...besedilo.slice(1), ...deli.map(d => d.okvir));
+  risbe.forEach((r, n) => {
+    if (izbrana.includes(n)) return;
+    const d = deliRisbe(n);
+    const druga = el('details', 'shema-druga');
+    druga.append(el('summary', null, `Druga oblika: ${r.naslov.replace(/ \(.*\)$/, '')}`));
+    if (d.sklep) druga.appendChild(d.sklep);
+    druga.appendChild(d.okvir);
+    fig.appendChild(druga);
+  });
   return fig;
 }

@@ -187,7 +187,6 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].povzetek+(!ob?'':ob.celice?' Območje je na mreži uokvirjeno.'
     :ob.stevke.length>1?' Števki sta poudarjeni.':' Števka je poudarjena.')));
   div.appendChild(razdelekRazlaga(mode));
-  const shema=razdelekShema(mode);if(shema)div.appendChild(shema);
 
   // Stopnja uganke (samo informacija, tudi "Presega tehnike"), izvor vaje v title.
   const info=vEl('div','vaja-info');
@@ -211,6 +210,11 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
     }
   }
   div.appendChild(info);
+
+  // Razdelek »Shema« tik nad ploščo z mrežo (popravek po ročnem pregledu naloge 4a); pri 9 odprta
+  // risba koraka vaje (KT[0] - Nebotičnik ali Zmaj), druga oblika na zahtevo.
+  const shema=razdelekShema(mode,mode==='turbot-fish'&&v.KT.length?risbaVaje9(v.KT[0].variant):undefined);
+  if(shema)div.appendChild(shema);
 
   // Plošča: niz Poudari, mreža z robovi in seznami, pri 1-12 niz Odstrani, vrstica z
   // razlogom in Razveljavi/Ponovi/Začni znova, stikala seznamov.

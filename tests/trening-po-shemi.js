@@ -147,13 +147,13 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
         const d = oznacena(dom);
         assert.match(vaja(dom).innerHTML, new RegExp(`^<p class="ex-label">[^<]* · Vaja ${n + 1} / 9 · ${obrnjeno ? 'po shemi, obrnjeno' : 'po shemi'}</p>`));
         assert.equal(poShemi(dom).textContent, obrnjeno
-          ? `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črka x je števka ${d}.`
-          : `Vaja po shemi zgoraj – iste celice, črka x je števka ${d}.`);
-        // Vrstica s preslikavo je tik za razdelkom »Shema«, ta je odprt.
+          ? `Vaja pod shemo je obrnjena – vrstice sheme so stolpci, črka x je števka ${d}.`
+          : `Vaja pod shemo – iste celice, črka x je števka ${d}.`);
+        // Vrstica s preslikavo je nad razdelkom »Shema«, ta je odprt (popravek po ročnem pregledu naloge 4a).
         const otroci = vaja(dom).children;
-        const i = otroci.indexOf(poShemi(dom));
-        assert.equal(otroci[i - 1].className, 'shema-razdelek');
-        assert.equal(otroci[i - 1].open, true);
+        const sh = otroci.find(e => e.className === 'shema-razdelek');
+        assert.ok(otroci.indexOf(poShemi(dom)) < otroci.indexOf(sh));
+        assert.equal(sh.open, true);
       });
     }
 
@@ -303,8 +303,8 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
           const crke = poShemi(dom).textContent.match(/črke so števke: (.*)\.$/)[1].split(', ').map(p => p.split(' = '));
           assert.deepEqual(crke.map(([c]) => c), crkeSheme);
           assert.equal(poShemi(dom).textContent, obrnjeno
-            ? `Vaja po obrnjeni shemi zgoraj – vrstica sheme je stolpec, črke so števke: ${crke.map(([c, d]) => `${c} = ${d}`).join(', ')}.`
-            : `Vaja po shemi zgoraj – iste celice, črke so števke: ${crke.map(([c, d]) => `${c} = ${d}`).join(', ')}.`);
+            ? `Vaja pod shemo je obrnjena – vrstica sheme je stolpec, črke so števke: ${crke.map(([c, d]) => `${c} = ${d}`).join(', ')}.`
+            : `Vaja pod shemo – iste celice, črke so števke: ${crke.map(([c, d]) => `${c} = ${d}`).join(', ')}.`);
           assert.match(vaja(dom).innerHTML, new RegExp(`^<p class="ex-label">[^<]* · Vaja ${n + 1} / 9 · ${obrnjeno ? 'po shemi, obrnjeno' : 'po shemi'}</p>`));
           assert.ok(vObmocju(dom).some(e => e.className === (obrnjeno ? 'layout-col' : 'layout-row')), 'izris enote');
           const celice = vObmocju(dom).filter(e => /^gc\b/.test(e.className));
@@ -447,14 +447,14 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
             : vrstica.match(/črke so števke: (.*)\.$/)[1].split(', ').map(p => p.split(' = ')));
           assert.deepEqual(crke.map(([c]) => c), crkeSheme);
           const preslikava = crkeSheme.length === 1 ? `črka x je števka ${crke[0][1]}.` : `črke so števke: ${crke.map(([c, d]) => `${c} = ${d}`).join(', ')}.`;
-          const pricakovana = n === 0 && !risba.naslov ? `Vaja po shemi zgoraj – iste celice, ${preslikava}`
-            : risba.naslov ? `Vaja po ${n === 0 ? 'prvi' : 'drugi'} risbi sheme zgoraj (${risba.naslov.replace(/ \(.*\)$/, '')}) – iste celice, ${preslikava}`
-            : P.vaja2 === 'zrcaljeno' ? `Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${preslikava}`
-            : `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, ${preslikava}`;
+          const pricakovana = n === 0 && !risba.naslov ? `Vaja pod shemo – iste celice, ${preslikava}`
+            : risba.naslov ? `Vaja pod shemo (${risba.naslov.replace(/ \(.*\)$/, '')}) – iste celice, ${preslikava}`
+            : P.vaja2 === 'zrcaljeno' ? `Vaja pod shemo je zrcaljena – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${preslikava}`
+            : `Vaja pod shemo je obrnjena – vrstice sheme so stolpci, ${preslikava}`;
           assert.equal(vrstica, pricakovana, `seme ${seme}`);
           assert.match(vaja(dom).innerHTML, new RegExp(`^<p class="ex-label">[^<]* · Vaja ${n + 1} / 9 · ${n === 0 ? 'po shemi' : P.label}</p>`));
           const otroci = vaja(dom).children, i = otroci.indexOf(poShemi(dom));
-          assert.equal(otroci[i - 1].className, 'shema-razdelek');
+          assert.ok(i < otroci.findIndex(e => e.className === 'shema-razdelek'), 'vrstica s preslikavo nad shemo');
           assert.deepEqual(urejeno(gcCelice(dom).map(idxCelice)), prazne, 'prazne celice na mreži');
           medPomocjo(dom, 'resitev', () => {
             assert.deepEqual(urejeno(gcCelice(dom).filter(c => c.classList.contains('peek-hl')).map(idxCelice)), vzorec, `seme ${seme}: »Rešitev« – vzorec`);
@@ -584,10 +584,10 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
           assert.ok(ex.poShemi, `seme ${seme}: vaja po shemi`);
           assert.match(vaja(dom).innerHTML, new RegExp(`^<p class="ex-label">[^<]* · Vaja ${n + 1} / 9 · ${obrnjeno ? 'po shemi, obrnjeno' : 'po shemi'}</p>`));
           assert.equal(poShemi(dom).textContent, obrnjeno
-            ? `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črka x je števka ${ex.digit}.`
-            : `Vaja po shemi zgoraj – iste celice, črka x je števka ${ex.digit}.`);
+            ? `Vaja pod shemo je obrnjena – vrstice sheme so stolpci, črka x je števka ${ex.digit}.`
+            : `Vaja pod shemo – iste celice, črka x je števka ${ex.digit}.`);
           const otroci = vaja(dom).children, i = otroci.indexOf(poShemi(dom));
-          assert.equal(otroci[i - 1].className, 'shema-razdelek');
+          assert.ok(i < otroci.findIndex(e => e.className === 'shema-razdelek'), 'vrstica s preslikavo nad shemo');
           const celice = run('presek.mreza.celice');
           // Vidne celice na mreži (brez razreda izven) so blok in vrstica sheme.
           assert.deepEqual(Array.from(celice, (c, i) => c.classList.contains('izven') ? -1 : i).filter(i => i >= 0), S.vidne);

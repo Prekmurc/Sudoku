@@ -388,12 +388,14 @@ function trening() {
   return { run, izprazni, vaja, shema };
 }
 
-test('trening: razdelek »Shema« za »Razlaga«; Spoznaj odprt, Vadi v uganki zaprt, stanje ostane v krogu, E1 brez', () => {
+// Od popravka po ročnem pregledu naloge 4a je razdelek tik nad mrežo vaje, med »Razlaga« in njim je
+// vrstica s preslikavo vaje po shemi (tests/trening-shema-vaja.test.js).
+test('trening: razdelek »Shema« za »Razlaga« (pri vaji po shemi za vrstico s preslikavo); Spoznaj odprt, Vadi v uganki zaprt, stanje ostane v krogu, E1 brez', () => {
   const { run, izprazni, vaja, shema } = trening();
   run('zacniKrog("naked-triple", "spoznaj")');
   const otroci = vaja().children;
   const i = otroci.findIndex(e => e.className === 'shema-razdelek');
-  assert.equal(otroci[i - 1].className, 'razlaga-tehnike', 'takoj za »Razlaga«');
+  assert.deepEqual(otroci.slice(i - 2, i).map(e => e.className), ['razlaga-tehnike', 'po-shemi'], 'za »Razlaga« in vrstico s preslikavo');
   assert.equal(shema().tagName, 'DETAILS');
   assert.equal(shema().children[0].textContent, 'Shema');
   assert.equal(shema().children[1].className, 'shema');
@@ -425,7 +427,9 @@ test('trening: razdelek »Shema« za »Razlaga«; Spoznaj odprt, Vadi v uganki z
     assert.equal(shema().open, false, `${k}: Vadi v uganki`);
   }
   run('zacniKrog("turbot-fish", "spoznaj")');
-  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-okvir').length, 2, 'veriga ene števke: dve risbi');
+  // Ob vaji odprta samo risba vaje, druga oblika na zahtevo (popravek po ročnem pregledu naloge 4a).
+  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-okvir').length, 1, 'veriga ene števke: ena odprta risba');
+  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-druga').length, 1, 'veriga ene števke: druga oblika');
   shema().open = false; shema().sprozi('toggle');
   run('exNum++; renderExercise()');
   assert.equal(shema().open, false, 'veriga ene števke: zaprt ostane v naslednji vaji');
