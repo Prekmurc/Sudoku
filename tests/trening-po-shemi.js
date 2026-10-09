@@ -101,9 +101,9 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
   const test = !samoVzorec && deli.includes('sheme') ? nodeTest : () => {};
   const vzorcniP = deli.includes('preseki') ? nodeTest : () => {};
   // Najmanj različnih preslikav črk v števke po številu črk. Od popravka 4 (vrstni red števk v celicah vzorca
-  // kot vrstni red črk) je pri dveh črkah mogočih 36 preslikav (x < y), pri treh 84 (x < y < z), pri petih (13)
-  // 630; pri 200 vajah 9 / 25 / 50 / 100, na manjšem vzorcu manj.
-  const PRAG = [0, Math.min(9, VAJ / 4), Math.min(25, VAJ / 2), Math.min(50, VAJ / 2), VAJ / 2, VAJ / 2];
+  // kot vrstni red črk) je pri dveh črkah mogočih 36 preslikav (x < y), pri treh 84 (x < y < z), pri petih (13,
+  // od zaključka naloge 4a vedno z < x < y < a < b) 126; pri 200 vajah 9 / 25 / 50 / 63, na manjšem vzorcu manj.
+  const PRAG = [0, Math.min(9, VAJ / 4), Math.min(25, VAJ / 2), Math.min(50, VAJ / 2), VAJ / 2, Math.min(63, VAJ / 2)];
   // Semena krogov pri testih na vzorcu z nadomestnim DOM-om (namig, vaji 1 in 2 pri 1 in 2).
   const POLNI = VAJ >= 200;
   const SEMENA_NAMIGA = POLNI ? [3, 7, 12, 21, 34, 55] : [3];
@@ -520,6 +520,10 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
       for (const [v, ex] of vaje.entries()) {
         const crka = Object.fromEntries(ex.poShemi.crke);
         assert.equal(ujemanje(celice, c => crka[c]), najvec, `vaja ${v}: ${JSON.stringify(ex.poShemi.crke)}`);
+        // Pri 13 se krog vedno prekine v zadnji celici verige »b z« (zaključek naloge 4a): z < x < y < a < b,
+        // na mreži »z x«, »x y«, »y a«, »a b« po shemi, samo zadnja »z b«.
+        if (tehnika === 'xy-chain') assert.ok(crka.z < crka.x && crka.x < crka.y && crka.y < crka.a && crka.a < crka.b,
+          `vaja ${v}: z < x < y < a < b (${JSON.stringify(ex.poShemi.crke)})`);
       }
       if (tehnika === 'xy-chain') assert.deepEqual([najvec, celice.length], [4, 5], 'XY-veriga: štiri od petih celic');
       else assert.equal(najvec, celice.length, `${tehnika}: v vseh celicah vzorca`);

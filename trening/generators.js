@@ -620,8 +620,10 @@ function genRibaPoShemi(mode,obrnjeno){
 // naraščajoč vrstni red števk (tako jih izpiše mreža) čim bolj enak vrstnemu redu črk na shemi - celica
 // »x y« naj bo na mreži »x y«, ne »y x«. Med vsemi vrstnimi redi črk se naključno izbere eden z največ
 // celicami vzorca, v katerih se ujema (pri 11 x < y < z, pri parih x < y; pri 13 so pogoji v krogu, zato
-// štiri od petih celic), nato naključne različne števke, dodeljene po tem vrstnem redu. celiceVzorca so
-// črke celic vzorca v vrstnem redu na shemi (brez »…«). Vrne { črka: števka }.
+// štiri od petih celic), nato naključne različne števke, dodeljene po tem vrstnem redu. Če je med njimi
+// vrstni red prve pojavitve črk v celicah vzorca, se vzame ta (zaključek naloge 4a): pri 13 z < x < y < a < b,
+// krog se vedno prekine v zadnji celici verige »b z« (na mreži »z b«), pri vaji 1 in 2 enako. celiceVzorca
+// so črke celic vzorca v vrstnem redu na shemi (brez »…«). Vrne { črka: števka }.
 const RED_CRK=new Map();
 function stevkeZaCrke(crke,celiceVzorca){
   const kljuc=JSON.stringify([crke,celiceVzorca]);
@@ -636,7 +638,9 @@ function stevkeZaCrke(crke,celiceVzorca){
       }
       ostale.forEach((c,i)=>permutacije([...ostale.slice(0,i),...ostale.slice(i+1)],[...red,c]));
     })(crke,[]);
-    RED_CRK.set(kljuc,redi);
+    const prva=[...new Set(celiceVzorca.flat())].concat(crke).filter((c,i,a)=>a.indexOf(c)===i).join();
+    const poPrvi=redi.filter(r=>r.join()===prva);
+    RED_CRK.set(kljuc,poPrvi.length?poPrvi:redi);
   }
   const redi=RED_CRK.get(kljuc),red=redi[randInt(0,redi.length-1)];
   const st=shuffle([1,2,3,4,5,6,7,8,9]).slice(0,crke.length).sort((a,b)=>a-b);

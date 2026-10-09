@@ -1,7 +1,8 @@
 # Trening – učenje (vaji 1 in 2 po shemi, »Namig« in »Rešitev« kot stikali) – načrt
 
 Načrt 2026-10-08 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4a – pred nalogo 5, BUG+1; obe
-postavki sta bili v »Kasneje«, zapisani ob ročnem pregledu XY-verige). **Stanje: potrjeno 2026-10-08** (commit načrta `b630fe9`; odločitve v razdelku 6), izvedba po korakih
+postavki sta bili v »Kasneje«, zapisani ob ročnem pregledu XY-verige). **Stanje: zaključeno 2026-10-09** (ročni pregled točk 1–11 potrjen 9. 10. 2026; načrt potrjen 2026-10-08, commit
+`b630fe9`; odločitve v razdelku 6), izvedba po korakih
 (razdelek 7). O nalogi 5 (BUG+1) Darko odloči po tej nalogi – **odločeno 2026-10-09: naloga 5 gre v »Kasneje«**
 (z XY-verigo ni potrebna), naslednja je naloga 4b »Spoznaj: druga faza – izbris«.
 
@@ -489,7 +490,7 @@ potem že uporabljajo stikalo.
 ### Zaključek
 
 Ročni pregled (razdelek 5), vpis v `docs/rocni-test.md`, `docs/uskladitev.md` (naloga 4a zaključena,
-naslednja je naloga 4b – odločitev o nalogi 5 je sprejeta 2026-10-09: v »Kasneje«).
+naslednja je naloga 4b – odločitev o nalogi 5 je sprejeta 2026-10-09: v »Kasneje«). **Zaključeno 2026-10-09.**
 
 ## 5. Ročni pregled (enkrat, na koncu naloge)
 
@@ -829,3 +830,16 @@ Drugi pregled: točka 7 potrjena, pri točki 6 in ob pregledu štirje popravki.
   dodajo `ZNANE_RAZLIKE`).
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 867 zelenih v 4 min 13 s (hitrih 683 v 55 s).
 - **Naloga ni zaprta** – čaka na Darkov pregled (točke 8–11 v `docs/rocni-test.md`).
+
+### Zaključek (2026-10-09)
+
+- **Popravek pri 13:** krog pogojev z < x, x < y, y < a, a < b, b < z ne more veljati v vseh petih celicah; prej se
+  je prekinil naključno kjerkoli (npr. x = 9, y = 1 – na mreži »1 9« namesto »x y«). Zdaj `stevkeZaCrke()` med
+  enako dobrimi vrstnimi redi vzame vrstni red prve pojavitve črk v celicah vzorca – pri 13 z < x < y < a < b, krog
+  se vedno prekine v zadnji celici verige »b z« (na mreži »z b«), pri vaji 1 in 2. Pri drugih tehnikah je najboljši
+  vrstni red en sam, zato se nič ne spremeni.
+- **Test:** `tests/trening-po-shemi.js` – pri 13 v vseh vajah vzorca (20 / 200 vaj 1 in 2) z < x < y < a < b; na
+  stari kodi rdeč (prva vaja vzorca x = 9, y = 1). Prag različnih preslikav pri petih črkah je zdaj 63 (mogočih je
+  126 – C(9, 5) –, prej 630).
+- **Ročni pregled:** točke 1–11 v `docs/rocni-test.md` potrjene 9. 10. 2026. **Naloga 4a je zaključena**,
+  naslednja je naloga 4b »Spoznaj: druga faza – izbris« (`docs/uskladitev.md`).
