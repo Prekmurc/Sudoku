@@ -819,7 +819,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Če je števka v bloku mogoča samo v eni vrstici (ali stolpcu), jo izbrišeš iz te vrstice (ali stolpca) zunaj bloka.',
     razlaga: 'Poglej blok in v njem eno števko. Če ležijo vse celice bloka, kjer je ta števka še kandidat, v isti vrstici (ali v istem stolpcu), si našel vzorec – dve ali tri celice. Smer: iz bloka v vrstico.',
     posledica: 'V bloku mora biti števka v eni od teh celic, torej v tej vrstici. Zato v vrstici zunaj bloka ne more biti – tam jo izbrišeš. Pri stolpcu enako.',
-    navodilo: 'Izberi celice vzorca – dve ali tri.',
+    navodilo: 'Izberi celice vzorca – dve ali tri, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   'box-line': {
     ime: 'Izločitev v bloku',
@@ -827,7 +827,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Če je števka v vrstici (ali stolpcu) mogoča samo v enem bloku, jo izbrišeš iz preostanka tega bloka.',
     razlaga: 'Poglej vrstico (ali stolpec) in v njej eno števko. Če ležijo vse celice vrstice, kjer je ta števka še kandidat, v istem bloku, si našel vzorec – dve ali tri celice. Smer: iz vrstice v blok.',
     posledica: 'V vrstici mora biti števka v eni od teh celic, torej v tem bloku. Zato drugje v bloku ne more biti – iz celic bloka zunaj vrstice jo izbrišeš. Pri stolpcu enako.',
-    navodilo: 'Izberi celice vzorca – dve ali tri.',
+    navodilo: 'Izberi celice vzorca – dve ali tri, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   'naked-triple': {
     ime: 'Očitna trojica',

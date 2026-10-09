@@ -28,8 +28,10 @@
 //   izbrane     - izbrane celice
 //   sosede      - celica, katere vrstica/stolpec/blok se senčijo, ali null
 //   oznake      - oznake koraka (oznakeKoraka) ali null; z `veriga` (XY-veriga) dobi celica
-//                 verige zaporedno številko na praznem mestu kandidata (razred k-veriga)
-//   vidne       - celice, ki se prikažejo (Set ali seznam), ali null = vse. Ostale
+//                 verige zaporedno številko na praznem mestu kandidata (razred k-veriga); z
+//                 `napacne` (Set celica * 10 + števka - trening, »Rešitev« v 2. fazi »Spoznaj« 1 in 2)
+//                 dobi kandidat razred k-napacna (napačno označen kandidat)
+//   vidne      - celice, ki se prikažejo (Set ali seznam), ali null = vse. Ostale
 //                 so prazne, imajo razred "izven" in se na klik ne odzovejo, mreža
 //                 pa razred "delna" - za prikaz dela mreže na pravih mestih (npr.
 //                 samo dveh enot vaje).
@@ -157,6 +159,7 @@ function ustvariMrezo(el, { obKliku, robovi = false } = {}) {
             const b = barva(d);
             if (b >= 0) s.classList.add('poud', `b${b}`);
             if (o.izbris.has(i * 10 + d)) s.classList.add('k-izbris');
+            else if (o.napacne && o.napacne.has(i * 10 + d)) s.classList.add('k-napacna');
             if (o.vpis.get(i) === d) s.classList.add('k-vpis');
           } else if (p.precrtani && (p.precrtani[i] & (1 << d))) {
             // Kandidat, ki ga ni več (npr. odstranjen pred vajo), prečrtan; izbris

@@ -195,12 +195,17 @@ function buildLayout(div,ex,M){
 // se samo prazne vidne celice, po pravilnem odgovoru nič več. Korak vaje (pravilen
 // odgovor ali "Rešitev") se pokaže z oznakami koraka kot v igri (jantarno vzorec, rdeče
 // prečrtan izbris) - poudarek je takrat izklopljen, da rumena podlaga ne prekrije izbrisa.
+// 2. faza - izbris (docs/izbris-nacrt.md, korak 4): faza2 = { izbrane, oznake, resitev } (množici iz
+// trening/izbris.js); vzorec jantarno, oznake rdeče prečrtane (oznake.izbris), celice ostanejo bele,
+// poudarek izklopljen, izbira vidna. Ob »Rešitvi« (resitev) ves izbris prečrtan, celice izbrisa
+// rožnate, napačna oznaka k-napacna.
 function buildPresekLayout(div,ex,M){
   const okvir=document.createElement('div');okvir.className='vaja-presek';
   div.appendChild(okvir);
-  let korak=false;
+  let korak=false,faza2=null;
   const mreza=ustvariMrezo(okvir,{robovi:true,obKliku:i=>{
     if(vajaResena||ex.grid[i]) return;
+    if(izbrisVaje){izbrisVaje.izberi(i);return;}
     const ii=selected.indexOf(i);
     if(ii>=0) selected.splice(ii,1);
     else if(selected.length<M.pickN) selected.push(i);
@@ -212,18 +217,28 @@ function buildPresekLayout(div,ex,M){
     izbrisCelice:new Set(ex.solutionEliminate.map(([c])=>c)),
     vpis:new Map(),
   });
+  function oznakeFaze2(){
+    if(!faza2.resitev) return{vzorec:new Set(ex.solutionCells),izbris:new Set(faza2.oznake),izbrisCelice:new Set(),vpis:new Map()};
+    const o=oznakeKoraka();
+    o.napacne=new Set([...faza2.oznake].filter(k=>!o.izbris.has(k)));
+    return o;
+  }
   function izrisi(){
+    const v2=faza2&&!vajaResena;
     mreza.izrisi({
       grid:ex.grid,danosti:ex.danosti,kandidati:ex.kandidati,
-      barva:d=>!korak&&d===ex.digit?0:-1,
+      barva:d=>!korak&&!v2&&d===ex.digit?0:-1,
       // Izbira je vidna tudi ob odprti Rešitvi (O12), po pravilnem odgovoru je ni več.
-      izbrane:korak&&vajaResena?[]:selected,sosede:null,
-      oznake:korak?oznakeKoraka():null,
+      izbrane:v2?[...faza2.izbrane]:korak&&vajaResena?[]:selected,sosede:null,
+      oznake:v2?oznakeFaze2():korak?oznakeKoraka():null,
       vidne:ex.vidne,
     });
   }
   izrisi();
-  return{mreza,izrisi,pokaziKorak(on){korak=on;izrisi();}};
+  return{mreza,izrisi,pokaziKorak(on){korak=on;izrisi();},
+    faza2(izbrane,oznake){faza2={izbrane,oznake,resitev:false};izrisi();},
+    resitevFaze2(on){if(faza2){faza2.resitev=on;izrisi();}},
+    koncajFazo2(){faza2=null;}};
 }
 
 // Prikaz za XY-Wing in Unique Rectangle: cela mreža 9x9 s kandidati, ker je pri
@@ -485,6 +500,16 @@ function legendaIzbrisa(cellEls){
   if(celice.some(c=>ima(c,'peek-elim'))) postavke.push(['sw sw-izbris','celica izbrisa']);
   if(precrtana) postavke.push(['izbris-vzorec','kandidat za izbris',precrtana]);
   if(napacna) postavke.push(['napacna-vzorec','napačno označen kandidat',napacna]);
+  return legendaIzPostavk(postavke);
+}
+// Legenda »Rešitve« v 2. fazi pri 1 in 2 (delna mreža): vzorec jantarno, celice izbrisa, kandidat za izbris,
+// napačna oznaka (ključ celica * 10 + števka), če je.
+function legendaIzbrisaPreseka(izbris,napacne){
+  const postavke=[['sw sw-vzorec','celice vzorca'],['sw sw-izbris','celica izbrisa'],['izbris-vzorec','kandidat za izbris',String(izbris[0][1])]];
+  if(napacne.length) postavke.push(['napacna-vzorec','napačno označen kandidat',String(napacne[0]%10)]);
+  return legendaIzPostavk(postavke);
+}
+function legendaIzPostavk(postavke){
   const l=document.createElement('div');l.className='legenda-vaje';
   for(const[razred,besedilo,znak] of postavke){
     const p=document.createElement('span'),sw=document.createElement('span');
@@ -892,7 +917,13 @@ function renderExercise(){
     oznaciPomoc();
     overlay.innerHTML=text;
     overlay.classList.add('visible');
-    if(showHL&&izbrisVaje){
+    if(showHL&&izbrisVaje&&presek){
+      // 2. faza pri 1 in 2 (delna mreža): oznake prek pogleda mreže - vzorec jantarno, ves izbris prečrtan, celice
+      // izbrisa rožnate, napačna oznaka k-napacna.
+      const cilj=new Set(izbrisVaje.izbris.map(([c,d])=>kljucIzbrisa(c,d)));
+      presek.resitevFaze2(true);
+      overlay.appendChild(legendaIzbrisaPreseka(izbrisVaje.izbris,[...izbrisVaje.oznake].filter(k=>!cilj.has(k))));
+    } else if(showHL&&izbrisVaje){
       // 2. faza (O9): vzorec ostane zelen, kandidati izbrisa rdeče prečrtani (označeni ali ne), celice
       // izbrisa zunaj vzorca rožnate, napačna oznaka brez črte s temno rdečim obročem.
       // Pri mreži ene števke (7, 8) prečrta celica izbrisa (peek-elim) svojo števko, napačna oznaka je na celici.
@@ -935,7 +966,7 @@ function renderExercise(){
   }
   function peekOff(overlay){
     overlay.classList.remove('visible');
-    if(presek&&!vajaResena) presek.pokaziKorak(false);
+    if(presek&&!vajaResena){presek.resitevFaze2(false);presek.pokaziKorak(false);}
     if(enojcek) enojcek.pokazi(false);
     cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota','peek-napacna');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris','peek-napacna'));});
     pobrisiVerigo(cellEls);
@@ -1001,14 +1032,11 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
     // ki jih iz prikazanega ni mogoče utemeljiti.
     const selSet=new Set(selected);
     const prav=selSet.size===ex.solutionCells.length&&ex.solutionCells.every(c=>selSet.has(c));
-    stej(prav);
     if(prav){
-      fb.className='fb ok';
-      fb.innerHTML=`<b>Pravilno!</b> ${ex.solutionMessage}`;
-      presek.pokaziKorak(true);
-      legendaOdgovora=legendaKoraka({eliminate:ex.solutionEliminate},true);
-      checkBtn.style.display='none';nextBtn.style.display='inline-block';
+      // 2. faza - izbris koraka vaje (docs/izbris-nacrt.md, korak 4).
+      zacniIzbrisPreseka(ex,checkBtn,nextBtn,fb);
     } else {
+      stej(false);
       const where=M.isPointing?'bloku':(ex.primaryType==='row'?'vrstici':'stolpcu');
       const target=M.isPointing?'eno vrstico ali stolpec':'en blok';
       fb.className='fb err';
@@ -1278,6 +1306,30 @@ function zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,v){
     poSpremembi:()=>osveziPomoc(),
   });
   Object.assign(izbrisVaje,{vzorec:v.ps,sporocilo:v.sporocilo,koncaj:()=>koncaj(v.odgovorHtml||`<b>Pravilno!</b> ${v.sporocilo}`)});
+  vajaEl.div.insertBefore(izbrisVaje.el,vajaEl.btnRow);
+}
+
+// 2. faza pri 1 in 2 (delna mreža iz shared/mreza.js): celica je 0-80, kandidati so kandidati stanja vaje
+// (ex.kandidati), izbris korak vaje (ex.solutionEliminate). Izbiro in oznake izriše mreža (presek.faza2).
+// Po pravilni 2. fazi je vaja videti kot pred nalogo po pravilnem odgovoru (oznake koraka, legenda).
+function zacniIzbrisPreseka(ex,checkBtn,nextBtn,fb){
+  const izbira1=[...selected];
+  selected=[];
+  fb.className='fb ok';fb.innerHTML=IZBRIS_VZOREC_PRAVILEN;
+  izbrisVaje=ustvariIzbris({
+    izbris:ex.solutionEliminate,
+    kandidati:i=>ex.vidne.includes(i)&&!ex.grid[i]?[1,2,3,4,5,6,7,8,9].filter(d=>ex.kandidati[i]&(1<<d)):[],
+    izrisiMrezo:(izbrane,oznake)=>presek.faza2(izbrane,oznake),
+    poSpremembi:()=>osveziPomoc(),
+  });
+  Object.assign(izbrisVaje,{vzorec:izbira1,sporocilo:ex.solutionMessage,koncaj:()=>{
+    presek.koncajFazo2();
+    selected=izbira1;
+    fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${ex.solutionMessage}`;
+    presek.pokaziKorak(true);
+    legendaOdgovora=legendaKoraka({eliminate:ex.solutionEliminate},true);
+    checkBtn.style.display='none';nextBtn.style.display='inline-block';
+  }});
   vajaEl.div.insertBefore(izbrisVaje.el,vajaEl.btnRow);
 }
 

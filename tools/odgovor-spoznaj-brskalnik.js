@@ -5,7 +5,7 @@
 // funkcija teče tudi v izhodišču (primerjave z izhodiščem), zato faze prepozna iz strani, ne iz
 // različice kode.
 //
-// 1. faza je izbira celic vzorca in »Preveri«; od koraka 2 sledi pri 3–6 (od koraka 3 tudi pri 7–13) 2. faza – izbris. V izhodiščih pred korakom 2 pri 4 · Skriti par in 6 · Skrita trojica sledi
+// 1. faza je izbira celic vzorca in »Preveri«; od koraka 2 sledi pri 3–6 (od koraka 3 tudi pri 7–13, od koraka 4 pri 1 in 2) 2. faza – izbris. V izhodiščih pred korakom 2 pri 4 · Skriti par in 6 · Skrita trojica sledi
 // še izbira števk vzorca (razdelek .phase2) in »Preveri dve števki« / »Preveri tri števke«.
 //
 //   spremljajVajo(b)    – po b.odpri() strani treninga, pred izrisom vaje: window.vajaNaZaslonu je vaja,
@@ -26,8 +26,9 @@ async function spremljajVajo(b) {
     return true; })()`);
 }
 
-// Celica vaje: pri 3–6 in 9–13 .gc z indeksom v ex.slots, pri 7 in 8 (mreža ene števke) .xw-cell z indeksom 0–80.
-const celicaVaje = c => `#exerciseArea :is(.gc[data-si="${c}"], .xw-cell[data-idx="${c}"])`;
+// Celica vaje: pri 3–6 in 9–13 .gc z indeksom v ex.slots, pri 7 in 8 (mreža ene števke) .xw-cell z indeksom 0–80,
+// pri 1 in 2 (delna mreža iz shared/mreza.js, od koraka 4) .celica v .vaja-presek z indeksom 0–80.
+const celicaVaje = c => `#exerciseArea :is(.gc[data-si="${c}"], .xw-cell[data-idx="${c}"], .vaja-presek .celica[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"])`;
 
 async function klikniGumb(b, napis) {
   const ima = await b.izvedi(`(() => { const g = [...document.querySelectorAll('#exerciseArea button')].find(x => x.textContent === ${JSON.stringify(napis)});

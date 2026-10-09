@@ -96,6 +96,9 @@ header.top{max-width:560px}
    ker so celice na telefonu majhne. Izbira je ista kot v igri (shared/mreza.css). */
 .vaja-presek{--gcs:min(46px,(min(560px,100vw) - 104px)/9);margin:0 auto 12px}
 .vaja-presek .kand{font-size:calc(var(--gcs)*.34)}
+/* 2. faza (izbris) pri 1 in 2: oznaka je k-izbris (shared/mreza.css - rdeče prečrtan kandidat); ob »Rešitvi« je
+   napačna oznaka (k-napacna) brez črte, s temno rdečim obročem - kot .cd.oznaka.peek-napacna */
+.vaja-presek .kand.k-napacna{color:var(--ink);font-weight:700;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--okvir-napacno)}
 
 /* E1 in E2 (Spoznaj): plošča iz shared/plosca.js (docs/pripomocki-e1-e2-nacrt.md) - niz
    Poudari, mreža z robovi brez kandidatov, seznami manjkajočih števk (vrstice desno, stolpci
@@ -191,9 +194,10 @@ header.top{max-width:560px}
 .gc.correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--green)}
 /* 2. faza »Spoznaj« - izbris (docs/izbris-nacrt.md, trening/izbris.js): izbrana celica modra kot izbira; zelena
    celica vzorca (pri 4 in 6 je izbris v njej) obdrži podlago in dobi moder okvir - izbira je vidna. Pred
-   pravili "Rešitve" - rožnata celica izbrisa ostane rožnata. */
+   pravili "Rešitve" - rožnata celica izbrisa ostane rožnata. Okvir je pri obeh 2,5 px kot navadna izbira (pri
+   3 px je na mreži 9 x 9 pri 375 px segal v kandidate 7, 8, 9 - popravek v koraku 4). */
 .gc.izbrana-izbris{background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2.5px var(--izbira)}
-.gc.correct.izbrana-izbris{background:var(--green-bg)!important;box-shadow:inset 0 0 0 3px var(--izbira)}
+.gc.correct.izbrana-izbris{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2.5px var(--izbira)}
 .gc.elimcell{background:var(--k-izbris-bg)!important;box-shadow:inset 0 0 0 2px var(--red)}
 .gc.peek-elim{background:var(--k-izbris-bg)!important}
 .gc.fixed{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:calc(var(--cs)*.5);color:#999;background:#F4F5F7;border-color:#E0E2E5}
@@ -296,9 +300,9 @@ button.peek-btn:active{background:#F0F2F5}
 /* 2. faza (izbris) pri X-krilu in mečarici: izbrana celica modra kot izbira (zelena celica vzorca obdrži
    podlago, okvir moder), oznaka prečrta števko celice kot izbris - celica ostane bela (rožnata šele po
    pravilnem odgovoru, O3); ob »Rešitvi« je napačna oznaka brez črte, s temno rdečim obročem okoli števke
-   (O9, kot .cd.oznaka.peek-napacna) */
+   (O9, kot .cd.oznaka.peek-napacna). Okvir je pri obeh 2 px kot navadna izbira .xw-selected. */
 .xw-cell.izbrana-izbris{background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
-.xw-cell:is(.xw-correct,.xw-sf-correct).izbrana-izbris{background:var(--green-bg)!important;box-shadow:inset 0 0 0 3px var(--izbira)}
+.xw-cell:is(.xw-correct,.xw-sf-correct).izbrana-izbris{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
 .xw-cell.oznaka{color:var(--red);text-decoration:line-through}
 .xw-cell.oznaka.peek-napacna{color:var(--ink);text-decoration:none;background-image:radial-gradient(circle,transparent calc(var(--cs)*.3 - .5px),var(--okvir-napacno) calc(var(--cs)*.3),var(--okvir-napacno) calc(var(--cs)*.3 + 1.5px),transparent calc(var(--cs)*.3 + 2px))!important}
 .xw-cell[data-c="2"],.xw-cell[data-c="5"]{border-right:2px solid var(--ink)}

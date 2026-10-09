@@ -4,7 +4,8 @@
 // pravilno, gredo prek njih, zato naslednji koraki načrta (2. faza – izbris) spremenijo samo to
 // datoteko, ne pričakovanj testov.
 //
-// 1. faza je izbira celic vzorca in »Preveri«. Od koraka 2 sledi pri 3–6 2. faza – izbris: niz
+// 1. faza je izbira celic vzorca in »Preveri«. Od koraka 2 sledi pri 3–6 (od koraka 3 pri 7–13, od koraka 4
+// pri 1 in 2) 2. faza – izbris: niz
 // »Izbriši kandidata« (.izbris-faza); kandidati izbrisa sprejetega vzorca (izbrisVaje.izbris) se
 // označijo po števkah (izbira celic, gumb števke) in »Preveri«. Pred korakom 2 je pri 4 · Skriti par
 // in 6 · Skrita trojica sledila izbira števk vzorca (razdelek .phase2) – funkcija prepozna oboje.

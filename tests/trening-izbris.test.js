@@ -646,3 +646,186 @@ test('besedila 2. faze 7–13: navodila povedo izbris', () => {
     assert.match(nav, /, nato izbriši kandidate, ki zaradi (vzorca|njega|nje) odpadejo\.$/, `${t}: navodilo pove 2. fazo`);
   }
 });
+
+// --- Korak 4: 1 · Izločitev izven bloka in 2 · Izločitev v bloku (delna mreža iz shared/mreza.js) ---
+// Celica je 0–80 (presek.mreza.celice); kandidati so maske ex.kandidati. Izbris izračuna test sam po pravilu
+// tehnike: pri 1 števka vaje v vrstici (stolpcu) koraka zunaj bloka, pri 2 v bloku zunaj vrstice (stolpca).
+// Vaja 1 (n = 0) je po shemi, vaja 7 (n = 6) iz banke vaj. Na kodi pred korakom 4 pade (po pravilni 1. fazi
+// je vaja že rešena).
+const PRESEK = ['pointing', 'box-line'];
+const vajaPreseka = run => JSON.parse(run('JSON.stringify(vajaNaZaslonu)'));
+// Array.from: polje iz konteksta vm ima drug prototip (deepStrictEqual).
+const celicePreseka = run => Array.from(run('presek.mreza.celice'));
+function izbrisPreseka(ex, tehnika) {
+  const crta = [...Array(9).keys()].map(k => (ex.jeVrstica ? ex.enotaSt * 9 + k : k * 9 + ex.enotaSt));
+  const blok = [...Array(81).keys()].filter(i => Math.floor(i / 27) === Math.floor(ex.blok / 3) && Math.floor((i % 9) / 3) === ex.blok % 3);
+  const kje = tehnika === 'pointing' ? crta.filter(i => !blok.includes(i)) : blok.filter(i => !crta.includes(i));
+  return kje.filter(i => !ex.grid[i] && ex.kandidati[i] & (1 << ex.digit)).map(i => [i, ex.digit]);
+}
+const presekZ = (run, r) => celicePreseka(run).map((c, i) => (ima(c, r) ? i : -1)).filter(i => i >= 0);
+const kandZ = (run, r) => celicePreseka(run).flatMap((c, i) => (c.children[0] && !ima(c, 'izven') ? c.children[0].children : [])
+  .map((s, k) => (ima(s, r) ? `${i}:${k + 1}` : null)).filter(Boolean)).sort();
+const poudarjenih = run => celicePreseka(run).filter(c => vsi(c).some(s => ima(s, 'poud'))).length;
+function oznaciPresek(dom, run, pari) {
+  for (const d of [...new Set(pari.map(([, x]) => x))]) {
+    tipka(dom, { key: 'Escape', code: 'Escape' });
+    for (const [c] of pari.filter(([, x]) => x === d)) celicePreseka(run)[c].sprozi('click');
+    gumbStevke(dom, d).sprozi('click');
+  }
+  tipka(dom, { key: 'Escape', code: 'Escape' });
+}
+function prvaFazaPreseka(dom, run, ex) {
+  for (const c of ex.solutionCells) celicePreseka(run)[c].sprozi('click');
+  gumb(dom, 'Preveri').sprozi('click');
+}
+
+for (const tehnika of PRESEK) {
+  for (const n of [0, 6]) {
+    test(`${tehnika}, vaja ${n + 1}: 2. faza na delni mreži – niz, oznake, izidi »Preveri«, končno stanje kot pred nalogo`, () => {
+      const { dom, run } = zacni(tehnika, { n });
+      const ex = vajaPreseka(run), izbris = izbrisPreseka(ex, tehnika);
+      assert.deepEqual(kljuci(izbris), kljuci(ex.solutionEliminate), 'izbris po pravilu = korak vaje');
+      prvaFazaPreseka(dom, run, ex);
+      assert.equal(fb(dom).innerHTML, '<b>Vzorec je pravilen.</b> Zdaj izbriši kandidate, ki zaradi njega odpadejo.');
+      assert.ok(faza(dom) && !faza(dom).hidden, 'niz je viden');
+      assert.equal(vsi(faza(dom)).filter(e => e.tagName === 'BUTTON').length, 9);
+      assert.equal(rezultat(dom), '0/0', 'pravilna 1. faza se ne šteje');
+      assert.equal(run('vajaResena'), false);
+      assert.notEqual(gumb(dom, 'Naslednja vaja →').style.display, 'inline-block');
+      assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells), 'vzorec jantaren');
+      assert.deepEqual(presekZ(run, 'k-izbris'), [], 'celice izbrisa še niso rožnate');
+      assert.deepEqual(kandZ(run, 'k-izbris'), [], 'izbrisa še ni');
+      assert.equal(poudarjenih(run), 0, 'poudarek izklopljen (kot ob oznakah koraka)');
+      assert.deepEqual(presekZ(run, 'izbrana'), [], 'izbira 1. faze izpraznjena');
+      // Skrita in dana celica se ne izbereta; celica vzorca in celica izbrisa se.
+      const c = celicePreseka(run), skrita = [...Array(81).keys()].find(i => !ex.vidne.includes(i)), dana = ex.vidne.find(i => ex.grid[i]);
+      c[skrita].sprozi('click');
+      c[dana].sprozi('click');
+      assert.deepEqual(presekZ(run, 'izbrana'), [], 'skrita in dana celica se ne izbereta');
+      c[ex.solutionCells[0]].sprozi('click');
+      assert.deepEqual(presekZ(run, 'izbrana'), [ex.solutionCells[0]], 'celica vzorca se izbere');
+      tipka(dom, { key: 'Escape', code: 'Escape' });
+      const [ci, d] = izbris[0];
+      c[ci].sprozi('click');
+      for (let x = 1; x <= 9; x++) assert.equal(gumbStevke(dom, x).disabled, !(ex.kandidati[ci] & (1 << x)), `gumb ${x}: omogočen natanko pri kandidatu celice`);
+      gumbStevke(dom, d).sprozi('click');
+      assert.deepEqual(kandZ(run, 'k-izbris'), [`${ci}:${d}`], 'kandidat označen (rdeče prečrtan)');
+      assert.ok(!ima(c[ci], 'k-izbris'), 'celica ostane bela');
+      assert.deepEqual(presekZ(run, 'izbrana'), [ci], 'izbira ostane');
+      gumbStevke(dom, d).sprozi('click');
+      assert.deepEqual(kandZ(run, 'k-izbris'), [], '↺ odstrani oznako');
+      tipka(dom, { key: 'Escape', code: 'Escape' });
+      // Izidi: prazno, nepopolno (ne štejeta), napačno (šteje, pobriše oznake), pravilno.
+      gumb(dom, 'Preveri').sprozi('click');
+      assert.equal(fb(dom).innerHTML, 'Izberi celico in izbriši kandidata, ki zaradi vzorca odpade.');
+      if (izbris.length >= 2) {
+        oznaciPresek(dom, run, izbris.slice(1));
+        gumb(dom, 'Preveri').sprozi('click');
+        assert.equal(fb(dom).innerHTML, '<b>Še ne.</b> Označeni kandidati res odpadejo, manjka pa še 1 izbris.');
+        assert.equal(rezultat(dom), '0/0', 'nepopolno se ne šteje');
+        assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris.slice(1)), 'oznake ostanejo');
+      }
+      oznaciPresek(dom, run, [[ex.solutionCells[0], ex.digit]]);
+      gumb(dom, 'Preveri').sprozi('click');
+      assert.equal(fb(dom).innerHTML, `<b>Ni pravilno.</b> Med označenimi je kandidat, ki zaradi vzorca ne odpade. ${run(`TEHNIKE_OPISI['${tehnika}'].posledica`)}`);
+      assert.equal(rezultat(dom), '0/1', 'napačen odgovor šteje');
+      assert.deepEqual(kandZ(run, 'k-izbris'), [], 'vse oznake pobrisane');
+      oznaciPresek(dom, run, izbris);
+      gumb(dom, 'Preveri').sprozi('click');
+      assert.equal(rezultat(dom), '1/2');
+      assert.equal(run('vajaResena'), true);
+      // Končno stanje = stanje po pravilnem odgovoru pred nalogo (tests/pocasni/trening-presek.test.js).
+      assert.equal(brezLegende(fb(dom).innerHTML), `<b>Pravilno!</b> ${ex.solutionMessage}`);
+      assert.deepEqual(legenda(fb(dom)), ['celice vzorca', 'izbrisani kandidati']);
+      assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells));
+      assert.deepEqual(presekZ(run, 'k-izbris'), urejeno(new Set(izbris.map(([x]) => x))), 'celice izbrisa rožnate');
+      assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris), 'izbris prečrtan');
+      assert.equal(poudarjenih(run), 0);
+      assert.deepEqual(presekZ(run, 'izbrana'), []);
+      assert.ok(faza(dom).hidden, 'niz skrit');
+      assert.equal(run('izbrisVaje'), null);
+      assert.equal(gumb(dom, 'Naslednja vaja →').style.display, 'inline-block');
+      assert.deepEqual(JSON.parse(run('JSON.stringify(selected)')), ex.solutionCells, 'izbira 1. faze kot prej');
+      c[ex.vidne.find(i => !ex.grid[i])].sprozi('click');
+      assert.deepEqual(presekZ(run, 'izbrana'), [], 'po pravilnem odgovoru se nič ne izbere');
+    });
+  }
+
+  test(`${tehnika}: Namig in Rešitev v 2. fazi – napačna oznaka z obročem, legenda, osvežitev, zaprtje`, () => {
+    const { dom, run } = zacni(tehnika);
+    const ex = vajaPreseka(run), izbris = izbrisPreseka(ex, tehnika);
+    prvaFazaPreseka(dom, run, ex);
+    gumb(dom, 'Namig').sprozi('click');
+    assert.equal(odprtiOkvirji(dom)[0].innerHTML, `Izbrisati je treba ${izbris.length} ${KANDIDAT(izbris.length)} – števka ${ex.digit}.`);
+    assert.equal(pomoc(dom), ' · s pomočjo: 1');
+    gumb(dom, 'Skrij namig').sprozi('click');
+    const nap = [ex.solutionCells[0], ex.digit];
+    oznaciPresek(dom, run, [izbris[0], nap]);
+    gumb(dom, 'Rešitev').sprozi('click');
+    const okvir = odprtiOkvirji(dom)[0];
+    assert.ok(okvir.innerHTML.startsWith(ex.solutionMessage), 'sporočilo koraka');
+    assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris), 'vsi kandidati za izbris prečrtani');
+    assert.deepEqual(kandZ(run, 'k-napacna'), kljuci([nap]), 'napačna oznaka');
+    assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells));
+    assert.deepEqual(presekZ(run, 'k-izbris'), urejeno(new Set(izbris.map(([x]) => x))), 'celice izbrisa rožnate');
+    assert.deepEqual(legenda(okvir), ['celice vzorca', 'celica izbrisa', 'kandidat za izbris', 'napačno označen kandidat']);
+    // Osvežitev ob oznaki: napačno oznako odstrani (↺).
+    tipka(dom, { key: 'Escape', code: 'Escape' });
+    celicePreseka(run)[nap[0]].sprozi('click');
+    gumbStevke(dom, nap[1]).sprozi('click');
+    assert.deepEqual(kandZ(run, 'k-napacna'), []);
+    assert.deepEqual(legenda(odprtiOkvirji(dom)[0]), ['celice vzorca', 'celica izbrisa', 'kandidat za izbris']);
+    assert.deepEqual(presekZ(run, 'izbrana'), [nap[0]], 'izbira je ob Rešitvi vidna');
+    gumb(dom, 'Skrij rešitev').sprozi('click');
+    assert.deepEqual(kandZ(run, 'k-izbris'), kljuci([izbris[0]]), 'po zaprtju samo oznaka');
+    assert.deepEqual(presekZ(run, 'k-izbris'), [], 'celice izbrisa spet bele');
+    assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells), 'vzorec ostane jantaren');
+    gumb(dom, 'Rešitev').sprozi('click');
+    oznaciPresek(dom, run, izbris.slice(1));
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.match(fb(dom).innerHTML, /^<b>Pravilno!<\/b>/);
+    assert.match(fb(dom).textContent, /s pomočjo – ne šteje/);
+    assert.equal(odprtiOkvirji(dom).length, 0, 'pravilen odgovor Rešitev zapre');
+    assert.equal(rezultat(dom), '0/0');
+  });
+}
+
+test('1 · Izločitev izven bloka: tipkovnica v 2. fazi – Shift+števka (QWERTZ), Escape, števka brez Shift nič', () => {
+  const { dom, run } = zacni('pointing');
+  const ex = vajaPreseka(run), [ci, d] = izbrisPreseka(ex, 'pointing')[0];
+  const SHIFT = { 1: '!', 2: '"', 3: '#', 4: '$', 5: '%', 6: '&', 7: '/', 8: '(', 9: ')' };
+  prvaFazaPreseka(dom, run, ex);
+  celicePreseka(run)[ci].sprozi('click');
+  tipka(dom, { key: String(d), code: `Digit${d}` });
+  assert.deepEqual(kandZ(run, 'k-izbris'), [], 'števka brez Shift ne naredi nič');
+  tipka(dom, { key: SHIFT[d], code: `Digit${d}`, shiftKey: true });
+  assert.deepEqual(kandZ(run, 'k-izbris'), [`${ci}:${d}`], 'Shift+števka (QWERTZ) označi');
+  tipka(dom, { key: SHIFT[d], code: `Digit${d}`, shiftKey: true });
+  assert.deepEqual(kandZ(run, 'k-izbris'), [], 'drugi Shift+števka oznako odstrani');
+  tipka(dom, { key: 'Escape', code: 'Escape' });
+  assert.deepEqual(presekZ(run, 'izbrana'), [], 'Escape počisti izbiro');
+});
+
+test('štetje kroga: 2 · Izločitev v bloku brez napak 9 / 9 (obe fazi, vaji 1 in 2 po shemi)', () => {
+  const { dom, run } = zacni('box-line', { n: 0 });
+  for (let i = 0; i < 9; i++) {
+    odgovoriPravilno(dom, run);
+    assert.match(fb(dom).innerHTML, /^<b>Pravilno!/, `vaja ${i + 1}`);
+    gumb(dom, i < 8 ? 'Naslednja vaja →' : 'Končaj').sprozi('click');
+  }
+  assert.equal(rezultat(dom), '9/9');
+});
+
+test('besedila 2. faze 1 in 2: navodila; Pomoč treninga omeni 2. fazo in Shift+števka v »Spoznaj«', () => {
+  const { run } = zacni('pointing');
+  for (const t of PRESEK) {
+    assert.match(run(`TEHNIKE_OPISI[${JSON.stringify(t)}].navodilo`), /, nato izbriši kandidate, ki zaradi (vzorca|njega|nje) odpadejo\.$/, `${t}: navodilo pove 2. fazo`);
+  }
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  const razdelek = ime => (html.split(`<h3 class="navodila-razdelek">${ime}</h3>`)[1] || '').split('<h3')[0];
+  const spoznaj = razdelek('Spoznaj in Vadi v uganki');
+  assert.match(spoznaj, /dve fazi/, 'dve fazi');
+  assert.match(spoznaj, /<b>Izbriši kandidata<\/b>/, 'niz »Izbriši kandidata«');
+  assert.match(spoznaj, /pobriše vse oznake/, 'napačen odgovor');
+  assert.match(razdelek('Tipkovnica'), /»Spoznaj«[^<]*<kbd>Shift<\/kbd>\+števka/, 'Shift+števka v »Spoznaj«');
+});

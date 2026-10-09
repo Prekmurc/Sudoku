@@ -1,8 +1,8 @@
 # Spoznaj: druga faza – izbris (naloga 4b) – načrt
 
 Načrt 2026-10-09 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4b – dodana ob ročnem pregledu
-naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); koraki 1–3
-narejeni (razdelek 9).
+naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); koraki 1–4
+narejeni (razdelek 9), ročni pregled čaka.
 
 Izhodišče: commit `705349a` (zaključek naloge 4a).
 
@@ -593,3 +593,54 @@ oznake celic šteje za del mreže bloka. Posnetka D2 sta zato posneta znova (`3-
   izhodišča pred popravkom 5 naloge 4a), izhodišče `705349a` pa ga že ima. `razlikeIzrisa()` dobi možnost
   `{ znaneRazlike: false }`, ki jo uporabi samo ta scenarij (drugi scenariji imajo starejša izhodišča in ostanejo, kot
   so). Aplikacija se zaradi tega ne spremeni.
+
+### Korak 4 – 1 in 2 ter Pomoč (2026-10-10)
+
+**Najprej popravek** (po pregledu posnetka D5 `12-oznake-375.png`): moder okvir izbrane zelene celice vzorca je bil 3 px
+in je na mreži 9 × 9 pri 375 px segal v kandidate 7, 8, 9. Zdaj je 2,5 px kot navadna izbira (`.gc.correct.izbrana-izbris`);
+pri 7 in 8 (`.xw-cell`) 2 px kot navadna izbira `.xw-selected` (prej 3 px). **Meritev prekrivanja** z malimi števkami pri
+375 px, kot pri nalogi »izbira« (štirje posnetki celice – končni, brez okvirja, brez okvirja in števk, brez števk; stik =
+pikslov, ki ju spremenita okvir in števke, zakritih = pikslov števke, ki se na okvirju ne vidijo), na isti celici vzorca z
+največ izbrisi:
+
+| Tehnika | Zelena brez izbire (2,5 px) | Izbrana, 2,5 px | Izbrana, prej 3 px |
+|---|---|---|---|
+| 4 · Skriti par | stik 5, zakritih 0 | stik 5, zakritih 0 | stik 15, zakritih 0 |
+| 6 · Skrita trojica | stik 10, zakritih 0 | stik 10, zakritih 0 | stik 24, zakritih 0 |
+| 12 · Edinstveni pravokotnik | stik 14, zakritih 0 | stik 14, zakritih 0 | stik 25, zakritih 0 |
+
+Izbrana celica se z malimi števkami ne prekriva bolj kot zelena brez izbire (pogoj v scenariju). Posnetek
+`12-oznake-375.png` je posnet znova.
+
+- **`trening/trening.js`:** pri 1 in 2 pravilna 1. faza ne šteje več in vodi v 2. fazo (`zacniIzbrisPreseka()` – celica je
+  0–80, kandidati so kandidati stanja vaje `ex.kandidati`, izbris `ex.solutionEliminate`). Prikaz je v
+  `buildPresekLayout()` prek pogleda mreže (`presek.faza2()`, `resitevFaze2()`, `koncajFazo2()`): vzorec jantarno, oznaka je
+  `oznake.izbris` (rdeče prečrtan kandidat, `k-izbris`), celice ostanejo bele, poudarek števke je izklopljen (kot ob oznakah
+  koraka), izbira je vidna; klik delne mreže v 2. fazi izbere vidno prazno celico (tudi celico vzorca). Rešitev v 2. fazi: ves
+  izbris prečrtan, celice izbrisa rožnate, napačna oznaka `k-napacna`, legenda `legendaIzbrisaPreseka()` (celice vzorca,
+  celica izbrisa, kandidat za izbris, napačno označen kandidat); ob zaprtju spet oznake 2. faze. Po pravilni 2. fazi je vaja
+  videti kot pred nalogo (oznake koraka, legenda »celice vzorca« / »izbrisani kandidati«). `legendaIzbrisa()` in nova
+  legenda imata skupni izris `legendaIzPostavk()`.
+- **`shared/mreza.js`:** neobvezno polje pogleda `oznake.napacne` (celica · 10 + števka) → razred `k-napacna` na kandidatu.
+  Igra in reševalec ga ne uporabljata (posnetek igre in `tests/izris-korakov.test.js` brez razlik).
+- **`trening/trening.css`:** `.vaja-presek .kand.k-napacna` (brez črte, temno rdeč obroč – kot `.cd.oznaka.peek-napacna`),
+  okvirja izbrane zelene celice.
+- **Navodila:** `TEHNIKE_OPISI[].navodilo` 1 in 2 »Izberi celice vzorca – dve ali tri, nato izbriši kandidate, ki zaradi
+  njega odpadejo.« **Pomoč treninga** (`trening/index.html`): v razdelku »Spoznaj in Vadi v uganki« odstavek o dveh fazah
+  (niz »Izbriši kandidata«, ↺, napačen izbris pobriše vse oznake in šteje, nepopoln ne), v razdelku »Tipkovnica«
+  Shift+števka in Esc v »Spoznaj«.
+- **Testi:** `tests/trening-izbris.test.js` +9 testov (55; na kodi pred korakom 4 jih pade 8 – zelen je samo krog 9 / 9).
+  Izbris izračuna test sam po pravilu tehnike; vaji 1 (po shemi) in 7 (iz banke). Pomožni `tests/odgovor-spoznaj.js` in
+  `pocasni/trening-presek` brez spremembe (pomožna funkcija je že splošna).
+- **Brskalnik:** `tools/preveri-izbris-brskalnik.js` še za 1 in 2 (375 px z dotikom – celice 30 px, 1280 px z miško; končno
+  stanje enako izhodišču `705349a`), »Rešitev« v 2. fazi pri 1, meritev prekrivanja okvirja, posnetek D6a
+  `docs/slike/izbris/1-oznake-375.png`. `tools/odgovor-spoznaj-brskalnik.js` klikne tudi celice delne mreže.
+- **Izvzeto v primerjavah z izhodiščem (D1):** nič novega. Pri 1 in 2 »Spoznaj« pokaže `ex.desc` (ne navodila), ta pa
+  ostane enak, zato se izris pred odgovorom in končno stanje ujemata z izhodiščem brez izvzetja. Ostanejo izvzetja iz
+  korakov 2 in 3 (navodila 3–13 – `NAVODILA_NAZAJ`, drugi del opisa vaj 7 in 8 – `DODATEK_78`, razdelek `.phase2`
+  izhodišča).
+- **Odstopanje od načrta:** `ex.desc` pri 1 in 2 ni spremenjen. Zadnja poved (»Iz vrstice 8 zunaj bloka jo potem lahko
+  izbrišeš.«) že napove 2. fazo, sprememba pa bi zahtevala spremembo pričakovanja obstoječega testa
+  `tests/pocasni/trening-presek.test.js` (opis se konča s to povedjo) – po pravilu za ustavitev je nisem naredil. Če želiš
+  izrecen poziv (npr. »… – izberi te celice, nato jo izbriši iz vrstice 8 zunaj bloka.«), je to majhna sprememba skupaj s
+  testom.

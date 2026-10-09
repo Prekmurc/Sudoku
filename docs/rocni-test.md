@@ -342,6 +342,23 @@ Drugi pregled 9. 10. 2026: točka 7 potrjena; pri točki 6 in ob pregledu še š
 | 10 | trening (»Spoznaj« in Pomoč), 10 · W-krilo | Odpri vajo 1, preberi povzetek, »Razlaga« in shemo; nato Pomoč → Tehnike → 10. | Povsod sta črki x in y ({x, y}, »y mogoč samo v dveh celicah«, »x izbrišeš«), nikjer a in b; preslikava »x = …, y = …«. (potrjeno 9. 10. 2026) – ni avtomatsko: berljivost besedila. |
 | 11 | trening, »Vadi v uganki«, telefon | 4 · Skriti par, 11 · XY-krilo, 12 · Edinstveni pravokotnik: poglej okvir označenega območja (vrstica, pivot, bloka). | Okvir je enako debel kot debele črte mreže, a modre barve, ki se loči od mreže; leži na črti in ne prekriva števk. (potrjeno 9. 10. 2026) – ni avtomatsko: zaznava barve in debeline na tvojem zaslonu. |
 
+## Spoznaj – izbris (naloga 4b: 2. faza pri 1–13)
+
+Načrt: `docs/izbris-nacrt.md` (razdelek 7). Samodejno preverjeno: presoja, oznake, izidi »Preveri«, štetje, Namig in
+Rešitev v 2. fazi, tipkovnica in končno stanje pri vseh 1–13 (`tests/trening-izbris.test.js`), v pravem brskalniku
+`tools/preveri-izbris-brskalnik.js` – pravi dotiki pri 375 px in kliki pri 1280 px, izračunani slogi oznak, velikost
+celic in gumbov (vsaj 24 px), končno stanje enako izhodišču `705349a`, prekrivanje okvirja izbrane zelene celice z
+malimi števkami; posnetki v `docs/slike/izbris/` (D2, D5, D6). »Spoznaj« pred 2. fazo je enak izhodišču
+(`tools/preveri-presek-`, `-enojcki-`, `-vadi-`, `-izbira-brskalnik.js`).
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | trening, »Spoznaj«, pravi telefon | 1 · Izločitev izven bloka, 3 · Očitni par in 11 · XY-krilo: po pravilni 1. fazi označi izbris z dotiki celic in gumbov števk; eno oznako popravi (↺); »Preveri«. | Celice in gumbi se zanesljivo zadenejo, oznaka (rdeče prečrtan kandidat) je jasno vidna in drugačna od izbire. | Pravi prst, povečava in odziv telefona; brskalnik brez glave dotik samo posnema. |
+| 2 | trening, »Spoznaj« | 4 · Skriti par in 6 · Skrita trojica: obe fazi. | Jasno je, da izbris drugih števk iz celic vzorca nadomesti izbiro števk para. | Presoja razumljivosti (O5). |
+| 3 | trening, »Spoznaj« | 8 · Mečarica: v vaji z več vzorci izberi drug vzorec kot generatorjev, nato izbris. | Sprejet je izbris tvojega vzorca; sporočila so razumljiva. | Presoja (O10). |
+| 4 | trening, »Spoznaj«, telefon | 5 · Očitna trojica in 1 · Izločitev izven bloka: v 2. fazi označi en pravilen in en napačen kandidat, odpri »Rešitev«. | Kandidat za izbris in napačna oznaka (obroč) sta na mreži in v legendi jasno ločena; pri 1 je vzorec jantaren, celica izbrisa rožnata. | Presoja barve in velikosti male števke na telefonu (O9). |
+| 5 | trening, »Spoznaj« | Cel krog 7 · X-krilo z eno napako v 2. fazi in eno nepopolno oddajo. | Napaka pobriše oznake, nepopoln odgovor jih pusti; rezultat na koncu 9 / 10 (napačen poskus šteje, nepopoln ne). Potek ni moteč. | Presoja poteka (O3, O4, O7). |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
