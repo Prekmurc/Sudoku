@@ -16,7 +16,23 @@ function enako(a, b) {
   return x.length === y.length && x.every((v, i) => Math.abs(v - y[i]) < 0.05);
 }
 
+// Namerne razlike od izhodišča (popravka 5 in 6 po ročnem pregledu naloge 4a, docs/trening-ucenje-nacrt.md,
+// razdelek 7): besedila W-krila s črkama x, y (prej a, b) in barva območja #1565C0 (prej #1D3F6B - oznake roba
+// pri E1/E2). Pred primerjavo se v novem izrisu preslikajo nazaj, vse drugo se primerja kot prej; spremembi
+// preverjata tests/trening-shema-vaja.test.js in obmocje() v preveri-vadi-brskalnik.js.
+const ZNANE_RAZLIKE = [
+  ['Dve celici z istim parom {x, y}, ki se ne vidita (nista v isti vrstici, stolpcu ali bloku), povezuje vrstica, stolpec ali blok, kjer je y mogoč samo v dveh celicah – x izbrišeš iz celic, ki vidijo obe celici para.',
+    'Dve celici z istim parom {a, b}, ki se ne vidita (nista v isti vrstici, stolpcu ali bloku), povezuje vrstica, stolpec ali blok, kjer je b mogoč samo v dveh celicah – a izbrišeš iz celic, ki vidijo obe celici para.'],
+  ['Poišči dve celici z natanko istima kandidatoma {x, y}, ki se ne vidita – celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Nato poišči enoto (vrstico, stolpec ali blok), v kateri je y mogoč samo v dveh celicah, ki nista celici para.',
+    'Poišči dve celici z natanko istima kandidatoma {a, b}, ki se ne vidita – celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Nato poišči enoto (vrstico, stolpec ali blok), v kateri je b mogoč samo v dveh celicah, ki nista celici para.'],
+  ['Celici para ne moreta biti obe y: obe celici povezave bi takrat videli y in v povezavi y ne bi bil mogoč nikjer. Torej je vsaj v eni celici para x. Iz vseh celic, ki vidijo obe celici para, x izbrišeš.',
+    'Celici para ne moreta biti obe b: obe celici povezave bi takrat videli b in v povezavi b ne bi bil mogoč nikjer. Torej je vsaj v eni celici para a. Iz vseh celic, ki vidijo obe celici para, a izbrišeš.'],
+  ['rgb(21, 101, 192)', 'rgb(29, 63, 107)'],
+];
+const nazaj = s => ZNANE_RAZLIKE.reduce((t, [n, st]) => t.split(n).join(st), s);
+
 function razlikeIzrisa(star, nov, lastnosti) {
+  nov = { html: nazaj(nov.html), slogi: nov.slogi.map(nazaj) };
   const razlike = [];
   if (star.html !== nov.html) razlike.push('innerHTML');
   if (star.slogi.length !== nov.slogi.length) {

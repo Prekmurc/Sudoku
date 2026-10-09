@@ -13,7 +13,7 @@
 
 /* števka območja vaje (stevkeObmocja() - trening): obroč okrog gumba v nizu Poudari,
    viden tudi, ko poudarek ni vklopljen */
-.niz-poudari button.obm-stevka{ box-shadow: 0 0 0 2px var(--obmocje, #1D3F6B); }
+.niz-poudari button.obm-stevka{ box-shadow: 0 0 0 2px var(--obmocje, #1565C0); }
 
 /* ---------- stikala seznamov manjkajočih števk (seznami so v ../shared/mreza.css) ---------- */
 .seznami-stikala{ display:flex; flex-direction:column; gap:6px; }

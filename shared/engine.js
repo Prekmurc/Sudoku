@@ -872,9 +872,9 @@ const TEHNIKE_OPISI = {
   'w-wing': {
     ime: 'W-krilo',
     anglesko: 'W-Wing',
-    povzetek: 'Dve celici z istim parom {a, b}, ki se ne vidita (nista v isti vrstici, stolpcu ali bloku), povezuje vrstica, stolpec ali blok, kjer je b mogoč samo v dveh celicah – a izbrišeš iz celic, ki vidijo obe celici para.',
-    razlaga: 'Poišči dve celici z natanko istima kandidatoma {a, b}, ki se ne vidita – celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Nato poišči enoto (vrstico, stolpec ali blok), v kateri je b mogoč samo v dveh celicah, ki nista celici para. To je povezava: ena njena celica mora videti prvo celico para, druga drugo.',
-    posledica: 'Celici para ne moreta biti obe b: obe celici povezave bi takrat videli b in v povezavi b ne bi bil mogoč nikjer. Torej je vsaj v eni celici para a. Iz vseh celic, ki vidijo obe celici para, a izbrišeš.',
+    povzetek: 'Dve celici z istim parom {x, y}, ki se ne vidita (nista v isti vrstici, stolpcu ali bloku), povezuje vrstica, stolpec ali blok, kjer je y mogoč samo v dveh celicah – x izbrišeš iz celic, ki vidijo obe celici para.',
+    razlaga: 'Poišči dve celici z natanko istima kandidatoma {x, y}, ki se ne vidita – celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Nato poišči enoto (vrstico, stolpec ali blok), v kateri je y mogoč samo v dveh celicah, ki nista celici para. To je povezava: ena njena celica mora videti prvo celico para, druga drugo.',
+    posledica: 'Celici para ne moreta biti obe y: obe celici povezave bi takrat videli y in v povezavi y ne bi bil mogoč nikjer. Torej je vsaj v eni celici para x. Iz vseh celic, ki vidijo obe celici para, x izbrišeš.',
     navodilo: 'Izberi obe celici para in obe celici povezave (štiri celice).',
   },
   'xy-wing': {

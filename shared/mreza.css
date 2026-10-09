@@ -33,9 +33,10 @@
   /* postopnost v treningu (pogled.oznacene, pogled.neaktivne) */
   --oznacena-bg:#E3EEFB;
   --neaktivna-bg:#E9EBEE;
-  /* območje vaje (pogled.obmocje) in zaznamovane celice (pogled.zaznamovane - temno
-     vijolična: te barve nima nobena druga oznaka; docs/oznake-nacrt.md) */
-  --obmocje:#1D3F6B;
+  /* območje vaje (pogled.obmocje - močno modra, da se 2 px okvir loči od temnih črt mreže;
+     popravek 6 po ročnem pregledu naloge 4a, prej temno modra #1D3F6B) in zaznamovane celice
+     (pogled.zaznamovane - temno vijolična: te barve nima nobena druga oznaka; docs/oznake-nacrt.md) */
+  --obmocje:#1565C0;
   --zaznamek:#5E2B97;
   /* podlagi celic prikazanega koraka (vzorec, izbris); trening ju nastavi močnejši
      (trening/trening.css, docs/oznake-nacrt.md O2), igra ima te */
@@ -167,16 +168,18 @@
   outline:2px dashed #6840A0;
   outline-offset:-6px;
 }
-/* območje vaje (pogled.obmocje - trening): 3 px temen okvir ob zunanjem robu območja na
-   ::before (nad podlago, izbiro in poudarkom), oznake vrstic in stolpcev območja na robu
-   v temnem polju - vidno tudi brez barve (modrikasta podlaga sama na nekaterih zaslonih
-   ni vidna). z-index 4: nad malimi števkami, ki jih »Vadi v uganki« dvigne na 3 (glej
-   zaznamovana spodaj) - okvir območja je nad njimi kot prej */
-.celica.obm::before{ content:''; position:absolute; inset:0; pointer-events:none; border:0 solid var(--obmocje); z-index:4; }
-.celica.obm-g::before{ border-top-width:3px; }
-.celica.obm-d::before{ border-bottom-width:3px; }
-.celica.obm-l::before{ border-left-width:3px; }
-.celica.obm-r::before{ border-right-width:3px; }
+/* območje vaje (pogled.obmocje - trening): okvir ob zunanjem robu območja na ::before, oznake
+   vrstic in stolpcev območja na robu v polju barve okvira - vidno tudi brez barve (modrikasta
+   podlaga sama na nekaterih zaslonih ni vidna). Okvir je 2 px - enako debel kot debelejše črte
+   mreže - in leži na mrežni črti (inset -2 px: obroba celice, 1 ali 2 px, in ob tanki črti še
+   1 px obrobe sosednje celice), zato ne prekrije števk (popravek 6 po ročnem pregledu naloge
+   4a; prej 3 px v celici). z-index 4: nad zaznamki (2), pod malimi števkami »Vadi v uganki« (5 v
+   trening/trening.css - na ozkem zaslonu se števka že dotika črte). */
+.celica.obm::before{ content:''; position:absolute; inset:-2px; pointer-events:none; border:0 solid var(--obmocje); z-index:4; }
+.celica.obm-g::before{ border-top-width:2px; }
+.celica.obm-d::before{ border-bottom-width:2px; }
+.celica.obm-l::before{ border-left-width:2px; }
+.celica.obm-r::before{ border-right-width:2px; }
 .rob-s span.obm, .rob-v span.obm{ background: var(--obmocje); color:#fff; font-weight:700; border-radius:3px; }
 .rob-s span.obm{ margin:1px 2px; }
 .rob-v span.obm{ margin:2px 1px; }

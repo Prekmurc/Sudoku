@@ -316,6 +316,38 @@ async function pomoc1do12(b, sirina) {
 }
 
 // Območje pri vaji 1: enota modrikasta (1-6), števka poudarjena (7-9), pivot, bloka.
+// Geometrija okvira območja (popravek 6): pasovi ::before (iz izračunanega sloga - odmiki in debeline
+// obrob glede na notranji rob celice), pravokotniki besedila vseh števk v mreži (Range) in notranjost
+// (padding box) vseh celic.
+const GEOMETRIJA_OKVIRA = `(() => { const c = vadi.plosca.mreza.celice;
+  const notranjost = x => { const r = x.getBoundingClientRect(), s = getComputedStyle(x);
+    return { l: r.left + parseFloat(s.borderLeftWidth), t: r.top + parseFloat(s.borderTopWidth), r: r.right - parseFloat(s.borderRightWidth), b: r.bottom - parseFloat(s.borderBottomWidth) }; };
+  const pasovi = [];
+  for (const x of c.filter(x => x.classList.contains('obm'))) {
+    const p = notranjost(x), s = getComputedStyle(x, '::before');
+    const o = { l: p.l + parseFloat(s.left), t: p.t + parseFloat(s.top), r: p.r - parseFloat(s.right), b: p.b - parseFloat(s.bottom) };
+    const w = k => parseFloat(s['border' + k + 'Width']);
+    if (w('Top')) pasovi.push({ l: o.l, r: o.r, t: o.t, b: o.t + w('Top'), d: w('Top') });
+    if (w('Bottom')) pasovi.push({ l: o.l, r: o.r, t: o.b - w('Bottom'), b: o.b, d: w('Bottom') });
+    if (w('Left')) pasovi.push({ l: o.l, r: o.l + w('Left'), t: o.t, b: o.b, d: w('Left') });
+    if (w('Right')) pasovi.push({ l: o.r - w('Right'), r: o.r, t: o.t, b: o.b, d: w('Right') });
+  }
+  const znaki = [];
+  for (const x of c) {
+    const w = document.createTreeWalker(x, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) { if (!n.textContent.trim()) continue;
+      const rg = document.createRange(); rg.selectNodeContents(n); const q = rg.getBoundingClientRect();
+      if (q.width) znaki.push({ l: q.left, t: q.top, r: q.right, b: q.bottom }); }
+  }
+  const seka = (a, b) => a.l < b.r - 0.01 && b.l < a.r - 0.01 && a.t < b.b - 0.01 && b.t < a.b - 0.01;
+  const notr = c.map(notranjost);
+  return { pasov: pasovi.length, debelina: [...new Set(pasovi.map(p => p.d))], debela: getComputedStyle(c[3]).borderLeftWidth,
+    barvaCrte: getComputedStyle(c[3]).borderLeftColor, znakov: znaki.length,
+    vNotranjosti: pasovi.filter(p => notr.some(q => seka(p, q))).length,
+    // samo za izpis: pravokotniki besedila (z višino pisave) segajo 1-3 px čez notranjost celice, števka ne
+    besediloVPasu: pasovi.filter(p => znaki.some(q => seka(p, q))).length };
+})()`;
+
 async function obmocje(b, sirina) {
   for (const [mode, vrsta] of [['hidden-pair', 'enota'], ['x-wing', 'stevke'], ['xy-wing', 'pivot'], ['unique-rectangle', 'bloki']]) {
     console.log(`${mode}, območje, ${sirina} px`);
@@ -330,8 +362,10 @@ async function obmocje(b, sirina) {
     preveri(`${mode}: navodilo pove območje`, o.navodilo.toLowerCase().includes(o.opis.toLowerCase()), o.navodilo);
     if (vrsta === 'stevke') preveri(`${mode}: števka poudarjena`, o.poud.length && o.poud.every(x => x === 'true'), o.poud);
     else preveri(`${mode}: območje modrikasto`, o.oznacenih === o.pricakovanih && o.barva === 'rgb(227, 238, 251)', o);
-    // Točka 17: okvir ob robu območja (::before, 3 px temen) in temne oznake roba; pri
-    // števkah obroč na gumbu v nizu Poudari. Okvir ostane ob izbrani celici in poudarku.
+    // Točka 17: okvir ob robu območja (::before) in oznake roba v barvi okvira; pri števkah obroč
+    // na gumbu v nizu Poudari. Okvir ostane ob izbrani celici in poudarku. Popravek 6 po ročnem
+    // pregledu naloge 4a: okvir 2 px (kot debela črta mreže) v močno modri #1565C0, na mrežni črti -
+    // ne sega v notranjost nobene celice in ne prekrije nobene števke (pravokotniki besedila).
     if (vrsta !== 'stevke') {
       const c0 = await b.izvedi('vadi.ob.celice.find(c => !vadi.stanje.grid[c])');
       if (c0 !== undefined) await b.klikni(celicaSel(c0));
@@ -346,11 +380,17 @@ async function obmocje(b, sirina) {
       return { robnih: rob.length, okvir: [...new Set(okvir.map(x => x.join(' ')))], izbranaOkvir: izbrana ? getComputedStyle(izbrana, '::before').borderTopWidth + getComputedStyle(izbrana, '::before').borderLeftWidth : null,
         oznake: [...new Set(oznake.map(x => x.join(' ')))], stOznak: oznake.length, obroc }; })()`);
     if (vrsta === 'stevke') {
-      preveri(`${mode}: obroč števke v nizu Poudari`, k.obroc.length === 1 && k.obroc[0].includes('rgb(29, 63, 107)'), k.obroc);
+      preveri(`${mode}: obroč števke v nizu Poudari`, k.obroc.length === 1 && k.obroc[0].includes('rgb(21, 101, 192)'), k.obroc);
     } else {
-      preveri(`${mode}: okvir 3 px temen`, k.robnih > 0 && k.okvir.length === 1 && k.okvir[0] === '3px rgb(29, 63, 107)', k);
-      preveri(`${mode}: oznake roba v temnem polju`, k.stOznak > 0 && k.oznake.length === 1 && k.oznake[0] === 'rgb(29, 63, 107) rgb(255, 255, 255)', k);
+      preveri(`${mode}: okvir 2 px močno moder`, k.robnih > 0 && k.okvir.length === 1 && k.okvir[0] === '2px rgb(21, 101, 192)', k);
+      preveri(`${mode}: oznake roba v polju barve okvira`, k.stOznak > 0 && k.oznake.length === 1 && k.oznake[0] === 'rgb(21, 101, 192) rgb(255, 255, 255)', k);
       if (k.izbranaOkvir !== null) preveri(`${mode}: okvir viden tudi na izbrani celici`, k.izbranaOkvir !== '0px0px', k.izbranaOkvir);
+      const g = await b.izvedi(GEOMETRIJA_OKVIRA);
+      preveri(`${mode}: okvir enako debel kot debela črta mreže (${g.debelina.join(', ')} px, črta ${g.debela}), barva ni barva črte`,
+        g.pasov > 0 && g.debelina.length === 1 && g.debelina[0] === parseFloat(g.debela) && g.barvaCrte !== 'rgb(21, 101, 192)', g);
+      preveri(`${mode}: okvir na mrežni črti – ne sega v notranjost nobene celice (${g.pasov} pasov)`, g.vNotranjosti === 0, g);
+      const z = await zakritiPiksli(b, OBMOCJE_SKRITO, VSE_STEVKE_SKRITE);
+      preveri(`${mode}: okvir ne zakrije nobenega piksla števke (stik ${z.stik})`, z.zakritih === 0, z);
     }
     preveri(`${mode}: brez drsnika`, o.sirina === sirina, o.sirina);
     await b.posnetek(path.join(mapa, `${mode}-obmocje-${sirina}.png`));
@@ -403,11 +443,14 @@ async function posnetekMreze(b, slog) {
   const s = await b.cdp.poslji('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 1 } });
   return { b64: s.data, x: r.x, y: r.y };
 }
-async function zakritiPiksli(b) {
+// Okvir območja (popravek 6) se meri enako: skrit je okvir območja, skrite so vse števke (male in velike).
+const OBMOCJE_SKRITO = '.celica.obm::before{ border-color:transparent !important; }';
+const VSE_STEVKE_SKRITE = '.vaja-uganka .kand, .vaja-uganka .celica{ color:transparent !important; }';
+async function zakritiPiksli(b, okvirSkrit = OKVIR_SKRIT, stevkeSkrite = STEVKE_SKRITE) {
   const F = await posnetekMreze(b, '');
-  const A = await posnetekMreze(b, OKVIR_SKRIT);
-  const B = await posnetekMreze(b, OKVIR_SKRIT + STEVKE_SKRITE);
-  const C = await posnetekMreze(b, STEVKE_SKRITE);
+  const A = await posnetekMreze(b, okvirSkrit);
+  const B = await posnetekMreze(b, okvirSkrit + stevkeSkrite);
+  const C = await posnetekMreze(b, stevkeSkrite);
   await posnetekMreze(b, '');
   return b.izvedi(`(async () => {
     const slika = async b64 => { const bm = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
@@ -471,7 +514,8 @@ async function oznake(b, sirina) {
   p = await b.izvedi(`(() => { const c = vadi.plosca.mreza.celice[${k.cells[0]}], s = getComputedStyle(c, '::after'), m = getComputedStyle(c.querySelector('.kandidati'));
     return { okvir: [s.borderTopStyle, s.borderTopWidth, s.borderTopColor, s.top, s.left, s.zIndex].join(' '), stevke: m.position + ' ' + m.zIndex }; })()`);
   preveri('okvir: črtkan 3 px #5E2B97, 3 px čez notranji rob obrobe, z-index 2', p.okvir === 'dashed 3px rgb(94, 43, 151) -3px -3px 2', p.okvir);
-  preveri('male števke nad okvirjem (z-index 3)', p.stevke === 'relative 3', p.stevke);
+  // z-index 5 od popravka 6 po ročnem pregledu naloge 4a (nad zaznamkom 2 in nad okvirjem območja 4; prej 3).
+  preveri('male števke nad okvirjem oznake in območja (z-index 5)', p.stevke === 'relative 5', p.stevke);
   await izbrisi(k);
   await nicZakritih('oznaka, izbrisi izvedeni');
   // Izbrana in označena celica: obroba izbire in okvir oznake sta oba vidna.

@@ -2,9 +2,12 @@
 // Razdelek »Shema« ob vaji v treningu - popravka po ročnem pregledu naloge 4a (docs/trening-ucenje-nacrt.md,
 // razdelek 7) v nadomestnem DOM-u:
 //   1. V »Spoznaj« in »Vadi v uganki« je vse besedilo sheme (naslov risbe, legenda, sklep, napis o črkah,
-//      opombe) nad risbo, risba je zadnja; vrstica s preslikavo (»Vaja pod shemo – …«, brez »zgoraj«) je nad
-//      razdelkom; razdelek stoji tik nad mrežo vaje (v »Vadi v uganki« tik nad ploščo z mrežo). Pri vseh
-//      tehnikah 1-13. Pomoč ostane, kot je (risba prva, besedilo pod njo).
+//      opombe) nad risbo, risba je zadnja; razdelek stoji tik nad mrežo vaje (v »Vadi v uganki« tik nad
+//      ploščo z mrežo). Pri vseh tehnikah 1-13. Pomoč ostane, kot je (risba prva, besedilo pod njo).
+//      Popravek 3 (drugi ročni pregled): vrstica s preslikavo je pod risbo, med razdelkom in mrežo vaje, in
+//      se spet glasi »Vaja po shemi zgoraj – …« (»po obrnjeni shemi«, »po zrcaljeni shemi«, pri 9 z obliko).
+//   5. Črke shem: najprej x, y, z, a in b šele, ko jih je več (13); pri 10 · W-krilo x in y (prej a, b) v
+//      shemi in v besedilih tehnike.
 //   2. 9 · Veriga ene števke: odprta je samo risba, ki ustreza vaji (Nebotičnik ali Zmaj z dvema
 //      vrvicama), druga oblika je pod njo v zaprtem razdelku »Druga oblika: …«; Pomoč kaže obe.
 // Zagon: node --test "tests/*.test.js"
@@ -58,7 +61,7 @@ function preveriFiguro(fig, kje) {
 }
 
 for (const tehnika of TEHNIKE) {
-  test(`${tehnika}: »Spoznaj« – besedilo sheme nad risbo, shema tik nad mrežo, preslikava »Vaja pod shemo«`, () => {
+  test(`${tehnika}: »Spoznaj« – besedilo sheme nad risbo, shema nad mrežo, preslikava »Vaja po shemi zgoraj« tik nad mrežo`, () => {
     const { run, vaja, shema } = trening();
     run(`zacniKrog('${tehnika}', 'spoznaj')`);
     for (const n of [0, 1, 2]) {
@@ -66,12 +69,13 @@ for (const tehnika of TEHNIKE) {
       const kje = `vaja ${n + 1}`;
       preveriFiguro(shema().children[1], kje);
       const otroci = vaja().children, i = otroci.indexOf(shema());
-      assert.ok(MREZA.some(r => razredi(otroci[i + 1]).includes(r)), `${kje}: za shemo je mreža (${otroci[i + 1] && otroci[i + 1].className})`);
       const ps = otroci.find(e => e.className === 'po-shemi');
+      // Za shemo je vrstica s preslikavo (vaji 1 in 2) in takoj za njo mreža.
+      const zaPreslikavo = ps ? i + 2 : i + 1;
+      assert.ok(MREZA.some(r => razredi(otroci[zaPreslikavo]).includes(r)), `${kje}: tik nad mrežo (${otroci.slice(i + 1, i + 3).map(e => e.className).join(' | ')})`);
       if (n < 2) {
-        assert.ok(ps && otroci.indexOf(ps) < i, `${kje}: vrstica s preslikavo nad shemo`);
-        assert.match(ps.textContent, /^Vaja pod shemo/, kje);
-        assert.doesNotMatch(ps.textContent, /zgoraj/, kje);
+        assert.ok(ps && otroci.indexOf(ps) === i + 1, `${kje}: vrstica s preslikavo pod shemo, tik nad mrežo`);
+        assert.match(ps.textContent, /^Vaja po (obrnjeni |zrcaljeni )?shemi zgoraj/, kje);
       } else assert.equal(ps, undefined, `${kje}: vaja iz generatorja brez preslikave`);
     }
   });
@@ -131,9 +135,9 @@ test('9 · Veriga ene števke: »Spoznaj« – odprta risba vaje, druga oblika n
   }
   // Vrstica s preslikavo pri vaji po shemi pove obliko.
   run("zacniKrog('turbot-fish', 'spoznaj')");
-  assert.match(vsi(run('area')).find(e => e.className === 'po-shemi').textContent, /^Vaja pod shemo \(Nebotičnik\) – iste celice, črka x je števka \d\.$/);
+  assert.match(vsi(run('area')).find(e => e.className === 'po-shemi').textContent, /^Vaja po shemi zgoraj \(Nebotičnik\) – iste celice, črka x je števka \d\.$/);
   run('exNum++; renderExercise()');
-  assert.match(vsi(run('area')).find(e => e.className === 'po-shemi').textContent, /^Vaja pod shemo \(Zmaj z dvema vrvicama\) – iste celice, črka x je števka \d\.$/);
+  assert.match(vsi(run('area')).find(e => e.className === 'po-shemi').textContent, /^Vaja po shemi zgoraj \(Zmaj z dvema vrvicama\) – iste celice, črka x je števka \d\.$/);
 });
 
 test('9 · Veriga ene števke: »Vadi v uganki« – odprta risba koraka vaje, druga oblika na zahtevo', () => {
@@ -150,4 +154,20 @@ test('9 · Veriga ene števke: »Vadi v uganki« – odprta risba koraka vaje, d
     assert.equal(r.druga.open, false, `seme ${seme}: druga oblika zaprta`);
   }
   assert.ok(vrste.size >= 1);
+});
+
+// Popravek 5: črke shem - najprej x, y, z; a in b šele, ko je črk več (13 · XY-veriga). Pri 10 · W-krilo x, y
+// v shemi in v vseh besedilih tehnike (povzetek, razlaga, posledica, navodilo; kartica v meniju).
+test('črke shem: najprej x, y, z, a in b šele pri več črkah; W-krilo x in y tudi v besedilih', () => {
+  const { run } = trening();
+  const crke = JSON.parse(run(`JSON.stringify(Object.fromEntries(Object.keys(SHEME_TEHNIK).map(k => [k,
+    [...new Set(shemaRisbe(k).flatMap(r => r.celice.flatMap(z => shemaCelica(z).zetoni.map(t => t.z))).filter(z => z !== '…'))]])))`));
+  for (const [k, c] of Object.entries(crke))
+    assert.deepEqual([...c].sort((a, b) => 'xyzab'.indexOf(a) - 'xyzab'.indexOf(b)), [...'xyzab'].slice(0, c.length), `${k}: ${c}`);
+  assert.deepEqual(crke['w-wing'].sort(), ['x', 'y']);
+  const opis = JSON.parse(run(`JSON.stringify(TEHNIKE_OPISI['w-wing'])`));
+  for (const polje of ['povzetek', 'razlaga', 'posledica', 'navodilo'])
+    assert.doesNotMatch(opis[polje], /\{a, b\}|(^|[ (])[ab]( |[.,:]|$)/, `W-krilo, ${polje}: ${opis[polje]}`);
+  assert.match(opis.povzetek, /\{x, y\}/);
+  assert.match(run(`SHEME_TEHNIK['w-wing'].sklep`), /^Vsaj ena celica para je x, zato x izbrišeš/);
 });

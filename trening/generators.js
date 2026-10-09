@@ -616,6 +616,41 @@ function genRibaPoShemi(mode,obrnjeno){
 // vsaka nevpisana števka je v vsaj dveh celicah (sicer skriti enojček), pri 3 in 5 je vzorec en sam
 // (»Preveri« sprejme vsak nabor pickN celic s pickN kandidati). Uspe 47-100 % poskusov (skrita
 // trojica najmanj), poskus traja 0,2-4 ms.
+// Števke za črke (popravek 4 po ročnem pregledu naloge 4a): naključne, a tako, da je v celicah vzorca
+// naraščajoč vrstni red števk (tako jih izpiše mreža) čim bolj enak vrstnemu redu črk na shemi - celica
+// »x y« naj bo na mreži »x y«, ne »y x«. Med vsemi vrstnimi redi črk se naključno izbere eden z največ
+// celicami vzorca, v katerih se ujema (pri 11 x < y < z, pri parih x < y; pri 13 so pogoji v krogu, zato
+// štiri od petih celic), nato naključne različne števke, dodeljene po tem vrstnem redu. celiceVzorca so
+// črke celic vzorca v vrstnem redu na shemi (brez »…«). Vrne { črka: števka }.
+const RED_CRK=new Map();
+function stevkeZaCrke(crke,celiceVzorca){
+  const kljuc=JSON.stringify([crke,celiceVzorca]);
+  if(!RED_CRK.has(kljuc)){
+    const redi=[];let naj=-1;
+    (function permutacije(ostale,red){
+      if(!ostale.length){
+        const n=celiceVzorca.filter(cc=>cc.every((c,i)=>!i||red.indexOf(cc[i-1])<red.indexOf(c))).length;
+        if(n>naj){naj=n;redi.length=0;}
+        if(n===naj)redi.push(red);
+        return;
+      }
+      ostale.forEach((c,i)=>permutacije([...ostale.slice(0,i),...ostale.slice(i+1)],[...red,c]));
+    })(crke,[]);
+    RED_CRK.set(kljuc,redi);
+  }
+  const redi=RED_CRK.get(kljuc),red=redi[randInt(0,redi.length-1)];
+  const st=shuffle([1,2,3,4,5,6,7,8,9]).slice(0,crke.length).sort((a,b)=>a-b);
+  return Object.fromEntries(red.map((c,i)=>[c,st[i]]));
+}
+// Črke celic vzorca (»*« in »+«) v vrstnem redu na shemi.
+function crkeCelicVzorca(celice){return celice.filter(c=>c.vzorec).map(c=>c.zetoni.map(t=>t.z).filter(z=>z!=='…'));}
+// Števke: najprej števke črk (po vrstnem redu crke), nato druge v naključnem vrstnem redu.
+function stevkePoShemi(crke,celice){
+  const stevka=stevkeZaCrke(crke,crkeCelicVzorca(celice));
+  const ostale=shuffle([1,2,3,4,5,6,7,8,9].filter(d=>!crke.some(c=>stevka[c]===d)));
+  return{stevka,st:[...crke.map(c=>stevka[c]),...ostale]};
+}
+
 const PODMNOZICE_FN={'naked-pair':()=>nakedPairs,'hidden-pair':()=>hiddenPairs,'naked-triple':()=>nakedTriples,'hidden-triple':()=>hiddenTriples};
 // Lažje podmnožice po vrstnem redu ALL_TECHNIQUES (3 < 4 < 5 < 6).
 const PODMNOZICE_LAZJE={'naked-pair':()=>[],'hidden-pair':()=>[nakedPairs],'naked-triple':()=>[nakedPairs,hiddenPairs],'hidden-triple':()=>[nakedPairs,hiddenPairs,nakedTriples]};
@@ -626,8 +661,7 @@ function poskusPodmnozicePoShemi(mode,obrnjeno){
   const celice=SHEME_TEHNIK[mode].celice.map(shemaCelica);
   const crke=SHEMA_CRKE.filter(c=>celice.some(cel=>cel.zetoni.some(t=>t.z===c)));
   const ut=obrnjeno?'col':'row',unitCells=obrnjeno?COLS[0]:ROWS[0];
-  const st=shuffle([1,2,3,4,5,6,7,8,9]);
-  const stevka=Object.fromEntries(crke.map((c,i)=>[c,st[i]]));
+  const{st,stevka}=stevkePoShemi(crke,celice);
   const prazne=celice.map((cel,i)=>cel.zetoni.length?-1:i).filter(i=>i>=0);
   const dane=st.slice(crke.length,crke.length+prazne.length),polnila=st.slice(crke.length+prazne.length);
   const slots=celice.map((cel,i)=>{
@@ -715,8 +749,7 @@ function poskusPolnePoShemi(mode,n){
   const naMrezo=zrcaljeno?zrcaliCelico:obrnjeno?obrniCelico:i=>i;
   const celice=risba.celice.map(shemaCelica);
   const crke=SHEMA_CRKE.filter(c=>celice.some(cel=>cel.zetoni.some(t=>t.z===c)));
-  const st=shuffle([1,2,3,4,5,6,7,8,9]);
-  const stevka=Object.fromEntries(crke.map((c,i)=>[c,st[i]]));
+  const{st,stevka}=stevkePoShemi(crke,celice);
   const polnila=st.slice(crke.length);
   const board=emptyBoard(),vzorec=[],vzorec2=[],izbris=[];
   celice.forEach((cel,i)=>{
@@ -745,7 +778,7 @@ function poskusPolnePoShemi(mode,n){
     ex.poShemi.risba={st:n+1,ime:risba.naslov.replace(/ \(.*\)$/,'')};
     return Object.assign(ex,{digit:stevka.x,variant:k.variant,unitLabel:`Veriga ene števke: ${stevka.x}`});
   }
-  if(mode==='w-wing') return Object.assign(ex,{digits:[stevka.a,stevka.b],pair:vzorec,link:vzorec2,unitLabel:'W-krilo: celici para in celici povezave'});
+  if(mode==='w-wing') return Object.assign(ex,{digits:[stevka.x,stevka.y],pair:vzorec,link:vzorec2,unitLabel:'W-krilo: celici para in celici povezave'});
   if(mode==='xy-wing') return Object.assign(ex,{unitLabel:'XY-krilo: pivot in dve krili'});
   if(mode==='unique-rectangle') return Object.assign(ex,{unitLabel:'Edinstveni pravokotnik: štirje vogali'});
   return Object.assign(ex,{z:stevka.z,celiceVerige:k.cells,izbris:k.eliminate.map(([c])=>c),solutionVeriga:true,unitLabel:'XY-veriga: vse celice verige'});

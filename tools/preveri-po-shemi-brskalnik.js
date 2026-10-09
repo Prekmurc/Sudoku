@@ -1,8 +1,8 @@
 'use strict';
 // Vaji 1 in 2 »Spoznaj« po shemi v pravem brskalniku (docs/trening-ucenje-nacrt.md, del A) - scenarij
 // raste po korakih. Korak 2: 7 · X-krilo in 8 · Mečarica pri 375 in 1280 px:
-//   - razdelek »Shema« je odprt in tik nad mrežo, vrstica s preslikavo (.po-shemi) je nad njim (popravek po
-//     ročnem pregledu naloge 4a: »Vaja pod shemo – …«), vse besedilo sheme je nad risbo, v kartici;
+//   - razdelek »Shema« je odprt, vse besedilo sheme je nad risbo, pod risbo vrstica s preslikavo (.po-shemi, »Vaja
+//     po shemi zgoraj – …«), tik pod njo mreža (popravka 1 in 3 po ročnem pregledu naloge 4a), v kartici;
 //   - celice na mreži (iz DOM) = celice x sheme (iz SHEME_TEHNIK, razčlenjeno tu) pri vaji 1 in
 //     obrnjene sheme (VrSc -> VcSr) pri vaji 2; oznaka »· po shemi« / »· po shemi, obrnjeno«;
 //   - pravi kliki na celice vzorca in »Preveri« → »Pravilno!« (vaja 1), pravi klik »Naslednja vaja →«
@@ -10,7 +10,7 @@
 //   - brez vodoravnega preliva in brez napak JS; posnetki v mapi (--mapa, privzeto začasna).
 // Korak 3: 3 · Očitni par, 4 · Skriti par, 5 · Očitna trojica, 6 · Skrita trojica pri 375 in 1280 px:
 //   - shema odprta, preslikava (»… črke so števke: x = 4, y = 7.«, pri vaji 2 »vrstica sheme je
-//     stolpec«) nad shemo, shema tik nad enoto, vse v kartici;
+//     stolpec«) pod risbo sheme, tik nad enoto, vse v kartici;
 //   - vaja 1 vrstica (celice ena ob drugi), vaja 2 stolpec, izrisan navpično (celice ena pod drugo),
 //     v kartici tudi pri 375 px;
 //   - celica za celico kot shema (iz SHEME_TEHNIK, razčlenjeno tu): prazna celica sheme je dana
@@ -21,7 +21,7 @@
 // pravokotnik, 13 · XY-veriga (vaja 2 obrnjena), 11 · XY-krilo (vaja 2 zrcaljena levo-desno) pri 375 in
 // 1280 px:
 //   - oznaka (»· po shemi«, »· po shemi, obrnjeno«, »· po shemi, zrcaljeno«), shema odprta, preslikava
-//     nad shemo, shema tik nad mrežo 9 × 9, mreža in vse celice v kartici, brez vodoravnega preliva; pri 9 odprta
+//     pod risbo sheme, tik nad mrežo 9 × 9, mreža in vse celice v kartici, brez vodoravnega preliva; pri 9 odprta
 //     samo risba vaje, druga oblika zaprta;
 //   - prazne celice na mreži = celice s črko na risbi (iz SHEME_TEHNIK, razčlenjeno tu; obrat /
 //     zrcaljenje / druga risba);
@@ -29,7 +29,7 @@
 //   - pravi kliki na celice vzorca → »Pravilno!«, pri 13 številka 1 v V2S2 in 1-5 po vrsti sheme;
 //   - posnetek mreže (gostota) za ročni pregled: <ključ>-vaja<n>-<širina>.png.
 // Korak 5: 1 · Izločitev izven bloka, 2 · Izločitev v bloku (delna mreža, vaja 2 obrnjena) pri 375 in 1280 px:
-//   - oznaka, shema odprta, preslikava (»… črka x je števka 4.«) nad shemo, shema tik nad delno mrežo, vse v kartici;
+//   - oznaka, shema odprta, preslikava (»… črka x je števka 4.«) pod risbo sheme, tik nad delno mrežo, vse v kartici;
 //   - vidne celice (brez .izven) = blok in vrstica vzorca sheme (vaja 2 blok in stolpec obrnjene sheme),
 //     prazne vidne celice z x = celice x sheme v njih (iz SHEME_TEHNIK, razčlenjeno tu);
 //   - krepka oznaka roba: vaja 1 vrstica 1 (pri 2 vrstica 2), vaja 2 stolpec 1 (stolpec 2);
@@ -69,12 +69,12 @@ const IZ_SHEME = (kljuc, obrnjeno) => `(() => {
     const idx = ${obrnjeno} ? obrni(i) : i; x.push(idx); if (/^[*+]/.test(z)) vz.push(idx); });
   const u = a => a.sort((p, q) => p - q); return { x: u(x), vzorec: u(vz) }; })()`;
 
-// Ob vaji (popravek po ročnem pregledu naloge 4a): preslikava nad shemo, shema tik nad mrežo, vse besedilo
-// sheme nad risbo; pri 9 odprta ena risba, druga oblika zaprta (uporablja sh - razdelek - in rm - mreža).
+// Ob vaji (popravki po ročnem pregledu naloge 4a): vse besedilo sheme nad risbo, pod risbo preslikava, tik pod njo
+// mreža; pri 9 odprta ena risba, druga oblika zaprta (uporablja sh - razdelek -, rp - preslikava - in rm - mreža).
 const NAD = `(() => { const f = sh && sh.querySelector('figure.shema'); if (!f || !rm) return { ok: false };
     const okv = [...f.children].filter(c => c.classList.contains('shema-okvir')), prva = okv[0].getBoundingClientRect();
     const besedilo = [...f.children].filter(c => !c.classList.contains('shema-okvir') && !c.classList.contains('shema-druga'));
-    const razmik = Math.round(rm.top - okv[okv.length - 1].getBoundingClientRect().bottom);
+    const razmik = Math.round((rp ? rp.top : rm.top) - okv[okv.length - 1].getBoundingClientRect().bottom);
     return { ok: besedilo.every(c => c.getBoundingClientRect().bottom <= prva.top + 0.5) && razmik >= 0 && razmik <= 60, razmik,
       odprtih: okv.length, druga: [...f.children].filter(c => c.classList.contains('shema-druga')).map(c => [c.open, c.querySelector('summary').textContent]) }; })()`;
 
@@ -86,7 +86,7 @@ const STANJE = `(() => {
   const v = e => !!e && e.left >= k.left - 0.5 && e.right <= k.right + 0.5;
   return { oznaka: ex.querySelector('.ex-label').textContent, preslikava: ps ? ps.textContent : null,
     stevka: +(ex.querySelector('.xw-digit-label').textContent.match(/\\d$/) || [])[0],
-    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rp.bottom <= rs.top + 0.5 && rs.bottom <= rm.top + 0.5, nad: ${NAD},
+    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rs.bottom <= rp.top + 0.5 && rp.bottom <= rm.top + 0.5, nad: ${NAD},
     vKartici: v(rs) && v(rp) && v(rm), pisava: ps ? getComputedStyle(ps).fontSize : null,
     celice: [...ex.querySelectorAll('.xw-cell.has-digit')].map(c => +c.dataset.idx).sort((p, q) => p - q),
     preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth };
@@ -104,10 +104,10 @@ async function vaja(b, kljuc, n, sirina) {
   const s = await b.izvedi(STANJE), sh = await b.izvedi(IZ_SHEME(kljuc, obrnjeno));
   const ime = `${kljuc}, vaja ${n + 1}, ${sirina} px`;
   preveri(`${ime}: oznaka »· po shemi${obrnjeno ? ', obrnjeno' : ''}«`, s.oznaka.endsWith(`· Vaja ${n + 1} / 9 · po shemi${obrnjeno ? ', obrnjeno' : ''}`), s.oznaka);
-  preveri(`${ime}: shema odprta, preslikava nad shemo, shema tik nad mrežo, besedilo sheme nad risbo, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
+  preveri(`${ime}: shema odprta, besedilo sheme nad risbo, pod risbo preslikava, tik pod njo mreža, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
   preveri(`${ime}: preslikava »… črka x je števka ${s.stevka}.«`, s.preslikava === (obrnjeno
-    ? `Vaja pod shemo je obrnjena – vrstice sheme so stolpci, črka x je števka ${s.stevka}.`
-    : `Vaja pod shemo – iste celice, črka x je števka ${s.stevka}.`), s.preslikava);
+    ? `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črka x je števka ${s.stevka}.`
+    : `Vaja po shemi zgoraj – iste celice, črka x je števka ${s.stevka}.`), s.preslikava);
   preveri(`${ime}: celice na mreži = celice x ${obrnjeno ? 'obrnjene ' : ''}sheme (${sh.x.length})`, JSON.stringify(s.celice) === JSON.stringify(sh.x), [s.celice, sh.x]);
   preveri(`${ime}: brez vodoravnega preliva`, !s.preliv);
   await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`));
@@ -134,7 +134,7 @@ const STANJE_ENOTE = `(() => {
   const pon = (a, b) => (a.r.left + a.r.right) / 2;
   return { oznaka: ex.querySelector('.ex-label').textContent, preslikava: ps ? ps.textContent : null,
     enota: m.className, shemaOdprta: !!sh && sh.open,
-    vrstniRed: !!(rs && rp && rm) && rp.bottom <= rs.top + 0.5 && rs.bottom <= rm.top + 0.5, nad: ${NAD},
+    vrstniRed: !!(rs && rp && rm) && rs.bottom <= rp.top + 0.5 && rp.bottom <= rm.top + 0.5, nad: ${NAD},
     vKartici: v(rs) && v(rp) && v(rm) && celice.every(c => v(c.r)),
     vodoravno: celice.every((c, i) => !i || (c.r.left >= celice[i - 1].r.right - 0.5 && Math.abs(c.r.top - celice[i - 1].r.top) < 0.5)),
     navpicno: celice.every((c, i) => !i || (c.r.top >= celice[i - 1].r.bottom - 0.5 && Math.abs(c.r.left - celice[i - 1].r.left) < 0.5)),
@@ -147,11 +147,11 @@ async function vajaPodmnozice(b, kljuc, n, sirina) {
   const s = await b.izvedi(STANJE_ENOTE), sh = await b.izvedi(VRSTICA_SHEME(kljuc));
   const ime = `${kljuc}, vaja ${n + 1}, ${sirina} px`;
   preveri(`${ime}: oznaka »· po shemi${obrnjeno ? ', obrnjeno' : ''}«`, s.oznaka.endsWith(`· Vaja ${n + 1} / 9 · po shemi${obrnjeno ? ', obrnjeno' : ''}`), s.oznaka);
-  preveri(`${ime}: shema odprta, preslikava nad shemo, shema tik nad enoto, besedilo sheme nad risbo, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
+  preveri(`${ime}: shema odprta, besedilo sheme nad risbo, pod risbo preslikava, tik pod njo enota, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
   const m = (s.preslikava || '').match(/črke so števke: (.*)\.$/);
   const crke = m ? m[1].split(', ').map(p => p.split(' = ')) : [];
   const crka = Object.fromEntries(crke.map(([c, d]) => [c, +d]));
-  const zacetek = obrnjeno ? 'Vaja pod shemo je obrnjena – vrstica sheme je stolpec, ' : 'Vaja pod shemo – iste celice, ';
+  const zacetek = obrnjeno ? 'Vaja po obrnjeni shemi zgoraj – vrstica sheme je stolpec, ' : 'Vaja po shemi zgoraj – iste celice, ';
   preveri(`${ime}: preslikava »${s.preslikava}«`, !!m && s.preslikava.startsWith(zacetek)
     && JSON.stringify(crke.map(([c]) => c)) === JSON.stringify(['x', 'y', 'z'].filter(c => sh.some(x => x.crke.includes(c)))), s.preslikava);
   preveri(`${ime}: ${obrnjeno ? 'stolpec, izrisan navpično' : 'vrstica, celice ena ob drugi'}`,
@@ -206,7 +206,7 @@ const STANJE_MREZE = `(() => {
   const vCeli = vidne.every(([c, d]) => { const a = c.getBoundingClientRect(), b = d.getBoundingClientRect();
     return b.left >= a.left - 0.5 && b.right <= a.right + 0.5 && b.top >= a.top - 0.5 && b.bottom <= a.bottom + 0.5; });
   return { oznaka: ex.querySelector('.ex-label').textContent, preslikava: ps ? ps.textContent : null,
-    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rp.bottom <= rs.top + 0.5 && rs.bottom <= rm.top + 0.5, nad: ${NAD},
+    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rs.bottom <= rp.top + 0.5 && rp.bottom <= rm.top + 0.5, nad: ${NAD},
     vKartici: v(rs) && v(rp) && v(rm) && [...m.querySelectorAll('.gc')].every(c => v(c.getBoundingClientRect())),
     prazne: prazne.map(c => +c.dataset.r * 9 + +c.dataset.c).sort((p, q) => p - q),
     velikosti: [...new Set(vidne.map(([, d]) => getComputedStyle(d).fontSize))],
@@ -219,12 +219,12 @@ async function vajaMreze(b, kljuc, n, sirina) {
   const ime = `${kljuc}, vaja ${n + 1}, ${sirina} px`;
   const pripis = n === 0 || kljuc === 'turbot-fish' ? 'po shemi' : kljuc === 'xy-wing' ? 'po shemi, zrcaljeno' : 'po shemi, obrnjeno';
   preveri(`${ime}: oznaka »· ${pripis}«`, s.oznaka.endsWith(`· Vaja ${n + 1} / 9 · ${pripis}`), s.oznaka);
-  preveri(`${ime}: shema odprta, preslikava nad shemo, shema tik nad mrežo, besedilo sheme nad risbo, mreža in celice v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
+  preveri(`${ime}: shema odprta, besedilo sheme nad risbo, pod risbo preslikava, tik pod njo mreža, mreža in celice v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
   const zacetek = kljuc === 'turbot-fish'
-    ? `Vaja pod shemo (${sh.naslov.split(' (')[0]}) – iste celice, črka x je števka `
-    : n === 0 ? 'Vaja pod shemo – iste celice, črke so števke: '
-    : kljuc === 'xy-wing' ? 'Vaja pod shemo je zrcaljena – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, črke so števke: '
-    : 'Vaja pod shemo je obrnjena – vrstice sheme so stolpci, črke so števke: ';
+    ? `Vaja po shemi zgoraj (${sh.naslov.split(' (')[0]}) – iste celice, črka x je števka `
+    : n === 0 ? 'Vaja po shemi zgoraj – iste celice, črke so števke: '
+    : kljuc === 'xy-wing' ? 'Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, črke so števke: '
+    : 'Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črke so števke: ';
   if (kljuc === 'turbot-fish') preveri(`${ime}: odprta samo risba vaje (${sh.naslov.split(' (')[0]}), druga oblika zaprta`,
     s.nad.odprtih === 1 && s.nad.druga.length === 1 && s.nad.druga[0][0] === false && s.nad.druga[0][1] === `Druga oblika: ${n === 0 ? 'Zmaj z dvema vrvicama' : 'Nebotičnik'}`, s.nad);
   preveri(`${ime}: preslikava »${s.preslikava}«`, !!s.preslikava && s.preslikava.startsWith(zacetek), s.preslikava);
@@ -271,7 +271,7 @@ const STANJE_PRESEKA = `(() => {
   const stevka = +((ps ? ps.textContent : '').match(/števka (\\d)\\.$/) || [])[1];
   const akt = sel => [...m.querySelectorAll(sel + ' > *')].map((s, i) => s.classList.contains('akt') ? i : -1).filter(i => i >= 0);
   return { oznaka: ex.querySelector('.ex-label').textContent, preslikava: ps ? ps.textContent : null, stevka,
-    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rp.bottom <= rs.top + 0.5 && rs.bottom <= rm.top + 0.5, nad: ${NAD},
+    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rs.bottom <= rp.top + 0.5 && rp.bottom <= rm.top + 0.5, nad: ${NAD},
     vKartici: v(rs) && v(rp) && v(rm) && celice.every(c => v(c.getBoundingClientRect())),
     vidne: celice.filter(c => !c.classList.contains('izven')).map(idx).sort((p, q) => p - q),
     x: celice.filter(c => !c.classList.contains('izven') && [...c.querySelectorAll('.kand')].some(s => s.textContent === String(stevka))).map(idx).sort((p, q) => p - q),
@@ -284,10 +284,10 @@ async function vajaPreseka(b, kljuc, n, sirina) {
   const s = await b.izvedi(STANJE_PRESEKA), sh = await b.izvedi(PAS_SHEME(kljuc, obrnjeno));
   const ime = `${kljuc}, vaja ${n + 1}, ${sirina} px`;
   preveri(`${ime}: oznaka »· po shemi${obrnjeno ? ', obrnjeno' : ''}«`, s.oznaka.endsWith(`· Vaja ${n + 1} / 9 · po shemi${obrnjeno ? ', obrnjeno' : ''}`), s.oznaka);
-  preveri(`${ime}: shema odprta, preslikava nad shemo, shema tik nad delno mrežo, besedilo sheme nad risbo, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
+  preveri(`${ime}: shema odprta, besedilo sheme nad risbo, pod risbo preslikava, tik pod njo delna mreža, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.nad.ok && s.vKartici, s);
   preveri(`${ime}: preslikava »… črka x je števka ${s.stevka}.«`, s.stevka >= 1 && s.preslikava === (obrnjeno
-    ? `Vaja pod shemo je obrnjena – vrstice sheme so stolpci, črka x je števka ${s.stevka}.`
-    : `Vaja pod shemo – iste celice, črka x je števka ${s.stevka}.`), s.preslikava);
+    ? `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črka x je števka ${s.stevka}.`
+    : `Vaja po shemi zgoraj – iste celice, črka x je števka ${s.stevka}.`), s.preslikava);
   preveri(`${ime}: vidne celice = blok in ${obrnjeno ? 'stolpec obrnjene' : 'vrstica'} sheme (${sh.vidne.length})`, JSON.stringify(s.vidne) === JSON.stringify(sh.vidne), [s.vidne, sh.vidne]);
   preveri(`${ime}: celice z x = celice x sheme v vidnem delu (${sh.x.length})`, JSON.stringify(s.x) === JSON.stringify(sh.x), [s.x, sh.x]);
   preveri(`${ime}: krepka oznaka roba – ${obrnjeno ? 'stolpec' : 'vrstica'} ${sh.enota + 1}`,

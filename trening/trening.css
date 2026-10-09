@@ -69,7 +69,7 @@ header.top{max-width:560px}
    oblika pod risbo v zaprtem razdelku »Druga oblika: …«. Pomoč ostane, kot je (shared/pomoc.css). */
 .shema-razdelek .shema-okvir{margin-top:8px}
 .shema-razdelek .shema-druga{margin-top:6px}
-/* Vaja po shemi (docs/trening-ucenje-nacrt.md, 1.3): preslikava črk v števke nad razdelkom »Shema«. */
+/* Vaja po shemi (docs/trening-ucenje-nacrt.md, 1.3): preslikava črk v števke pod razdelkom »Shema«, tik nad mrežo. */
 .po-shemi{font-size:13px;color:var(--ink);font-weight:600;line-height:1.5;margin:0 0 10px}
 
 /* --- PRIKAZI --- */
@@ -126,8 +126,10 @@ header.top{max-width:560px}
    kandidati s kljukico "pokaži prečrtane"). */
 .vaja-uganka .kand{font-size:calc(var(--gcs)*.34)}
 /* male števke nad okvirjem oznake (.celica.zaznamovana::after, z-index 2 v shared/mreza.css):
-   okvir sega čez mrežno črto do roba števk, ki ga zato ne zakrije (docs/oznake-nacrt.md, C3) */
-.vaja-uganka .kandidati{position:relative;z-index:3}
+   okvir sega čez mrežno črto do roba števk, ki ga zato ne zakrije (docs/oznake-nacrt.md, C3); in nad
+   okvirjem območja (.celica.obm::before, z-index 4) - ta leži na mrežni črti, ob kateri se pri ozkem
+   zaslonu števka že dotika črte (popravek 6 po ročnem pregledu naloge 4a; prej z-index 3) */
+.vaja-uganka .kandidati{position:relative;z-index:5}
 .nacin{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
 .nacin-btn.vadi{background:var(--teal);border-color:var(--teal);color:#fff}
 .vaja-info{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:13px;color:var(--ink2);margin:0 0 10px}

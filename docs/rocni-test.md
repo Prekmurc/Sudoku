@@ -326,7 +326,18 @@ preverjeno samodejno v `tests/trening-shema-vaja.test.js`, `tools/preveri-po-she
 | # | Kje | Kaj narediti | Pričakovano |
 |---|---|---|---|
 | 6 | trening, »Spoznaj« in »Vadi v uganki«, telefon | Odpri vaji 1 in 2 pri 4 · Skriti par, 10 · W-krilo in 13 · XY-veriga, nato še »Vadi v uganki« pri 4 in odpri »Shema«. | Vse besedilo sheme (legenda, sklep, napis o črkah, opombe) je nad risbo; nad razdelkom »Shema« je vrstica »Vaja pod shemo – …« (pri vaji 2 »Vaja pod shemo je obrnjena – …«); risba stoji tik nad mrežo vaje, tako da primerjaš shemo in mrežo brez drsenja čez besedilo; v »Vadi v uganki« je med risbo in mrežo samo niz »Poudari števko«. (nepotrjeno) – ni avtomatsko: presoja, ali je primerjava sheme in mreže zdaj res lažja. |
-| 7 | trening, »Spoznaj« in »Vadi v uganki«, 9 · Veriga ene števke | Vaja 1 (Nebotičnik) in vaja 2 (Zmaj) v »Spoznaj«, nato »Vadi v uganki«: odpri »Shema«, tapni »Druga oblika: …« in ga zapri; primerjaj še z oknom Pomoč → Tehnike → 9 → Shema. | Ob vaji je odprta samo risba, ki ustreza vaji (pri vaji 1 Nebotičnik, pri vaji 2 Zmaj z dvema vrvicama, v »Vadi v uganki« oblika iskanega koraka); pod njo je zaprta povezava »Druga oblika: …«, ki pokaže drugo risbo s sklepom; vrstica nad shemo pove obliko (»Vaja pod shemo (Nebotičnik) – …«); Pomoč kaže obe risbi kot prej. (nepotrjeno) – ni avtomatsko: presoja, ali je povezava na drugo obliko opazna in razumljiva. |
+| 7 | trening, »Spoznaj« in »Vadi v uganki«, 9 · Veriga ene števke (potrjeno 9. 10. 2026) | Vaja 1 (Nebotičnik) in vaja 2 (Zmaj) v »Spoznaj«, nato »Vadi v uganki«: odpri »Shema«, tapni »Druga oblika: …« in ga zapri; primerjaj še z oknom Pomoč → Tehnike → 9 → Shema. | Ob vaji je odprta samo risba, ki ustreza vaji (pri vaji 1 Nebotičnik, pri vaji 2 Zmaj z dvema vrvicama, v »Vadi v uganki« oblika iskanega koraka); pod njo je zaprta povezava »Druga oblika: …«, ki pokaže drugo risbo s sklepom; vrstica nad shemo pove obliko (»Vaja pod shemo (Nebotičnik) – …«); Pomoč kaže obe risbi kot prej. (nepotrjeno) – ni avtomatsko: presoja, ali je povezava na drugo obliko opazna in razumljiva. |
+
+Drugi pregled 9. 10. 2026: točka 7 potrjena; pri točki 6 in ob pregledu še štirje popravki (3–6), točke 8–11
+(samodejno: `tests/trening-shema-vaja.test.js`, `tests/trening-po-shemi.test.js` – vrstni red števk –,
+`tools/preveri-po-shemi-`, `-sheme-` in `-vadi-brskalnik.js` – okvir območja s posnetki pikslov).
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 8 | trening, »Spoznaj«, telefon | Vaji 1 in 2 pri 4 · Skriti par in 11 · XY-krilo: preberi vrstico s preslikavo in reši vajo. | Vrstica »Vaja po shemi zgoraj – … x = …« je pod risbo sheme, tik nad mrežo, zato jo med reševanjem vidiš skupaj z mrežo; legenda in opombe so nad risbo. (nepotrjeno) – ni avtomatsko: presoja preglednosti. |
+| 9 | trening, »Spoznaj« | Vaji 1 in 2 pri 3 · Očitni par, 5 · Očitna trojica, 11 · XY-krilo in 13 · XY-veriga: primerjaj kandidate v celicah vzorca s črkami na shemi. | Kandidati so v celici izpisani v istem vrstnem redu kot črke na shemi (»x y« → npr. »3 7«, ne »7 3«; pri 11 x < y < z); pri 13 velja v štirih od petih celic verige. (nepotrjeno) – ni avtomatsko: presoja, ali vrstni red res pomaga. |
+| 10 | trening (»Spoznaj« in Pomoč), 10 · W-krilo | Odpri vajo 1, preberi povzetek, »Razlaga« in shemo; nato Pomoč → Tehnike → 10. | Povsod sta črki x in y ({x, y}, »y mogoč samo v dveh celicah«, »x izbrišeš«), nikjer a in b; preslikava »x = …, y = …«. (nepotrjeno) – ni avtomatsko: berljivost besedila. |
+| 11 | trening, »Vadi v uganki«, telefon | 4 · Skriti par, 11 · XY-krilo, 12 · Edinstveni pravokotnik: poglej okvir označenega območja (vrstica, pivot, bloka). | Okvir je enako debel kot debele črte mreže, a modre barve, ki se loči od mreže; leži na črti in ne prekriva števk. (nepotrjeno) – ni avtomatsko: zaznava barve in debeline na tvojem zaslonu. |
 
 ## Zakaj ročno
 

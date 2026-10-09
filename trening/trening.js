@@ -551,14 +551,15 @@ function motilecPravokotnika(ex){
 // preslikavo črk v števke tik pod razdelkom »Shema« (O2).
 // Pri 11 je vaja 2 zrcaljena levo-desno (O18), pri 9 po prvi oziroma drugi risbi sheme (O8).
 function pripisPoShemi(ps){return ps.obrnjeno?' · po shemi, obrnjeno':ps.zrcaljeno?' · po shemi, zrcaljeno':' · po shemi';}
-// Vrstica je nad razdelkom »Shema«, vaja pa pod shemo (popravek po ročnem pregledu naloge 4a).
+// Vrstica je pod risbo sheme, tik nad mrežo vaje - igralec jo med reševanjem gleda skupaj z mrežo
+// (popravek 3 po ročnem pregledu naloge 4a). Pri 9 je odprta samo risba vaje, zato samo ime oblike.
 function vrsticaPoShemi(ps){
   const crke=ps.crke.length===1?`črka ${ps.crke[0][0]} je števka ${ps.crke[0][1]}.`
     :`črke so števke: ${ps.crke.map(([c,d])=>`${c} = ${d}`).join(', ')}.`;
-  if(ps.obrnjeno) return `Vaja pod shemo je obrnjena – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`;
-  if(ps.zrcaljeno) return `Vaja pod shemo je zrcaljena – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${crke}`;
-  if(ps.risba) return `Vaja pod shemo (${ps.risba.ime}) – iste celice, ${crke}`;
-  return `Vaja pod shemo – iste celice, ${crke}`;
+  if(ps.obrnjeno) return `Vaja po obrnjeni shemi zgoraj – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`;
+  if(ps.zrcaljeno) return `Vaja po zrcaljeni shemi zgoraj – stolpec 1 sheme je stolpec 9, stolpec 2 je stolpec 8 …, ${crke}`;
+  if(ps.risba) return `Vaja po shemi zgoraj (${ps.risba.ime}) – iste celice, ${crke}`;
+  return `Vaja po shemi zgoraj – iste celice, ${crke}`;
 }
 
 function renderExercise(){
@@ -584,8 +585,8 @@ function renderExercise(){
   const opis=ex.desc?`${TEHNIKE_OPISI[mode].povzetek} ${ex.desc}`:M.desc;
   div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}${ex.poShemi?pripisPoShemi(ex.poShemi):''}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
   div.appendChild(razdelekRazlaga(mode));
-  if(ex.poShemi){const p=document.createElement('p');p.className='po-shemi';p.textContent=vrsticaPoShemi(ex.poShemi);div.appendChild(p);}
-  // Razdelek »Shema« se vstavi tik nad mrežo vaje, ko je postavitev zgrajena (spodaj).
+  // Razdelek »Shema« in pod njim vrstica s preslikavo se vstavita tik nad mrežo vaje, ko je postavitev
+  // zgrajena (spodaj).
   const shema=razdelekShema(mode,M.isTurbot?risbaVaje9(ex.variant):undefined);
 
   let cellEls=[],countEls=[];
@@ -646,9 +647,10 @@ function renderExercise(){
     const layout=buildLayout(div,ex,M);
     cellEls=layout.cellEls;countEls=layout.countEls;
   }
-  if(shema){
+  {
     const mreza=[...div.children].find(e=>['vaja-presek','layout-row','layout-col','layout-block','xw-grid','g9'].some(r=>e.classList.contains(r)));
-    div.insertBefore(shema,mreza||null);
+    if(shema) div.insertBefore(shema,mreza||null);
+    if(ex.poShemi){const p=document.createElement('p');p.className='po-shemi';p.textContent=vrsticaPoShemi(ex.poShemi);div.insertBefore(p,mreza||null);}
   }
 
   // Gumb za stevilo kandidatov - vidnost je lastnost tehnike (M.showCandidateCount), ne poseben primer po imenu tehnike

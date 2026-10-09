@@ -1,5 +1,6 @@
 /* shared/sheme.js — shema vzorca pri razlagi tehnik 1–12 (faza 3a, docs/faza3a-nacrt.md) in 13 (XY-veriga):
-   splošna risba vzorca s črkami x, y, z (pri W-krilu a, b) namesto števk, v barvah legende
+   splošna risba vzorca s črkami x, y, z (a, b šele, ko jih je več – pri XY-verigi; pri W-krilu do popravka 5 po
+   ročnem pregledu naloge 4a a, b, zdaj x, y) namesto števk, v barvah legende
    treninga (celica vzorca jantarna z zlatim okvirjem, celica izbrisa rožnata, kandidat za izbris
    temen z rdečo črto čez). Podatki SHEME_TEHNIK so po ključu iz TEHNIKE_OPISI (shared/engine.js), izris je
    SVG, ki ga sestavi svgSheme() (niz – deluje tudi v nadomestnem DOM-u testov), izrisiShemo() pa
@@ -168,22 +169,22 @@ const SHEME_TEHNIK = {
   'w-wing': {
     izsek: 'mreza',
     celice: shemaVrstice([
-      '.    a     .    .    b    a    b    .     .',
-      '.    *a,b  .    .    .    .    .    -a    a,b',
-      'b    .     .    a,b  .    .    a    .     b',
-      'a    .     b    .    .    a,b  a    .     b',
-      '.    .     .    .    a,b  .    b    *a,b  .',
-      'b    .     a    .    .    b    a    .     .',
-      '.    .     a,b  b    a    .    .    .     .',
-      'a    +b,…  .    .    .    .    .    +b,…  a',
-      '.    .     .    a    .    a,b  a,b  .     .',
+      '.    x     .    .    y    x    y    .     .',
+      '.    *x,y  .    .    .    .    .    -x    x,y',
+      'y    .     .    x,y  .    .    x    .     y',
+      'x    .     y    .    .    x,y  x    .     y',
+      '.    .     .    .    x,y  .    y    *x,y  .',
+      'y    .     x    .    .    y    x    .     .',
+      '.    .     x,y  y    x    .    .    .     .',
+      'x    +y,…  .    .    .    .    .    +y,…  x',
+      '.    .     .    x    .    x,y  x,y  .     .',
     ]),
     povezave: ['V8S2 V8S8'],
     vidita: ['V2S2 V8S2', 'V8S8 V5S8'],
     vidi: ['V2S8 V2S2', 'V2S8 V5S8'],
     vzorec: 'celici para',
     vzorec2: 'celici povezave',
-    sklep: 'Vsaj ena celica para je a, zato a izbrišeš iz celic, ki vidijo obe.',
+    sklep: 'Vsaj ena celica para je x, zato x izbrišeš iz celic, ki vidijo obe.',
     opomba: 'Povezava je lahko tudi stolpec ali blok.',
     drugiVVzorcu: true,
   },

@@ -793,3 +793,39 @@ Ročni pregled (`docs/rocni-test.md`): točke 1, 3, 4 in 5 potrjene, pri točki 
   izbrisanih kandidatov), `izbira` 708 ✓, `videz` 339 ✓, `pomoc` 66 ✓ – vse drži.
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 830 zelenih v 3 min 20 s (hitrih 664 v 56 s).
 - **Naloga ni zaprta** – čaka na Darkov pregled (točki 6 in 7 v `docs/rocni-test.md`).
+
+### Popravki 3–6 po drugem ročnem pregledu (2026-10-09)
+
+Drugi pregled: točka 7 potrjena, pri točki 6 in ob pregledu štirje popravki.
+
+- **3 – preslikava pod risbo:** vrstica s preslikavo je med razdelkom »Shema« in mrežo vaje (`trening/trening.js`
+  jo vstavi tik pred mrežo), legenda, sklep in opombe ostanejo nad risbo. Besedilo spet »Vaja po shemi zgoraj –
+  …«, »Vaja po obrnjeni shemi zgoraj – …«, »Vaja po zrcaljeni shemi zgoraj – …«, pri 9 »Vaja po shemi zgoraj
+  (Nebotičnik) – …« / »(Zmaj z dvema vrvicama)« (odprta je samo risba vaje).
+- **4 – vrstni red števk:** `stevkePoShemi()`/`stevkeZaCrke()` v `trening/generators.js` – števke ostanejo
+  naključne, vrstni red črk pa je izbran naključno med tistimi, pri katerih je v največ celicah vzorca naraščajoč
+  vrstni red števk enak vrstnemu redu črk na shemi (3–6, 10–13; pri 1, 2, 7–9 je ena črka). Pri 11 x < y < z,
+  pri parih x < y, pri trojicah x < y < z, pri 10 in 12 x < y – v vseh celicah vzorca. **Pri 13 v štirih od petih
+  celic verige** – pogoji z < x, x < y, y < a, a < b, b < z so v krogu, vsi hkrati niso mogoči.
+- **5 – enotne črke:** najprej x, y, z, a in b šele pri več črkah (samo 13). Pri 10 · W-krilo a, b → x, y v shemi
+  (`shared/sheme.js`, sklep »Vsaj ena celica para je x …«), opisih (`TEHNIKE_OPISI` – povzetek, razlaga,
+  posledica; navodilo črk nima), kartici v meniju in s tem v Pomoči; preslikava in polje `digits` vaje. Namig
+  W-krila črk nima (izpiše števke). Druge tehnike so že bile po pravilu.
+- **6 – okvir območja:** 2 px (kot debela črta mreže) na mrežni črti – `::before` z `inset: -2px` (obroba
+  celice in ob tanki črti še obroba sosednje), ne v celici; barva `--obmocje` #1565C0 (močno modra, prej temno
+  modra #1D3F6B – ob črnih črtah ni izstopala); oznake roba in obroč števke v isti barvi. Male števke v »Vadi v
+  uganki« so nad okvirjem (z-index 5, prej 3): pri 375 px se števka na robu celice že dotika črte in okvir bi jo
+  prekril (meritev s posnetki: 11 pikslov pri skritem paru). Velja tudi za okvir pri E1/E2 v »Spoznaj«.
+- **Testi pred spremembo:** `tests/trening-shema-vaja.test.js` (preslikava pod risbo, besedilo, pravilo črk – 15
+  padlo), `tests/trening-po-shemi.js` (vrstni red števk na vzorcu vaj 3–6 in 10–13 z neodvisno izračunanim
+  največjim številom celic – 16 padlo; prag različnih preslikav po novem: 9 / 25 / 50 / 100), posodobljena
+  pričakovanja besedil in vrstnega reda (`trening-po-shemi`, `sheme.test.js` – tudi legenda W-krila »x«).
+- **Brskalnik:** `preveri-vadi-brskalnik.js` – okvir 2 px #1565C0, enako debel kot debela črta, ne sega v
+  notranjost celic, ne zakrije nobenega piksla števke (štirje posnetki kot pri oznakah, vse števke); male števke
+  z-index 5. Primerjave z izhodiščem (`tools/primerjava-slogov.js`) preslikajo namerni razliki nazaj
+  (`ZNANE_RAZLIKE`: besedila W-krila in barva območja). Izid: `po-shemi` 372 ✓, `sheme` 967 ✓, `vadi` 382 ✓,
+  `presek` 79 ✓, `enojcki` 330 ✓, `izbira` 708 ✓, `videz` 339 ✓, `pomoc` 66 ✓ – vse drži (`vadi`, `presek`,
+  `enojcki` in `izbira` so v prvem zagonu padli samo pri primerjavi besedila W-krila in barve oznak roba – pred
+  dodajo `ZNANE_RAZLIKE`).
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 867 zelenih v 4 min 13 s (hitrih 683 v 55 s).
+- **Naloga ni zaprta** – čaka na Darkov pregled (točke 8–11 v `docs/rocni-test.md`).

@@ -251,7 +251,7 @@ test('napis o črkah našteje samo črke na shemi, »…« samo, če je na njej;
     'x-wing': 'x – poljubna števka; prazna celica – brez x.',
     'swordfish': 'x – poljubna števka; prazna celica – brez x.',
     'turbot-fish': 'x – poljubna števka; prazna celica – brez x.',
-    'w-wing': 'a, b – poljubni različni števki; … – drugi kandidati; prazna celica – brez a in b.' + DRUGI,
+    'w-wing': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.' + DRUGI,
     'xy-wing': 'x, y, z – poljubne različne števke; prazna celica – brez x, y in z.' + DRUGI,
     'unique-rectangle': 'x, y – poljubni različni števki; … – drugi kandidati; prazna celica – brez x in y.' + DRUGI,
     'xy-chain': 'x, y, z, a, b – poljubne različne števke; prazna celica – brez x, y, z, a in b.' + DRUGI,
@@ -334,9 +334,9 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
   assert.deepEqual(JSON.parse(run('JSON.stringify(w.children.map(c => c.className))')),
     ['shema-okvir', 'shema-legenda', 'shema-sklep', 'shema-crke', 'shema-opomba']);
   assert.equal(run('w.children[1].children.map(c => c.textContent).join(" | ")'),
-    'celici para | celici povezave | celica izbrisa | akandidat za izbris | povezava | celici se vidita | celica izbrisa vidi');
+    'celici para | celici povezave | celica izbrisa | xkandidat za izbris | povezava | celici se vidita | celica izbrisa vidi');
   assert.equal(run('w.children[1].children[1].children[0].className'), 'shema-sw shema-sw-vzorec2');
-  assert.equal(run('w.children[2].textContent'), 'Vsaj ena celica para je a, zato a izbrišeš iz celic, ki vidijo obe.');
+  assert.equal(run('w.children[2].textContent'), 'Vsaj ena celica para je x, zato x izbrišeš iz celic, ki vidijo obe.');
   const ws = run('w.children[0].innerHTML');
   assert.equal((ws.match(/class="sh-vzorec"/g) || []).length, 2, 'W-krilo: celici para');
   assert.equal((ws.match(/class="sh-vzorec sh-vzorec2"/g) || []).length, 2, 'W-krilo: celici povezave, poln okvir');
@@ -388,14 +388,14 @@ function trening() {
   return { run, izprazni, vaja, shema };
 }
 
-// Od popravka po ročnem pregledu naloge 4a je razdelek tik nad mrežo vaje, med »Razlaga« in njim je
-// vrstica s preslikavo vaje po shemi (tests/trening-shema-vaja.test.js).
-test('trening: razdelek »Shema« za »Razlaga« (pri vaji po shemi za vrstico s preslikavo); Spoznaj odprt, Vadi v uganki zaprt, stanje ostane v krogu, E1 brez', () => {
+// Od popravkov po ročnem pregledu naloge 4a je razdelek nad mrežo vaje, vrstica s preslikavo vaje po shemi
+// pa med njim in mrežo (tests/trening-shema-vaja.test.js).
+test('trening: razdelek »Shema« za »Razlaga«, nad vrstico s preslikavo; Spoznaj odprt, Vadi v uganki zaprt, stanje ostane v krogu, E1 brez', () => {
   const { run, izprazni, vaja, shema } = trening();
   run('zacniKrog("naked-triple", "spoznaj")');
   const otroci = vaja().children;
   const i = otroci.findIndex(e => e.className === 'shema-razdelek');
-  assert.deepEqual(otroci.slice(i - 2, i).map(e => e.className), ['razlaga-tehnike', 'po-shemi'], 'za »Razlaga« in vrstico s preslikavo');
+  assert.deepEqual(otroci.slice(i - 1, i + 2).map(e => e.className), ['razlaga-tehnike', 'shema-razdelek', 'po-shemi'], 'za »Razlaga«, pred vrstico s preslikavo');
   assert.equal(shema().tagName, 'DETAILS');
   assert.equal(shema().children[0].textContent, 'Shema');
   assert.equal(shema().children[1].className, 'shema');
@@ -472,7 +472,7 @@ test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), op
 });
 
 // Popravek po pregledu koraka 3: celice vzorca druge vrste (»+«) - pri W-krilu celici povezave
-// (vrstica, kjer je b samo v njiju, vsaka vidi svojo celico para), pri XY-krilu krili (po ročnem
+// (vrstica, kjer je y samo v njiju – od popravka 5 po ročnem pregledu naloge 4a x, y namesto a, b – vsaka vidi svojo celico para), pri XY-krilu krili (po ročnem
 // pregledu faze 3a; obe vidita pivot, ki je poln) – obe s polnim okvirjem; druge sheme
 // jih nimajo. Druga vrsta ima svoj napis v legendi. Sklep pri 10 in 11, pri 9 pod vsako risbo.
 test('W-krilo in XY-krilo: celice vzorca druge vrste (povezava, krili), sklep pri 9, 10 in 11', () => {
@@ -481,7 +481,7 @@ test('W-krilo in XY-krilo: celice vzorca druge vrste (povezava, krili), sklep pr
   const povezava = w.filter(([, c]) => c.vzorec2).map(([i]) => i), par = w.filter(([, c]) => !c.vzorec2).map(([i]) => i);
   assert.deepEqual(povezava, SHEME['w-wing'].povezave[0].split(' ').map(indeks), 'W-krilo: celici povezave sta konca povezave');
   assert.equal(par.length, 2);
-  for (const [i] of w) assert.deepEqual(crkeCelice(SHEME['w-wing'].celice[i]).sort(), povezava.includes(i) ? ['b'] : ['a', 'b']);
+  for (const [i] of w) assert.deepEqual(crkeCelice(SHEME['w-wing'].celice[i]).sort(), povezava.includes(i) ? ['y'] : ['x', 'y']);
   const pivot = y.filter(([, c]) => !c.vzorec2).map(([i]) => i), krili = y.filter(([, c]) => c.vzorec2).map(([i]) => i);
   assert.equal(pivot.length, 1);
   assert.equal(krili.length, 2);

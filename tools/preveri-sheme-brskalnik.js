@@ -139,9 +139,11 @@ const meri = (exIzraz, dIzraz, zaIzraz, barve) => `(() => {
   return out;
 })()`;
 // V treningu: razdelek v kartici vaje, tik nad mrežo vaje (v »Vadi v uganki« nad ploščo z mrežo) – popravek
-// po ročnem pregledu naloge 4a (docs/trening-ucenje-nacrt.md); prej takoj za »Razlaga«.
+// po ročnem pregledu naloge 4a (docs/trening-ucenje-nacrt.md); pri vaji po shemi je vmes vrstica s preslikavo
+// (popravek 3); prej takoj za »Razlaga«.
 const MERI = meri(`document.querySelector('#exerciseArea .exercise')`, `ex.querySelector('.shema-razdelek')`,
-  `(() => { const n = d.nextElementSibling; return !!n && ['vaja-presek', 'layout-row', 'layout-col', 'layout-block', 'xw-grid', 'g9', 'vaja-uganka'].some(r => n.classList.contains(r)); })()`, BARVE_TRENING);
+  `(() => { let n = d.nextElementSibling; if (n && n.classList.contains('po-shemi')) n = n.nextElementSibling;
+    return !!n && ['vaja-presek', 'layout-row', 'layout-col', 'layout-block', 'xw-grid', 'g9', 'vaja-uganka'].some(r => n.classList.contains(r)); })()`, BARVE_TRENING);
 // Ob vaji (popravek po ročnem pregledu naloge 4a): vse besedilo sheme nad risbo, od risbe do mreže samo
 // kratek razmik (pri 9 vmes zaprt razdelek »Druga oblika«), pri 9 odprta ena risba.
 const NAD = `(() => { const d = document.querySelector('#exerciseArea .shema-razdelek'), f = d.querySelector('figure.shema');
