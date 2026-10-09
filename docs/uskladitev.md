@@ -1279,19 +1279,20 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 | 3 | po fazi 6 | **Faza 7 – ostanek skupne kode** | 6.5, 6.6, 6.7, 6.10, ostanek 1.1 in 6.8 (vrstica 7 zgoraj); razdelitev testov na hitre in počasne je **narejena 2026-10-05** (`tests/pocasni/`, pravilo v `CLAUDE.md`); **faza 7 je zaključena 2026-10-07** (`docs/faza7-nacrt.md`; ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »Faza 7«; 6.10 izpuščena); **naslednja je XY-veriga** (vrstica 4) |
 | 4 | nove tehnike | **XY-veriga** (ekspertna raven, tehnika 13) | nova tehnika na koncu `ALL_TECHNIQUES`, v `GEN_EKSPERTNE`, `TECHNIQUE_GROUPS`, trening (vaja, kartica, značka EKSPERTNA); stopnja Ekstrem (odločitev 2026-09-24, razdelek 7) se vrne v seznam stopenj v Pomoči (`stopnjeZaPomoc()` v `shared/pomoc.js` jo pokaže sama, ko je `GEN_EKSPERTNE` neprazen); banka vaj znova (`tools/ustvari-banko-vaj.js`); **dodati primer** (vgrajeni primer stopnje Ekstrem – izbor `tools/izberi-primere.js` razširi na ekspertno raven); **naloga 4 je zaključena 2026-10-08** (`docs/xy-veriga-nacrt.md`; sedem korakov `970f5d1`, `d6c64db`, `38d65a5`, `fdcef03`/`a25e5c0`, `4f4652d`, `e058ac7`, `e4ff9fc` – generator ponudi tudi Ekstrem; ročni pregled potrjen istega dne, `docs/rocni-test.md`, razdelek »XY-veriga«; popravek po pregledu: gumbi stopenj v »Nova uganka« na računalniku v eni vrstici); **naslednja je naloga 4a** (Trening – učenje); o nalogi 5 (BUG+1 – mesto v vrstnem redu, O13 v `docs/xy-veriga-nacrt.md`, razdelek 12: če jo naredimo, velja A in XY-veriga postane 14) Darko odloči po nalogi 4a – **odločeno 2026-10-09: naloga 5 gre v »Kasneje«, XY-veriga ostane 13** |
 | 4a | trening | **Trening – učenje** (dodano 2026-10-08, pred nalogo 5) | del A: vaji 1 in 2 »Spoznaj« pri vsaki tehniki s shemo (1–13) po shemi – vaja 1 enako razporejena kot shema (iste celice, črke zamenjane s števkami), vaja 2 po shemi, obrnjeni čez diagonalo (pri 9 po drugi risbi, Zmaju; dopolnitev 2026-10-08), motor na obeh najde natanko korak sheme; vaje 3–9 ostanejo; del B: »Namig (drži)« in »Rešitev (drži)« v »Spoznaj« postaneta stikali (klik pokaže, klik skrije); obe postavki iz »Kasneje« (zapisani ob ročnem pregledu XY-verige); načrt `docs/trening-ucenje-nacrt.md` (**potrjen 2026-10-08**, `b630fe9`; O18 – pri 11 vaja 2 zrcaljena levo-desno; **korak 1 – del B narejen**; **korak 2 – osnova ter 7 in 8 narejen**; **korak 3 – 3–6 narejen**; **korak 4 – 9–13 narejen**; **korak 5 – 1 in 2 narejen** 2026-10-09, s popravkom namigov pri 10–12 in razdelitvijo testa `trening-po-shemi` na hitri in počasni del; ročni pregled v `docs/rocni-test.md`, razdelek »Trening – učenje«: točke 1, 3, 4, 5 potrjene 2026-10-09, pri točki 2 dva popravka – besedilo sheme nad risbo, shema tik nad mrežo vaje, preslikava »Vaja pod shemo – …«; pri 9 ob vaji odprta samo risba vaje, druga oblika na zahtevo – narejena 2026-10-09; drugi pregled: točka 7 potrjena, popravki 3–6 – preslikava pod risbo, tik nad mrežo (»Vaja po shemi zgoraj – …«), vrstni red števk v celicah vzorca kot vrstni red črk, črke najprej x, y, z (W-krilo x, y), okvir območja 2 px na mrežni črti v močnejši barvi – narejeni 2026-10-09; pri 13 vedno z < x < y < a < b; ročni pregled točk 1–11 potrjen 9. 10. 2026) – **naloga 4a je zaključena 2026-10-09**; **naslednja je naloga 4b** |
-| 4b | trening | **Spoznaj: druga faza – izbris** (dodano 2026-10-09 ob ročnem pregledu naloge 4a; **naslednja naloga** – 4a je zaključena 2026-10-09) | v »Spoznaj« po pravilni izbiri vzorca uporabnik označi še kandidate, ki se zaradi vzorca izbrišejo; velja za tehnike 1–13; načrt pred začetkom |
+| 4b | trening | **Spoznaj: druga faza – izbris** (dodano 2026-10-09 ob ročnem pregledu naloge 4a; **naslednja naloga** – 4a je zaključena 2026-10-09) | v »Spoznaj« po pravilni izbiri vzorca uporabnik označi še kandidate, ki se zaradi vzorca izbrišejo; velja za tehnike 1–13; načrt `docs/izbris-nacrt.md` (2026-10-09, **čaka potrditev** – odločitve O1–O13, predlog: vnos s celico in števko kot v »Vadi v uganki«, oznake z vrnitvijo vseh ob napačnem odgovoru, pri 4 in 6 izbris namesto izbire števk, E1 in E2 brez 2. faze, rešena vaja = obe fazi) |
 | 4c | trening, vse | **Navigacija po straneh** (dodano 2026-10-09; za nalogo 4b) | kazalo in gumb »Na vrh« v oknu Pomoč (vse tri aplikacije); kratko kazalo tehnik in gumb »Na vrh« v meniju treninga; »Nazaj na izbiro« tudi na dnu vaje (»Spoznaj« in »Vadi v uganki«); navigacija med aplikacijami (4.3, prestavljeno iz naloge 9); načrt pred začetkom |
-| 5 | nove tehnike | ~~**BUG+1**~~ – **premaknjeno v »Kasneje«** 2026-10-09 (z XY-verigo ni potrebna; XY-veriga ostane tehnika 13) | |
+| 5 | nove tehnike | ~~**BUG+1**~~ – **premaknjeno v »Kasneje«** 2026-10-09 (z XY-verigo ni potrebna; XY-veriga ostane tehnika 13); **se ne dela** (odločitev 2026-10-09 – uganke z BUG+1 se rešijo z drugimi tehnikami) | |
 | 6 | videz | **Podlage, legenda, Escape** | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; postavka »tvoje oznake« v legendi »Vadi v uganki«; Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«) |
 | 7 | igra | **Označevanje celic** | zaznamki celic v igri (v treningu že so – »Označi izbrane (O)«, `shared/plosca.js`); **želja potrjena 2026-10-09** – »Označi izbrane (O)« kot v treningu |
 | 8 | igra | **Brez kandidatov** | ročni zapiski, senčenje, opozorilo pri uganki s tehniko 3 ali višjo (vse tri prej v »Kasneje«) |
-| 9 | povezave | **Nadaljevanje v igri in skupni vnos** | nadaljevanje v igri iz treninga, skupna vnosna mreža (6.4 – prej v fazi 7); navigacija med aplikacijami (4.3) je 2026-10-09 prestavljena v nalogo 4c |
+| 9 | povezave | ~~**Nadaljevanje v igri in skupni vnos**~~ – **premaknjeno v »Samo če bo potreba«** 2026-10-09 (Darko: ni nujna) | nadaljevanje v igri iz treninga, skupna vnosna mreža (6.4 – prej v fazi 7); navigacija med aplikacijami (4.3) je 2026-10-09 prestavljena v nalogo 4c |
 | 10 | zbirka | **Filtri in katalog** | filtri v seznamu zbirke, katalog ugank s 17 danimi števkami |
-| 11 | na koncu | **Preklop jezika SI/EN** | |
+| 11 | na koncu | **Preklop jezika SI/EN** | zasnova (2026-10-09): besedila ločena od kode, ena datoteka na jezik – tako da se lahko pozneje doda še kak jezik brez spremembe kode |
 
 **Samo če bo potreba** (ni v vrstnem redu – glej »Kasneje«): gumb »Izvedi izbris«, gumb »drži«
 na dnu strani, reševalec v dveh stolpcih, oblika vzorca po označenih celicah, E1 in E2: »Spoznaj« in
-»Vadi v uganki« se skoraj ne razlikujeta (zaenkrat ostane). Vrstni red preverjen 2026-10-05.
+»Vadi v uganki« se skoraj ne razlikujeta (zaenkrat ostane), naloga 9 – nadaljevanje v igri iz treninga in
+skupna vnosna mreža (2026-10-09). Vrstni red preverjen 2026-10-05.
 
 **Vpliv odločitev 2026-09-23 na vrstni red:** zaporedje faz ostane. Spremembe:
 
@@ -1311,14 +1312,16 @@ Ideje in manjše težave, ki niso v nobeni fazi (zapisano ob fazi 5, 2026-10-03;
 za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postavk je uvrščena v
 »Vrstni red po fazi 6« (pri postavki je številka naloge); postavke »samo če bo potreba« so na koncu.
 
-- **Nastavitve** (zapisano 2026-10-09): skupna stran za vse tri aplikacije (npr. jezik, velikost pisave,
-  kontrast, privzete kljukice). Pride z nalogo 11 (SI/EN), ko bo možnosti več.
+- **Nastavitve** (zapisano 2026-10-09): skupna stran za vse tri aplikacije. **Vsebina se določi kasneje**
+  (2026-10-09; zamisli: jezik, velikost pisave, kontrast, privzete kljukice). Pride z nalogo 11 (SI/EN), ko bo
+  možnosti več.
 - **»Pokaži število kandidatov« prekrije kandidata 3** (zapisano 2026-10-09 ob ročnem pregledu naloge 4a): v »Spoznaj«
-  gumb izpiše število kandidatov desno zgoraj v celici, na mestu kandidata 3, ki ga prekrije. Premisli tudi, ali je
-  gumb pri 4 · Skriti par in 6 · Skrita trojica sploh potreben (tam se išče po števkah, ne po številu kandidatov v celici).
-- **Naloga 5 – BUG+1** (premaknjeno 2026-10-09 iz vrstnega reda): z XY-verigo ni potrebna; XY-veriga ostane tehnika 13.
-  Če jo kdaj naredimo: nova tehnika (raven in mesto v vrstnem redu določi načrt; O13 v `docs/xy-veriga-nacrt.md`,
-  razdelek 12), vgrajeni primer s to tehniko (`tools/izberi-primere.js`).
+  gumb izpiše število kandidatov desno zgoraj v celici, na mestu kandidata 3, ki ga prekrije. **Najprej preveriti, ali je
+  gumb sploh potreben** (2026-10-09) – šele nato popravek prekrivanja; pri 4 · Skriti par in 6 · Skrita trojica se išče
+  po števkah, ne po številu kandidatov v celici.
+- **Naloga 5 – BUG+1** (premaknjeno 2026-10-09 iz vrstnega reda): **se ne dela** (odločitev 2026-10-09) – uganke, kjer
+  bi pomagal BUG+1, se rešijo z drugimi tehnikami; XY-veriga ostane tehnika 13. Ob morebitni drugačni odločitvi:
+  O13 v `docs/xy-veriga-nacrt.md`, razdelek 12.
 
 - **Navigacija med aplikacijami (4.3)** (→ naloga 4c, prej 9 – prestavljeno 2026-10-09) – povezave »Igra · Reševalec · Trening« v skupni
   glavi; nova funkcija.
@@ -1391,6 +1394,9 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
 - **E1 in E2: »Spoznaj« in »Vadi v uganki« se skoraj ne razlikujeta** (zaenkrat ostane; zapisano
   2026-10-05) – obe sta stanje prave uganke brez kandidatov z vpisom števke; združitev ali
   razločitev načinov, če se pokaže potreba.
+- **Naloga 9 – nadaljevanje v igri iz treninga in skupna vnosna mreža** (premaknjeno iz vrstnega reda
+  2026-10-09; Darko: ni nujna) – nadaljevanje uganke iz »Vadi v uganki« v igri, ena vnosna mreža za
+  reševalec in okno »Nova uganka« (6.4).
 
 ## Opombe k delom
 
