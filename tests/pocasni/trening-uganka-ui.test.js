@@ -238,7 +238,9 @@ test('"Spoznaj" iz istega konteksta ostane sestavljena vaja', () => {
   run('zacniKrog("naked-pair", "spoznaj")');
   assert.equal(run('nacin'), 'spoznaj');
   assert.equal(run('vadi'), null);
-  assert.match(dom.el('exerciseArea').children[0].innerHTML, /<p class="ex-label">3 · Očitni par \(Naked Pair\) · Vaja 1 \/ 9<\/p>/);
+  // Vaja 7 kroga: vaji 1 in 2 sta od dela A načrta docs/trening-ucenje-nacrt.md po shemi.
+  run('exNum = 6; renderExercise()');
+  assert.match(dom.el('exerciseArea').children[0].innerHTML, /<p class="ex-label">3 · Očitni par \(Naked Pair\) · Vaja 7 \/ 9<\/p>/);
   assert.equal(poRazredu(dom, 'vaja-uganka').length, 0);
 });
 

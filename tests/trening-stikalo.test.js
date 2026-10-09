@@ -28,7 +28,8 @@ const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
 
 // Vaja »Spoznaj« tehnike; pogoj (koda v kontekstu, ex => bool) - generator ponavlja, dokler ga vaja
-// ne izpolni (zadnja = vaja na zaslonu).
+// ne izpolni (zadnja = vaja na zaslonu). Pri 3-6 vaja 7 kroga (n: 6): vaji 1 in 2 sta od dela A načrta
+// docs/trening-ucenje-nacrt.md po shemi (mimo MODES[].gen), vaja 7 je iste vrste kot vaja 1 (n % 3 = 0).
 function zacni(tehnika, { n = 0, seme = 7, pogoj = 'ex => true' } = {}) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
@@ -60,7 +61,7 @@ const sRazredom = (dom, razred) => vse(dom).filter(e => e.classList.contains(raz
 const kljuc = a => [...a].sort((x, y) => x - y).join(',');
 
 test('3 · Očitni par: klik pokaže, drugi klik skrije; napis in aria-pressed; kvečjemu eden odprt', () => {
-  const { dom, run } = zacni('naked-pair');
+  const { dom, run } = zacni('naked-pair', { n: 6 });
   const vzorec = run('JSON.stringify(zadnja.targetSlots)');
   assert.deepEqual(gumbaPomoci(dom), ZAPRTO);
   assert.equal(odprtiOkvirji(dom).length, 0);
@@ -91,7 +92,7 @@ test('3 · Očitni par: klik pokaže, drugi klik skrije; napis in aria-pressed; 
 });
 
 test('pomoč se šteje ob prvem odprtju, nato nič več; že šteti poskus se odšteje', () => {
-  const { dom, run } = zacni('naked-pair');
+  const { dom, run } = zacni('naked-pair', { n: 6 });
   run(`{ const s = zadnja.slots, p = s.map((x, i) => i).filter(i => s[i].c); let par = null;
     for (const a of p) for (const b of p) if (a < b && !par && new Set([...s[a].c, ...s[b].c]).size > 2) par = [a, b];
     selected = par; }`);
@@ -113,7 +114,7 @@ test('5 · Očitna trojica: izbira ob odprti Rešitvi - drug veljaven vzorec zam
     for (let a = 0; a < p.length; a++) for (let b = a + 1; b < p.length; b++) for (let c = b + 1; c < p.length; c++)
       if (new Set([p[a], p[b], p[c]].flatMap(i => ex.slots[i].c)).size === 3 && [p[a], p[b], p[c]].join(',') !== t) return [p[a], p[b], p[c]];
     return null; }`;
-  const { dom, run } = zacni('naked-triple', { pogoj: `ex => !!(${DRUGA})(ex)` });
+  const { dom, run } = zacni('naked-triple', { n: 6, pogoj: `ex => !!(${DRUGA})(ex)` });
   const druga = JSON.parse(run(`JSON.stringify((${DRUGA})(zadnja))`));
   assert.ok(druga, 'vaja z drugo trojico');
   gumb(dom, 'Rešitev').sprozi('click');
@@ -161,7 +162,7 @@ for (const tehnika of ['pointing', 'box-line']) {
 }
 
 test('3 · Očitni par: napačen odgovor Rešitev pusti odprto, pravilen jo zapre', () => {
-  const { dom, run } = zacni('naked-pair');
+  const { dom, run } = zacni('naked-pair', { n: 6 });
   gumb(dom, 'Rešitev').sprozi('click');
   run(`{ const s = zadnja.slots, p = s.map((x, i) => i).filter(i => s[i].c); let par = null;
     for (const a of p) for (const b of p) if (a < b && !par && new Set([...s[a].c, ...s[b].c]).size > 2) par = [a, b];
@@ -186,7 +187,7 @@ test('3 · Očitni par: napačen odgovor Rešitev pusti odprto, pravilen jo zapr
 });
 
 test('4 · Skriti par: pravilna 1. faza Rešitev pusti, pravilna 2. faza jo zapre', () => {
-  const { dom, run } = zacni('hidden-pair');
+  const { dom, run } = zacni('hidden-pair', { n: 6 });
   gumb(dom, 'Rešitev').sprozi('click');
   run('selected = [...zadnja.targetSlots]');
   gumb(dom, 'Preveri').sprozi('click');
@@ -215,13 +216,13 @@ test('13 · XY-veriga: pravilen odgovor ob odprti Rešitvi zapre okvir, zaporedn
 });
 
 test('nova vaja, »Nazaj na izbiro« in nov krog: Namig in Rešitev zaprta', () => {
-  const { dom, run } = zacni('naked-pair');
+  const { dom, run } = zacni('naked-pair', { n: 6 });
   gumb(dom, 'Rešitev').sprozi('click');
   run('selected = [...zadnja.targetSlots]');
   gumb(dom, 'Preveri').sprozi('click');
   gumb(dom, 'Namig').sprozi('click');
   gumb(dom, 'Naslednja vaja →').sprozi('click');
-  assert.equal(run('exNum'), 1);
+  assert.equal(run('exNum'), 7);
   assert.deepEqual(gumbaPomoci(dom), ZAPRTO);
   assert.equal(odprtiOkvirji(dom).length, 0);
   gumb(dom, 'Rešitev').sprozi('click');

@@ -27,7 +27,8 @@ const DRUGI_OCITNI = `ex => { const p = ex.slots.map((s, i) => s.c ? i : -1).fil
   const k = a => [...a].sort((x, y) => x - y).join(); return out.find(c => k(c) !== k(ex.targetSlots)); }`;
 
 // Vaja tehnike (zadnja = vaja, ki jo je dal generator); z drugim = true generator ponavlja, dokler
-// vaja nima drugega veljavnega očitnega vzorca (zadnja.drugi).
+// vaja nima drugega veljavnega očitnega vzorca (zadnja.drugi). Vaja 7 kroga (exNum = 6): vaji 1 in 2
+// sta od dela A načrta docs/trening-ucenje-nacrt.md po shemi (mimo MODES[].gen), vaja 7 je iste vrste.
 function zacni(tehnika, seme, { drugim = false } = {}) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
@@ -35,7 +36,7 @@ function zacni(tehnika, seme, { drugim = false } = {}) {
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen, drugi = ${drugim ? DRUGI_OCITNI : '() => undefined'};
     MODES[${JSON.stringify(tehnika)}].gen = n => { for (let i = 0; ; i++) { const ex = g(n); ex.drugi = drugi(ex);
       if (!${drugim} || ex.drugi || i > 2000) return (zadnja = ex); } }; }`);
-  run(`mode = ${JSON.stringify(tehnika)}; exNum = 0; renderExercise();`);
+  run(`mode = ${JSON.stringify(tehnika)}; exNum = 6; renderExercise();`);
   return { dom, run };
 }
 function vsi(el, out = []) {

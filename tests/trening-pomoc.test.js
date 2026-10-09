@@ -106,7 +106,8 @@ function napacnoPresek(dom, run) {
 const PRIMERI = [
   { tehnika: 'pointing', n: 0, pravilno: pravilnoPresek, napacno: napacnoPresek },
   { tehnika: 'box-line', n: 0, pravilno: pravilnoPresek, napacno: napacnoPresek },
-  { tehnika: 'naked-pair', n: 0, pravilno: pravilnoPar, napacno: napacnoPar },
+  // Očitni par: vaja 7 (n = 6) - vaji 1 in 2 sta po shemi (docs/trening-ucenje-nacrt.md, del A), mimo MODES[].gen.
+  { tehnika: 'naked-pair', n: 6, pravilno: pravilnoPar, napacno: napacnoPar },
   { tehnika: 'naked-single', n: 0, pravilno: pravilnoEnojcek, napacno: napacnoEnojcek },
   { tehnika: 'naked-single', n: 3, pravilno: pravilnoEnojcek, napacno: napacnoEnojcek },
   { tehnika: 'hidden-single', n: 0, pravilno: pravilnoEnojcek, napacno: napacnoEnojcek },

@@ -601,3 +601,47 @@ Potrjeno 2026-10-08: O1–O16 po predlogu (O8 in O16 že prej Darkovi), O17 po p
   drži.
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 671 zelenih v 2 min 40 s (hitrih 554 v 42 s).
 
+
+### Korak 3 – del A: 3–6 (2026-10-09)
+
+- **Koda:**
+  - `trening/generators.js`: `genPodmnozicaPoShemi(mode, obrnjeno)` – do `PODMNOZICA_POSKUSOV` (2000)
+    poskusov `poskusPodmnozicePoShemi()`. Vaja 1 je vrstica 1, vaja 2 stolpec 1 (obrnjena shema).
+    - Črke so naključne različne števke, prazna celica sheme je dana števka (ni števka črke).
+    - »…« so polnila: sama 2–3, ob črkah 1–2. Polnilo, ki je v manj kot dveh celicah, se doda v
+      naključne celice z »…« – brez tega je skoraj vsak poskus odpadel zaradi skritega enojčka (pri
+      očitnem paru je uspelo 1,5 % poskusov).
+    - Preverba (1.5): na deski kot v `tests/sheme.test.js` (enota na mestu sheme, druge celice
+      prazne z vsemi kandidati) funkcija tehnike najde natanko korak sheme; enojčka in lažje
+      podmnožice (`PODMNOZICE_LAZJE`) nič; pri 3 in 5 je vzorec en sam (kot ga sprejme »Preveri«).
+      Sporočilo iz `subsetSolutionMessage()`.
+    - Vaja ima polja kot vaja iz generatorja, `poShemi` še `vrstica: true`.
+  - `trening/trening.js`: pri vaji 2 vrstica s preslikavo »Vaja po obrnjeni shemi zgoraj – vrstica sheme je
+    stolpec, črke so števke: x = 5, y = 8, z = 1.«
+- **Delež uspešnih poskusov** (4000 poskusov vaje 1 / vaje 2): 3 · Očitni par 99,6 / 99,6 %, 4 · Skriti
+  par 81,9 / 80,0 %, 5 · Očitna trojica 69,5 / 70,2 %, 6 · Skrita trojica 48,7 / 47,1 %. Poskus traja
+  0,2–2,6 ms, vaja povprečno 0,2–5,6 ms, najdlje 41 ms (skrita trojica). Delež je višji od 22–41 % v 1.4,
+  ker so polnila razporejena tako, da je vsaka števka v vsaj dveh celicah.
+- **Test:** `tests/trening-po-shemi.test.js` – 28 novih testov (200 vaj 1 in 200 vaj 2 vsake tehnike;
+  vaje se sestavijo enkrat za oba testa). Na stari kodi jih je 24 padlo, 4 varovala (vaja 3 enaka
+  `M.gen(2)`) so držala; na novi 47/47 v pribl. 10 s. Dve pričakovanji novega testa sta bili napačni in
+  sta popravljeni: pri dveh črkah je mogočih samo 72 preslikav (meja 100 je bila previsoka), sporočilo
+  1. faze pri trojici je »Celice so pravilne!«.
+- **Prestavljeni testi** (Darkova potrditev 2026-10-09; zeleni na stari kodi pred prestavitvijo, 87/87 in
+  29/29): `trening-stikalo`, `trening-pomoc`, `trening-precrtanje` in `pocasni/trening-uganka-ui`. Padali
+  so samo zato, ker so pri 3–6 delali na vaji 1. Prvi trije si zapomnijo vajo prek
+  `MODES[].gen`, vaja po shemi gre mimo njega. `trening-uganka-ui` pa je preverjal oznako
+  »Vaja 1 / 9« brez »· po shemi«. Zdaj vsi delajo na vaji 7 (n = 6); `trening-precrtanje` za vse tehnike,
+  drugi samo pri 3–6. Za koraka 4 in 5 velja isto: tak test se prestavi po istem postopku in se našteje.
+- **Brskalnik:** `tools/preveri-po-shemi-brskalnik.js` za 3–6 pri 375 in 1280 px – 160 ✓ (30 s).
+  Preveri:
+  - shema, preslikava in enota v kartici;
+  - vaja 1 vrstica, vaja 2 stolpec navpično;
+  - celica za celico kot shema;
+  - pravi kliki → »Pravilno!«, pri 4 in 6 z 2. fazo.
+
+  Primerjave: `presek` 79 ✓, `enojcki` 330 ✓, `vadi` 364 ✓, `stikalo` 25 ✓, `sheme` 939 ✓,
+  `videz` 339 ✓. `izbira` je v prvem zagonu (hkrati z drugimi scenariji) padla pri dveh primerjavah
+  z izhodiščem: v izhodiščnem brskalniku so bili vsi elementi brez slogov (`display: block`, brez podlag).
+  Ponovni zagon sam: 708 ✓.
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 699 zelenih v 2 min 26 s (hitrih 582 v 42 s).

@@ -524,7 +524,7 @@ function pripisPoShemi(ps){return ps.obrnjeno?' · po shemi, obrnjeno':' · po s
 function vrsticaPoShemi(ps){
   const crke=ps.crke.length===1?`črka ${ps.crke[0][0]} je števka ${ps.crke[0][1]}.`
     :`črke so števke: ${ps.crke.map(([c,d])=>`${c} = ${d}`).join(', ')}.`;
-  return ps.obrnjeno?`Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, ${crke}`:`Vaja po shemi zgoraj – iste celice, ${crke}`;
+  return ps.obrnjeno?`Vaja po obrnjeni shemi zgoraj – ${ps.vrstica?'vrstica sheme je stolpec':'vrstice sheme so stolpci'}, ${crke}`:`Vaja po shemi zgoraj – iste celice, ${crke}`;
 }
 
 function renderExercise(){

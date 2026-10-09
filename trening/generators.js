@@ -549,7 +549,8 @@ function genSwordfish(n){
    korak sheme - to se preveri ob vsaki vaji. genPoShemi() vrne null pri vajah 3-9, pri tehniki
    brez sheme in pri tehniki, za katero vaja po shemi še ni narejena - takrat je vaja M.gen(n).
    Vaja ima ista polja kot vaja iste tehnike iz generatorja in še poShemi = { obrnjeno, crke }
-   (crke: [[črka, števka]] - preslikava za vrstico nad mrežo). Korak 2: 7 · X-krilo, 8 · Mečarica. */
+   (crke: [[črka, števka]] - preslikava za vrstico nad mrežo; pri 3-6 še vrstica: true - shema je ena
+   vrstica). Korak 2: 7 · X-krilo, 8 · Mečarica; korak 3: 3-6. */
 // Obrat čez glavno diagonalo: VrSc -> VcSr (celica 0-80).
 function obrniCelico(i){return (i%9)*9+Math.floor(i/9);}
 
@@ -597,11 +598,98 @@ function genRibaPoShemi(mode,obrnjeno){
   return ex;
 }
 
+// 3-6: ena vrstica iz sheme - vaja 1 vrstica 1, vaja 2 stolpec 1 (obrnjena shema). Črke so
+// naključne različne števke, prazna celica sheme je dana števka (ni števka črke), »…« so polnila
+// - druge števke (sama »…« 2-3, ob črkah 1-2; polnilo, ki je v manj kot dveh celicah, se doda v
+// naključne celice z »…«, sicer bi bil skriti enojček). Poskus se preveri z motorjem (1.5 v načrtu): na
+// deski kot v tests/sheme.test.js (enota na mestu sheme, druge celice prazne z vsemi kandidati)
+// funkcija tehnike najde natanko korak sheme, enojčka in lažje podmnožice (PODMNOZICE_LAZJE) nič;
+// vsaka nevpisana števka je v vsaj dveh celicah (sicer skriti enojček), pri 3 in 5 je vzorec en sam
+// (»Preveri« sprejme vsak nabor pickN celic s pickN kandidati). Uspe 47-100 % poskusov (skrita
+// trojica najmanj), poskus traja 0,2-4 ms.
+const PODMNOZICE_FN={'naked-pair':()=>nakedPairs,'hidden-pair':()=>hiddenPairs,'naked-triple':()=>nakedTriples,'hidden-triple':()=>hiddenTriples};
+// Lažje podmnožice po vrstnem redu ALL_TECHNIQUES (3 < 4 < 5 < 6).
+const PODMNOZICE_LAZJE={'naked-pair':()=>[],'hidden-pair':()=>[nakedPairs],'naked-triple':()=>[nakedPairs,hiddenPairs],'hidden-triple':()=>[nakedPairs,hiddenPairs,nakedTriples]};
+const PODMNOZICA_POSKUSOV=2000;
+
+// En poskus: vaja ali null (poskus ne ustreza).
+function poskusPodmnozicePoShemi(mode,obrnjeno){
+  const celice=SHEME_TEHNIK[mode].celice.map(shemaCelica);
+  const crke=SHEMA_CRKE.filter(c=>celice.some(cel=>cel.zetoni.some(t=>t.z===c)));
+  const ut=obrnjeno?'col':'row',unitCells=obrnjeno?COLS[0]:ROWS[0];
+  const st=shuffle([1,2,3,4,5,6,7,8,9]);
+  const stevka=Object.fromEntries(crke.map((c,i)=>[c,st[i]]));
+  const prazne=celice.map((cel,i)=>cel.zetoni.length?-1:i).filter(i=>i>=0);
+  const dane=st.slice(crke.length,crke.length+prazne.length),polnila=st.slice(crke.length+prazne.length);
+  const slots=celice.map((cel,i)=>{
+    if(!cel.zetoni.length) return{fixed:dane[prazne.indexOf(i)]};
+    const c=cel.zetoni.filter(t=>t.z!=='…').map(t=>stevka[t.z]);
+    if(cel.zetoni.some(t=>t.z==='…')) c.push(...randSub(polnila,c.length?randInt(1,2):randInt(2,3)));
+    return{c};
+  });
+  // Vsako polnilo v vsaj dveh celicah z »…« (sicer skriti enojček): manjkajoče se doda v naključne.
+  const sDrugimi=celice.map((cel,i)=>cel.zetoni.some(t=>t.z==='…')?i:-1).filter(i=>i>=0);
+  for(const d of polnila){
+    for(const i of shuffle(sDrugimi.filter(i=>!slots[i].c.includes(d)))){
+      if(slots.filter(s=>s.c&&s.c.includes(d)).length>=2) break;
+      slots[i].c.push(d);
+    }
+  }
+  slots.forEach(s=>{if(s.c)s.c.sort((a,b)=>a-b);});
+  // Vsaka nevpisana števka v vsaj dveh celicah (črke so po shemi).
+  if(st.slice(0,crke.length).concat(polnila).some(d=>slots.filter(s=>s.c&&s.c.includes(d)).length<2)) return null;
+  // Deska kot v testu sheme: enota na mestu sheme, druge celice prazne z vsemi kandidati.
+  const board={grid:new Array(81).fill(0),cand:new Array(81).fill(0x3FE)};
+  const vzorec=[],izbris=[];
+  slots.forEach((s,i)=>{
+    const idx=unitCells[i];
+    if(s.fixed!==undefined){board.grid[idx]=s.fixed;board.cand[idx]=0;return;}
+    board.cand[idx]=s.c.reduce((m,d)=>m|(1<<d),0);
+    if(celice[i].vzorec) vzorec.push(idx);
+    for(const t of celice[i].zetoni) if(t.izbris){
+      for(const d of t.z==='…'?s.c.filter(d=>!crke.some(c=>stevka[c]===d)):[stevka[t.z]]) izbris.push(idx*10+d);
+    }
+  });
+  if(nakedSingles(board).length||hiddenSingles(board).length||PODMNOZICE_LAZJE[mode]().some(f=>f(board).length)) return null;
+  const koraki=PODMNOZICE_FN[mode]()(board);
+  if(koraki.length!==1) return null;
+  const k=koraki[0];
+  if([...k.cells].sort((a,b)=>a-b).join()!==vzorec.sort((a,b)=>a-b).join()
+    ||k.eliminate.map(([c,d])=>c*10+d).sort((a,b)=>a-b).join()!==izbris.sort((a,b)=>a-b).join()) return null;
+  const pickN=crke.length,targetSlots=celice.map((cel,i)=>cel.vzorec?i:-1).filter(i=>i>=0);
+  const targetDigits=crke.map(c=>stevka[c]).sort((a,b)=>a-b);
+  // Očitni par/trojica: drugega nabora pickN celic s pickN kandidati ni.
+  if(mode==='naked-pair'||mode==='naked-triple'){
+    const proste=slots.map((s,i)=>s.c?i:-1).filter(i=>i>=0);
+    let vzorcev=0;
+    (function nabori(od,nabor){
+      if(nabor.length===pickN){if(new Set(nabor.flatMap(i=>slots[i].c)).size===pickN)vzorcev++;return;}
+      for(let j=od;j<proste.length;j++) nabori(j+1,[...nabor,proste[j]]);
+    })(0,[]);
+    if(vzorcev!==1) return null;
+  }
+  addLabels(slots,ut,1);
+  const hidden=mode==='hidden-pair'||mode==='hidden-triple';
+  const msg=subsetSolutionMessage(slots,ut,1,targetSlots,targetDigits,PODMNOZICE_FN[mode](),hidden);
+  if(!msg) return null;
+  return{slots,targetSlots,targetDigits,unitLabel:unitLbl(ut,1),unitType:ut,mode,solutionMessage:msg,
+    poShemi:{obrnjeno,crke:crke.map(c=>[c,stevka[c]]),vrstica:true}};
+}
+
+function genPodmnozicaPoShemi(mode,obrnjeno){
+  for(let poskus=0;poskus<PODMNOZICA_POSKUSOV;poskus++){
+    const ex=poskusPodmnozicePoShemi(mode,obrnjeno);
+    if(ex) return ex;
+  }
+  return null;
+}
+
 // Vaja po shemi za vajo n kroga (0 = vaja 1, 1 = vaja 2) ali null (vaja je M.gen(n)).
 function genPoShemi(mode,n){
   if(n!==0&&n!==1) return null;
   if(typeof SHEME_TEHNIK==='undefined'||!SHEME_TEHNIK[mode]) return null;
   if(mode==='x-wing'||mode==='swordfish') return genRibaPoShemi(mode,n===1);
+  if(PODMNOZICE_FN[mode]) return genPodmnozicaPoShemi(mode,n===1);
   return null;
 }
 
