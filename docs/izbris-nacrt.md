@@ -1,7 +1,8 @@
 # Spoznaj: druga faza – izbris (naloga 4b) – načrt
 
 Načrt 2026-10-09 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4b – dodana ob ročnem pregledu
-naloge 4a). **Stanje: načrt, čaka potrditev.** Koda se pred potrditvijo ne spreminja.
+naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); korak 1 narejen
+(razdelek 9).
 
 Izhodišče: commit `705349a` (zaključek naloge 4a).
 
@@ -315,6 +316,29 @@ naprej ni.
 (1277 vrstic) dobi samo prehod v 2. fazo in klic izrisa. Logike tehnik ni (izbris pride iz motorja ali generatorja),
 zato ne sodi v `shared/`.
 
+## 3a. Potrditev (2026-10-09)
+
+**Odločitve:** O1–O13 po predlogu, s poudarki:
+
+- **O3:** možnost A – označi, nato preveri; napačen odgovor pobriše vse oznake.
+- **O5:** pri 4 in 6 izbira števk odpade.
+- **O7, O4:** napaka v 2. fazi šteje, nepopoln odgovor ne.
+- **O9:** napačna oznaka (ob »Rešitvi«) brez črte, s temno rdečim obročem.
+
+**Dodatki:**
+
+- **D1 – primerjave z izhodiščem.** Navodila vaj se spremenijo (O11), zato primerjave »Spoznaj« z izhodiščem
+  (`preveri-presek-`, `-enojcki-`, `-vadi-`, `-izbira-brskalnik.js`) ne bodo več enake do znaka. Razlika se izvzame
+  **izrecno** (`ZNANE_RAZLIKE` v `tools/primerjava-slogov.js` ali izvzetje navodila); primerjav se drugače ne
+  rahlja. V poročilu koraka se pove, kaj je izvzeto.
+- **D2 – posnetka v koraku 2.** V `docs/slike/izbris/` dva posnetka pri 375 px v dvojni ločljivosti:
+  a) 3 · Očitni par z oznakami pred »Preveri«; b) 5 · Očitna trojica, »Rešitev« z eno pravilno in eno napačno
+  oznako. Pogledata se pred korakom 3.
+- **D3 – razdelitev koraka 2.** Če korak 2 postane prevelik, se razdeli na 2a (osnova, 3 in 5) in 2b (4 in 6);
+  o tem se poroča.
+- **D4 – CLAUDE.md.** V seznam dokumentov se dodata `docs/trening-ucenje-nacrt.md` in `docs/izbris-nacrt.md`
+  (narejeno v koraku 1).
+
 ## 4. Kaj vidi uporabnik (primer: 3 · Očitni par)
 
 1. Izbere celici para in pritisne »Preveri«. → »Vzorec je pravilen. Zdaj izbriši kandidate, ki zaradi njega
@@ -454,4 +478,32 @@ Ročni pregled (razdelek 7), vpis v `docs/rocni-test.md` (razdelek »Spoznaj –
 
 ## 9. Izvedba
 
-(Še ni začeta.)
+### Korak 1 – priprava testov (2026-10-09)
+
+Aplikacija ni spremenjena (`app/`, `igra/`, `trening/`, `shared/` brez sprememb, oznaka različice ostane).
+
+- **`tests/odgovor-spoznaj.js`** – `spremljajVajo(run)` (pred izrisom vaje: `vajaNaZaslonu` je vaja iz `genPoShemi()` ali
+  `MODES[].gen` – vaji 1 in 2 po shemi nimata `zadnja` iz testov), `izberiVzorec(run)` (vzorec vaje po tehniki – kot
+  so ga testi doslej izbirali vsak zase), `dokoncajOdgovor(dom, run)` (izbira je že nastavljena – s kliki ali s
+  stanjem: »Preveri« in nadaljnje faze), `dokoncajDrugoFazo(dom, run)`, `odgovoriPravilno(dom, run)`. Faze po 1.
+  prepozna iz strani (zdaj viden razdelek `.phase2` pri 4 in 6 → števke vzorca), ne iz tehnike.
+  - **Odstopanje od načrta:** podpis `odgovoriPravilno(dom, run)` brez argumenta `tehnika` (tehniko vzame iz `mode`,
+    vajo iz `vajaNaZaslonu`); poleg nje še `dokoncajOdgovor()` in `dokoncajDrugoFazo()`, ker veliko testov izbere
+    vzorec s kliki ali izbere drug veljaven vzorec (3, 5, 7, 8) – ti po izbiri pokličejo `dokoncajOdgovor()`.
+- **Testi, ki so prešli nanjo** (pričakovanja nespremenjena): `trening-legenda` (`odgovori()` in 1, 2),
+  `trening-precrtanje` (9–12, 3, 5, drug vzorec trojice, 2. faza pri 4 in 6), `trening-stikalo` (1, 2, 3, 13, nova
+  vaja; pri 4 2. faza), `trening-pomoc` (`pravilnoPar()`, `pravilnoPresek()`), `trening-resitev` (drug vzorec pri 5,
+  7, 8), `trening-po-shemi` (pomožna `trening-po-shemi.js`: 7 in 8, 3–6, 9–13, 1 in 2), `veriga-prikaz` (»Spoznaj«
+  13), `pocasni/trening-presek` (pravilen odgovor pri 1 in 2). `pocasni/trening-uganka-ui` v »Spoznaj« 1–13 ne
+  odgovori (samo izbira uganke iz banke), zato ostane, kot je.
+- Testi, ki namenoma preverjajo stanje **med** fazama 4 in 6 (»po 1. fazi še ni izbrisa«, »pravilna 1. faza Rešitev
+  pusti«), naredijo 1. fazo sami in nato pokličejo `dokoncajDrugoFazo()`.
+- **`tools/odgovor-spoznaj-brskalnik.js`** – `spremljajVajo(b)` (`window.vajaNaZaslonu`; `genPoShemi()` ovije samo, če
+  obstaja – teče tudi v izhodiščih) in `dokoncajOdgovor(b)` (pravi klik »Preveri«, pri vidnem `.phase2` pravi kliki
+  števk vzorca in »Preveri dve/tri števke«, po vsakem kliku `odmakniMisko()`; vrne števke 2. faze ali `null`).
+  Scenariji, ki so prešli nanjo: `preveri-po-shemi-` (vse štiri skupine), `-izbira-` (pravilen odgovor – v
+  izhodišču in novi kodi – in drug vzorec mečarice), `-vadi-` (»Spoznaj« 3, 7, 11), `-presek-` (1, 2) in
+  `-vklop-brskalnik.js` (»Spoznaj« 13). `preveri-videz-brskalnik.js` v »Spoznaj« ne odgovarja.
+  - **Odstopanje:** `preveri-izbira-brskalnik.js` je števke 2. faze pri 4 in 6 bral iz besedila »Rešitve«, zdaj jih
+    da vaja (`targetDigits`) – v izhodišču in novi kodi enako.
+

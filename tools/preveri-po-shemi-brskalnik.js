@@ -44,6 +44,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { zazeni } = require('./brskalnik.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj-brskalnik.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -112,7 +113,7 @@ async function vaja(b, kljuc, n, sirina) {
   preveri(`${ime}: brez vodoravnega preliva`, !s.preliv);
   await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`));
   for (const c of sh.vzorec) await b.klikni(`#exerciseArea .xw-cell[data-idx="${c}"]`);
-  await klikniGumb(b, 'Preveri');
+  await dokoncajOdgovor(b);
   const fb = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .fb'); return { cls: f.className, besedilo: f.textContent }; })()`);
   preveri(`${ime}: pravi kliki na celice vzorca → »Pravilno!«`, /\bok\b/.test(fb.cls) && fb.besedilo.startsWith('Pravilno!'), fb);
 }
@@ -168,11 +169,7 @@ async function vajaPodmnozice(b, kljuc, n, sirina) {
   preveri(`${ime}: brez vodoravnega preliva`, !s.preliv);
   await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`));
   for (const i of sh.map((x, i) => x.vzorec ? i : -1).filter(i => i >= 0)) await b.klikni(`#exerciseArea .gc[data-si="${i}"]`);
-  await klikniGumb(b, 'Preveri');
-  if (skrita) {
-    for (const d of stevkeCrk) await b.klikni(`#exerciseArea .digit-btns button[data-d="${d}"]`);
-    await klikniGumb(b, stevkeCrk.length === 2 ? 'Preveri dve števki' : 'Preveri tri števke');
-  }
+  await dokoncajOdgovor(b);
   const fb = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .fb'); return { cls: f.className, besedilo: f.textContent }; })()`);
   preveri(`${ime}: pravi kliki na celice vzorca${skrita ? ' in števke' : ''} → »Pravilno!«`, /\bok\b/.test(fb.cls) && fb.besedilo.startsWith('Pravilno!'), fb);
 }
@@ -237,7 +234,7 @@ async function vajaMreze(b, kljuc, n, sirina) {
   await b.izvedi(`document.querySelector('#exerciseArea .g9').scrollIntoView({ block: 'center' }); true`);
   await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`), { vsaStran: false });
   for (const c of sh.vzorec) await b.klikni(`#exerciseArea .g9 .gc[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"]`);
-  await klikniGumb(b, 'Preveri');
+  await dokoncajOdgovor(b);
   const fb = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .fb'); return { cls: f.className, besedilo: f.textContent }; })()`);
   preveri(`${ime}: pravi kliki na celice vzorca → »Pravilno!«`, fb.cls.split(' ').includes('ok') && fb.besedilo.startsWith('Pravilno!'), fb);
   if (sh.veriga) {
@@ -295,7 +292,7 @@ async function vajaPreseka(b, kljuc, n, sirina) {
   preveri(`${ime}: brez vodoravnega preliva`, !s.preliv);
   await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`));
   for (const c of sh.vzorec) await b.klikni(`#exerciseArea .vaja-presek .celica[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"]`);
-  await klikniGumb(b, 'Preveri');
+  await dokoncajOdgovor(b);
   const fb = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .fb'); return { cls: f.className, besedilo: f.textContent,
     vzorec: [...document.querySelectorAll('#exerciseArea .vaja-presek .celica.k-vzorec')].map(c => +c.dataset.r * 9 + +c.dataset.c).sort((p, q) => p - q) }; })()`);
   preveri(`${ime}: pravi kliki na celice vzorca → »Pravilno!«, vzorec označen`, fb.cls.split(' ').includes('ok') && fb.besedilo.startsWith('Pravilno!')
@@ -311,6 +308,7 @@ async function main() {
         console.log(`${kljuc}, ${sirina} px`);
         await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
         await b.izvedi(SEME(20261009));
+        await spremljajVajo(b);
         await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
         await b.cakaj("!!document.querySelector('#exerciseArea .vaja-presek')", 10000);
         await pocakaj(b);
@@ -323,6 +321,7 @@ async function main() {
         console.log(`${kljuc}, ${sirina} px`);
         await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
         await b.izvedi(SEME(20261008));
+        await spremljajVajo(b);
         await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
         await pocakaj(b);
         await vaja(b, kljuc, 0, sirina);
@@ -333,6 +332,7 @@ async function main() {
         console.log(`${kljuc}, ${sirina} px`);
         await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
         await b.izvedi(SEME(20261009));
+        await spremljajVajo(b);
         await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
         await pocakaj(b);
         await vajaPodmnozice(b, kljuc, 0, sirina);
@@ -343,6 +343,7 @@ async function main() {
         console.log(`${kljuc}, ${sirina} px`);
         await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
         await b.izvedi(SEME(20261009));
+        await spremljajVajo(b);
         await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
         await pocakaj(b);
         await vajaMreze(b, kljuc, 0, sirina);

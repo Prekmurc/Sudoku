@@ -13,6 +13,7 @@ const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
+const { spremljajVajo, odgovoriPravilno, dokoncajOdgovor, dokoncajDrugoFazo } = require('./odgovor-spoznaj.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -36,6 +37,7 @@ function zacni(tehnika, seme, { drugim = false } = {}) {
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen, drugi = ${drugim ? DRUGI_OCITNI : '() => undefined'};
     MODES[${JSON.stringify(tehnika)}].gen = n => { for (let i = 0; ; i++) { const ex = g(n); ex.drugi = drugi(ex);
       if (!${drugim} || ex.drugi || i > 2000) return (zadnja = ex); } }; }`);
+  spremljajVajo(run);
   run(`mode = ${JSON.stringify(tehnika)}; exNum = 6; renderExercise();`);
   return { dom, run };
 }
@@ -84,8 +86,7 @@ for (const tehnika of ['turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle']) 
       });
       assert.deepEqual(stevke(dom, 'peek-izbris'), [], 'po spustu brez prečrtanih');
       assert.deepEqual(celice(dom, 'peek-elim'), []);
-      run(`selected = zadnja.solutionCells.map(c => zadnja.slots.findIndex(s => s.idx === c))`);
-      gumb(dom, 'Preveri').sprozi('click');
+      odgovoriPravilno(dom, run);
       poOdgovoru(dom, izbris);
       medResitvijo(dom, () => assert.deepEqual(stevke(dom, 'peek-izbris'), izbris, '»Rešitev« po odgovoru'));
     });
@@ -105,8 +106,7 @@ for (const tehnika of ['naked-pair', 'naked-triple']) {
       });
       assert.deepEqual(stevke(dom, 'peek-izbris'), []);
       assert.deepEqual(celice(dom, 'peek-elim'), []);
-      run(`selected = [...zadnja.targetSlots]`);
-      gumb(dom, 'Preveri').sprozi('click');
+      odgovoriPravilno(dom, run);
       poOdgovoru(dom, izbris);
     });
   }
@@ -124,7 +124,7 @@ test('naked-triple: z izbranim drugim veljavnim vzorcem »Rešitev« prečrta nj
     assert.deepEqual(celice(dom, 'peek-hl'), [...d].sort((a, b) => a - b));
     assert.deepEqual(stevke(dom, 'peek-izbris'), izbris);
   });
-  gumb(dom, 'Preveri').sprozi('click');
+  dokoncajOdgovor(dom, run);
   poOdgovoru(dom, izbris);
 });
 
@@ -144,9 +144,7 @@ for (const tehnika of ['hidden-pair', 'hidden-triple']) {
       run(`selected = [...zadnja.targetSlots]`);
       gumb(dom, 'Preveri').sprozi('click');
       assert.deepEqual(stevke(dom, 'elim'), [], 'po 1. fazi še ni izbrisa');
-      const faza2 = vsi(dom.el('exerciseArea')).find(e => e.className === 'phase2');
-      for (const d of ds) vsi(faza2).find(e => e.tagName === 'BUTTON' && String(e.dataset.d) === String(d)).sprozi('click');
-      gumb(dom, ds.length === 2 ? 'Preveri dve števki' : 'Preveri tri števke').sprozi('click');
+      dokoncajDrugoFazo(dom, run);
       poOdgovoru(dom, izbris);
     });
   }

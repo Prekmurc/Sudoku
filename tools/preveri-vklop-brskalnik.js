@@ -21,6 +21,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { zazeni } = require('./brskalnik.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj-brskalnik.js');
 const { loadPuzzles } = require('../tests/load-engine.js');
 
 const args = process.argv.slice(2);
@@ -146,6 +147,7 @@ async function trening(b, sirina) {
 
   // »Spoznaj« s pravimi kliki.
   await b.izvedi(`{ const g = MODES['xy-chain'].gen; MODES['xy-chain'].gen = n => (window.zadnjaVaja = g(n)); } true`);
+  await spremljajVajo(b);
   await klikniEl(b, `[...document.querySelector('.menu-card[data-mode="xy-chain"]').querySelectorAll('.nacin-btn')].find(x => x.textContent === 'Spoznaj')`);
   // Vaja 7 kroga (exNum = 6): vaji 1 in 2 sta od naloge trening-ucenje (korak 4) po shemi, mimo MODES[].gen.
   await b.izvedi('exNum = 6; renderExercise(); true');
@@ -156,7 +158,7 @@ async function trening(b, sirina) {
   }
   const izbranih = await b.izvedi(`document.querySelectorAll('.g9 .gc.selected-turq').length`);
   preveri(`»Spoznaj«: izbranih ${ex.celice.length} celic`, izbranih === ex.celice.length, izbranih);
-  await klikniEl(b, `[...document.querySelectorAll('#exerciseArea button')].find(x => x.textContent === 'Preveri')`);
+  await dokoncajOdgovor(b);
   const fb = await b.izvedi(`document.querySelector('#exerciseArea .fb').innerText`);
   preveri('»Spoznaj«: »Pravilno!«', fb.startsWith('Pravilno!'), fb.slice(0, 80));
   const m = await b.izvedi(`(${STEVILKE})('.g9', '.cd.veriga-st', '.gc')`);

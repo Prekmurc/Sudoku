@@ -20,6 +20,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
+const { spremljajVajo, odgovoriPravilno, dokoncajDrugoFazo } = require('./odgovor-spoznaj.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -36,6 +37,7 @@ function zacni(tehnika, { n = 0, seme = 7, pogoj = 'ex => true' } = {}) {
   run(SEME(seme));
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen, p = ${pogoj};
     MODES[${JSON.stringify(tehnika)}].gen = n => { for (let i = 0; ; i++) { const ex = g(n); if (p(ex) || i > 2000) return (zadnja = ex); } }; }`);
+  spremljajVajo(run);
   run(`mode = ${JSON.stringify(tehnika)}; nacin = 'spoznaj'; exNum = ${n}; scoreRight = 0; scoreTotal = 0; sPomocjo = 0; updateScore(); renderExercise();`);
   return { dom, run };
 }
@@ -152,8 +154,7 @@ for (const tehnika of ['pointing', 'box-line']) {
     assert.equal(odprtiOkvirji(dom).length, 1);
     assert.ok(!mreza(celica).classList.contains('izbrana'), 'izbira je prazna');
     for (const c of vzorec) assert.ok(mreza(c).classList.contains('k-vzorec'));
-    run('selected = [...zadnja.solutionCells]');
-    gumb(dom, 'Preveri').sprozi('click');
+    odgovoriPravilno(dom, run);
     assert.match(fb(dom).innerHTML, /Pravilno!/);
     assert.deepEqual(gumbaPomoci(dom), ZAPRTO, 'pravilen odgovor Rešitev zapre');
     assert.equal(odprtiOkvirji(dom).length, 0);
@@ -173,8 +174,7 @@ test('3 · Očitni par: napačen odgovor Rešitev pusti odprto, pravilen jo zapr
   assert.deepEqual(gumbaPomoci(dom), [['Namig', 'false'], ['Skrij rešitev', 'true']]);
   assert.equal(odprtiOkvirji(dom).length, 1);
   assert.equal(kljuc(sRazredom(dom, 'peek-hl')), kljuc(JSON.parse(run('JSON.stringify(zadnja.targetSlots)'))), 'oznake za prazno izbiro');
-  run('selected = [...zadnja.targetSlots]');
-  gumb(dom, 'Preveri').sprozi('click');
+  odgovoriPravilno(dom, run);
   assert.match(fb(dom).innerHTML, /Pravilno!/);
   assert.deepEqual(gumbaPomoci(dom), ZAPRTO);
   assert.equal(odprtiOkvirji(dom).length, 0);
@@ -194,8 +194,7 @@ test('4 · Skriti par: pravilna 1. faza Rešitev pusti, pravilna 2. faza jo zapr
   gumb(dom, 'Preveri').sprozi('click');
   assert.match(fb(dom).innerHTML, /Celici sta pravilni!/);
   assert.deepEqual(gumbaPomoci(dom), [['Namig', 'false'], ['Skrij rešitev', 'true']], 'vaja še ni rešena');
-  run('pickedDigits = [...zadnja.targetDigits]');
-  gumb(dom, 'Preveri dve števki').sprozi('click');
+  dokoncajDrugoFazo(dom, run);
   assert.match(fb(dom).innerHTML, /Pravilno!/);
   assert.deepEqual(gumbaPomoci(dom), ZAPRTO);
   assert.equal(odprtiOkvirji(dom).length, 0);
@@ -206,8 +205,7 @@ test('13 · XY-veriga: pravilen odgovor ob odprti Rešitvi zapre okvir, zaporedn
   const n = run('zadnja.solutionCells.length');
   gumb(dom, 'Rešitev').sprozi('click');
   assert.equal(vse(dom).filter(e => e.classList.contains('veriga-st')).length, n, 'številke ob Rešitvi');
-  run('selected = zadnja.solutionCells.map(c => zadnja.slots.findIndex(s => s.idx === c))');
-  gumb(dom, 'Preveri').sprozi('click');
+  odgovoriPravilno(dom, run);
   assert.match(fb(dom).innerHTML, /Pravilno!/);
   assert.deepEqual(gumbaPomoci(dom), ZAPRTO);
   const st = vse(dom).filter(e => e.classList.contains('veriga-st'));
@@ -219,8 +217,7 @@ test('13 · XY-veriga: pravilen odgovor ob odprti Rešitvi zapre okvir, zaporedn
 test('nova vaja, »Nazaj na izbiro« in nov krog: Namig in Rešitev zaprta', () => {
   const { dom, run } = zacni('naked-pair', { n: 6 });
   gumb(dom, 'Rešitev').sprozi('click');
-  run('selected = [...zadnja.targetSlots]');
-  gumb(dom, 'Preveri').sprozi('click');
+  odgovoriPravilno(dom, run);
   gumb(dom, 'Namig').sprozi('click');
   gumb(dom, 'Naslednja vaja →').sprozi('click');
   assert.equal(run('exNum'), 7);

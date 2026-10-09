@@ -14,6 +14,7 @@ const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
+const { spremljajVajo, odgovoriPravilno } = require('./odgovor-spoznaj.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -31,6 +32,7 @@ function zacni(tehnika, seme = 7, pogoj = 'ex => true') {
   run(SEME(seme));
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen, p = ${pogoj};
     MODES[${JSON.stringify(tehnika)}].gen = n => { for (let i = 0; ; i++) { const ex = g(n); if (p(ex) || i > 500) return (zadnja = ex); } }; }`);
+  spremljajVajo(run);
   run(`zacniKrog(${JSON.stringify(tehnika)}, 'spoznaj')`);
   run('exNum = 6; renderExercise()');
   return { dom, run };
@@ -48,20 +50,9 @@ const legende = el => vsi(el).filter(e => e.className === 'legenda-vaje')
   .map(l => l.children.map(p => [p.children[0].className, p.children[1].textContent]));
 const besedila = l => l.map(([, b]) => b);
 const medResitvijo = (dom, f) => medPomocjo(dom, 'resitev', f);
-// Pravilen odgovor z izbiro v stanju (kot v drugih testih »Spoznaj«) in klikom »Preveri«.
+// Pravilen odgovor do konca vaje (tests/odgovor-spoznaj.js).
 function odgovori(dom, run, tehnika) {
-  if (tehnika === 'x-wing' || tehnika === 'swordfish') {
-    run(`selected = (zadnja.rect || zadnja.sfCells).map(([r, c]) => r * 9 + c)`);
-  } else if (['turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle'].includes(tehnika)) {
-    run('selected = zadnja.solutionCells.map(c => zadnja.slots.findIndex(s => s.idx === c))');
-  } else {
-    run('selected = [...zadnja.targetSlots]');
-  }
-  gumb(dom, 'Preveri').sprozi('click');
-  if (tehnika === 'hidden-pair' || tehnika === 'hidden-triple') {
-    run('pickedDigits = [...zadnja.targetDigits]');
-    gumb(dom, tehnika === 'hidden-pair' ? 'Preveri dve števki' : 'Preveri tri števke').sprozi('click');
-  }
+  odgovoriPravilno(dom, run);
   assert.match(fb(dom).className, /\bok\b/, `${tehnika}: pravilen odgovor`);
 }
 
@@ -130,8 +121,7 @@ for (const tehnika of ['pointing', 'box-line']) {
   test(`legenda ${tehnika}: ob »Rešitvi« vzorec in kandidat za izbris, po odgovoru izbrisani kandidati`, () => {
     const { dom, run } = zacni(tehnika);
     medResitvijo(dom, () => assert.deepEqual(besedila(legende(videnOkvir(dom))[0]), ['celice vzorca', 'kandidat za izbris']));
-    run('selected = [...zadnja.solutionCells]');
-    gumb(dom, 'Preveri').sprozi('click');
+    odgovoriPravilno(dom, run);
     assert.match(fb(dom).className, /\bok\b/);
     assert.deepEqual(legende(fb(dom)).map(besedila), [['celice vzorca', 'izbrisani kandidati']]);
   });

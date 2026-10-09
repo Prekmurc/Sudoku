@@ -25,6 +25,7 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
 const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj-brskalnik.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -53,6 +54,7 @@ async function presek(b, mode, sirina) {
   console.log(`Trening, ${mode === 'pointing' ? '1 · Izločitev izven bloka' : '2 · Izločitev v bloku'}, ${sirina} px`);
   await b.odpri('trening/index.html', { sirina, visina: 900, mobilno: sirina < 500 });
   await b.izvedi(SEME(20260927 + sirina));
+  await spremljajVajo(b);
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
   // Vaja: iz stanja strani (vidne celice, korak), ne iz generatorja v Node.
   const ex = await b.izvedi(`(() => {
@@ -110,8 +112,7 @@ async function presek(b, mode, sirina) {
     presek.pokaziKorak(false); return v; })()`);
   preveri('vzorec ima 2 ali 3 celice', vzorec.length === 2 || vzorec.length === 3, vzorec);
   for (const i of vzorec) await b.klikni(celica(i));
-  await b.izvedi(`[...document.querySelectorAll('button')].find(g => g.textContent === 'Preveri').dataset.test = 'preveri'`);
-  await b.klikni('[data-test="preveri"]');
+  await dokoncajOdgovor(b);
   const po = await b.izvedi(`(() => {
     const fb = document.querySelector('.fb');
     const c = presek.mreza.celice;

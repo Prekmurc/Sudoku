@@ -16,6 +16,7 @@ const assert = require('node:assert/strict');
 const { loadContext, loadPuzzles } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj.js');
 
 const RESEVALEC = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/zbirka-ui.js',
   'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'app/app.js', 'app/zbirka.js'];
@@ -172,6 +173,7 @@ function spoznaj(seme) {
   const { run } = loadContext(TRENING, dom.globals);
   run(SEME(seme));
   run(`var zadnja; { const g = MODES['xy-chain'].gen; MODES['xy-chain'].gen = n => (zadnja = g(n)); }`);
+  spremljajVajo(run);
   run(`mode = 'xy-chain'; exNum = 6; renderExercise();`);
   const ex = JSON.parse(run('JSON.stringify(zadnja)'));
   assert.equal(ex.mode, 'xy-chain');
@@ -224,7 +226,7 @@ test('»Spoznaj« (mreža 9 × 9): številke verige po pravilnem odgovoru ostane
   const ex = JSON.parse(run('JSON.stringify(zadnja)'));
   const celice = vsi(dom.el('exerciseArea')).filter(e => e.dataset && e.dataset.si !== undefined);
   for (const c of ex.solutionCells) celice.find(e => ex.slots[+e.dataset.si].idx === c).sprozi('click');
-  gumb(dom, 'Preveri').sprozi('click');
+  dokoncajOdgovor(dom, run);
   assert.match(vsi(dom.el('exerciseArea')).find(e => /^fb\b/.test(e.className)).innerHTML, /Pravilno!/);
   // Pravilen odgovor pokaže korak, ki ga je našel motor (zaporedje njegovih celic).
   const korak = JSON.parse(run(`JSON.stringify(xyChain({ grid: zadnja.boardGrid, cand: zadnja.boardCand })

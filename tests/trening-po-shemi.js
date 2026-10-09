@@ -44,6 +44,7 @@ const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 const { medPomocjo } = require('./pomoc-stikali.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -87,6 +88,7 @@ function krog(tehnika, seme, n = 0) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
   run(SEME(seme));
+  spremljajVajo(run);
   run(`zacniKrog(${JSON.stringify(tehnika)}, 'spoznaj')`);
   for (let i = 0; i < n; i++) run('exNum++; renderExercise()');
   return { dom, run };
@@ -135,9 +137,9 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
       });
 
       test(`${ime}: »Preveri« s celicami vzorca → »Pravilno!«`, () => {
-        const { dom } = krog(tehnika, 5, n);
+        const { dom, run } = krog(tehnika, 5, n);
         for (const c of vObmocju(dom).filter(e => e.classList.contains('xw-cell') && pricakovano.vzorec.includes(+e.dataset.idx))) c.sprozi('click');
-        gumb(dom, 'Preveri').sprozi('click');
+        dokoncajOdgovor(dom, run);
         assert.match(fb(dom).className, /\bok\b/);
         assert.match(fb(dom).innerHTML, /^<b>Pravilno!/);
         assert.deepEqual(xwCelice(dom, 'xw-elim'), pricakovano.izbris, 'izbris po odgovoru');
@@ -300,7 +302,7 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
 
       test(`${ime}: »Preveri« s celicami vzorca${P.skrita ? ' in števkami' : ''} → »Pravilno!«; oznaka in vrstica s preslikavo`, () => {
         for (const seme of [3, 7]) {
-          const { dom } = krog(tehnika, seme, n);
+          const { dom, run } = krog(tehnika, seme, n);
           const crke = poShemi(dom).textContent.match(/črke so števke: (.*)\.$/)[1].split(', ').map(p => p.split(' = '));
           assert.deepEqual(crke.map(([c]) => c), crkeSheme);
           assert.equal(poShemi(dom).textContent, obrnjeno
@@ -311,13 +313,7 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
           const celice = vObmocju(dom).filter(e => /^gc\b/.test(e.className));
           assert.equal(celice.length, 9);
           for (const c of celice.filter(c => vzorecSheme.includes(+c.dataset.si))) c.sprozi('click');
-          gumb(dom, 'Preveri').sprozi('click');
-          if (P.skrita) {
-            assert.match(fb(dom).innerHTML, /^<b>(Celici sta pravilni|Celice so pravilne)!/);
-            const stevke = crke.map(([, d]) => d);
-            for (const b of vObmocju(dom).filter(e => e.tagName === 'BUTTON' && stevke.includes(e.textContent))) b.sprozi('click');
-            gumb(dom, P.pickN === 2 ? 'Preveri dve števki' : 'Preveri tri števke').sprozi('click');
-          }
+          dokoncajOdgovor(dom, run);
           assert.match(fb(dom).className, /\bok\b/, `seme ${seme}`);
           assert.match(fb(dom).innerHTML, /^<b>Pravilno!/, `seme ${seme}`);
         }
@@ -442,7 +438,7 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
 
       test(`${ime}: »Preveri« s celicami vzorca → »Pravilno!«, »Rešitev«, oznaka in vrstica s preslikavo`, () => {
         for (const seme of [3, 7]) {
-          const { dom } = krog(tehnika, seme, n);
+          const { dom, run } = krog(tehnika, seme, n);
           const vrstica = poShemi(dom).textContent;
           const crke = (crkeSheme.length === 1 ? [['x', vrstica.match(/črka x je števka (\d)\.$/)[1]]]
             : vrstica.match(/črke so števke: (.*)\.$/)[1].split(', ').map(p => p.split(' = ')));
@@ -461,7 +457,7 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
             assert.deepEqual(urejeno(gcCelice(dom).filter(c => c.classList.contains('peek-hl')).map(idxCelice)), vzorec, `seme ${seme}: »Rešitev« – vzorec`);
           });
           for (const c of gcCelice(dom).filter(c => vzorec.includes(idxCelice(c)))) c.sprozi('click');
-          gumb(dom, 'Preveri').sprozi('click');
+          dokoncajOdgovor(dom, run);
           assert.match(fb(dom).className, /\bok\b/, `seme ${seme}`);
           assert.match(fb(dom).innerHTML, /^<b>Pravilno!/, `seme ${seme}`);
           if (tehnika === 'xy-chain') {
@@ -554,6 +550,7 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
     run(`{ const g = genPoShemi; genPoShemi = (m, n) => (globalThis.zadnjaVaja = g(m, n));
       const mg = MODES['${tehnika}'].gen; MODES['${tehnika}'].gen = n => (globalThis.zadnjaVaja = mg(n)); }`);
     run(SEME(seme));
+    spremljajVajo(run);
     run(`zacniKrog('${tehnika}', 'spoznaj')`);
     const vaje = [JSON.parse(run('JSON.stringify(zadnjaVaja)'))];
     for (let i = 0; i < n; i++) { run('exNum++; renderExercise()'); vaje.push(JSON.parse(run('JSON.stringify(zadnjaVaja)'))); }
@@ -622,7 +619,7 @@ module.exports = function registriraj({ vaj: VAJ, samoVzorec = false, deli = ['s
           // Vidne celice na mreži (brez razreda izven) so blok in vrstica sheme.
           assert.deepEqual(Array.from(celice, (c, i) => c.classList.contains('izven') ? -1 : i).filter(i => i >= 0), S.vidne);
           for (const c of S.vzorec) celice[c].sprozi('click');
-          gumb(dom, 'Preveri').sprozi('click');
+          dokoncajOdgovor(dom, run);
           assert.match(fb(dom).className, /\bok\b/, `seme ${seme}`);
           assert.match(fb(dom).innerHTML, /^<b>Pravilno!/, `seme ${seme}`);
           for (const c of S.vzorec) assert.ok(celice[c].classList.contains('k-vzorec'), `seme ${seme}: vzorec ${imeCelice(c)}`);

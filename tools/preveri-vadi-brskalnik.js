@@ -32,6 +32,7 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
 const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj-brskalnik.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -636,6 +637,7 @@ async function oznakeSpoznaj(b, sirina) {
   for (const m of SPOZNAJ_3_12) {
     await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
     await b.izvedi(SEME(4242));
+    await spremljajVajo(b);
     await b.klikni(`.menu-card[data-mode="${m}"]`);
     await odmakniMisko(b);
     const p = await drziResitev(b, async () => {
@@ -658,7 +660,7 @@ async function oznakeSpoznaj(b, sirina) {
     if (!ODGOVOR_3_12.includes(m)) continue;
     const n = await b.izvedi(`document.querySelectorAll('#exerciseArea [data-cilj]').length`);
     for (let i = 0; i < n; i++) await b.klikni(`#exerciseArea [data-cilj="${i}"]`);
-    await klikniGumb(b, 'Preveri');
+    await dokoncajOdgovor(b);
     await poPrehodu(b);
     const q = await b.izvedi(podlageInKontrast(['.elimcell', '.xw-elim']));
     q.pravilnih = await b.izvedi(`document.querySelectorAll('#exerciseArea .correct, #exerciseArea .xw-correct').length`);

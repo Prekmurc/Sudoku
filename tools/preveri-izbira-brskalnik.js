@@ -36,6 +36,7 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
 const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj-brskalnik.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -75,6 +76,7 @@ const pocakaj = (b, ms = 300) => b.izvedi(`new Promise(r => setTimeout(() => r(t
 async function odpri(b, mode, sirina) {
   await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
   await b.izvedi(SEME(4242));
+  await spremljajVajo(b);
   await b.klikni(`.menu-card[data-mode="${mode}"]`);
   await vaja3(b, SEME(4242)); // vaji 1 in 2 sta po shemi - primerja se vaja 3
   await odmakniMisko(b);
@@ -368,8 +370,8 @@ async function preveriVajo(bNov, bStar, mode, sirina, ref) {
   }
 }
 
-// Pravilen odgovor (celice vzorca s pravimi kliki; pri 4 in 6 še 2. faza s števkami iz besedila
-// »Rešitve«) in »Rešitev« po njem - enako izhodišču razen prečrtanja. Neodvisno merilo prečrtanja:
+// Pravilen odgovor (celice vzorca s pravimi kliki; nadaljnje faze – pri 4 in 6 števke vzorca – s pravimi
+// kliki prek tools/odgovor-spoznaj-brskalnik.js) in »Rešitev« po njem - enako izhodišču razen prečrtanja. Neodvisno merilo prečrtanja:
 // po pravilnem odgovoru so prečrtane iste števke kot ob »Rešitvi« brez izbire; ostanejo ob
 // »Rešitvi« po odgovoru in po spustu. Pri 8 so celice po odgovoru zelene kot pri 7.
 async function pravilenOdgovor(bNov, bStar, mode, sirina, ref) {
@@ -380,17 +382,10 @@ async function pravilenOdgovor(bNov, bStar, mode, sirina, ref) {
     const vz = await b.izvedi(`[...document.querySelectorAll('#exerciseArea [data-vz]')].map(e => e.dataset.i)`);
     for (const i of vz) await b.klikni(`#exerciseArea [data-i="${i}"]`);
     await odmakniMisko(b);
-    await klikniGumb(b, 'Preveri');
+    const druga = await dokoncajOdgovor(b);
     await pocakaj(b);
     const r = rez[ime] = { vzorec };
-    if (await b.izvedi(`MODES[${JSON.stringify(mode)}].hasPhase2 === true`)) {
-      const m = vzorec.besedilo.match(/Števke:<\/b> \{([\d, ]+)\}/);
-      r.stevke = m ? m[1].split(', ') : [];
-      for (const d of r.stevke) await b.klikni(`#exerciseArea .phase2 .digit-btns button[data-d="${d}"]`);
-      await odmakniMisko(b);
-      await klikniGumb(b, r.stevke.length === 2 ? 'Preveri dve števki' : 'Preveri tri števke');
-      await pocakaj(b);
-    }
+    if (druga) r.stevke = druga;
     r.ok = await b.izvedi(`!!document.querySelector('#exerciseArea .fb.ok') && document.querySelector('#exerciseArea .fb.ok').textContent.startsWith('Pravilno!')`);
     r.legenda = await legendaSlogi(b, '.fb');
     r.pravilne = await b.izvedi(`[...document.querySelectorAll('#exerciseArea :is(.gc.correct, .xw-cell.xw-correct, .xw-cell.xw-sf-correct)')].map(e => { const s = getComputedStyle(e); return { bg: s.backgroundColor, bs: s.boxShadow }; })`);
@@ -447,6 +442,7 @@ async function drugVzorec(b, sirina) {
   for (let seme = 4242; seme < 4262 && !najden; seme++) {
     await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
     await b.izvedi(SEME(seme));
+    await spremljajVajo(b);
     await b.klikni('.menu-card[data-mode="swordfish"]');
     await vaja3(b, SEME(seme)); // vaja po shemi (vaja 1) nima drugega vzorca
     await odmakniMisko(b);
@@ -468,7 +464,7 @@ async function drugVzorec(b, sirina) {
   preveri(`ob »Rešitvi« vseh ${celice.length} izbranih celic jantarnih z zelenim okvirjem (seme ${najden.seme})`,
     celice.length === najden.d.length && celice.every(c => c.vz && c.bg === VZOREC_BG && c.bs === okvir(ZELENA, 2.5)), celice);
   preveri('ob »Rešitvi« nobena celica z rdečim okvirjem', !med.some(c => c.bs.startsWith(RDECA)), med.filter(c => c.bs.startsWith(RDECA)));
-  await klikniGumb(b, 'Preveri');
+  await dokoncajOdgovor(b);
   preveri('»Preveri« drug vzorec sprejme', await b.izvedi(`!!document.querySelector('#exerciseArea .fb.ok')`));
 }
 

@@ -167,6 +167,7 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
 
 const { makeDom } = require('../dom-stub.js');
 const { odpriPomoc, zapriPomoc } = require('../pomoc-stikali.js');
+const { spremljajVajo, dokoncajOdgovor } = require('../odgovor-spoznaj.js');
 const DATOTEKE_UI = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
   'shared/vaje-banka.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 
@@ -176,6 +177,7 @@ function odpri(mode, n = 6) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE_UI, dom.globals);
   run(`var zadnja; { const g = MODES['${mode}'].gen; MODES['${mode}'].gen = n => (zadnja = g(n)); }`);
+  spremljajVajo(run);
   run(`mode = '${mode}'; exNum = ${n}; scoreRight = 0; scoreTotal = 0; sPomocjo = 0; updateScore(); renderExercise();`);
   return { dom, run };
 }
@@ -261,7 +263,7 @@ for (const mode of Object.keys(MODE)) {
     assert.equal(rezultatUI(dom), '0/1');
     // Pravilen odgovor: celice koraka → "Pravilno!", oznake koraka, poudarek izklopljen.
     ex.solutionCells.forEach(i => celice[i].sprozi('click'));
-    gumbUI(dom, 'Preveri').sprozi('click');
+    dokoncajOdgovor(dom, run);
     assert.ok(fbUI(dom).className.includes('ok'));
     assert.equal(fbUI(dom).html, `<b>Pravilno!</b> ${ex.solutionMessage}`);
     assert.equal(rezultatUI(dom), '1/2');

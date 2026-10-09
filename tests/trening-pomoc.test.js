@@ -17,6 +17,7 @@ const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
+const { spremljajVajo, odgovoriPravilno } = require('./odgovor-spoznaj.js');
 
 // Vrstni red kot <script> v trening/index.html.
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
@@ -34,6 +35,7 @@ function zacni(tehnika, n = 0, shramba) {
   const { run } = loadContext(DATOTEKE, dom.globals);
   run(SEME(1));
   run(`var zadnja; { const g = MODES[${JSON.stringify(tehnika)}].gen; MODES[${JSON.stringify(tehnika)}].gen = n => (zadnja = g(n)); }`);
+  spremljajVajo(run);
   run(`mode = ${JSON.stringify(tehnika)}; exNum = ${n}; scoreRight = 0; scoreTotal = 0; sPomocjo = 0; updateScore(); renderExercise();`);
   return { dom, run };
 }
@@ -54,8 +56,7 @@ const pomoc = dom => dom.el('scorePomoc').textContent;
 
 // Odgovori za Očitno paro: pravi par iz vaje ali dve celici s kandidati, ki para ne tvorita.
 function pravilnoPar(dom, run) {
-  run('selected = [...zadnja.targetSlots]');
-  gumb(dom, 'Preveri').sprozi('click');
+  odgovoriPravilno(dom, run);
 }
 function napacnoPar(dom, run) {
   run(`{
@@ -95,8 +96,7 @@ function napacnoEnojcek(dom, run) {
 
 // Odgovori za 1 in 2 (delna mreža): celice koraka vaje ali dve prazni vidni celici zunaj njega.
 function pravilnoPresek(dom, run) {
-  run('selected = [...zadnja.solutionCells]');
-  gumb(dom, 'Preveri').sprozi('click');
+  odgovoriPravilno(dom, run);
 }
 function napacnoPresek(dom, run) {
   run('selected = zadnja.vidne.filter(c => !zadnja.grid[c] && !zadnja.solutionCells.includes(c)).slice(0, 2)');

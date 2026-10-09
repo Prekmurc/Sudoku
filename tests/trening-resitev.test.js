@@ -12,6 +12,7 @@ const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 const { odpriPomoc, zapriPomoc, medPomocjo } = require('./pomoc-stikali.js');
+const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
@@ -63,6 +64,7 @@ function zacni(tehnika, { seme = 7, drugim = false } = {}) {
       const k = a => [...a].sort((x, y) => x - y).join(',');
       ex.vzorec = v; ex.drugi = drugi(ex).find(d => k(d.cells) !== k(v.cells));
       if (!${drugim} || ex.drugi || i > 2000) return (zadnja = ex); } }; }`);
+  spremljajVajo(run);
   run(`mode = ${JSON.stringify(tehnika)}; exNum = 6; renderExercise();`);
   return { dom, run };
 }
@@ -104,7 +106,7 @@ for (const tehnika of ['x-wing', 'swordfish', 'naked-triple']) {
         assert.equal(besediloResitve(dom), `{${ds.join(', ')}} v ${kljuc(d.cells).split(',').map(si => run(`zadnja.slots[${si}].pos`)).join(', ')}.`);
       }
     });
-    gumb(dom, 'Preveri').sprozi('click');
+    dokoncajOdgovor(dom, run);
     assert.match(fb(dom).className, /\bok\b/, '»Preveri« sprejme drug vzorec');
     assert.match(fb(dom).innerHTML, /^<b>Pravilno!/);
   });
