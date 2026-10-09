@@ -129,24 +129,35 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
     if (mode === 'box-line') assert.ok(r.zavrnjenih > 0, 'taki koraki so (seme 16924) - pogoj se res uveljavi');
   });
 
+  // Trojica v krogu po O9 (docs/trening-ucenje-nacrt.md): vaji 1 in 2 sta po shemi (genPoShemi) - pri 1
+  // para, zato je vaja s trojico izbrana med vajami 3-9; pri 2 sta trojici, zato se nobena ne vsili.
   test(`${mode}: v vsakem krogu 9 vaj je vsaj ena vaja s tremi celicami, druge po resnični pogostosti`, () => {
-    const run = pripravi(7);
-    const krogi = run(`Array.from({ length: ${KROGOV} }, () => Array.from({ length: 9 }, (_, n) => {
-      const ex = genPresek(n, '${mode}');
-      return { n, trojica: ex.solutionCells.length === 3, izbrana: n === presekTrojica['${mode}'] };
-    }))`);
+    const { run: r } = loadContext([...DATOTEKE, 'shared/sheme.js']);
+    r(`var seme = 7; Math.random = () => { seme = (seme + 0x6D2B79F5) | 0; let t = Math.imul(seme ^ (seme >>> 15), 1 | seme);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };`);
+    const krogi = JSON.parse(r(`JSON.stringify(Array.from({ length: ${KROGOV} }, () => Array.from({ length: 9 }, (_, n) => {
+      const ex = genPoShemi('${mode}', n) || genPresek(n, '${mode}');
+      return { n, trojica: ex.solutionCells.length === 3, poShemi: !!ex.poShemi, izbrana: n === presekTrojica['${mode}'] };
+    })))`));
     let ostalih = 0, ostalihTrojic = 0;
     const mesta = new Set();
-    for (const [r, krog] of krogi.entries()) {
-      assert.ok(krog.some(v => v.trojica), `krog ${r}: vsaj ena trojica`);
+    for (const [i, krog] of krogi.entries()) {
+      assert.deepEqual(krog.map(v => v.poShemi), [true, true, false, false, false, false, false, false, false], `krog ${i}: vaji 1 in 2 po shemi`);
+      assert.ok(krog.some(v => v.trojica), `krog ${i}: vsaj ena trojica`);
       const izbrana = krog.filter(v => v.izbrana);
-      assert.equal(izbrana.length, 1, `krog ${r}: ena izbrana vaja`);
-      assert.ok(izbrana[0].trojica, `krog ${r}: izbrana vaja ima tri celice`);
-      mesta.add(izbrana[0].n);
-      for (const v of krog.filter(v => !v.izbrana)) { ostalih++; if (v.trojica) ostalihTrojic++; }
+      if (mode === 'pointing') {
+        assert.ok(!krog[0].trojica && !krog[1].trojica, `krog ${i}: vaji 1 in 2 sta para (shema)`);
+        assert.equal(izbrana.length, 1, `krog ${i}: ena izbrana vaja`);
+        assert.ok(izbrana[0].n >= 2 && izbrana[0].trojica, `krog ${i}: izbrana vaja (med 3-9) ima tri celice`);
+        mesta.add(izbrana[0].n);
+      } else {
+        assert.ok(krog[0].trojica && krog[1].trojica, `krog ${i}: vaji 1 in 2 sta trojici (shema)`);
+        assert.equal(izbrana.length, 0, `krog ${i}: nobena vaja ni vsiljena`);
+      }
+      for (const v of krog.filter(v => !v.izbrana && !v.poShemi)) { ostalih++; if (v.trojica) ostalihTrojic++; }
     }
     // Mesto vaje s trojico v krogu ni vedno isto.
-    assert.ok(mesta.size > 1, `mesta trojice: ${[...mesta]}`);
+    if (mode === 'pointing') assert.ok(mesta.size > 1, `mesta trojice: ${[...mesta]}`);
     // Ostale vaje niso prisiljene v trojice (resnična pogostost je pribl. 1 od 10).
     assert.ok(ostalihTrojic < ostalih / 3, `trojic med ostalimi: ${ostalihTrojic} / ${ostalih}`);
   });
@@ -159,8 +170,9 @@ const { odpriPomoc, zapriPomoc } = require('../pomoc-stikali.js');
 const DATOTEKE_UI = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
   'shared/vaje-banka.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
 
-// Odprta vaja n tehnike; `zadnja` = vaja, ki jo je dal generator.
-function odpri(mode, n = 0) {
+// Odprta vaja n tehnike; `zadnja` = vaja, ki jo je dal generator. Privzeto vaja 7 (n = 6) - vaji 1 in 2
+// sta po shemi (docs/trening-ucenje-nacrt.md, del A), mimo MODES[].gen.
+function odpri(mode, n = 6) {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE_UI, dom.globals);
   run(`var zadnja; { const g = MODES['${mode}'].gen; MODES['${mode}'].gen = n => (zadnja = g(n)); }`);

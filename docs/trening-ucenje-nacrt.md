@@ -697,3 +697,66 @@ Potrjeno 2026-10-08: O1–O16 po predlogu (O8 in O16 že prej Darkovi), O17 po p
 - **Opažanje (ni spremenjeno):** namig pri 11 · XY-krilo pravi »ena trojica ima prave števke, a eno krilo
   pivota ne vidi« – opisuje motilca iz generatorja, ki ga vaja po shemi nima.
 - Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 729 zelenih v 2 min 39 s (hitrih 612 v 48 s).
+
+### Pred korakom 5: namigi pri vajah po shemi in razdelitev testa (2026-10-09)
+
+- **Namigi** (opažanje iz koraka 4): pregledani so namigi pri vajah 1 in 2 vseh tehnik 1–13. Pri treh je
+  namig opisoval motilca iz generatorja, ki ga vaja po shemi nima:
+  - 10 · W-krilo: »– za pravi par nato poišči enoto …«;
+  - 11 · XY-krilo: »– ena trojica ima prave števke, a eno krilo pivota ne vidi«;
+  - 12 · Edinstveni pravokotnik: »– če je pravokotnik razpet čez štiri bloke, tehnika ne velja«.
+
+  Popravek (`trening/trening.js`): del o motilcu je v namigu samo, kadar je motilec na mreži – izpeljano
+  iz kandidatov vaje, ne iz vrste vaje: pri 10 več parov kandidatov v vsaj dveh celicah, pri 11 trojica s
+  pravimi števkami, v kateri nobena celica ne vidi obeh drugih (`motilecXYKrila()`), pri 12 trije vogali
+  z istim parom čez štiri bloke (`motilecPravokotnika()`). Vaja iz generatorja ga ima vedno, zato je njen
+  namig nespremenjen. Drugi namigi (1–9, 13) so izračunani iz vaje in ustrezajo.
+- **Test namiga** (`trening-po-shemi`): pri vajah 1, 2 in 3 (iz generatorja) vseh 13 tehnik namig našteje
+  vzorec (celice, števke, povezave, dolžino verige) in omeni motilca natanko tedaj, ko ga neodvisno iskanje
+  v testu najde na mreži. Na stari kodi so padli 3 (10, 11, 12), 10 jih je držalo.
+- **Razdelitev testa:** testi so v pomožni `tests/trening-po-shemi.js` (`registriraj({ vaj, samoVzorec,
+  deli })`). Hitri del: `tests/trening-po-shemi.test.js` (3–13 in splošni testi, pribl. 10 s) in
+  `tests/trening-po-shemi-1-2.test.js` (1 in 2, pribl. 8 s) – vsi testi, testi na vzorcu z 20 vajami (prej
+  200), enim semenom namiga, polovico semen 1 in 2 in enim krogom. Datoteki tečeta vzporedno (en sam hitri
+  del s koraki 2–5 je trajal 16–24 s). Počasni `tests/pocasni/trening-po-shemi.test.js` požene samo teste na
+  vzorcu – 200 vaj, 6 semen namiga, vsa semena, 8 krogov (pribl. 1 min). Prag različnih preslikav črk v
+  števke je odvisen od velikosti vzorca (pri 200 vajah isti kot prej).
+
+### Korak 5 – del A: 1 in 2 (2026-10-09)
+
+- **Koda** (`trening/generators.js`):
+  - `genPresekPoShemi(mode, n)` – naključno seme s seznama `PRESEK_PO_SHEMI`, vaja 2 drugo seme kot vaja 1
+    kroga (`presekPoShemiSeme`, O17); `presekPoShemiIzSemena(mode, seme, obrnjeno)`;
+  - `primerenKorakPreseka()` – prvi korak na poti (`stanjaVUganki()`) z obliko sheme (`oblikaPresekaPoShemi()`:
+    pri 1 par in en izbris v vsakem od drugih dveh skladov, pri 2 trojica in izbrisa v drugih dveh vrsticah
+    bloka in v različnih stolpcih; v smeri vrstice) in `presekEnolicen()`;
+  - premik (1.6): korak v stolpcu se obrne v vrstico, nato `preslikavaPresekaNaShemo()` – `premestitevEnot()`
+    za vrstice in stolpce (pasovi in vrstice v pasu, proste izbire naključno), naključna zamenjava števk,
+    pri vaji 2 še obrat (O16). Preslika se vse stanje (dane števke, vpisi, kandidati), vaja se zgradi z
+    `vajaIzStanja()`, korak se na premaknjenem stanju znova poišče med koraki motorja (in `presekEnolicen()`);
+  - `trojicaKroga()` (O9): pri 1 je vaja s trojico naključna med vajami 3–9, pri 2 se nobena ne vsili; izbere
+    se ob vaji 1 (`genPresekPoShemi()` in `genPresek(0)`);
+  - `poShemi` ima še `seme`. Vrstica nad vajo in vrstica s preslikavo sta iz koraka 2 (»· po shemi« /
+    »· po shemi, obrnjeno«, »… črka x je števka 4.«).
+- **Orodje:** nov `tools/izberi-vaje-po-shemi.js [--zapisi]` – pregleda banko vaj (merilo iz
+  `trening/generators.js`, za vsako seme še vaja 1 in 2 in `genMinimalnaUganka(seme)` = uganka iz banke),
+  izpiše seznam in ga z `--zapisi` zapiše. **Semen: 38 pri 1** (iz 315 ugank banke), **5 pri 2** (iz 167) –
+  isto kot meritev v 1.4 (38 in 5 ugank). Pribl. 26 s. Vaja iz semena nastane v pribl. 0,1 s.
+- **Test pred spremembo** (`trening-po-shemi`, korak 5): seznam semen (vsako seme da vajo 1 in 2: vidni blok
+  in vrstica sheme, celice z x, vzorec in izbrisi kot na shemi, ena rešitev, števke iz rešitve, kandidati
+  skladni s števkami, korak motorja, na delni mreži edini, lažje tehnike nič), vaji 1 in 2 v treningu (delna
+  mreža, oznaka, vrstica s preslikavo, pravi odgovor), različni semeni in nove števke, trojica v krogu. Na
+  stari kodi jih je vseh 10 padlo; na novi zeleni. Ena napaka testa je popravljena (primerjava polja iz
+  drugega konteksta z `deepEqual`).
+- **Prestavljeni testi** (po dovoljenju; na stari kodi 74/74 zelenih): `trening-pomoc` (1 in 2, po 5 testov),
+  `trening-stikalo` (1 in 2) in UI-testi v `pocasni/trening-presek` (privzeta vaja v `odpri()`) – padali so
+  samo zato, ker si vajo zapomnijo prek `MODES[].gen`; zdaj delajo na vaji 7 (n = 6). Test trojice v krogu v
+  `pocasni/trening-presek` je po novem pravilu O9 (vaji 1 in 2 iz `genPoShemi()`).
+- **Brskalnik:** `tools/preveri-po-shemi-brskalnik.js` za 1 in 2 pri 375 in 1280 px – vidne celice = blok in
+  vrstica (vaja 2 blok in stolpec obrnjene sheme), celice z x kot na shemi, krepka oznaka roba, preslikava,
+  vse v kartici, pravi kliki → »Pravilno!« z označenim vzorcem; skupaj 368 ✓.
+
+  Primerjave in drugi scenariji (zagnani zaporedno): `presek` 79 ✓, `enojcki` 330 ✓, `vadi` 364 ✓, `izbira` 708 ✓,
+  `stikalo` 25 ✓, `sheme` 939 ✓, `videz` 339 ✓ – vse drži.
+- Posnetek igre: 99 posnetkov, brez razlik. Testi: vseh 801 zelenih v 3 min 16 s (hitrih 635 v 49 s).
+- **Naloga ni zaprta** – čaka na Darkov pregled (ročni seznam v `docs/rocni-test.md`, razdelek »Trening – učenje«).

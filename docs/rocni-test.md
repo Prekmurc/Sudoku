@@ -299,6 +299,26 @@ Ročni pregled naloge XY-veriga je potrjen 8. 10. 2026 (vseh pet točk, telefon 
 | 4 | trening, »Vadi v uganki« 13 | Pri vaji z daljšo verigo (5–8 celic) odpri »Namig«, nato »Rešitev«; izbriši števko in »Preveri«. | Namig (»Števka z – veriga ima n celic.«) pomaga, ne pove preveč; rešitev in zaporedne številke na mreži pokažejo verigo po vrsti, tudi po »Pravilno!«. (potrjeno 8. 10. 2026) – ni avtomatsko: ali pomoč res pomaga, presodi samo človek. |
 | 5 | igra | »Nova uganka« → Niz: preizkusna uganka → »Začni igro«; rešuj z »Naslednji korak« do verige (korak 31): ime → »Pokaži več« → »Pokaži rešitev«, nato izvedi izbris sam. | Tri stopnje se berejo smiselno (»13 · XY-veriga« → števka in dolžina → razlaga s številkami na mreži); po izbrisu »✓ Korak je izveden.« (potrjeno 8. 10. 2026) – ni avtomatsko: celoten potek s tvojimi kliki in branjem treh stopenj. |
 
+## Trening – učenje (naloga 4a: vaji 1 in 2 po shemi, »Namig« in »Rešitev« kot stikali)
+
+Načrt: `docs/trening-ucenje-nacrt.md` (razdelek 5). Samodejno preverjeno: stikali
+(`tests/trening-stikalo.test.js`, `tools/preveri-stikalo-brskalnik.js` – tudi posnemanje dotika pri
+375 px), vaji 1 in 2 po shemi pri vseh 13 tehnikah – mesta celic, števke, korak motorja, »Preveri«, namig
+(`tests/trening-po-shemi.test.js`, polni pregled `tests/pocasni/trening-po-shemi.test.js`) in v pravem
+brskalniku `tools/preveri-po-shemi-brskalnik.js` (posnetki mrež za točki 2 in 3); »Spoznaj« vaje 3–9 je
+enak izhodišču (`tools/preveri-presek-`, `-enojcki-`, `-vadi-`, `-izbira-brskalnik.js`).
+
+Vaji 1 in 2 sta po shemi v vsakem krogu »Spoznaj« (ob vsakem kliku na kartico tehnike); vaja 2 je
+»Naslednja vaja →« po vaji 1.
+
+| # | Kje | Kaj narediti | Pričakovano |
+|---|---|---|---|
+| 1 | trening, »Spoznaj«, pravi telefon | 11 · XY-krilo: tapni »Rešitev«, preberi besedilo, podrsaj stran gor in dol, tapni »Skrij rešitev«; nato tapni »Namig« in takoj »Rešitev«. | Rešitev ostane odprta med branjem in drsenjem, brez povečave ob dotiku in brez »dvojnega« odziva; »Rešitev« zamenja vsebino namiga, odprt je samo en okvir. (nepotrjeno) – ni avtomatsko: dotik je v brskalniku brez glave samo posnemanje; pravi telefon ima svoje zamike, povečavo in odziv na dvojni dotik. |
+| 2 | trening, »Spoznaj«, telefon | Vaji 1 in 2 pri 4 · Skriti par, 10 · W-krilo, 11 · XY-krilo in 13 · XY-veriga ter vaja 2 pri 9 · Veriga ene števke: primerjaj mrežo s shemo nad njo in preberi vrstico s preslikavo. | Takoj vidiš, da je vaja 1 narisana po shemi, vaja 2 po obrnjeni shemi (vrstice so stolpci), pri 9 po drugi risbi (Zmaj), pri 11 zrcaljena levo-desno; preslikava »x = …« in pojasnilo obrata ali zrcaljenja sta jasna; gosta mreža pri 10 in 13 je še pregledna; namig pri 10 in 11 ne omenja motilca, ki ga na mreži ni. (nepotrjeno) – ni avtomatsko: presoja razumljivosti in preglednosti. |
+| 3 | trening, »Spoznaj« | Vaji 1 in 2 pri 1 · Izločitev izven bloka in 2 · Izločitev v bloku (v vsakem krogu je uganka druga). | Jasno je, da sta blok in vrstica (pri vaji 2 blok in stolpec) ista kot na shemi (pri vaji 2 na obrnjeni), čeprav shema kaže ves pas s še nekaj x zunaj vidnega dela; preslikava »črka x je števka …« se ujema s poudarjeno števko. (nepotrjeno) – ni avtomatsko: presoja, ali skrite celice pasu ne begajo (O5). |
+| 4 | trening, »Spoznaj« | 3 · Očitni par, vaja 2: odpri »Rešitev«, nato izberi eno celico vzorca in eno zunaj njega; odgovori napačno, nato pravilno. | Okvirji izbire se sproti spreminjajo (zelen / temno rdeč); ob napačnem odgovoru »Rešitev« ostane odprta, ob pravilnem se zapre; obnašanje je razumljivo. (nepotrjeno) – ni avtomatsko: presoja, ali je sprotno prilagajanje (O12) razumljivo. |
+| 5 | trening, »Vadi v uganki« | 4 · Skriti par: odpri »Namig«, zapri ga z drugim klikom na gumb; odpri »Rešitev«, zapri jo s »Skrij« v okvirju. | Oba načina delujeta; napis (»Skrij namig« / »Skrij rešitev«) in pritisnjen slog gumba sta jasna in enaka kot v »Spoznaj«. (nepotrjeno) – ni avtomatsko: presoja skladnosti z »Spoznaj«. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

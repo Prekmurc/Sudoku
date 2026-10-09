@@ -27,6 +27,13 @@
 //   - male števke berljive: izračunana velikost pisave (izpis, vsaj 8 px), vsaka v svoji celici;
 //   - pravi kliki na celice vzorca → »Pravilno!«, pri 13 številka 1 v V2S2 in 1-5 po vrsti sheme;
 //   - posnetek mreže (gostota) za ročni pregled: <ključ>-vaja<n>-<širina>.png.
+// Korak 5: 1 · Izločitev izven bloka, 2 · Izločitev v bloku (delna mreža, vaja 2 obrnjena) pri 375 in 1280 px:
+//   - oznaka, shema odprta, preslikava (»… črka x je števka 4.«) med njo in delno mrežo, vse v kartici;
+//   - vidne celice (brez .izven) = blok in vrstica vzorca sheme (vaja 2 blok in stolpec obrnjene sheme),
+//     prazne vidne celice z x = celice x sheme v njih (iz SHEME_TEHNIK, razčlenjeno tu);
+//   - krepka oznaka roba: vaja 1 vrstica 1 (pri 2 vrstica 2), vaja 2 stolpec 1 (stolpec 2);
+//   - pravi kliki na celice vzorca in »Preveri« → »Pravilno!«, celice vzorca jantarne (k-vzorec);
+//   - brez vodoravnega preliva; posnetek <ključ>-vaja<n>-<širina>.png.
 //
 //   node tools/preveri-po-shemi-brskalnik.js [--mapa <mapa>]
 //
@@ -228,11 +235,78 @@ async function vajaMreze(b, kljuc, n, sirina) {
   }
 }
 
+// 1 in 2: delna mreža iz shem pasu (vidni sta blok in vrstica vzorca; pri vaji 2 obrnjeno) - razčlenjeno v
+// strani iz SHEME_TEHNIK, brez kode treninga.
+const PAS_SHEME = (kljuc, obrnjeno) => `(() => {
+  const obrni = i => (i % 9) * 9 + Math.floor(i / 9), blok = i => Math.floor(i / 27) * 3 + Math.floor(i % 9 / 3);
+  const x = [], vz = [];
+  SHEME_TEHNIK[${JSON.stringify(kljuc)}].celice.forEach((z, i) => {
+    const t = z.replace(/^[*+]/, '').split(' ').filter(Boolean);
+    if (!t.some(s => s.replace(/^-/, '') === 'x')) return;
+    x.push(i); if (/^[*+]/.test(z)) vz.push(i); });
+  const vr = Math.floor(vz[0] / 9), bl = blok(vz[0]);
+  const vidne = [...Array(81).keys()].filter(i => Math.floor(i / 9) === vr || blok(i) === bl);
+  const o = i => ${obrnjeno} ? obrni(i) : i, u = a => a.map(o).sort((p, q) => p - q);
+  return { vidne: u(vidne), x: u(x.filter(i => vidne.includes(i))), vzorec: u(vz), enota: vr }; })()`;
+
+const STANJE_PRESEKA = `(() => {
+  const ex = document.querySelector('#exerciseArea .exercise'), k = ex.getBoundingClientRect();
+  const sh = ex.querySelector('details.shema-razdelek'), ps = ex.querySelector('.po-shemi'), m = ex.querySelector('.vaja-presek');
+  const r = e => e ? e.getBoundingClientRect() : null, [rs, rp, rm] = [r(sh), r(ps), r(m)];
+  const v = e => !!e && e.left >= k.left - 0.5 && e.right <= k.right + 0.5;
+  const celice = [...m.querySelectorAll('.celica')];
+  const idx = c => +c.dataset.r * 9 + +c.dataset.c;
+  const stevka = +((ps ? ps.textContent : '').match(/števka (\\d)\\.$/) || [])[1];
+  const akt = sel => [...m.querySelectorAll(sel + ' > *')].map((s, i) => s.classList.contains('akt') ? i : -1).filter(i => i >= 0);
+  return { oznaka: ex.querySelector('.ex-label').textContent, preslikava: ps ? ps.textContent : null, stevka,
+    shemaOdprta: !!sh && sh.open, vrstniRed: !!(rs && rp && rm) && rs.bottom <= rp.top + 0.5 && rp.bottom <= rm.top + 0.5,
+    vKartici: v(rs) && v(rp) && v(rm) && celice.every(c => v(c.getBoundingClientRect())),
+    vidne: celice.filter(c => !c.classList.contains('izven')).map(idx).sort((p, q) => p - q),
+    x: celice.filter(c => !c.classList.contains('izven') && [...c.querySelectorAll('.kand')].some(s => s.textContent === String(stevka))).map(idx).sort((p, q) => p - q),
+    vrstice: akt('.rob-v'), stolpci: akt('.rob-s'),
+    preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth };
+})()`;
+
+async function vajaPreseka(b, kljuc, n, sirina) {
+  const obrnjeno = n === 1;
+  const s = await b.izvedi(STANJE_PRESEKA), sh = await b.izvedi(PAS_SHEME(kljuc, obrnjeno));
+  const ime = `${kljuc}, vaja ${n + 1}, ${sirina} px`;
+  preveri(`${ime}: oznaka »· po shemi${obrnjeno ? ', obrnjeno' : ''}«`, s.oznaka.endsWith(`· Vaja ${n + 1} / 9 · po shemi${obrnjeno ? ', obrnjeno' : ''}`), s.oznaka);
+  preveri(`${ime}: shema odprta, preslikava med shemo in delno mrežo, vse v kartici`, s.shemaOdprta && s.vrstniRed && s.vKartici, s);
+  preveri(`${ime}: preslikava »… črka x je števka ${s.stevka}.«`, s.stevka >= 1 && s.preslikava === (obrnjeno
+    ? `Vaja po obrnjeni shemi zgoraj – vrstice sheme so stolpci, črka x je števka ${s.stevka}.`
+    : `Vaja po shemi zgoraj – iste celice, črka x je števka ${s.stevka}.`), s.preslikava);
+  preveri(`${ime}: vidne celice = blok in ${obrnjeno ? 'stolpec obrnjene' : 'vrstica'} sheme (${sh.vidne.length})`, JSON.stringify(s.vidne) === JSON.stringify(sh.vidne), [s.vidne, sh.vidne]);
+  preveri(`${ime}: celice z x = celice x sheme v vidnem delu (${sh.x.length})`, JSON.stringify(s.x) === JSON.stringify(sh.x), [s.x, sh.x]);
+  preveri(`${ime}: krepka oznaka roba – ${obrnjeno ? 'stolpec' : 'vrstica'} ${sh.enota + 1}`,
+    JSON.stringify([s.vrstice, s.stolpci]) === JSON.stringify(obrnjeno ? [[], [sh.enota]] : [[sh.enota], []]), [s.vrstice, s.stolpci]);
+  preveri(`${ime}: brez vodoravnega preliva`, !s.preliv);
+  await b.posnetek(path.join(mapa, `${kljuc}-vaja${n + 1}-${sirina}.png`));
+  for (const c of sh.vzorec) await b.klikni(`#exerciseArea .vaja-presek .celica[data-r="${Math.floor(c / 9)}"][data-c="${c % 9}"]`);
+  await klikniGumb(b, 'Preveri');
+  const fb = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .fb'); return { cls: f.className, besedilo: f.textContent,
+    vzorec: [...document.querySelectorAll('#exerciseArea .vaja-presek .celica.k-vzorec')].map(c => +c.dataset.r * 9 + +c.dataset.c).sort((p, q) => p - q) }; })()`);
+  preveri(`${ime}: pravi kliki na celice vzorca → »Pravilno!«, vzorec označen`, fb.cls.split(' ').includes('ok') && fb.besedilo.startsWith('Pravilno!')
+    && JSON.stringify(fb.vzorec) === JSON.stringify(sh.vzorec), fb);
+}
+
 async function main() {
   fs.mkdirSync(mapa, { recursive: true });
   const b = await zazeni();
   try {
     for (const sirina of [375, 1280]) {
+      for (const kljuc of ['pointing', 'box-line']) {
+        console.log(`${kljuc}, ${sirina} px`);
+        await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });
+        await b.izvedi(SEME(20261009));
+        await b.klikni(`.menu-card[data-mode="${kljuc}"]`);
+        await b.cakaj("!!document.querySelector('#exerciseArea .vaja-presek')", 10000);
+        await pocakaj(b);
+        await vajaPreseka(b, kljuc, 0, sirina);
+        await klikniGumb(b, 'Naslednja vaja →');
+        await b.cakaj("!!document.querySelector('#exerciseArea .vaja-presek')", 10000);
+        await vajaPreseka(b, kljuc, 1, sirina);
+      }
       for (const kljuc of ['x-wing', 'swordfish']) {
         console.log(`${kljuc}, ${sirina} px`);
         await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500 });

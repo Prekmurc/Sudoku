@@ -130,9 +130,10 @@ test('5 · Očitna trojica: izbira ob odprti Rešitvi - drug veljaven vzorec zam
   assert.equal(vse(dom).filter(e => e.className === 'legenda-vaje').length, 1, 'ena legenda');
 });
 
+// Vaja 7 (n = 6) - vaji 1 in 2 sta po shemi (docs/trening-ucenje-nacrt.md, del A), mimo MODES[].gen.
 for (const tehnika of ['pointing', 'box-line']) {
   test(`${tehnika}: izbira je ob odprti Rešitvi vidna skupaj z oznakami koraka`, () => {
-    const { dom, run } = zacni(tehnika);
+    const { dom, run } = zacni(tehnika, { n: 6 });
     const celica = run('zadnja.vidne.find(c => !zadnja.grid[c] && !zadnja.solutionCells.includes(c))');
     const mreza = i => run(`presek.mreza.celice[${i}]`);
     gumb(dom, 'Rešitev').sprozi('click');

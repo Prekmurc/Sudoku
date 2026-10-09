@@ -518,6 +518,31 @@ function veljavniVzorci(ex,M){
   return vzorci;
 }
 
+// Motilec na mreži vaje (namig ga omeni samo, kadar je - vaja po shemi ga nima, vaja iz
+// generatorja ga ima). XY-krilo: trojica celic z dvema kandidatoma s pravimi števkami ({a, b},
+// {a, c}, {b, c}), v kateri nobena celica ne vidi obeh drugih (eno krilo pivota ne vidi).
+function motilecXYKrila(ex){
+  const bi=ex.slots.filter(s=>s.c.length===2);
+  const vidi=(p,a,b)=>PEERS[p.idx].has(a.idx)&&PEERS[p.idx].has(b.idx);
+  for(let i=0;i<bi.length;i++) for(let j=i+1;j<bi.length;j++) for(let k=j+1;k<bi.length;k++){
+    const t=[bi[i],bi[j],bi[k]];
+    if(new Set(t.flatMap(s=>s.c)).size!==3||new Set(t.map(s=>s.c.join())).size!==3) continue;
+    if(!vidi(t[0],t[1],t[2])&&!vidi(t[1],t[0],t[2])&&!vidi(t[2],t[0],t[1])) return true;
+  }
+  return false;
+}
+// Edinstveni pravokotnik: trije vogali z istim parom, pravokotnik razpet čez štiri bloke.
+function motilecPravokotnika(ex){
+  const bi=ex.slots.filter(s=>s.c.length===2);
+  for(let i=0;i<bi.length;i++) for(let j=i+1;j<bi.length;j++) for(let k=j+1;k<bi.length;k++){
+    const t=[bi[i].idx,bi[j].idx,bi[k].idx];
+    if(bi[i].c.join()!==bi[j].c.join()||bi[i].c.join()!==bi[k].c.join()) continue;
+    const vr=[...new Set(t.map(c=>Math.floor(c/9)))],st=[...new Set(t.map(c=>c%9))];
+    if(vr.length===2&&st.length===2&&new Set(vr.flatMap(r=>st.map(s=>boxOf(r*9+s)))).size===4) return true;
+  }
+  return false;
+}
+
 // Vaja po shemi (docs/trening-ucenje-nacrt.md, 1.3): pripis k vrstici nad vajo in vrstica s
 // preslikavo črk v števke tik pod razdelkom »Shema« (O2).
 // Pri 11 je vaja 2 zrcaljena levo-desno (O18), pri 9 po prvi oziroma drugi risbi sheme (O8).
@@ -710,12 +735,12 @@ function renderExercise(){
       return `Kandidat ${ex.digit} se v ${kje} pojavlja v celicah: ${withDigit.join(', ')||'(nikjer)'}. Ali vse ležijo v ${seek}?`;
     } else if(M.isXYWing){
       const bi=ex.slots.filter(s=>s.c.length===2).map(s=>`${s.pos} {${s.c.join(', ')}}`);
-      return `Celice z natanko dvema kandidatoma: ${bi.join(', ')}. Pivot je tisti, ki ga <b>obe</b> krili vidita (ista vrstica, stolpec ali blok) – ena trojica ima prave števke, a eno krilo pivota ne vidi.`;
+      return `Celice z natanko dvema kandidatoma: ${bi.join(', ')}. Pivot je tisti, ki ga <b>obe</b> krili vidita (ista vrstica, stolpec ali blok)${motilecXYKrila(ex)?' – ena trojica ima prave števke, a eno krilo pivota ne vidi':''}.`;
     } else if(M.isUR){
       const byPair={};
       ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(', ');(byPair[k]=byPair[k]||[]).push(s.pos);});
       const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
-      return `Pari kandidatov: ${lines}. Trije vogali z istim parom morajo ležati v dveh vrsticah, dveh stolpcih in <b>natanko dveh blokih</b> – če je pravokotnik razpet čez štiri bloke, tehnika ne velja.`;
+      return `Pari kandidatov: ${lines}. Trije vogali z istim parom morajo ležati v dveh vrsticah, dveh stolpcih in <b>natanko dveh blokih</b>${motilecPravokotnika(ex)?' – če je pravokotnik razpet čez štiri bloke, tehnika ne velja':''}.`;
     } else if(M.isXYChain){
       // Namig motorja (O6: števka z in dolžina) in pravilo verige.
       const step=exDigitStep();
@@ -724,7 +749,9 @@ function renderExercise(){
       const byPair={};
       ex.slots.filter(s=>s.c.length===2).forEach(s=>{const k=s.c.join(', ');(byPair[k]=byPair[k]||[]).push(s.pos);});
       const lines=Object.entries(byPair).map(([k,ps])=>`{${k}}: ${ps.join(', ')}`).join(' · ');
-      return `Pari kandidatov: ${lines}. Celici para se <b>ne smeta videti</b> (ne ista vrstica, stolpec ali blok) – za pravi par nato poišči enoto, kjer je druga števka para mogoča samo v dveh celicah, od katerih vsaka vidi po eno celico para.`;
+      // »Za pravi par« samo, kadar je parov v vsaj dveh celicah več (motilec iz generatorja).
+      const vecParov=Object.values(byPair).filter(ps=>ps.length>=2).length>1;
+      return `Pari kandidatov: ${lines}. Celici para se <b>ne smeta videti</b> (ne ista vrstica, stolpec ali blok) – ${vecParov?'za pravi par nato':'nato'} poišči enoto, kjer je druga števka para mogoča samo v dveh celicah, od katerih vsaka vidi po eno celico para.`;
     } else if(M.isTurbot){
       const bit=1<<ex.digit,links=[];
       for(const [units,lbl] of [[ROWS,'V'],[COLS,'S']]) units.forEach((u,i)=>{

@@ -27,8 +27,10 @@ function cellPos(idx){return `V${Math.floor(idx/9)+1}S${idx%9+1}`;}
    na pravih mestih - shared/mreza.js, pogled.vidne). Kandidati so kandidati S0, zato so
    skladni z vidnimi števkami. Odgovor je enoličen: pri dani števki je vzorec v bloku
    (1) oz. v vrstici/stolpcu (2) en sam - to je korak vaje (celice ex.solutionCells).
-   V krogu 9 vaj ima vsaj ena vaja vzorec s tremi celicami (ena naključna vaja v krogu,
-   izbrana ob prvi); ostale imajo trojico po resnični pogostosti (pribl. 1 od 10).
+   Vaji 1 in 2 kroga sta po shemi (genPresekPoShemi() spodaj). V krogu 9 vaj ima vsaj ena
+   vaja vzorec s tremi celicami: pri 1 ena naključna med vajami 3-9 (izbrana ob vaji 1), pri 2
+   sta to vaji 1 in 2 po shemi (O9 v docs/trening-ucenje-nacrt.md); ostale imajo trojico po
+   resnični pogostosti (pribl. 1 od 10).
    Uganka iz banke je izbrana kot v "Vadi v uganki" (izberiIzBanke(), točka 16 v
    docs/vadi-v-uganki-nacrt.md): najprej osnovna stopnja tehnike (Srednja), nato višje,
    zapisi se v seji ne ponavljajo, dokler jih je. */
@@ -102,11 +104,16 @@ function presekTrojicaIzBanke(mode,uganke){
   return null;
 }
 
-// n = številka vaje v krogu (0-8), mode = 'pointing' ali 'box-line'.
+// Vaja s tremi celicami v krogu (O9 v docs/trening-ucenje-nacrt.md): vaji 1 in 2 sta po shemi - pri 1 para,
+// zato se trojica izbere med vajami 3-9; pri 2 sta že trojici, zato se nobena ne vsili (-1).
+function trojicaKroga(mode){return mode==='pointing'?randInt(2,PRESEK_V_KROGU-1):-1;}
+
+// n = številka vaje v krogu (0-8), mode = 'pointing' ali 'box-line'. Vaji 1 in 2 kroga sta po
+// shemi (genPoShemi()); genPresek(0) izbere trojico kroga, kadar vaje po shemi ni.
 function genPresek(n,mode){
   const kljuc=PRESEK_KLJUC[mode];
   const uganke=VAJE_BANKA.filter(z=>z.tehnike.includes(kljuc));
-  if(n%PRESEK_V_KROGU===0) presekTrojica[mode]=randInt(0,PRESEK_V_KROGU-1);
+  if(n%PRESEK_V_KROGU===0) presekTrojica[mode]=trojicaKroga(mode);
   if(n%PRESEK_V_KROGU===presekTrojica[mode]){
     const ex=presekTrojicaIzBanke(mode,uganke);
     if(ex) return ex;
@@ -550,8 +557,9 @@ function genSwordfish(n){
    brez sheme in pri tehniki, za katero vaja po shemi še ni narejena - takrat je vaja M.gen(n).
    Vaja ima ista polja kot vaja iste tehnike iz generatorja in še poShemi = { obrnjeno, crke }
    (crke: [[črka, števka]] - preslikava za vrstico nad mrežo; pri 3-6 še vrstica: true - shema je ena
-   vrstica; pri 11 vaja 2 zrcaljeno: true namesto obrnjeno - O18; pri 9 risba = { st, ime } - O8).
-   Korak 2: 7 · X-krilo, 8 · Mečarica; korak 3: 3-6; korak 4: 9-13. */
+   vrstica; pri 11 vaja 2 zrcaljeno: true namesto obrnjeno - O18; pri 9 risba = { st, ime } - O8;
+   pri 1 in 2 seme - seme uganke s seznama PRESEK_PO_SHEMI).
+   Korak 2: 7 · X-krilo, 8 · Mečarica; korak 3: 3-6; korak 4: 9-13; korak 5: 1, 2. */
 // Obrat čez glavno diagonalo: VrSc -> VcSr (celica 0-80).
 function obrniCelico(i){return (i%9)*9+Math.floor(i/9);}
 
@@ -751,10 +759,118 @@ function genPolnaPoShemi(mode,n){
   return null;
 }
 
+// 1 in 2: stanje prave uganke, premaknjeno na mesta sheme (1.6 v načrtu, O4, O5) - pri 1 blok 1 in
+// vrstica 1, vzorec V1S1 in V1S3, izbrisa V1S4 in V1S8; pri 2 blok 2 in vrstica 2, vzorec V2S4-V2S6,
+// izbrisa V1S5 in V3S4; vaja 2 je obrnjena čez diagonalo (O16). Uganka je genMinimalnaUganka(seme) za
+// seme s seznama PRESEK_PO_SHEMI - izpiše ga (z --zapisi zapiše) orodje tools/izberi-vaje-po-shemi.js
+// iz banke vaj, ne na pamet; test preveri, da vsako seme še da primeren korak. Ob spremembi motorja ali
+// generatorja se orodje požene znova (kot pri banki vaj). Iz uganke se vzame prvi primeren korak na
+// poti (stanjaVUganki()): oblika sheme (oblikaPresekaPoShemi()) in na delni mreži edini s to števko
+// (presekEnolicen()). Stanje (dane števke, vpisi, kandidati) se premakne s simetrijo sudokuja: korak v
+// stolpcu se obrne v vrstico, nato zamenjave pasov, vrstic v pasu, skladov in stolpcev v skladu (proste
+// izbire naključno) in naključna zamenjava števk (O1); korak se na premaknjenem stanju znova poišče z
+// motorjem (vajaIzStanja()) - to je hkrati preverba. Vaja 2 vzame drugo seme kot vaja 1 kroga (O17).
+const PRESEK_PO_SHEMI={pointing:[53,68,135,194,206,208,219,226,249,258,330,343,434,478,550,572,647,866,1171,1369,1478,2007,2439,2448,3000,3431,4162,4177,4220,5026,7417,10676,11817,12095,12108,13083,16755,20538],'box-line':[3,92,194,621,15587]};
+const presekPoShemiSeme={pointing:null,'box-line':null};
+
+// Korak z obliko sheme (pri 1 par in en izbris v vsakem od drugih dveh skladov, pri 2 trojica in
+// izbrisa v drugih dveh vrsticah bloka in v različnih stolpcih - v smeri vrstice) ali null. Vrne
+// { t, celice, izbrisi }: t obrne korak v stolpcu v vrstico, celice in izbrisi so že obrnjeni.
+function oblikaPresekaPoShemi(mode,korak){
+  const t=enoteKorakaPreseka(mode,korak).jeVrstica?(i=>i):obrniCelico;
+  const celice=korak.cells.map(t),izbrisi=korak.eliminate.map(([c])=>t(c));
+  const vr=i=>Math.floor(i/9),st=i=>i%9,sklad=i=>Math.floor(i%9/3);
+  if(izbrisi.length!==2) return null;
+  if(mode==='pointing'){
+    if(celice.length!==2||sklad(izbrisi[0])===sklad(izbrisi[1])) return null;
+  } else if(celice.length!==3||vr(izbrisi[0])===vr(izbrisi[1])||st(izbrisi[0])===st(izbrisi[1])) return null;
+  return{t,celice,izbrisi};
+}
+
+// Premestitev vrstic (ali stolpcev), ki ohrani pasove: dolocene = Map(stara -> nova); pasovi in vrstice
+// v pasu, ki niso določeni, se razporedijo naključno. Vrne preslikavo 0-8 -> 0-8.
+function premestitevEnot(dolocene){
+  const pas=new Map();
+  for(const[s,n] of dolocene) pas.set(Math.floor(s/3),Math.floor(n/3));
+  const prosti=shuffle([0,1,2].filter(p=>![...pas.values()].includes(p)));
+  for(const p of [0,1,2]) if(!pas.has(p)) pas.set(p,prosti.pop());
+  const m=[];
+  for(const p of [0,1,2]){
+    const stare=[0,1,2].map(i=>p*3+i);
+    const zasedene=stare.filter(s=>dolocene.has(s)).map(s=>dolocene.get(s));
+    const proste=shuffle([0,1,2].map(i=>pas.get(p)*3+i).filter(n=>!zasedene.includes(n)));
+    for(const s of stare) m[s]=dolocene.has(s)?dolocene.get(s):proste.pop();
+  }
+  return m;
+}
+
+// Preslikava celic uganke na mesta sheme (vaja 1) za korak z obliko sheme.
+function preslikavaPresekaNaShemo(mode,oblika){
+  const{celice,izbrisi}=oblika,vr=i=>Math.floor(i/9),st=i=>i%9;
+  const[e1,e2]=shuffle([...izbrisi]);
+  let vrstice,stolpci;
+  if(mode==='pointing'){
+    const[p1,p2]=shuffle([...celice]);
+    vrstice=new Map([[vr(p1),0]]);
+    stolpci=new Map([[st(p1),0],[st(p2),2],[st(e1),3],[st(e2),7]]);
+  } else {
+    vrstice=new Map([[vr(celice[0]),1],[vr(e1),0],[vr(e2),2]]);
+    stolpci=new Map([[st(e1),4],[st(e2),3]]);
+  }
+  const mv=premestitevEnot(vrstice),ms=premestitevEnot(stolpci);
+  return i=>{const j=oblika.t(i);return mv[vr(j)]*9+ms[st(j)];};
+}
+
+// Prvi primeren korak uganke: { stanje, stopnja, korak } ali null (tudi za orodje).
+function primerenKorakPreseka(mode,danosti){
+  const kljuc=PRESEK_KLJUC[mode];
+  const{stanja,stopnja}=stanjaVUganki(danosti,kljuc);
+  for(const stanje of stanja){
+    const v=vajaIzStanja(danosti,kljuc,stanje,stopnja);
+    const korak=v&&v.KT.find(k=>oblikaPresekaPoShemi(mode,k)&&presekEnolicen(mode,v,k));
+    if(korak) return{stanje,stopnja,korak};
+  }
+  return null;
+}
+
+// Vaja 1 (obrnjeno = false) ali 2 iz uganke semena ali null.
+function presekPoShemiIzSemena(mode,seme,obrnjeno){
+  const danosti=genMinimalnaUganka(seme);
+  const p=primerenKorakPreseka(mode,danosti);
+  if(!p) return null;
+  const naShemo=preslikavaPresekaNaShemo(mode,oblikaPresekaPoShemi(mode,p.korak));
+  const P=obrnjeno?i=>obrniCelico(naShemo(i)):naShemo;
+  const sd=[0,...shuffle([1,2,3,4,5,6,7,8,9])]; // sd[d] = nova števka (0 ostane 0)
+  const maska=m=>{let n=0;for(let d=1;d<=9;d++)if(m&(1<<d))n|=1<<sd[d];return n;};
+  const D=[],grid=[],cand=[];
+  for(let i=0;i<81;i++){const j=P(i);D[j]=String(sd[+danosti[i]]);grid[j]=sd[p.stanje.grid[i]];cand[j]=maska(p.stanje.cand[i]);}
+  const kljuc=PRESEK_KLJUC[mode];
+  const v=vajaIzStanja(D.join(''),kljuc,{grid,cand},p.stopnja);
+  if(!v) return null;
+  const urejeno=a=>[...a].sort((x,y)=>x-y).join();
+  const celice=urejeno(p.korak.cells.map(P)),izbrisi=urejeno(p.korak.eliminate.map(([c,d])=>P(c)*10+sd[d]));
+  const k=v.KT.find(k=>urejeno(k.cells)===celice&&urejeno(k.eliminate.map(([c,d])=>c*10+d))===izbrisi);
+  if(!k||!presekEnolicen(mode,v,k)) return null;
+  return Object.assign(vajaPreseka(mode,v,k),{poShemi:{obrnjeno,crke:[['x',k.eliminate[0][1]]],seme}});
+}
+
+// Vaji 1 in 2 kroga: naključno seme s seznama (vaja 2 drugo kot vaja 1). Ob vaji 1 se izbere še vaja s
+// tremi celicami v krogu (trojicaKroga(), O9).
+function genPresekPoShemi(mode,n){
+  if(n===0) presekTrojica[mode]=trojicaKroga(mode);
+  const semena=PRESEK_PO_SHEMI[mode].filter(s=>n===0||s!==presekPoShemiSeme[mode]);
+  for(const seme of shuffle([...semena])){
+    const ex=presekPoShemiIzSemena(mode,seme,n===1);
+    if(ex){if(n===0)presekPoShemiSeme[mode]=seme;return ex;}
+  }
+  return null;
+}
+
 // Vaja po shemi za vajo n kroga (0 = vaja 1, 1 = vaja 2) ali null (vaja je M.gen(n)).
 function genPoShemi(mode,n){
   if(n!==0&&n!==1) return null;
   if(typeof SHEME_TEHNIK==='undefined'||!SHEME_TEHNIK[mode]) return null;
+  if(PRESEK_KLJUC[mode]) return genPresekPoShemi(mode,n);
   if(mode==='x-wing'||mode==='swordfish') return genRibaPoShemi(mode,n===1);
   if(PODMNOZICE_FN[mode]) return genPodmnozicaPoShemi(mode,n===1);
   if(POLNA_FN[mode]) return genPolnaPoShemi(mode,n);
