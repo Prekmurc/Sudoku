@@ -24,7 +24,7 @@ const APLIKACIJE = {
   },
   trening: {
     datoteke: ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
-      'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'],
+      'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/izbris.js', 'trening/trening.js'],
     okno: 'pomocDialog', gumbi: ['pomocBtn'], tehnike: 'pomocTehnike',
   },
 };

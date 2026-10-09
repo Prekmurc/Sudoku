@@ -23,7 +23,7 @@ const { makeDom } = require('./dom-stub.js');
 const { spremljajVajo, odgovoriPravilno, dokoncajDrugoFazo } = require('./odgovor-spoznaj.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
-  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
+  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/izbris.js', 'trening/trening.js'];
 const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2B79F5) | 0;
   let t = Math.imul(seme ^ (seme >>> 15), 1 | seme); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
@@ -192,7 +192,8 @@ test('4 · Skriti par: pravilna 1. faza Rešitev pusti, pravilna 2. faza jo zapr
   gumb(dom, 'Rešitev').sprozi('click');
   run('selected = [...zadnja.targetSlots]');
   gumb(dom, 'Preveri').sprozi('click');
-  assert.match(fb(dom).innerHTML, /Celici sta pravilni!/);
+  // Besedilo po pravilni 1. fazi od naloge 4b, korak 2 (docs/izbris-nacrt.md, O11; prej »Celici sta pravilni!«).
+  assert.match(fb(dom).innerHTML, /Vzorec je pravilen\./);
   assert.deepEqual(gumbaPomoci(dom), [['Namig', 'false'], ['Skrij rešitev', 'true']], 'vaja še ni rešena');
   dokoncajDrugoFazo(dom, run);
   assert.match(fb(dom).innerHTML, /Pravilno!/);

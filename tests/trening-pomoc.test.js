@@ -21,7 +21,7 @@ const { spremljajVajo, odgovoriPravilno } = require('./odgovor-spoznaj.js');
 
 // Vrstni red kot <script> v trening/index.html.
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
-  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
+  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/izbris.js', 'trening/trening.js'];
 
 // Math.random s stalnim semenom: vaja (in z njo npr. polna vrstica 1) je ob vsakem zagonu ista.
 const SEME = s => `{ let seme = ${s}; Math.random = () => { seme = (seme + 0x6D2B79F5) | 0;

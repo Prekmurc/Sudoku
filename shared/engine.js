@@ -774,7 +774,7 @@ function oznakaTehnike(kljuc) {
 //   (trening/index.html ima nadomestek, enak polju; izpolni ga trening.js),
 // - razlaga: kako vzorec prepoznaš,
 // - posledica: kaj izbrišeš (pri enojčkih vpišeš) in zakaj,
-// - navodilo: kaj izbereš v vaji "Spoznaj".
+// - navodilo: kaj izbereš v vaji "Spoznaj" (od naloge 4b pri 3-6 še 2. faza - izbris, docs/izbris-nacrt.md).
 // Razlaga in posledica sta v treningu v zložljivem razdelku "Razlaga" pod nalogo, v igri v
 // oknu Pomoč (opisTehnike()); pod nalogo je povzetek z navodilom (opisVaje()).
 // Pravila besedil (faza 6): glagol "izbriši" (ne "odstrani", "izloči"), druga oseba ednine,
@@ -803,7 +803,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Dve celici v isti vrstici, stolpcu ali bloku imata natanko ista dva kandidata {x, y} – x in y izbrišeš iz drugih celic te vrstice, stolpca ali bloka.',
     razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej dve celici, ki imata natanko ista dva kandidata {x, y} in nobenega drugega.',
     posledica: 'V eni celici bo x, v drugi y – drugih možnosti nimata. Zato x in y v enoti ne moreta biti nikjer drugje: iz vseh drugih celic enote ju izbrišeš.',
-    navodilo: 'Izberi obe celici para.',
+    navodilo: 'Izberi obe celici para, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   'hidden-pair': {
     ime: 'Skriti par',
@@ -811,7 +811,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Dve števki sta v vrstici, stolpcu ali bloku mogoči samo v istih dveh celicah – iz teh dveh celic izbrišeš vse druge kandidate.',
     razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej dve števki, ki sta mogoči samo v istih dveh celicah. V teh celicah so lahko še drugi kandidati, zato se par na prvi pogled ne vidi – je skrit.',
     posledica: 'Obe števki morata biti v enoti, mogoči pa sta samo v teh dveh celicah – torej ju zasedeta. Za druge števke v teh dveh celicah ni prostora: iz obeh celic izbrišeš vse druge kandidate.',
-    navodilo: 'Izberi obe celici, nato še obe števki para.',
+    navodilo: 'Izberi obe celici para, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   'pointing': {
     ime: 'Izločitev izven bloka',
@@ -835,7 +835,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Tri celice v isti vrstici, stolpcu ali bloku imajo skupaj samo tri različne kandidate – te tri števke izbrišeš iz drugih celic te vrstice, stolpca ali bloka.',
     razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej tri celice, ki imajo skupaj samo tri različne kandidate {x, y, z}. Posamezna celica ima lahko vse tri ali samo dva od njih, npr. {x, y}, {y, z} in {x, z}.',
     posledica: 'Tri celice potrebujejo tri različne števke, na voljo pa imajo samo x, y in z – torej jih zasedejo. Zato teh treh števk v enoti ni nikjer drugje: iz vseh drugih celic enote jih izbrišeš.',
-    navodilo: 'Izberi vse tri celice trojice.',
+    navodilo: 'Izberi vse tri celice trojice, nato izbriši kandidate, ki zaradi nje odpadejo.',
   },
   'hidden-triple': {
     ime: 'Skrita trojica',
@@ -843,7 +843,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Tri števke so v vrstici, stolpcu ali bloku mogoče samo v istih treh celicah – iz teh celic izbrišeš vse druge kandidate.',
     razlaga: 'Poglej enoto – vrstico, stolpec ali blok. Poišči v njej tri števke, ki so mogoče samo v istih treh celicah. Posamezna števka je lahko mogoča tudi samo v dveh od teh celic, v celicah pa so lahko še drugi kandidati – zato je trojica skrita.',
     posledica: 'Vse tri števke morajo biti v enoti, mogoče pa so samo v teh treh celicah – torej jih zasedejo. Za druge števke v njih ni prostora: iz teh treh celic izbrišeš vse druge kandidate.',
-    navodilo: 'Izberi vse tri celice, nato še vse tri števke trojice.',
+    navodilo: 'Izberi vse tri celice trojice, nato izbriši kandidate, ki zaradi nje odpadejo.',
   },
   'x-wing': {
     ime: 'X-krilo',

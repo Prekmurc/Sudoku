@@ -29,7 +29,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, vaja3, NAVODILA_NAZAJ } = require('./primerjava-slogov.js');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
@@ -289,11 +289,13 @@ async function izris(b, mode, sirina) {
   return b.izvedi(`(() => {
     // Razdelek »Shema« (faza 3a) v izhodišču ni - med meritvijo je skrit (višina kartice je
     // potem kot v izhodišču), primerja se vse drugo. Enako vrstica z imenom tehnike (.ex-label):
-    // od popravkov po koraku 1 faze 3a je večja in temna.
+    // od popravkov po koraku 1 faze 3a je večja in temna. Razdelek .phase2 (izbira števk pri 4 in 6) je
+    // samo v izhodiščih pred nalogo 4b, korak 2 (docs/izbris-nacrt.md, O5) - izvzet izrecno.
+    ${NAVODILA_NAZAJ}
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
-    k.querySelectorAll('.shema-razdelek, .peek-row').forEach(e => e.remove());
-    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row')]; sk.forEach(e => { e.style.display = 'none'; });
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    k.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     return { html: k.innerHTML, slogi };
   })()`);

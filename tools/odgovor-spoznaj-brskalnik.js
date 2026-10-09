@@ -5,7 +5,7 @@
 // funkcija teče tudi v izhodišču (primerjave z izhodiščem), zato faze prepozna iz strani, ne iz
 // različice kode.
 //
-// Zdaj: 1. faza je izbira celic vzorca in »Preveri«; pri 4 · Skriti par in 6 · Skrita trojica sledi
+// 1. faza je izbira celic vzorca in »Preveri«; od koraka 2 sledi pri 3–6 2. faza – izbris. V izhodiščih pred korakom 2 pri 4 · Skriti par in 6 · Skrita trojica sledi
 // še izbira števk vzorca (razdelek .phase2) in »Preveri dve števki« / »Preveri tri števke«.
 //
 //   spremljajVajo(b)    – po b.odpri() strani treninga, pred izrisom vaje: window.vajaNaZaslonu je vaja,
@@ -35,8 +35,24 @@ async function klikniGumb(b, napis) {
   await odmakniMisko(b);
 }
 
-// 2. faza pri 4 in 6 (razdelek .phase2 je viden šele po sprejeti 1. fazi). Vrne števke 2. faze ali null.
+// 2. faza: izbris (niz .izbris-faza, od koraka 2 pri 3–6) – po števkah Escape, pravi kliki celic izbrisa
+// sprejetega vzorca (izbrisVaje.izbris) in pravi klik gumba števke, nato »Preveri«; vrne oznake kot
+// ["si:d", ...]. V kodi pred korakom 2 pri 4 in 6 izbira števk (razdelek .phase2 je viden šele po
+// sprejeti 1. fazi) – vrne števke. Brez 2. faze null.
 async function dokoncajDrugoFazo(b) {
+  const pari = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .izbris-faza');
+    return f && !f.hidden && typeof izbrisVaje !== 'undefined' && izbrisVaje ? izbrisVaje.izbris : null; })()`);
+  if (pari) {
+    for (const d of [...new Set(pari.map(([, x]) => x))]) {
+      await b.tipka('Escape', { code: 'Escape' });
+      for (const [si] of pari.filter(([, x]) => x === d)) await b.klikni(`#exerciseArea .gc[data-si="${si}"]`);
+      await b.klikni(`#exerciseArea .izbris-faza button[data-d="${d}"]`);
+      await odmakniMisko(b);
+    }
+    await b.tipka('Escape', { code: 'Escape' });
+    await klikniGumb(b, 'Preveri');
+    return pari.map(([si, d]) => `${si}:${d}`);
+  }
   const ds = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .phase2');
     if (!f || getComputedStyle(f).display === 'none') return null;
     if (!window.vajaNaZaslonu) return 'brez';

@@ -22,7 +22,7 @@ const RESEVALEC = ['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', '
   'shared/generator.js', 'shared/pomoc.js', 'shared/sheme.js', 'app/app.js', 'app/zbirka.js'];
 const MREZA = ['shared/engine.js', 'shared/stanje.js', 'shared/mreza.js'];
 const TRENING = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
-  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
+  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/izbris.js', 'trening/trening.js'];
 const MESTA = [5, 8, 2, 4, 6, 1, 3, 7, 9];
 const mestoStevilke = maska => MESTA.find(d => !(maska & (1 << d)));
 const L = i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`;

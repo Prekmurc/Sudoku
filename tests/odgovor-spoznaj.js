@@ -4,8 +4,10 @@
 // pravilno, gredo prek njih, zato naslednji koraki načrta (2. faza – izbris) spremenijo samo to
 // datoteko, ne pričakovanj testov.
 //
-// Zdaj: 1. faza je izbira celic vzorca in »Preveri«; pri 4 · Skriti par in 6 · Skrita trojica
-// sledi še izbira števk vzorca in »Preveri dve števki« / »Preveri tri števke«.
+// 1. faza je izbira celic vzorca in »Preveri«. Od koraka 2 sledi pri 3–6 2. faza – izbris: niz
+// »Izbriši kandidata« (.izbris-faza); kandidati izbrisa sprejetega vzorca (izbrisVaje.izbris) se
+// označijo po števkah (izbira celic, gumb števke) in »Preveri«. Pred korakom 2 je pri 4 · Skriti par
+// in 6 · Skrita trojica sledila izbira števk vzorca (razdelek .phase2) – funkcija prepozna oboje.
 //
 //   spremljajVajo(run)        – pred izrisom vaje: vajaNaZaslonu (v kontekstu) je vaja, ki jo je
 //                               izrisal renderExercise() – iz genPoShemi() ali MODES[].gen;
@@ -42,8 +44,20 @@ function izberiVzorec(run) {
       : [...ex.targetSlots]; }`);
 }
 
-// 2. faza pri 4 in 6 (razdelek .phase2 je viden šele po sprejeti 1. fazi).
+// 2. faza: izbris (niz .izbris-faza, ki ni skrit) ali – v kodi pred korakom 2 – izbira števk pri 4 in 6
+// (razdelek .phase2 je viden šele po sprejeti 1. fazi).
 function dokoncajDrugoFazo(dom, run) {
+  const izbris = vsi(dom.el('exerciseArea')).find(e => e.classList && e.classList.contains('izbris-faza') && !e.hidden);
+  if (izbris) {
+    const pari = JSON.parse(run('JSON.stringify(izbrisVaje.izbris)'));
+    for (const d of [...new Set(pari.map(([, x]) => x))]) {
+      run(`izbrisVaje.pocistiIzbiro(); izbrisVaje.izbris.filter(([, x]) => x === ${d}).forEach(([c]) => izbrisVaje.izberi(c));`);
+      vsi(izbris).find(e => e.tagName === 'BUTTON' && String(e.dataset.d) === String(d)).sprozi('click');
+    }
+    run('izbrisVaje.pocistiIzbiro()');
+    gumb(dom, 'Preveri').sprozi('click');
+    return;
+  }
   const faza2 = vsi(dom.el('exerciseArea')).find(e => e.className === 'phase2');
   if (!faza2 || faza2.style.display !== 'block') return;
   if (!run('vajaNaZaslonu')) throw new Error('spremljajVajo() pred izrisom vaje');

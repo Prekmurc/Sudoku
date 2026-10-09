@@ -16,6 +16,15 @@ function enako(a, b) {
   return x.length === y.length && x.every((v, i) => Math.abs(v - y[i]) < 0.05);
 }
 
+// Opisi tehnik iz shared/engine.js (povzetek in sedanje navodilo) in navodila pred nalogo 4b (izhodišča).
+const OPISI = JSON.parse(require('../tests/load-engine.js').loadContext(['shared/engine.js']).run('JSON.stringify(TEHNIKE_OPISI)'));
+const NAVODILA_PRED_4B = {
+  'naked-pair': 'Izberi obe celici para.',
+  'hidden-pair': 'Izberi obe celici, nato še obe števki para.',
+  'naked-triple': 'Izberi vse tri celice trojice.',
+  'hidden-triple': 'Izberi vse tri celice, nato še vse tri števke trojice.',
+};
+
 // Namerne razlike od izhodišča (popravka 5 in 6 po ročnem pregledu naloge 4a, docs/trening-ucenje-nacrt.md,
 // razdelek 7): besedila W-krila s črkama x, y (prej a, b) in barva območja #1565C0 (prej #1D3F6B - oznake roba
 // pri E1/E2). Pred primerjavo se v novem izrisu preslikajo nazaj, vse drugo se primerja kot prej; spremembi
@@ -29,6 +38,12 @@ const ZNANE_RAZLIKE = [
     'Celici para ne moreta biti obe b: obe celici povezave bi takrat videli b in v povezavi b ne bi bil mogoč nikjer. Torej je vsaj v eni celici para a. Iz vseh celic, ki vidijo obe celici para, a izbrišeš.'],
   ['rgb(21, 101, 192)', 'rgb(29, 63, 107)'],
 ];
+// Navodila vaj z 2. fazo (naloga 4b, docs/izbris-nacrt.md, O11 in D1): besedilo pod nalogo (.desc) je povzetek in
+// navodilo; povzetek se ne spremeni, zato se preslika cela poved (navodilo 3 in 4 ter 5 in 6 je zdaj enako). Daljše
+// navodilo se lahko prelomi v vrstico več, zato se preslika v strani, pred meritvijo (izraz NAVODILA_NAZAJ na
+// začetku kode zajema izrisa) - tudi višine so potem kot v izhodišču; v izhodišču se nič ne spremeni.
+const NAVODILA = Object.entries(NAVODILA_PRED_4B).map(([m, prej]) => [`${OPISI[m].povzetek} ${OPISI[m].navodilo}`, `${OPISI[m].povzetek} ${prej}`]);
+const NAVODILA_NAZAJ = `document.querySelectorAll('#exerciseArea .exercise > .desc').forEach(p => { const m = ${JSON.stringify(NAVODILA)}.find(([n]) => n === p.textContent); if (m) p.textContent = m[1]; });`;
 const nazaj = s => ZNANE_RAZLIKE.reduce((t, [n, st]) => t.split(n).join(st), s);
 
 function razlikeIzrisa(star, nov, lastnosti) {
@@ -73,4 +88,4 @@ async function vaja3(b, seme) {
     presekUporabljene.pointing.clear(); presekUporabljene['box-line'].clear(); ${seme}; renderExercise(); true`);
 }
 
-module.exports = { razlikeIzrisa, odmakniMisko, vaja3 };
+module.exports = { razlikeIzrisa, odmakniMisko, vaja3, NAVODILA_NAZAJ };

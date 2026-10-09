@@ -1489,7 +1489,7 @@ const MODES={
   'naked-pair':{gen:genNakedPair,selClass:'selected-amber',hlClass:'hl-amber',btnClass:'pri-amber',pickN:2,showCandidateCount:true},
   'hidden-pair':{gen:genHiddenPair,selClass:'selected-purple',hlClass:'hl-purple',btnClass:'pri-purple',pickN:2,hasPhase2:true,showCandidateCount:true},
   'naked-triple':{gen:genNakedTriple,selClass:'selected-teal',hlClass:'hl-teal',btnClass:'pri-teal',pickN:3,showCandidateCount:true},
-  'hidden-triple':{gen:genHiddenTriple,selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,phase2pick:3,showCandidateCount:true},
+  'hidden-triple':{gen:genHiddenTriple,selClass:'selected-steel',hlClass:'hl-steel',btnClass:'pri-steel',pickN:3,hasPhase2:true,showCandidateCount:true},
   'x-wing':{gen:genXWing,selClass:'selected-rose',hlClass:'hl-rose',btnClass:'pri-rose',pickN:4,isXWing:true,showCandidateCount:false},
   'swordfish':{gen:genSwordfish,selClass:'selected-forest',hlClass:'hl-forest',btnClass:'pri-forest',pickN:9,isSwordfish:true,showCandidateCount:false},
   'turbot-fish':{gen:genTurbotFish,selClass:'selected-plum',hlClass:'hl-plum',btnClass:'pri-plum',isTurbot:true,pickN:4,showCandidateCount:false},

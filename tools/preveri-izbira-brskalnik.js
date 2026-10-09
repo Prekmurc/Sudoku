@@ -35,7 +35,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
-const { razlikeIzrisa, odmakniMisko, vaja3 } = require('./primerjava-slogov.js');
+const { razlikeIzrisa, odmakniMisko, vaja3, NAVODILA_NAZAJ } = require('./primerjava-slogov.js');
 const { spremljajVajo, dokoncajOdgovor } = require('./odgovor-spoznaj-brskalnik.js');
 
 const args = process.argv.slice(2);
@@ -226,10 +226,11 @@ async function prekrivanjeMeritev(b) {
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
 // Razdelek »Shema« (faza 3a) v izhodišču ni, vrstica z imenom tehnike (.ex-label) je od popravkov
-// po koraku 1 faze 3a večja in temna - med meritvijo sta skrita, primerja se vse drugo.
-const izris = (b, mode) => b.izvedi(`(() => { const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-label, #exerciseArea .peek-row')]; sk.forEach(e => { e.style.display = 'none'; });
-  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row')), ocitni = ${OCITNI.includes(mode)};
-  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek, .peek-row').forEach(e => e.remove());
+// po koraku 1 faze 3a večja in temna - med meritvijo sta skrita, primerja se vse drugo. Razdelek .phase2
+// (izbira števk pri 4 in 6) je samo v izhodiščih pred nalogo 4b, korak 2 (docs/izbris-nacrt.md, O5) - izvzet izrecno.
+const izris = (b, mode) => b.izvedi(`(() => { ${NAVODILA_NAZAJ} const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-label, #exerciseArea .peek-row, #exerciseArea .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
+  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')), ocitni = ${OCITNI.includes(mode)};
+  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
   const dovoljeno = {};
   vsi.forEach((e, i) => {
     if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];

@@ -6,7 +6,7 @@
 const JS = [
   'app/app.js', 'app/zbirka.js',
   'igra/igra.js', 'igra/shramba.js', 'igra/generator-worker.js', 'igra/oceni-worker.js',
-  'trening/trening.js', 'trening/generators.js', 'trening/v-uganki.js',
+  'trening/trening.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/izbris.js',
   'shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js',
   'shared/zbirka.js', 'shared/zbirka-ui.js', 'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js',
 ];

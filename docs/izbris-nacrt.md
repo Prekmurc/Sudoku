@@ -1,8 +1,8 @@
 # Spoznaj: druga faza – izbris (naloga 4b) – načrt
 
 Načrt 2026-10-09 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4b – dodana ob ročnem pregledu
-naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); korak 1 narejen
-(razdelek 9).
+naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); koraka 1 in 2
+narejena (razdelek 9).
 
 Izhodišče: commit `705349a` (zaključek naloge 4a).
 
@@ -506,4 +506,47 @@ Aplikacija ni spremenjena (`app/`, `igra/`, `trening/`, `shared/` brez sprememb,
   `-vklop-brskalnik.js` (»Spoznaj« 13). `preveri-videz-brskalnik.js` v »Spoznaj« ne odgovarja.
   - **Odstopanje:** `preveri-izbira-brskalnik.js` je števke 2. faze pri 4 in 6 bral iz besedila »Rešitve«, zdaj jih
     da vaja (`targetDigits`) – v izhodišču in novi kodi enako.
+
+### Korak 2 – osnova 2. faze in 3–6 (2026-10-09)
+
+Korak ni razdeljen (D3) – 3–6 skupaj z osnovo.
+
+- **`trening/izbris.js`** (O13, naloži se za `trening/v-uganki.js` in pred `trening/trening.js`): `presodiIzbris(izbris,
+  oznake)` → `{ izid: 'prazno' | 'napacno' | 'delno' | 'pravilno', manjka }`, besedila (`IZBRIS_VZOREC_PRAVILEN`,
+  `IZBRIS_PRAZEN_VZOREC`, `sporociloIzbrisa()` – »Še ne. Označeni kandidati res odpadejo, manjkata pa še 2 izbrisa.«,
+  napačno s posledico tehnike), `namigIzbrisa()` (O8 – »Izbrisati je treba 6 kandidatov – števki 3 in 8.«) in
+  `ustvariIzbris()` – niz »Izbriši kandidata · ↺ = vrni« (slogi `.niz-odstrani` iz `shared/plosca.css`) z vrstico za razlog,
+  izbira celic (vse celice s kandidati, tudi celice vzorca), presek (O2a), ↺, tipkovnica (Shift+števka po `e.code`,
+  Escape; števka brez Shift nič). Ključ oznake je celica · 10 + števka.
+- **`trening/trening.js`:** pri 3–6 pravilna 1. faza ne šteje več in vodi v 2. fazo (`zacniIzbris()`): celice vzorca
+  zelene, izbira 1. faze se izprazni, »Vzorec je pravilen. Zdaj izbriši kandidate, ki zaradi njega odpadejo.«, niz nad
+  vrstico gumbov; »Preveri« ostane in presodi oznake (`checkIzbris()`). Pravilna 2. faza – vaja rešena, niz se skrije in
+  odstrani iz DOM-a, končno stanje je enako kot pred nalogo po pravilnem odgovoru (razredi v istem vrstnem redu, pri 4 in 6
+  mreža neklikljiva kot prej, izbira 1. faze obnovljena za »Rešitev« po odgovoru). Pri 4 in 6 odpadeta razdelek `.phase2` in
+  `checkPhase2()` (O5), napačna 1. faza šteje (O7). Pri 3 in 5 je izbris izbris sprejetega vzorca (O10), varovalo za prazen
+  izbris – vaja rešena po 1. fazi s »Ta vzorec ne izbriše nobenega kandidata.« Namig in Rešitev v 2. fazi (O8, O9;
+  `legendaIzbrisa()`), osvežitev Rešitve ob oznaki, tipkovnica v 2. fazi (poslušalec `keydown`).
+- **`trening/trening.css`:** `.cd.oznaka` (videz `elim`), `.cd.oznaka.peek-napacna` (brez črte, obroč
+  `--okvir-napacno`), izbrana celica v 2. fazi `.gc.izbrana-izbris` (modra; na zeleni celici vzorca zelena podlaga z
+  modrim okvirjem 3 px – izbira je ločen razred, zato se končni videz `.gc.correct` ne spremeni), niz `.izbris-faza`
+  (gumbi v širini kartice), vzorček legende `.napacna-vzorec`.
+- **`shared/engine.js`:** `TEHNIKE_OPISI[].navodilo` za 3–6 (»Izberi obe celici para, nato izbriši kandidate, ki zaradi
+  njega odpadejo.«, pri trojicah »… vse tri celice trojice …, ki zaradi nje odpadejo.«).
+- **Testi:** nov `tests/trening-izbris.test.js` (24 testov; na kodi pred korakom jih pade 21 – zeleni so samo čista presoja,
+  krog 9 / 9 in pomožna funkcija, ki delujejo tudi na stari kodi). `tests/odgovor-spoznaj.js` opravi 2. fazo izbrisa
+  (prepozna niz `.izbris-faza`) ali staro izbiro števk. `trening/izbris.js` je dodan na sezname skript v testih in v
+  `tests/besedila-js.js`.
+  - **Odstopanje:** `tests/trening-stikalo.test.js` (»4 · Skriti par: pravilna 1. faza Rešitev pusti«) je preverjal staro
+    besedilo po 1. fazi (»Celici sta pravilni!«) – zdaj »Vzorec je pravilen.« (O11); namen testa ostane.
+- **Brskalnik:** nov `tools/preveri-izbris-brskalnik.js` (3–6 pri 375 px z dotikom in 1280 px z miško; končno stanje enako
+  izhodišču `705349a`; posnetka D2 `docs/slike/izbris/3-oznake-375.png` in `5-resitev-375.png`).
+  `tools/odgovor-spoznaj-brskalnik.js` opravi 2. fazo s pravimi kliki celic in gumbov števk.
+- **Izvzeto v primerjavah z izhodiščem (D1):** (1) navodila 3–6 – `NAVODILA_NAZAJ` v `tools/primerjava-slogov.js`
+  preslika besedilo pod nalogo nazaj v strani pred meritvijo (daljše navodilo pri 3 in 5 se prelomi v vrstico več, zato
+  samo preslikava niza HTML ne bi zadoščala – višine opisa in kartice); (2) razdelek `.phase2` izhodišča (izbira števk
+  pri 4 in 6, O5 – v izhodišču je v DOM-u že pred 1. fazo, skrit) – skrit in odstranjen v obeh izrisih kot »Shema«.
+  Velja v `preveri-presek-`, `-enojcki-`, `-vadi-`, `-izbira-` in `-izbris-brskalnik.js`; drugega se ne rahlja.
+- **Drobni odstopanji od načrta:** legenda »Rešitve« v 2. fazi ima poleg treh postavk iz O9 še »celica izbrisa«, kadar so
+  na mreži rožnate celice (kot legenda »Rešitve« v 1. fazi – sicer bi bila rožnata nepojasnjena); nepopoln odgovor ima modro
+  sporočilo (`fb info`, kot »delno« v »Vadi v uganki«), prazen odgovor rdeče (kot »Izberi natanko dve celici.«).
 

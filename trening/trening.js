@@ -19,6 +19,9 @@ let osveziPomoc=()=>{},preveriSPomocjo=f=>f();
 // Plošča vaje E1/E2 (buildSingleLayout) ali null; kljukici "več hkrati" in "senči" ostaneta
 // med vajami kroga.
 let enojcek=null,vecHkratiKrog=false,senciKrog=false;
+// 2. faza »Spoznaj« - izbris (docs/izbris-nacrt.md; trening/izbris.js): niz »Izbriši kandidata« in
+// oznake po pravilni 1. fazi ali null. vajaEl: kartica vaje in vrstica gumbov (niz gre nad njo).
+let izbrisVaje=null,vajaEl=null;
 const menuEl=document.getElementById('menu'),trainerEl=document.getElementById('trainer'),area=document.getElementById('exerciseArea');
 
 // Barve poudarka števke so iz nastavitev igre (samo branje, shared/plosca.js) - veljajo
@@ -30,10 +33,11 @@ uporabiBarvePoudarka(barvePoudarkaIzNastavitev(POUD_KLJUC_IGRE));
 // izbiro po celicah, ki jih je mogoče izbrati, Escape izbiro počisti.
 // Pri »Vadi v uganki« tipke obdela plošča vaje (1-12: Shift+števka, puščice, Escape, Ctrl+Z/Y;
 // E1/E2: števka postavi predlog, Backspace/Delete ga pobriše, puščice, Escape).
+// V 2. fazi »Spoznaj« (izbris) Shift+števka označi kandidata, Escape počisti izbiro (O12).
 // Okno Pomoč (shared/pomoc.js, faza 6): ko je odprto, tipke ne gredo v ploščo (Escape ga zapre).
 const oknoPomoc=ustvariPomoc(document.getElementById('pomocDialog'),[document.getElementById('pomocBtn')]);
 izrisiTehnike(document.getElementById('pomocTehnike'));
-document.addEventListener('keydown',e=>{if(oknoPomoc.odprto())return;if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode)vadi.plosca.obTipki(e);});
+document.addEventListener('keydown',e=>{if(oknoPomoc.odprto())return;if(enojcek&&mode)enojcek.plosca.obTipki(e);else if(vadi&&mode)vadi.plosca.obTipki(e);else if(izbrisVaje&&mode)izbrisVaje.obTipki(e);});
 
 // Vrstni red, oznake in naslovi kartic iz TRENING_ENOJCKA (E1, E2) in TRENING_TEHNIKE
 // (1-12) v shared/engine.js - iste številke igra izpisuje pri ugankah ("tehnike: 1, 3,
@@ -137,6 +141,8 @@ function makeCell(slot,si,M){
     for(let d=1;d<=9;d++){const s=document.createElement('span');s.className='cd'+(slot.c.includes(d)?'':' hide');s.textContent=d;s.dataset.d=d;cg.appendChild(s);}
     gc.appendChild(cg);
     gc.addEventListener('click',()=>{
+      // 2. faza: izbira celic izbrisa (tudi celice vzorca) - trening/izbris.js.
+      if(izbrisVaje){izbrisVaje.izberi(si);return;}
       const idx=selected.indexOf(si);
       if(idx>=0){selected.splice(idx,1);gc.classList.remove(M.selClass);}
       else if(selected.length<M.pickN){selected.push(si);gc.classList.add(M.selClass);}
@@ -467,6 +473,26 @@ function legendaOznak(cellEls,M,kdaj){
   return l;
 }
 
+// Legenda »Rešitve« v 2. fazi (izbris, docs/izbris-nacrt.md, O9): tvoj vzorec (zelen), celica izbrisa,
+// kandidat za izbris (rdeče prečrtan) in napačno označen kandidat (obroč) - samo postavke na mreži.
+function legendaIzbrisa(cellEls){
+  const celice=cellEls.filter(Boolean),ima=(e,r)=>e.classList.contains(r);
+  const stevka=r=>(celice.flatMap(maleStevke).find(cd=>ima(cd,r))||{}).textContent||null;
+  const precrtana=stevka('peek-izbris'),napacna=stevka('peek-napacna');
+  const postavke=[];
+  if(celice.some(c=>ima(c,'correct'))) postavke.push(['sw sw-pravilno','tvoj vzorec']);
+  if(celice.some(c=>ima(c,'peek-elim'))) postavke.push(['sw sw-izbris','celica izbrisa']);
+  if(precrtana) postavke.push(['izbris-vzorec','kandidat za izbris',precrtana]);
+  if(napacna) postavke.push(['napacna-vzorec','napačno označen kandidat',napacna]);
+  const l=document.createElement('div');l.className='legenda-vaje';
+  for(const[razred,besedilo,znak] of postavke){
+    const p=document.createElement('span'),sw=document.createElement('span');
+    sw.className=razred;if(znak)sw.textContent=znak;
+    p.append(sw,besedilo);l.appendChild(p);
+  }
+  return l;
+}
+
 // Izbris vzorca pri 3-6 kot pari [si, števka] (indeksi v ex.slots): pri očitnem paru/trojici
 // (celice ps s števkami ds) števke ds v drugih celicah enote, pri skritem (M.hasPhase2) druge
 // števke v celicah vzorca. Isti izračun prečrta izbris po pravilnem odgovoru (checkPhase1,
@@ -564,7 +590,7 @@ function vrsticaPoShemi(ps){
 
 function renderExercise(){
   const M=MODES[mode];
-  enojcek=null;vadiPrekini();osveziPomoc=()=>{};
+  enojcek=null;izbrisVaje=null;vadiPrekini();osveziPomoc=()=>{};
   if(exNum>=MAX_EX){
     area.innerHTML='';const d=document.createElement('div');d.className='exercise';
     const pct=scoreTotal>0?Math.round(scoreRight/scoreTotal*100):0;
@@ -673,37 +699,13 @@ function renderExercise(){
   nextBtn.textContent=exNum<MAX_EX-1?'Naslednja vaja →':'Končaj';
   nextBtn.addEventListener('click',()=>{exNum++;renderExercise();});
 
-  // Faza 2 za hidden pair
-  let phase2=null,digitBtnsDiv=null;
-  if(M.hasPhase2){
-    const p2n=M.phase2pick||2;
-    const p2word=p2n===2?'dve števki':'tri števke';
-    const p2type=p2n===2?'skriti par':'skrito trojico';
-    phase2=document.createElement('div');phase2.className='phase2';
-    phase2.innerHTML=`<p>${p2n===2?'Kateri':'Katere'} <b>${p2word}</b> ${p2n===2?'tvorita':'tvorijo'} ${p2type}? Klikni jih:</p>`;
-    digitBtnsDiv=document.createElement('div');digitBtnsDiv.className='digit-btns';
-    const allCands=new Set();
-    ex.slots.forEach(s=>{if(s.c) s.c.forEach(d=>allCands.add(d));});
-    for(const d of [...allCands].sort((a,b)=>a-b)){
-      const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
-      b.addEventListener('click',()=>{
-        const idx=pickedDigits.indexOf(d);
-        if(idx>=0){pickedDigits.splice(idx,1);b.classList.remove('picked');}
-        else if(pickedDigits.length<p2n){pickedDigits.push(d);b.classList.add('picked');}
-      });
-      digitBtnsDiv.appendChild(b);
-    }
-    phase2.appendChild(digitBtnsDiv);
-    const ch2=document.createElement('button');ch2.className='pri '+M.btnClass;ch2.textContent='Preveri '+p2word;
-    ch2.addEventListener('click',()=>preveriSPomocjo(()=>checkPhase2(ex,M,cellEls,ch2,nextBtn,fb)));
-    phase2.appendChild(ch2);
-  }
-
-  checkBtn.addEventListener('click',()=>preveriSPomocjo(()=>checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2)));
+  // »Preveri« presodi 1. fazo (celice vzorca) in pri 3-6 tudi 2. fazo - izbris (docs/izbris-nacrt.md;
+  // pri 4 in 6 je do koraka 2 namesto izbrisa sledila izbira števk vzorca, O5).
+  checkBtn.addEventListener('click',()=>preveriSPomocjo(()=>checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb)));
   btnRow.appendChild(checkBtn);btnRow.appendChild(nextBtn);
   div.appendChild(btnRow);
-  if(phase2) div.appendChild(phase2);
   div.appendChild(fb);
+  vajaEl={div,btnRow};
 
   // --- Namig in Rešitev (stikali: klik odpre, drugi klik zapre) ---
   const peekRow=document.createElement('div');peekRow.className='peek-row';
@@ -739,6 +741,8 @@ function renderExercise(){
 
   // Besedilo namiga glede na tip
   function buildHintText(){
+    // 2. faza: koliko kandidatov in katere števke (O8).
+    if(izbrisVaje) return namigIzbrisa(izbrisVaje.izbris);
     if(M.isSingle) return ex.namig;
     if(M.isPointing||M.isBoxLine){
       const withDigit=ex.primaryCells.filter(c=>!ex.grid[c]&&(ex.kandidati[c]&(1<<ex.digit))).map(cellPos);
@@ -798,6 +802,8 @@ function renderExercise(){
     }
   }
   function buildSolutionText(){
+    // 2. faza: sporočilo koraka sprejetega vzorca (O9).
+    if(izbrisVaje) return izbrisVaje.sporocilo;
     if(M.isSingle) return ex.korak.message;
     if(M.isPointing||M.isBoxLine||M.isXYWing||M.isUR||M.isTurbot||M.isWWing||M.isXYChain){
       const step=exDigitStep();
@@ -870,7 +876,15 @@ function renderExercise(){
     oznaciPomoc();
     overlay.innerHTML=text;
     overlay.classList.add('visible');
-    if(showHL){
+    if(showHL&&izbrisVaje){
+      // 2. faza (O9): vzorec ostane zelen, kandidati izbrisa rdeče prečrtani (označeni ali ne), celice
+      // izbrisa zunaj vzorca rožnate, napačna oznaka brez črte s temno rdečim obročem.
+      const vz=new Set(izbrisVaje.vzorec),cilj=new Set(izbrisVaje.izbris.map(([c,d])=>kljucIzbrisa(c,d)));
+      izbrisVaje.izbris.forEach(([si])=>{if(!vz.has(si))cellEls[si].classList.add('peek-elim');});
+      oznaciStevke(cellEls,izbrisVaje.izbris,'peek-izbris');
+      oznaciStevke(cellEls,[...izbrisVaje.oznake].filter(k=>!cilj.has(k)).map(k=>[Math.floor(k/10),k%10]),'peek-napacna');
+      overlay.appendChild(legendaIzbrisa(cellEls));
+    } else if(showHL){
       if(M.isSingle){
         // Oznake koraka: pri skritem enojčku enota, v kateri je števka omejena na eno
         // mesto (jantarno), in celica s števko (zeleno).
@@ -905,7 +919,7 @@ function renderExercise(){
     overlay.classList.remove('visible');
     if(presek&&!vajaResena) presek.pokaziKorak(false);
     if(enojcek) enojcek.pokazi(false);
-    cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris'));});
+    cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris','peek-napacna'));});
     pobrisiVerigo(cellEls);
   }
 
@@ -946,8 +960,9 @@ function renderExercise(){
   area.appendChild(div);
 }
 
-function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
+function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
   if(M.isSingle){checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb);return;}
+  if(izbrisVaje){checkIzbris(fb);return;}
   // Swordfish: 6-9 celic, X-Wing: natanko 4, ostalo: natanko pickN
   if(M.isSwordfish){
     if(selected.length<6||selected.length>9){fb.className='fb err';fb.textContent='Izberi šest do devet celic (vse celice s to števko v treh vrsticah ali stolpcih).';return;}
@@ -1130,17 +1145,16 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
   }
 
   if(M.hasPhase2){
-    // Faza 1: preveri samo ali so celice pravilne (hidden pair ali hidden triple)
+    // Skriti par / trojica: 1. faza sprejme samo celice vzorca vaje; napaka šteje (O5, O7).
     const s=[...selected].sort((a,b)=>a-b),t=[...ex.targetSlots].sort((a,b)=>a-b);
     const cellsOk=s.length===t.length&&s.every((v,i)=>v===t[i]);
     if(cellsOk){
-      const p2n=M.phase2pick||2;
-      const word=p2n===2?'Celici sta pravilni':'Celice so pravilne';
-      fb.className='fb ok';fb.innerHTML=`<b>${word}!</b> Zdaj izberi, ${p2n===2?'kateri dve števki tvorita par':'katere tri števke tvorijo trojico'}.`;
-      s.forEach(si=>cellEls[si].classList.add('correct'));
-      checkBtn.style.display='none';phase2.style.display='block';
-      cellEls.forEach(c=>{c.classList.remove('selectable');c.style.pointerEvents='none';});
+      const ds=new Set(ex.targetDigits);
+      // Sporočilo motorja šele po 2. fazi - po 1. bi izdalo števke vzorca.
+      zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps:s,ds,izbris:izbrisPodmnozice(ex,M,s,ds),
+        sporocilo:ex.solutionMessage||`{${[...ex.targetDigits].sort((a,b)=>a-b).join(', ')}} so v enoti mogoče samo v ${ex.targetSlots.map(p=>ex.slots[p].pos).join(', ')}. Iz teh celic izbrišeš vse druge kandidate.`});
     } else {
+      stej(false);
       fb.className='fb err';fb.innerHTML=`<b>Niso prave celice.</b> Poišči ${M.pickN===2?'dve števki, ki sta v enoti mogoči samo v istih dveh celicah, in izberi ti celici':'tri števke, ki so v enoti mogoče samo v istih treh celicah, in izberi te celice'}.`;
       cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
     }
@@ -1155,23 +1169,17 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb,phase2){
   const isTarget=sorted.every((v,i)=>v===target[i]);
   const isValid=allOk&&union.size===M.pickN;
 
-  // Izbira dane (fiksne) celice se ne šteje.
-  if(allOk) stej(isTarget||isValid);
+  // Izbira dane (fiksne) celice se ne šteje; pravilna 1. faza tudi ne - vaja še ni rešena (O7).
+  if(allOk&&!(isTarget||isValid)) stej(false);
 
   if(isTarget||isValid){
     const ds=isTarget?new Set(ex.targetDigits):union;
     const ps=isTarget?ex.targetSlots:sorted;
-    fb.className='fb ok';
-    // Pri načrtovanem vzorcu pokažemo sporočilo iz shared/engine.js (pove tudi, kje
-    // kandidati odpadejo); če je uporabnik našel drug veljaven par/trojico, sporočilo
-    // generatorja zanj ne velja, zato besedilo sestavimo iz njegove izbire.
-    fb.innerHTML=`<b>Pravilno!</b> ${isTarget&&ex.solutionMessage
-      ? ex.solutionMessage
-      : `{${[...ds].sort((a,b)=>a-b).join(', ')}} v ${ps.map(p=>ex.slots[p].pos).join(', ')}.`}`;
-    ps.forEach(si=>{cellEls[si].classList.add('correct');cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(ds.has(+cd.dataset.d)&&!cd.classList.contains('hide'))cd.classList.add('hl',M.hlClass);});});
-    oznaciStevke(cellEls,izbrisPodmnozice(ex,M,ps,ds),'elim');
-    legendaOdgovora=legendaOznak(cellEls,M,'odgovor');
-    checkBtn.style.display='none';nextBtn.style.display='inline-block';
+    // Pri načrtovanem vzorcu sporočilo iz shared/engine.js (pove tudi, kje kandidati odpadejo); če je
+    // uporabnik našel drug veljaven par/trojico, sporočilo generatorja zanj ne velja, zato besedilo
+    // sestavimo iz njegove izbire. Izbris v 2. fazi je izbris tega vzorca (O10).
+    zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps,ds,izbris:izbrisPodmnozice(ex,M,ps,ds),
+      sporocilo:isTarget&&ex.solutionMessage?ex.solutionMessage:`{${[...ds].sort((a,b)=>a-b).join(', ')}} v ${ps.map(p=>ex.slots[p].pos).join(', ')}.`});
   } else if(!allOk){
     fb.className='fb err';fb.textContent='Ena od izbranih celic je fiksna.';cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
   } else {
@@ -1211,29 +1219,60 @@ function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
   }
 }
 
-function checkPhase2(ex,M,cellEls,ch2,nextBtn,fb){
-  const p2n=M.phase2pick||2;
-  if(pickedDigits.length!==p2n){fb.className='fb err';fb.textContent=`Izberi natanko ${p2n===2?'dve števki':'tri števke'}.`;return;}
-  const s=[...pickedDigits].sort((a,b)=>a-b),t=[...ex.targetDigits].sort((a,b)=>a-b);
-  const correct=s.length===t.length&&s.every((v,i)=>v===t[i]);
-  stej(correct);
-
-  if(correct){
-    const ds=new Set(t);
-    const cellNames=ex.targetSlots.map(p=>ex.slots[p].pos).join(', ');
-    fb.className='fb ok';
-    // Sporočilo motorja šele tu (2. faza) - po 1. fazi bi izdalo številke, ki jih
-    // mora uporabnik šele izbrati.
-    fb.innerHTML=`<b>Pravilno!</b> ${ex.solutionMessage
-      || `{${t.join(', ')}} so v enoti mogoče samo v ${cellNames}. Iz teh celic izbrišeš vse druge kandidate.`}`;
-    ex.targetSlots.forEach(si=>{cellEls[si].querySelectorAll('.cd').forEach(cd=>{if(cd.classList.contains('hide'))return;if(ds.has(+cd.dataset.d))cd.classList.add('hl',M.hlClass);});});
-    oznaciStevke(cellEls,izbrisPodmnozice(ex,M,ex.targetSlots,ds),'elim');
+// 2. faza - izbris (docs/izbris-nacrt.md) pri 3-6, po pravilni 1. fazi. v = { ps, ds, izbris, sporocilo }:
+// celice sprejetega vzorca (indeksi v ex.slots), njegove števke, izbris kot pari [si, števka] (O10) in
+// sporočilo koraka. Celice vzorca so zelene, izbira 1. faze se izprazni, nad vrstico gumbov je niz
+// »Izbriši kandidata«; »Preveri« nato presodi oznake (checkIzbris). Vzorec brez izbrisa (varovalo, O10 -
+// v meritvi ga ni) reši vajo že po 1. fazi.
+function zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,v){
+  const izbira1=[...selected];
+  // Po pravilni 2. fazi je vaja videti natanko tako kot pred nalogo po pravilnem odgovoru (O11): celice
+  // vzorca izbrane in zelene (razreda v istem vrstnem redu), števke vzorca obarvane, izbris prečrtan,
+  // legenda; pri 4 in 6 mreža ni več klikljiva. Izbira 1. faze se obnovi (»Rešitev« po odgovoru).
+  const koncaj=sporocilo=>{
+    v.ps.forEach(si=>{
+      const c=cellEls[si];c.classList.remove('correct');c.classList.add(M.selClass,'correct');
+      maleStevke(c).forEach(cd=>{if(v.ds.has(+cd.dataset.d)&&!cd.classList.contains('hide'))cd.classList.add('hl',M.hlClass);});
+    });
+    if(M.hasPhase2) cellEls.forEach(c=>{c.classList.remove('selectable');c.style.pointerEvents='none';});
+    selected=izbira1;
+    fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${sporocilo}`;
+    oznaciStevke(cellEls,v.izbris,'elim');
     legendaOdgovora=legendaOznak(cellEls,M,'odgovor');
-    ch2.style.display='none';nextBtn.style.display='inline-block';
-  } else {
-    fb.className='fb err';fb.innerHTML=`<b>Ni pravilno.</b> Poišči ${p2n===2?'dve števki, ki sta v enoti mogoči samo v teh dveh celicah':'tri števke, ki so v enoti mogoče samo v teh treh celicah'}.`;
-    document.querySelectorAll('.digit-btns button').forEach(b=>b.classList.remove('picked'));pickedDigits=[];
+    checkBtn.style.display='none';nextBtn.style.display='inline-block';
+  };
+  if(!v.izbris.length){stej(true);koncaj(IZBRIS_PRAZEN_VZOREC);return;}
+  cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
+  v.ps.forEach(si=>cellEls[si].classList.add('correct'));
+  fb.className='fb ok';fb.innerHTML=IZBRIS_VZOREC_PRAVILEN;
+  izbrisVaje=ustvariIzbris({
+    izbris:v.izbris,
+    kandidati:si=>ex.slots[si]&&ex.slots[si].c,
+    izrisiMrezo:(izbrane,oznake)=>cellEls.forEach((c,si)=>{
+      c.classList.toggle('izbrana-izbris',izbrane.has(si));
+      maleStevke(c).forEach(cd=>cd.classList.toggle('oznaka',oznake.has(kljucIzbrisa(si,+cd.dataset.d))));
+    }),
+    poSpremembi:()=>osveziPomoc(),
+  });
+  Object.assign(izbrisVaje,{vzorec:v.ps,sporocilo:v.sporocilo,koncaj:()=>koncaj(v.sporocilo)});
+  vajaEl.div.insertBefore(izbrisVaje.el,vajaEl.btnRow);
+}
+
+// »Preveri« v 2. fazi (O3, O4, O7): prazno in nepopolno se ne štejeta (oznake ostanejo), napačno šteje in
+// pobriše vse oznake in izbiro, pravilno šteje in reši vajo - niz se skrije in odstrani.
+function checkIzbris(fb){
+  const r=izbrisVaje.presodi();
+  if(r.izid==='pravilno'){
+    stej(true);
+    const z=izbrisVaje;izbrisVaje=null;
+    z.izbrane.clear();z.oznake.clear();z.izrisi();
+    z.el.hidden=true;z.el.remove();
+    z.koncaj();
+    return;
   }
+  fb.className=r.izid==='delno'?'fb info':'fb err';
+  fb.innerHTML=sporociloIzbrisa(r,TEHNIKE_OPISI[mode].posledica);
+  if(r.izid==='napacno'){stej(false);izbrisVaje.pocisti();}
 }
 
 // Edino mesto, ki spremeni rezultat: poskus trenutne vaje (pravilen ali napačen).

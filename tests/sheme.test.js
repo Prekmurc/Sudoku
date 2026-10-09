@@ -36,7 +36,7 @@ const { loadContext } = require('./load-engine.js');
 const { makeDom } = require('./dom-stub.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
-  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/trening.js'];
+  'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'trening/generators.js', 'trening/v-uganki.js', 'trening/izbris.js', 'trening/trening.js'];
 
 const motor = loadContext(['shared/engine.js', 'shared/sheme.js']).run;
 const iz = izraz => JSON.parse(motor(`JSON.stringify(${izraz})`));
