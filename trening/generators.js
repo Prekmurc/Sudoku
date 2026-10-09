@@ -451,7 +451,7 @@ function genXWing(n){
       baseName,crossName,baseLabels,crossLabels,
       mode:'x-wing',
       unitLabel:`X-krilo za števko ${digit}`,
-      desc:`Števka ${digit}: poišči ${baseIsRow?'dve vrstici':'dva stolpca'}, v katerih je ${digit} mogoča samo v istih dveh ${crossName}, in izberi štiri vogale.`
+      desc:`Števka ${digit}: poišči ${baseIsRow?'dve vrstici':'dva stolpca'}, v katerih je ${digit} mogoča samo v istih dveh ${crossName}, in izberi štiri vogale, nato izbriši kandidate, ki zaradi vzorca odpadejo.`
     };
   }
   return genXWing(n+10);
@@ -543,7 +543,7 @@ function genSwordfish(n){
       baseName,crossName,baseLabels,crossLabels,
       mode:'swordfish',
       unitLabel:`Mečarica za števko ${digit}`,
-      desc:`Števka ${digit}: poišči tri ${baseIsRow?'vrstice':'stolpce'}, v katerih je ${digit} mogoča samo v istih treh ${crossName}, in izberi vse celice ${predlogSZ(digit)} ${digit} v teh treh ${baseName}.`
+      desc:`Števka ${digit}: poišči tri ${baseIsRow?'vrstice':'stolpce'}, v katerih je ${digit} mogoča samo v istih treh ${crossName}, in izberi vse celice ${predlogSZ(digit)} ${digit} v teh treh ${baseName}, nato izbriši kandidate, ki zaradi vzorca odpadejo.`
     };
   }
   return genSwordfish(n+10);
@@ -598,11 +598,11 @@ function genRibaPoShemi(mode,obrnjeno){
   if(sf){
     ex.sfCells=vzorec.map(rc);
     ex.unitLabel=`Mečarica za števko ${digit}`;
-    ex.desc=`Števka ${digit}: poišči tri ${baseIsRow?'vrstice':'stolpce'}, v katerih je ${digit} mogoča samo v istih treh ${crossName}, in izberi vse celice ${predlogSZ(digit)} ${digit} v teh treh ${baseName}.`;
+    ex.desc=`Števka ${digit}: poišči tri ${baseIsRow?'vrstice':'stolpce'}, v katerih je ${digit} mogoča samo v istih treh ${crossName}, in izberi vse celice ${predlogSZ(digit)} ${digit} v teh treh ${baseName}, nato izbriši kandidate, ki zaradi vzorca odpadejo.`;
   } else {
     ex.rect=vzorec.map(rc);
     ex.unitLabel=`X-krilo za števko ${digit}`;
-    ex.desc=`Števka ${digit}: poišči ${baseIsRow?'dve vrstici':'dva stolpca'}, v katerih je ${digit} mogoča samo v istih dveh ${crossName}, in izberi štiri vogale.`;
+    ex.desc=`Števka ${digit}: poišči ${baseIsRow?'dve vrstici':'dva stolpca'}, v katerih je ${digit} mogoča samo v istih dveh ${crossName}, in izberi štiri vogale, nato izbriši kandidate, ki zaradi vzorca odpadejo.`;
   }
   return ex;
 }

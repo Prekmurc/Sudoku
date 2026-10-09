@@ -293,6 +293,14 @@ button.peek-btn:active{background:#F0F2F5}
    ob "Rešitvi" (peek-elim) in po pravilnem odgovoru (xw-elim) rdeče prečrtana kot .cd.elim;
    za .xw-cell.has-digit, da prevlada nad njegovo barvo */
 .xw-cell:is(.peek-elim,.xw-elim){color:var(--red);text-decoration:line-through}
+/* 2. faza (izbris) pri X-krilu in mečarici: izbrana celica modra kot izbira (zelena celica vzorca obdrži
+   podlago, okvir moder), oznaka prečrta števko celice kot izbris - celica ostane bela (rožnata šele po
+   pravilnem odgovoru, O3); ob »Rešitvi« je napačna oznaka brez črte, s temno rdečim obročem okoli števke
+   (O9, kot .cd.oznaka.peek-napacna) */
+.xw-cell.izbrana-izbris{background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
+.xw-cell:is(.xw-correct,.xw-sf-correct).izbrana-izbris{background:var(--green-bg)!important;box-shadow:inset 0 0 0 3px var(--izbira)}
+.xw-cell.oznaka{color:var(--red);text-decoration:line-through}
+.xw-cell.oznaka.peek-napacna{color:var(--ink);text-decoration:none;background-image:radial-gradient(circle,transparent calc(var(--cs)*.3 - .5px),var(--okvir-napacno) calc(var(--cs)*.3),var(--okvir-napacno) calc(var(--cs)*.3 + 1.5px),transparent calc(var(--cs)*.3 + 2px))!important}
 .xw-cell[data-c="2"],.xw-cell[data-c="5"]{border-right:2px solid var(--ink)}
 .xw-cell[data-c="0"]{border-left:2px solid var(--ink)}
 .xw-cell[data-c="8"]{border-right:2px solid var(--ink)}

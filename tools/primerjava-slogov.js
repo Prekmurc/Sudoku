@@ -23,7 +23,19 @@ const NAVODILA_PRED_4B = {
   'hidden-pair': 'Izberi obe celici, nato še obe števki para.',
   'naked-triple': 'Izberi vse tri celice trojice.',
   'hidden-triple': 'Izberi vse tri celice, nato še vse tri števke trojice.',
+  // Korak 3 (7–13): navodila 9–13 so pod nalogo (pri 7 in 8 je pod nalogo lasten opis vaje - DODATEK_78).
+  'x-wing': 'Izberi vse štiri vogale.',
+  'swordfish': 'Izberi vse celice vzorca.',
+  'turbot-fish': 'Števka je označena. Izberi vse štiri konce obeh povezav.',
+  'w-wing': 'Izberi obe celici para in obe celici povezave (štiri celice).',
+  'xy-wing': 'Izberi pivot in obe krili (tri celice).',
+  'unique-rectangle': 'Izberi vse štiri vogale pravokotnika.',
+  'xy-chain': 'Izberi vse celice verige.',
 };
+// Lasten opis vaje pri 7 · X-krilo in 8 · Mečarica (ex.desc iz trening/generators.js - s števko in smerjo vaje)
+// ima od koraka 3 na koncu drugi del; preslika se nazaj samo pri teh dveh tehnikah (začetek je njun povzetek).
+const DODATEK_78 = ', nato izbriši kandidate, ki zaradi vzorca odpadejo.';
+const POVZETKI_78 = ['x-wing', 'swordfish'].map(m => OPISI[m].povzetek + ' ');
 
 // Namerne razlike od izhodišča (popravka 5 in 6 po ročnem pregledu naloge 4a, docs/trening-ucenje-nacrt.md,
 // razdelek 7): besedila W-krila s črkama x, y (prej a, b) in barva območja #1565C0 (prej #1D3F6B - oznake roba
@@ -43,11 +55,14 @@ const ZNANE_RAZLIKE = [
 // navodilo se lahko prelomi v vrstico več, zato se preslika v strani, pred meritvijo (izraz NAVODILA_NAZAJ na
 // začetku kode zajema izrisa) - tudi višine so potem kot v izhodišču; v izhodišču se nič ne spremeni.
 const NAVODILA = Object.entries(NAVODILA_PRED_4B).map(([m, prej]) => [`${OPISI[m].povzetek} ${OPISI[m].navodilo}`, `${OPISI[m].povzetek} ${prej}`]);
-const NAVODILA_NAZAJ = `document.querySelectorAll('#exerciseArea .exercise > .desc').forEach(p => { const m = ${JSON.stringify(NAVODILA)}.find(([n]) => n === p.textContent); if (m) p.textContent = m[1]; });`;
+const NAVODILA_NAZAJ = `document.querySelectorAll('#exerciseArea .exercise > .desc').forEach(p => { const m = ${JSON.stringify(NAVODILA)}.find(([n]) => n === p.textContent); if (m) p.textContent = m[1];
+  else if (${JSON.stringify(POVZETKI_78)}.some(z => p.textContent.startsWith(z)) && p.textContent.endsWith(${JSON.stringify(DODATEK_78)})) p.textContent = p.textContent.slice(0, -${DODATEK_78.length}) + '.'; });`;
 const nazaj = s => ZNANE_RAZLIKE.reduce((t, [n, st]) => t.split(n).join(st), s);
 
-function razlikeIzrisa(star, nov, lastnosti) {
-  nov = { html: nazaj(nov.html), slogi: nov.slogi.map(nazaj) };
+// znaneRazlike: false - izhodišče že ima popravka 5 in 6 (npr. 705349a v preveri-izbris-brskalnik.js), zato se
+// ZNANE_RAZLIKE ne preslikajo (sicer bi preslikava sama naredila razliko).
+function razlikeIzrisa(star, nov, lastnosti, { znaneRazlike = true } = {}) {
+  if (znaneRazlike) nov = { html: nazaj(nov.html), slogi: nov.slogi.map(nazaj) };
   const razlike = [];
   if (star.html !== nov.html) razlike.push('innerHTML');
   if (star.slogi.length !== nov.slogi.length) {

@@ -5,7 +5,7 @@
 // funkcija teče tudi v izhodišču (primerjave z izhodiščem), zato faze prepozna iz strani, ne iz
 // različice kode.
 //
-// 1. faza je izbira celic vzorca in »Preveri«; od koraka 2 sledi pri 3–6 2. faza – izbris. V izhodiščih pred korakom 2 pri 4 · Skriti par in 6 · Skrita trojica sledi
+// 1. faza je izbira celic vzorca in »Preveri«; od koraka 2 sledi pri 3–6 (od koraka 3 tudi pri 7–13) 2. faza – izbris. V izhodiščih pred korakom 2 pri 4 · Skriti par in 6 · Skrita trojica sledi
 // še izbira števk vzorca (razdelek .phase2) in »Preveri dve števki« / »Preveri tri števke«.
 //
 //   spremljajVajo(b)    – po b.odpri() strani treninga, pred izrisom vaje: window.vajaNaZaslonu je vaja,
@@ -26,6 +26,9 @@ async function spremljajVajo(b) {
     return true; })()`);
 }
 
+// Celica vaje: pri 3–6 in 9–13 .gc z indeksom v ex.slots, pri 7 in 8 (mreža ene števke) .xw-cell z indeksom 0–80.
+const celicaVaje = c => `#exerciseArea :is(.gc[data-si="${c}"], .xw-cell[data-idx="${c}"])`;
+
 async function klikniGumb(b, napis) {
   const ima = await b.izvedi(`(() => { const g = [...document.querySelectorAll('#exerciseArea button')].find(x => x.textContent === ${JSON.stringify(napis)});
     if (g) g.setAttribute('data-odgovor', '1'); return !!g; })()`);
@@ -35,9 +38,9 @@ async function klikniGumb(b, napis) {
   await odmakniMisko(b);
 }
 
-// 2. faza: izbris (niz .izbris-faza, od koraka 2 pri 3–6) – po števkah Escape, pravi kliki celic izbrisa
+// 2. faza: izbris (niz .izbris-faza, od koraka 2 pri 3–6, od koraka 3 pri 7–13) – po števkah Escape, pravi kliki celic izbrisa
 // sprejetega vzorca (izbrisVaje.izbris) in pravi klik gumba števke, nato »Preveri«; vrne oznake kot
-// ["si:d", ...]. V kodi pred korakom 2 pri 4 in 6 izbira števk (razdelek .phase2 je viden šele po
+// ["celica:d", ...]. V kodi pred korakom 2 pri 4 in 6 izbira števk (razdelek .phase2 je viden šele po
 // sprejeti 1. fazi) – vrne števke. Brez 2. faze null.
 async function dokoncajDrugoFazo(b) {
   const pari = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .izbris-faza');
@@ -45,7 +48,7 @@ async function dokoncajDrugoFazo(b) {
   if (pari) {
     for (const d of [...new Set(pari.map(([, x]) => x))]) {
       await b.tipka('Escape', { code: 'Escape' });
-      for (const [si] of pari.filter(([, x]) => x === d)) await b.klikni(`#exerciseArea .gc[data-si="${si}"]`);
+      for (const [c] of pari.filter(([, x]) => x === d)) await b.klikni(celicaVaje(c));
       await b.klikni(`#exerciseArea .izbris-faza button[data-d="${d}"]`);
       await odmakniMisko(b);
     }

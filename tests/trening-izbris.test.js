@@ -390,3 +390,259 @@ test('pomožna funkcija: dokoncajOdgovor() opravi 2. fazo za sprejeti vzorec', (
   assert.match(fb(dom).innerHTML, /^<b>Pravilno!<\/b>/);
   assert.equal(rezultat(dom), '1/1');
 });
+
+// ===== Korak 3 – 7–13: mreža ene števke (7, 8 – celica xw-cell, števka je besedilo celice) in cela mreža 9 × 9
+// (9–13 – celica .gc z malimi števkami). Celica vaje je pri 7 in 8 indeks 0–80, pri 9–13 indeks v ex.slots.
+// Izbris vzorca izračuna test sam: pri 7 po pravilu X-krila, pri 8 s swordfish(), pri 9–13 s funkcijo tehnike
+// (motor) na deski vaje - korak z isto množico celic, kot jo sprejme »Preveri«.
+const MREZA_ENE = t => t === 'x-wing' || t === 'swordfish';
+const TEHNIKE_7_13 = ['x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle', 'xy-chain'];
+const FUNKCIJA = { 'turbot-fish': 'turbotFish', 'w-wing': 'wWing', 'xy-wing': 'xyWing', 'unique-rectangle': 'uniqueRectangle', 'xy-chain': 'xyChain' };
+const jeCelicaVaje = e => (ima(e, 'gc') && e.dataset.si !== undefined) || ima(e, 'xw-cell');
+const stCelice = e => +(ima(e, 'xw-cell') ? e.dataset.idx : e.dataset.si);
+const celicaVaje = (dom, c) => vse(dom).find(e => jeCelicaVaje(e) && stCelice(e) === c);
+const celiceVajeZ = (dom, r) => vse(dom).filter(e => jeCelicaVaje(e) && ima(e, r)).map(stCelice).sort((a, b) => a - b);
+const urejeno = a => [...a].sort((x, y) => x - y);
+const brezLegende = html => html.replace(/<div class="legenda-vaje">.*$/, '');
+const stevilkeVerige = (dom, veriga) => veriga.map(si => (vsi(celicaVaje(dom, si)).find(e => ima(e, 'veriga-st')) || {}).textContent);
+
+// Vzorec vaje, kot ga je sestavil generator (celice vaje) - kot izberiVzorec() v tests/odgovor-spoznaj.js.
+function vzorecVaje(ex, tehnika) {
+  if (MREZA_ENE(tehnika)) return (ex.rect || ex.sfCells).map(([r, c]) => r * 9 + c);
+  return ex.solutionCells.map(c => ex.slots.findIndex(s => s.idx === c));
+}
+// X-krilo po pravilu: štiri celice v dveh vrsticah in dveh stolpcih; vrstici, v katerih je števka samo v teh
+// dveh stolpcih, sta bazi - izbris so druge celice s števko v stolpcih vzorca (ali z zamenjanimi vlogami).
+function izbrisXKrila(ex, cells) {
+  const V = urejeno(new Set(cells.map(c => Math.floor(c / 9)))), S = urejeno(new Set(cells.map(c => c % 9)));
+  const vVrstici = r => [...Array(9).keys()].filter(c => ex.grid[r * 9 + c]), vStolpcu = c => [...Array(9).keys()].filter(r => ex.grid[r * 9 + c]);
+  const izbris = [];
+  if (V.every(r => vVrstici(r).join() === S.join())) S.forEach(c => vStolpcu(c).forEach(r => { if (!V.includes(r)) izbris.push(r * 9 + c); }));
+  else {
+    assert.ok(S.every(c => vStolpcu(c).join() === V.join()), 'X-krilo po stolpcih');
+    V.forEach(r => vVrstici(r).forEach(c => { if (!S.includes(c)) izbris.push(r * 9 + c); }));
+  }
+  return izbris.map(c => [c, ex.digit]);
+}
+// Izbris in sporočilo koraka vzorca `cells` (celice vaje) - neodvisno od trening/trening.js.
+function korakVzorca(run, ex, tehnika, cells) {
+  if (tehnika === 'x-wing') return { izbris: izbrisXKrila(ex, cells) };
+  const deska = tehnika === 'swordfish' ? '{ grid: new Array(81).fill(0), cand: zadnja.grid.map(h => h ? 1 << zadnja.digit : 0) }' : '{ grid: zadnja.boardGrid, cand: zadnja.boardCand }';
+  const fn = tehnika === 'swordfish' ? 'swordfish' : FUNKCIJA[tehnika];
+  const celice = tehnika === 'swordfish' ? cells : cells.map(si => ex.slots[si].idx);
+  const k = JSON.parse(run(`JSON.stringify(${fn}(${deska}).find(s => s.cells.length === ${celice.length} && ${JSON.stringify(celice)}.every(c => s.cells.includes(c))) || null)`));
+  assert.ok(k, `${tehnika}: motor najde vzorec`);
+  const vSi = c => tehnika === 'swordfish' ? c : ex.slots.findIndex(s => s.idx === c);
+  return { izbris: k.eliminate.map(([c, d]) => [vSi(c), d]), sporocilo: k.message, veriga: k.veriga ? k.cells.map(vSi) : null };
+}
+// Oznake s kliki celic in gumbov števk (celica vaje - xw-cell ali .gc).
+function oznaciVaja(dom, pari) {
+  for (const d of [...new Set(pari.map(([, x]) => x))]) {
+    tipka(dom, { key: 'Escape', code: 'Escape' });
+    for (const [c] of pari.filter(([, x]) => x === d)) celicaVaje(dom, c).sprozi('click');
+    gumbStevke(dom, d).sprozi('click');
+  }
+  tipka(dom, { key: 'Escape', code: 'Escape' });
+}
+const prvaFazaVaja = (dom, cells) => { for (const c of cells) celicaVaje(dom, c).sprozi('click'); gumb(dom, 'Preveri').sprozi('click'); };
+// Kandidat zunaj izbrisa (pri mreži ene števke celica vzorca, sicer kandidat v kateri koli celici vaje).
+function napacenVaja(ex, tehnika, cells, izbris) {
+  const iz = new Set(kljuci(izbris));
+  if (MREZA_ENE(tehnika)) return [cells[0], ex.digit];
+  for (const [si, s] of ex.slots.entries()) for (const d of s.c || []) if (!iz.has(`${si}:${d}`)) return [si, d];
+  return null;
+}
+// Oznake na mreži kot "c:d": pri mreži ene števke razred celice, sicer razred male števke.
+const oznakeVaja = (dom, tehnika, r, ex) => MREZA_ENE(tehnika) ? celiceVajeZ(dom, r).map(c => `${c}:${ex.digit}`).sort() : stevke(dom, r);
+const SPOROCILO_78 = /^<b>Pravilno! \((Vrstično X-krilo|Stolpčno X-krilo|Vrstična mečarica|Stolpčna mečarica)\)<\/b> Števka \d je v (dveh|treh) (vrsticah|stolpcih) \([^)]*\) mogoča samo v (stolpcih|vrsticah) [^→]* → iz preostanka teh (stolpcev|vrstic) jo izbrišeš\.$/;
+
+for (const tehnika of TEHNIKE_7_13) {
+  test(`${tehnika}: po pravilni 1. fazi niz »Izbriši kandidata«, sporočilo brez izbrisa, izbris sprejetega vzorca`, () => {
+    const { dom, run } = zacni(tehnika);
+    const ex = vaja(run), cells = vzorecVaje(ex, tehnika), k = korakVzorca(run, ex, tehnika, cells);
+    assert.match(vse(dom).find(e => ima(e, 'exercise')).innerHTML, /<p class="desc">[^<]*, nato izbriši kandidate, ki zaradi (vzorca|njega|nje) odpadejo\.<\/p>/, 'navodilo');
+    prvaFazaVaja(dom, cells);
+    if (MREZA_ENE(tehnika)) {
+      assert.match(fb(dom).innerHTML, /^<b>Vzorec je pravilen \((vrstično X-krilo|stolpčno X-krilo|vrstična mečarica|stolpčna mečarica)\)\.<\/b> Števka \d je v (dveh|treh) (vrsticah|stolpcih) \([^)]*\) mogoča samo v (stolpcih|vrsticah) [^.→]*\. Zdaj izbriši kandidate, ki zaradi vzorca odpadejo\.$/);
+    } else assert.equal(fb(dom).innerHTML, '<b>Vzorec je pravilen.</b> Zdaj izbriši kandidate, ki zaradi njega odpadejo.');
+    assert.doesNotMatch(fb(dom).innerHTML, /izbrišeš/, 'sporočilo ne pove izbrisa');
+    assert.ok(faza(dom) && !faza(dom).hidden, 'niz je viden');
+    assert.equal(rezultat(dom), '0/0', 'pravilna 1. faza se ne šteje');
+    assert.equal(run('vajaResena'), false);
+    assert.notEqual(gumb(dom, 'Naslednja vaja →').style.display, 'inline-block');
+    assert.deepEqual(kljuci(JSON.parse(run('JSON.stringify(izbrisVaje.izbris)'))), kljuci(k.izbris), 'izbris vzorca');
+    const pravilna = tehnika === 'x-wing' ? 'xw-correct' : tehnika === 'swordfish' ? 'xw-sf-correct' : 'correct';
+    assert.deepEqual(celiceVajeZ(dom, pravilna), urejeno(cells), 'celice vzorca zelene');
+    assert.deepEqual(celiceVajeZ(dom, MREZA_ENE(tehnika) ? 'xw-selected' : run(`MODES['${tehnika}'].selClass`)), [], 'izbira 1. faze izpraznjena');
+    assert.deepEqual([...celiceVajeZ(dom, 'xw-elim'), ...celiceVajeZ(dom, 'elimcell')], [], 'celic izbrisa še ni');
+    assert.deepEqual(stevke(dom, 'elim'), [], 'izbrisa še ni');
+    // 13: zaporedne številke verige so na mreži že po 1. fazi (vzorec), po vrsti verige.
+    if (tehnika === 'xy-chain') assert.deepEqual(stevilkeVerige(dom, k.veriga), k.veriga.map((_, j) => String(j + 1)), 'številke verige');
+    else assert.deepEqual(stevke(dom, 'veriga-st'), []);
+  });
+
+  test(`${tehnika}: izidi »Preveri« v 2. fazi; končno stanje kot pred nalogo`, () => {
+    const { dom, run } = zacni(tehnika);
+    const ex = vaja(run), cells = vzorecVaje(ex, tehnika), k = korakVzorca(run, ex, tehnika, cells);
+    prvaFazaVaja(dom, cells);
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.equal(fb(dom).innerHTML, 'Izberi celico in izbriši kandidata, ki zaradi vzorca odpade.');
+    if (k.izbris.length >= 2) {
+      oznaciVaja(dom, k.izbris.slice(1));
+      gumb(dom, 'Preveri').sprozi('click');
+      assert.equal(fb(dom).innerHTML, '<b>Še ne.</b> Označeni kandidati res odpadejo, manjka pa še 1 izbris.');
+      assert.equal(rezultat(dom), '0/0', 'nepopolno se ne šteje');
+      assert.deepEqual(oznakeVaja(dom, tehnika, 'oznaka', ex), kljuci(k.izbris.slice(1)), 'oznake ostanejo');
+    }
+    const nap = napacenVaja(ex, tehnika, cells, k.izbris);
+    oznaciVaja(dom, [nap]);
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.equal(fb(dom).innerHTML, `<b>Ni pravilno.</b> Med označenimi je kandidat, ki zaradi vzorca ne odpade. ${run(`TEHNIKE_OPISI['${tehnika}'].posledica`)}`);
+    assert.equal(rezultat(dom), '0/1', 'napačen odgovor šteje');
+    assert.deepEqual(oznakeVaja(dom, tehnika, 'oznaka', ex), [], 'vse oznake pobrisane');
+    oznaciVaja(dom, k.izbris);
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.equal(rezultat(dom), '1/2');
+    assert.equal(run('vajaResena'), true);
+    // Končno stanje = stanje po pravilnem odgovoru pred nalogo.
+    if (MREZA_ENE(tehnika)) assert.match(brezLegende(fb(dom).innerHTML), SPOROCILO_78);
+    else assert.equal(brezLegende(fb(dom).innerHTML), `<b>Pravilno!</b> ${k.sporocilo}`);
+    assert.deepEqual(legenda(fb(dom)), ['izbrane celice', 'celica z izbrisom', 'izbrisani kandidati']);
+    const izbrisCelice = urejeno(new Set(k.izbris.map(([c]) => c)));
+    if (MREZA_ENE(tehnika)) {
+      assert.deepEqual(celiceVajeZ(dom, tehnika === 'x-wing' ? 'xw-correct' : 'xw-sf-correct'), urejeno(cells));
+      assert.deepEqual(celiceVajeZ(dom, 'xw-elim'), izbrisCelice, 'celice izbrisa');
+      // Razredi celic vzorca v istem vrstnem redu kot prej (izbira, nato pravilno).
+      for (const c of cells) assert.match(celicaVaje(dom, c).className, /^xw-cell has-digit xw-selected xw-(sf-)?correct$/, 'razredi celice vzorca kot prej');
+      for (const c of izbrisCelice) assert.equal(celicaVaje(dom, c).className, 'xw-cell has-digit xw-elim', 'razredi celice izbrisa kot prej');
+    } else {
+      const sel = run(`MODES['${tehnika}'].selClass`);
+      assert.deepEqual(celiceVajeZ(dom, 'correct'), urejeno(cells));
+      for (const si of cells) assert.match(celicaVaje(dom, si).className, new RegExp(`^gc selectable ${sel} correct( elimcell)?$`), 'razredi celice vzorca kot prej');
+      assert.deepEqual(celiceVajeZ(dom, 'elimcell'), izbrisCelice, 'celice izbrisa');
+      assert.deepEqual(stevke(dom, 'elim'), kljuci(k.izbris), 'izbris prečrtan');
+    }
+    assert.deepEqual([...celiceVajeZ(dom, 'oznaka'), ...stevke(dom, 'oznaka')], [], 'oznak ni več');
+    assert.deepEqual(celiceVajeZ(dom, 'izbrana-izbris'), []);
+    assert.ok(faza(dom).hidden, 'niz skrit');
+    assert.equal(run('izbrisVaje'), null);
+    assert.equal(gumb(dom, 'Naslednja vaja →').style.display, 'inline-block');
+    assert.deepEqual(JSON.parse(run('JSON.stringify(selected)')), cells, 'izbira 1. faze kot prej');
+    if (tehnika === 'xy-chain') assert.deepEqual(stevilkeVerige(dom, k.veriga), k.veriga.map((_, j) => String(j + 1)), 'številke verige ostanejo');
+  });
+}
+
+// Drug veljaven vzorec pri 7 in 8 (O10): v 2. fazi izbris tega vzorca, ne generatorjevega.
+const DRUGI_78 = {
+  'x-wing': `ex => { const t = ex.rect.map(([r, c]) => r * 9 + c).sort((a, b) => a - b).join();
+    for (const vrst of [true, false]) { const id = (b, i) => vrst ? b * 9 + i : i * 9 + b;
+      for (let a = 0; a < 9; a++) for (let b = a + 1; b < 9; b++) {
+        const pa = [], pb = []; for (let i = 0; i < 9; i++) { if (ex.grid[id(a, i)]) pa.push(i); if (ex.grid[id(b, i)]) pb.push(i); }
+        if (pa.length !== 2 || pa.join() !== pb.join()) continue;
+        const cells = [id(a, pa[0]), id(a, pa[1]), id(b, pa[0]), id(b, pa[1])];
+        if (cells.slice().sort((x, y) => x - y).join() !== t) return cells; } }
+    return null; }`,
+  'swordfish': `ex => { const t = ex.sfCells.map(([r, c]) => r * 9 + c).sort((a, b) => a - b).join();
+    const s = swordfish({ grid: new Array(81).fill(0), cand: ex.grid.map(h => h ? 1 << ex.digit : 0) }).find(s => s.cells.slice().sort((a, b) => a - b).join() !== t);
+    return s ? s.cells : null; }`,
+};
+for (const tehnika of ['x-wing', 'swordfish']) {
+  test(`${tehnika}: drug veljaven vzorec – v 2. fazi njegov izbris`, () => {
+    const { dom, run } = zacni(tehnika, { pogoj: `ex => !!(${DRUGI_78[tehnika]})(ex)`, priredi: `ex => (ex.drugi = (${DRUGI_78[tehnika]})(ex), ex)` });
+    const ex = vaja(run);
+    assert.ok(ex.drugi, 'vaja ima drug vzorec');
+    const k = korakVzorca(run, ex, tehnika, ex.drugi), gen = korakVzorca(run, ex, tehnika, vzorecVaje(ex, tehnika));
+    assert.notDeepEqual(kljuci(k.izbris), kljuci(gen.izbris), 'drug izbris');
+    prvaFazaVaja(dom, ex.drugi);
+    assert.deepEqual(kljuci(JSON.parse(run('JSON.stringify(izbrisVaje.izbris)'))), kljuci(k.izbris));
+    oznaciVaja(dom, k.izbris);
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.match(brezLegende(fb(dom).innerHTML), SPOROCILO_78);
+    assert.deepEqual(celiceVajeZ(dom, 'xw-elim'), urejeno(k.izbris.map(([c]) => c)));
+    assert.equal(rezultat(dom), '1/1');
+  });
+}
+
+test('7 · X-krilo: celica s števko se v 2. fazi izbere, gumb je samo števka vaje, oznaka prečrta števko celice', () => {
+  const { dom, run } = zacni('x-wing');
+  const ex = vaja(run), cells = vzorecVaje(ex, 'x-wing'), k = korakVzorca(run, ex, 'x-wing', cells);
+  prvaFazaVaja(dom, cells);
+  const [c] = k.izbris[0];
+  celicaVaje(dom, c).sprozi('click');
+  assert.deepEqual(celiceVajeZ(dom, 'izbrana-izbris'), [c]);
+  for (let x = 1; x <= 9; x++) assert.equal(gumbStevke(dom, x).disabled, x !== ex.digit, `gumb ${x}`);
+  gumbStevke(dom, ex.digit).sprozi('click');
+  assert.deepEqual(celiceVajeZ(dom, 'oznaka'), [c], 'števka celice označena');
+  assert.ok(!ima(celicaVaje(dom, c), 'xw-elim'), 'celica ostane bela (rožnata šele po odgovoru)');
+  assert.ok(ima(gumbStevke(dom, ex.digit), 'vrni'));
+  gumbStevke(dom, ex.digit).sprozi('click');
+  assert.deepEqual(celiceVajeZ(dom, 'oznaka'), [], '↺');
+  // Celica brez števke se ne izbere.
+  const prazna = ex.grid.findIndex(h => !h);
+  const el = vse(dom).find(e => ima(e, 'xw-cell') && +e.dataset.idx === prazna);
+  el.sprozi('click');
+  assert.ok(!ima(el, 'izbrana-izbris'));
+});
+
+test('12 · Edinstveni pravokotnik: obe števki iz četrtega vogala (celica vzorca)', () => {
+  const { dom, run } = zacni('unique-rectangle');
+  const ex = vaja(run), cells = vzorecVaje(ex, 'unique-rectangle'), k = korakVzorca(run, ex, 'unique-rectangle', cells);
+  assert.equal(k.izbris.length, 2);
+  const [[c1, d1], [c2, d2]] = k.izbris;
+  assert.equal(c1, c2, 'ista celica');
+  assert.ok(cells.includes(c1), 'četrti vogal je celica vzorca');
+  prvaFazaVaja(dom, cells);
+  celicaVaje(dom, c1).sprozi('click');
+  assert.ok(ima(celicaVaje(dom, c1), 'correct') && ima(celicaVaje(dom, c1), 'izbrana-izbris'), 'zelen vogal je izbran');
+  gumbStevke(dom, d1).sprozi('click');
+  gumbStevke(dom, d2).sprozi('click');
+  assert.deepEqual(stevke(dom, 'oznaka'), kljuci(k.izbris));
+  gumb(dom, 'Preveri').sprozi('click');
+  assert.match(fb(dom).innerHTML, /^<b>Pravilno!<\/b>/);
+  assert.deepEqual(stevke(dom, 'elim'), kljuci(k.izbris));
+});
+
+for (const tehnika of ['swordfish', 'unique-rectangle']) {
+  test(`${tehnika}: Rešitev v 2. fazi – izbris, napačna oznaka, legenda`, () => {
+    const { dom, run } = zacni(tehnika);
+    const ex = vaja(run), cells = vzorecVaje(ex, tehnika), k = korakVzorca(run, ex, tehnika, cells);
+    prvaFazaVaja(dom, cells);
+    const nap = napacenVaja(ex, tehnika, cells, k.izbris);
+    oznaciVaja(dom, [k.izbris[0], nap]);
+    gumb(dom, 'Rešitev').sprozi('click');
+    const okvir = odprtiOkvirji(dom)[0];
+    const celiceIzbrisa = urejeno(new Set(k.izbris.map(([c]) => c).filter(c => !cells.includes(c))));
+    assert.deepEqual(celiceVajeZ(dom, 'peek-elim'), celiceIzbrisa, 'celice izbrisa zunaj vzorca rožnate');
+    if (MREZA_ENE(tehnika)) {
+      assert.match(okvir.innerHTML, /^<b>(Vrstična|Stolpčna) mečarica:<\/b> Števka \d je v treh (vrsticah|stolpcih) .* → iz preostanka teh (stolpcev|vrstic) jo izbrišeš\./, 'stavek o najdenem vzorcu');
+      assert.deepEqual(celiceVajeZ(dom, 'peek-napacna'), [nap[0]], 'napačna oznaka');
+    } else {
+      assert.ok(okvir.innerHTML.startsWith(k.sporocilo), 'sporočilo koraka');
+      assert.deepEqual(stevke(dom, 'peek-izbris'), kljuci(k.izbris), 'kandidati za izbris prečrtani');
+      assert.deepEqual(stevke(dom, 'peek-napacna'), kljuci([nap]), 'napačna oznaka');
+    }
+    assert.deepEqual(legenda(okvir), ['tvoj vzorec', ...(celiceIzbrisa.length ? ['celica izbrisa'] : []), 'kandidat za izbris', 'napačno označen kandidat']);
+    gumb(dom, 'Skrij rešitev').sprozi('click');
+    assert.deepEqual([...celiceVajeZ(dom, 'peek-elim'), ...celiceVajeZ(dom, 'peek-napacna'), ...stevke(dom, 'peek-izbris'), ...stevke(dom, 'peek-napacna')], [], 'po »Skrij« ni oznak Rešitve');
+  });
+}
+
+test('štetje kroga: 8 · Mečarica in 13 · XY-veriga brez napak 9 / 9 (obe fazi, vaji 1 in 2 po shemi)', () => {
+  for (const tehnika of ['swordfish', 'xy-chain']) {
+    const { dom, run } = zacni(tehnika, { n: 0 });
+    for (let i = 0; i < 9; i++) {
+      odgovoriPravilno(dom, run);
+      assert.match(fb(dom).innerHTML, /^<b>Pravilno!/, `${tehnika}, vaja ${i + 1}`);
+      gumb(dom, i < 8 ? 'Naslednja vaja →' : 'Končaj').sprozi('click');
+    }
+    assert.equal(rezultat(dom), '9/9', tehnika);
+  }
+});
+
+test('besedila 2. faze 7–13: navodila povedo izbris', () => {
+  const { run } = zacni('x-wing');
+  for (const t of TEHNIKE_7_13) {
+    const nav = run(`TEHNIKE_OPISI[${JSON.stringify(t)}].navodilo`);
+    assert.match(nav, /, nato izbriši kandidate, ki zaradi (vzorca|njega|nje) odpadejo\.$/, `${t}: navodilo pove 2. fazo`);
+  }
+});

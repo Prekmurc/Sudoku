@@ -71,7 +71,9 @@ for (const tehnika of TEHNIKE) {
       const otroci = vaja().children, i = otroci.indexOf(shema());
       const ps = otroci.find(e => e.className === 'po-shemi');
       // Za shemo je vrstica s preslikavo (vaji 1 in 2) in takoj za njo mreža.
-      const zaPreslikavo = ps ? i + 2 : i + 1;
+      // Pri enoti blok so pred mrežo še oznake celic (del mreže, test spodaj).
+      let zaPreslikavo = ps ? i + 2 : i + 1;
+      if (razredi(otroci[zaPreslikavo + 1]).includes('layout-block')) zaPreslikavo++;
       assert.ok(MREZA.some(r => razredi(otroci[zaPreslikavo]).includes(r)), `${kje}: tik nad mrežo (${otroci.slice(i + 1, i + 3).map(e => e.className).join(' | ')})`);
       if (n < 2) {
         assert.ok(ps && otroci.indexOf(ps) === i + 1, `${kje}: vrstica s preslikavo pod shemo, tik nad mrežo`);
@@ -88,6 +90,21 @@ for (const tehnika of TEHNIKE) {
     const otroci = vaja().children, i = otroci.indexOf(shema());
     assert.equal(otroci[i + 1].className, 'vaja-uganka', 'za shemo je plošča');
     assert.ok(otroci.findIndex(e => e.className === 'vaja-info') < i, 'vrstica z uganko nad shemo');
+  });
+}
+
+// Popravek v nalogi 4b, korak 3 (napaka od 705349a): pri 3–6 z enoto blok (vaja 3 kroga) so oznake celic
+// (V4S4 … V6S6) del mreže - razdelek »Shema« je nad njimi, oznake tik nad mrežo bloka.
+for (const tehnika of ['naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple']) {
+  test(`${tehnika}: »Spoznaj«, enota blok – shema nad oznakami celic, oznake tik nad mrežo`, () => {
+    const { run, vaja, shema } = trening();
+    run(`zacniKrog('${tehnika}', 'spoznaj'); exNum = 2; renderExercise()`);
+    assert.equal(run('zadnja.unitType'), 'block');
+    const otroci = vaja().children, i = otroci.indexOf(shema());
+    const blok = otroci.findIndex(e => razredi(e).includes('layout-block'));
+    const pozicije = run('zadnja.slots.map(s => s.pos).join("")');
+    assert.equal(otroci[blok - 1].textContent, pozicije, 'tik nad mrežo bloka so oznake celic');
+    assert.equal(i, blok - 2, `shema tik nad oznakami (${otroci.slice(i, blok + 1).map(e => e.className || e.textContent).join(' | ')})`);
   });
 }
 

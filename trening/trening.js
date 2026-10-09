@@ -474,13 +474,14 @@ function legendaOznak(cellEls,M,kdaj){
 }
 
 // Legenda »Rešitve« v 2. fazi (izbris, docs/izbris-nacrt.md, O9): tvoj vzorec (zelen), celica izbrisa,
-// kandidat za izbris (rdeče prečrtan) in napačno označen kandidat (obroč) - samo postavke na mreži.
+// kandidat za izbris (rdeče prečrtan) in napačno označen kandidat (obroč) - samo postavke na mreži. Pri mreži ene
+// števke (xw-cell) je števka besedilo celice: celica izbrisa jo prečrta, napačna oznaka je na celici.
 function legendaIzbrisa(cellEls){
   const celice=cellEls.filter(Boolean),ima=(e,r)=>e.classList.contains(r);
-  const stevka=r=>(celice.flatMap(maleStevke).find(cd=>ima(cd,r))||{}).textContent||null;
-  const precrtana=stevka('peek-izbris'),napacna=stevka('peek-napacna');
+  const stevka=(r,rXw)=>(celice.find(c=>ima(c,'xw-cell')&&ima(c,rXw))||celice.flatMap(maleStevke).find(cd=>ima(cd,r))||{}).textContent||null;
+  const precrtana=stevka('peek-izbris','peek-elim'),napacna=stevka('peek-napacna','peek-napacna');
   const postavke=[];
-  if(celice.some(c=>ima(c,'correct'))) postavke.push(['sw sw-pravilno','tvoj vzorec']);
+  if(celice.some(c=>['correct','xw-correct','xw-sf-correct'].some(r=>ima(c,r)))) postavke.push(['sw sw-pravilno','tvoj vzorec']);
   if(celice.some(c=>ima(c,'peek-elim'))) postavke.push(['sw sw-izbris','celica izbrisa']);
   if(precrtana) postavke.push(['izbris-vzorec','kandidat za izbris',precrtana]);
   if(napacna) postavke.push(['napacna-vzorec','napačno označen kandidat',napacna]);
@@ -500,6 +501,16 @@ function legendaIzbrisa(cellEls){
 function izbrisPodmnozice(ex,M,ps,ds){
   if(M.hasPhase2) return ps.flatMap(si=>ex.slots[si].c.filter(d=>!ds.has(d)).map(d=>[si,d]));
   return ex.slots.flatMap((slot,si)=>ps.includes(si)||!slot.c?[]:slot.c.filter(d=>ds.has(d)).map(d=>[si,d]));
+}
+// 2. faza pri 3-6 (zacniIzbris): izbris vzorca (celice ps, števke ds) in oznake po pravilnem odgovoru - števke
+// vzorca obarvane, izbris prečrtan, pri 4 in 6 mreža ni več klikljiva (kot pred nalogo 4b).
+function odgovorPodmnozice(ex,M,cellEls,ps,ds){
+  const izbris=izbrisPodmnozice(ex,M,ps,ds);
+  return{izbris,oznaciOdgovor(){
+    ps.forEach(si=>maleStevke(cellEls[si]).forEach(cd=>{if(ds.has(+cd.dataset.d)&&!cd.classList.contains('hide'))cd.classList.add('hl',M.hlClass);}));
+    if(M.hasPhase2) cellEls.forEach(c=>{c.classList.remove('selectable');c.style.pointerEvents='none';});
+    oznaciStevke(cellEls,izbris,'elim');
+  }};
 }
 // Vzorec očitnega para/trojice za "Rešitev": celice, celice izbrisa (elim) in izbris po števkah.
 function vzorecPodmnozice(ex,M,ps,ds){
@@ -642,6 +653,8 @@ function renderExercise(){
           cell.classList.add('has-digit');
           cell.textContent=ex.digit;
           cell.addEventListener('click',()=>{
+            // 2. faza: izbira celic izbrisa (tudi celice vzorca) - trening/izbris.js.
+            if(izbrisVaje){izbrisVaje.izberi(idx);return;}
             const si=idx;
             const ii=selected.indexOf(si);
             if(ii>=0){selected.splice(ii,1);cell.classList.remove('xw-selected');}
@@ -674,7 +687,10 @@ function renderExercise(){
     cellEls=layout.cellEls;countEls=layout.countEls;
   }
   {
-    const mreza=[...div.children].find(e=>['vaja-presek','layout-row','layout-col','layout-block','xw-grid','g9'].some(r=>e.classList.contains(r)));
+    const otroci=[...div.children];
+    let mreza=otroci.find(e=>['vaja-presek','layout-row','layout-col','layout-block','xw-grid','g9'].some(r=>e.classList.contains(r)));
+    // Pri enoti blok so oznake celic (V4S4 …) nad mrežo del nje - shema gre nad oznake.
+    if(mreza&&mreza.classList.contains('layout-block')) mreza=otroci[otroci.indexOf(mreza)-1];
     if(shema) div.insertBefore(shema,mreza||null);
     if(ex.poShemi){const p=document.createElement('p');p.className='po-shemi';p.textContent=vrsticaPoShemi(ex.poShemi);div.insertBefore(p,mreza||null);}
   }
@@ -879,10 +895,12 @@ function renderExercise(){
     if(showHL&&izbrisVaje){
       // 2. faza (O9): vzorec ostane zelen, kandidati izbrisa rdeče prečrtani (označeni ali ne), celice
       // izbrisa zunaj vzorca rožnate, napačna oznaka brez črte s temno rdečim obročem.
+      // Pri mreži ene števke (7, 8) prečrta celica izbrisa (peek-elim) svojo števko, napačna oznaka je na celici.
       const vz=new Set(izbrisVaje.vzorec),cilj=new Set(izbrisVaje.izbris.map(([c,d])=>kljucIzbrisa(c,d)));
+      const napacne=[...izbrisVaje.oznake].filter(k=>!cilj.has(k)).map(k=>[Math.floor(k/10),k%10]);
       izbrisVaje.izbris.forEach(([si])=>{if(!vz.has(si))cellEls[si].classList.add('peek-elim');});
-      oznaciStevke(cellEls,izbrisVaje.izbris,'peek-izbris');
-      oznaciStevke(cellEls,[...izbrisVaje.oznake].filter(k=>!cilj.has(k)).map(k=>[Math.floor(k/10),k%10]),'peek-napacna');
+      if(M.isXWing||M.isSwordfish) napacne.forEach(([c])=>cellEls[c].classList.add('peek-napacna'));
+      else{oznaciStevke(cellEls,izbrisVaje.izbris,'peek-izbris');oznaciStevke(cellEls,napacne,'peek-napacna');}
       overlay.appendChild(legendaIzbrisa(cellEls));
     } else if(showHL){
       if(M.isSingle){
@@ -919,7 +937,7 @@ function renderExercise(){
     overlay.classList.remove('visible');
     if(presek&&!vajaResena) presek.pokaziKorak(false);
     if(enojcek) enojcek.pokazi(false);
-    cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris','peek-napacna'));});
+    cellEls.forEach(c=>{c.classList.remove('peek-hl','peek-elim','peek-enota','peek-napacna');maleStevke(c).forEach(cd=>cd.classList.remove('peek-izbris','peek-napacna'));});
     pobrisiVerigo(cellEls);
   }
 
@@ -1011,23 +1029,21 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
     const fakeBoard={grid:ex.boardGrid,cand:ex.boardCand};
     const selSet=new Set(selected.map(si=>ex.slots[si].idx));
     const match=techFn(fakeBoard).find(s=>s.cells.length===selSet.size&&s.cells.every(c=>selSet.has(c)));
-    stej(!!match);
     if(match){
+      // 2. faza - izbris najdenega koraka (O10); sporočilo koraka (pove izbris) šele po njej. Po pravilnem
+      // odgovoru celice izbrisa rožnate in števke prečrtane kot pred nalogo 4b.
       const idxToSi=new Map(ex.slots.map((s,si)=>[s.idx,si]));
-      fb.className='fb ok';
-      fb.innerHTML=`<b>Pravilno!</b> ${match.message}`;
-      selected.forEach(si=>cellEls[si].classList.add('correct'));
-      match.eliminate.forEach(([cidx,dig])=>{
-        const si=idxToSi.get(cidx);if(si===undefined)return;
-        cellEls[si].classList.add('elimcell');
-        const cd=malaStevka(cellEls[si],dig);
-        if(cd) cd.classList.add('elim');
-      });
-      // XY-veriga (O4): zaporedne številke po vrsti najdene verige ostanejo.
-      if(match.veriga) oznaciVerigo(cellEls,idxToSi,match.cells,false);
-      legendaOdgovora=legendaOznak(cellEls,M,'odgovor');
-      checkBtn.style.display='none';nextBtn.style.display='inline-block';
+      const izbris=match.eliminate.filter(([cidx])=>idxToSi.has(cidx)).map(([cidx,dig])=>[idxToSi.get(cidx),dig]);
+      zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps:[...selected],izbris,sporocilo:match.message,
+        // XY-veriga (O4): zaporedne številke po vrsti najdene verige - že po 1. fazi (vzorec), ostanejo.
+        zacetek:match.veriga?()=>oznaciVerigo(cellEls,idxToSi,match.cells,false):null,
+        oznaciOdgovor:()=>izbris.forEach(([si,dig])=>{
+          cellEls[si].classList.add('elimcell');
+          const cd=malaStevka(cellEls[si],dig);
+          if(cd) cd.classList.add('elim');
+        })});
     } else {
+      stej(false);
       fb.className='fb err';
       fb.innerHTML=M.isXYWing
         ? '<b>To še ni veljavno XY-krilo.</b> Pivot mora imeti natanko dva kandidata, <b>obe krili</b> morata pivota videti (ista vrstica, stolpec ali blok) in si z njim deliti po eno števko, skupna pa jima mora biti tretja števka.'
@@ -1113,7 +1129,6 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
         }
       }
     }
-    stej(valid);
     if(valid){
       const typeLabel=M.isSwordfish?(baseIsRow?'Vrstična':'Stolpčna'):(baseIsRow?'Vrstično':'Stolpčno');
       const techName=M.isSwordfish?'mečarica':'X-krilo';
@@ -1121,13 +1136,17 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
       const baseLabel=usedBases.map(b=>(baseIsRow?'V':'S')+(b+1)).join(', ');
       const crossLabel=usedCrosses.map(c=>(baseIsRow?'S':'V')+(c+1)).join(', ');
       const crossWord=baseIsRow?'stolpcih':'vrsticah';
-      fb.className='fb ok';
-      fb.innerHTML=`<b>Pravilno! (${typeLabel} ${techName})</b> Števka ${ex.digit} je v ${expSize===2?'dveh':'treh'} ${baseWord} (${baseLabel}) mogoča samo v ${crossWord} ${crossLabel} → iz preostanka teh ${baseIsRow?'stolpcev':'vrstic'} jo izbrišeš.`;
-      selected.forEach(idx=>cellEls[idx].classList.add(M.isSwordfish?'xw-sf-correct':'xw-correct'));
-      elimNow.forEach(idx=>cellEls[idx].classList.add('xw-elim'));
-      legendaOdgovora=legendaOznak(cellEls,M,'odgovor');
-      checkBtn.style.display='none';nextBtn.style.display='inline-block';
+      // 2. faza - izbris sprejetega vzorca (O10). Po 1. fazi opis vzorca brez izbrisa (O11), v Rešitvi 2. faze
+      // stavek o najdenem vzorcu (O9), po pravilnem odgovoru sporočilo in celice izbrisa kot pred nalogo 4b.
+      const opis=`Števka ${ex.digit} je v ${expSize===2?'dveh':'treh'} ${baseWord} (${baseLabel}) mogoča samo v ${crossWord} ${crossLabel}`;
+      const izbrises=` → iz preostanka teh ${baseIsRow?'stolpcev':'vrstic'} jo izbrišeš.`;
+      zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps:[...selected],izbris:elimNow.map(idx=>[idx,ex.digit]),
+        uvod:`<b>Vzorec je pravilen (${typeLabel.toLowerCase()} ${techName}).</b> ${opis}. Zdaj izbriši kandidate, ki zaradi vzorca odpadejo.`,
+        sporocilo:`<b>${typeLabel} ${techName}:</b> ${opis}${izbrises}`,
+        odgovorHtml:`<b>Pravilno! (${typeLabel} ${techName})</b> ${opis}${izbrises}`,
+        oznaciOdgovor:()=>elimNow.forEach(idx=>cellEls[idx].classList.add('xw-elim'))});
     } else {
+      stej(false);
       const rArr=[...rows],cArr=[...cols];
       let detail=`Izbrane celice so v ${rows.size} ${rows.size===1?'vrstici':'vrsticah'} in ${cols.size} ${cols.size===1?'stolpcu':'stolpcih'}. `;
       if(M.isSwordfish){
@@ -1151,7 +1170,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
     if(cellsOk){
       const ds=new Set(ex.targetDigits);
       // Sporočilo motorja šele po 2. fazi - po 1. bi izdalo števke vzorca.
-      zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps:s,ds,izbris:izbrisPodmnozice(ex,M,s,ds),
+      zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps:s,...odgovorPodmnozice(ex,M,cellEls,s,ds),
         sporocilo:ex.solutionMessage||`{${[...ex.targetDigits].sort((a,b)=>a-b).join(', ')}} so v enoti mogoče samo v ${ex.targetSlots.map(p=>ex.slots[p].pos).join(', ')}. Iz teh celic izbrišeš vse druge kandidate.`});
     } else {
       stej(false);
@@ -1178,7 +1197,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
     // Pri načrtovanem vzorcu sporočilo iz shared/engine.js (pove tudi, kje kandidati odpadejo); če je
     // uporabnik našel drug veljaven par/trojico, sporočilo generatorja zanj ne velja, zato besedilo
     // sestavimo iz njegove izbire. Izbris v 2. fazi je izbris tega vzorca (O10).
-    zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps,ds,izbris:izbrisPodmnozice(ex,M,ps,ds),
+    zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,{ps,...odgovorPodmnozice(ex,M,cellEls,ps,ds),
       sporocilo:isTarget&&ex.solutionMessage?ex.solutionMessage:`{${[...ds].sort((a,b)=>a-b).join(', ')}} v ${ps.map(p=>ex.slots[p].pos).join(', ')}.`});
   } else if(!allOk){
     fb.className='fb err';fb.textContent='Ena od izbranih celic je fiksna.';cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
@@ -1219,42 +1238,46 @@ function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
   }
 }
 
-// 2. faza - izbris (docs/izbris-nacrt.md) pri 3-6, po pravilni 1. fazi. v = { ps, ds, izbris, sporocilo }:
-// celice sprejetega vzorca (indeksi v ex.slots), njegove števke, izbris kot pari [si, števka] (O10) in
-// sporočilo koraka. Celice vzorca so zelene, izbira 1. faze se izprazni, nad vrstico gumbov je niz
-// »Izbriši kandidata«; »Preveri« nato presodi oznake (checkIzbris). Vzorec brez izbrisa (varovalo, O10 -
-// v meritvi ga ni) reši vajo že po 1. fazi.
+// 2. faza - izbris (docs/izbris-nacrt.md) po pravilni 1. fazi pri 3-13. Celica je indeks v cellEls: pri 3-6
+// in 9-13 indeks v ex.slots, pri 7 in 8 (mreža ene števke - števka je besedilo celice xw-cell) 0-80.
+// v = { ps, izbris, sporocilo, uvod?, odgovorHtml?, oznaciOdgovor?, zacetek? }: celice sprejetega vzorca,
+// izbris kot pari [celica, števka] (O10), sporočilo koraka (Rešitev v 2. fazi), sporočilo po 1. fazi (privzeto
+// IZBRIS_VZOREC_PRAVILEN), sporočilo po 2. fazi (privzeto »Pravilno!« in sporočilo koraka), oznake odgovora po
+// tehniki (izbris, celice izbrisa …) in kar se pokaže že po 1. fazi (pri 13 številke verige). Celice vzorca so
+// zelene, izbira 1. faze se izprazni, nad vrstico gumbov je niz »Izbriši kandidata«; »Preveri« nato presodi
+// oznake (checkIzbris). Vzorec brez izbrisa (varovalo, O10 - v meritvi ga ni) reši vajo že po 1. fazi.
 function zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,v){
-  const izbira1=[...selected];
+  const izbira1=[...selected],ena=M.isXWing||M.isSwordfish;
+  const izbrana=ena?'xw-selected':M.selClass,pravilna=M.isSwordfish?'xw-sf-correct':M.isXWing?'xw-correct':'correct';
   // Po pravilni 2. fazi je vaja videti natanko tako kot pred nalogo po pravilnem odgovoru (O11): celice
-  // vzorca izbrane in zelene (razreda v istem vrstnem redu), števke vzorca obarvane, izbris prečrtan,
-  // legenda; pri 4 in 6 mreža ni več klikljiva. Izbira 1. faze se obnovi (»Rešitev« po odgovoru).
-  const koncaj=sporocilo=>{
-    v.ps.forEach(si=>{
-      const c=cellEls[si];c.classList.remove('correct');c.classList.add(M.selClass,'correct');
-      maleStevke(c).forEach(cd=>{if(v.ds.has(+cd.dataset.d)&&!cd.classList.contains('hide'))cd.classList.add('hl',M.hlClass);});
-    });
-    if(M.hasPhase2) cellEls.forEach(c=>{c.classList.remove('selectable');c.style.pointerEvents='none';});
+  // vzorca izbrane in zelene (razreda v istem vrstnem redu), oznake odgovora po tehniki, legenda. Izbira
+  // 1. faze se obnovi (»Rešitev« po odgovoru).
+  const koncaj=html=>{
+    v.ps.forEach(si=>{const c=cellEls[si];c.classList.remove(pravilna);c.classList.add(izbrana,pravilna);});
+    if(v.oznaciOdgovor) v.oznaciOdgovor();
     selected=izbira1;
-    fb.className='fb ok';fb.innerHTML=`<b>Pravilno!</b> ${sporocilo}`;
-    oznaciStevke(cellEls,v.izbris,'elim');
+    fb.className='fb ok';fb.innerHTML=html;
     legendaOdgovora=legendaOznak(cellEls,M,'odgovor');
     checkBtn.style.display='none';nextBtn.style.display='inline-block';
   };
-  if(!v.izbris.length){stej(true);koncaj(IZBRIS_PRAZEN_VZOREC);return;}
-  cellEls.forEach(c=>c.classList.remove(M.selClass));selected=[];
-  v.ps.forEach(si=>cellEls[si].classList.add('correct'));
-  fb.className='fb ok';fb.innerHTML=IZBRIS_VZOREC_PRAVILEN;
+  if(!v.izbris.length){stej(true);koncaj(`<b>Pravilno!</b> ${IZBRIS_PRAZEN_VZOREC}`);return;}
+  cellEls.forEach(c=>{if(c)c.classList.remove(izbrana);});selected=[];
+  v.ps.forEach(si=>cellEls[si].classList.add(pravilna));
+  fb.className='fb ok';fb.innerHTML=v.uvod||IZBRIS_VZOREC_PRAVILEN;
+  if(v.zacetek) v.zacetek();
   izbrisVaje=ustvariIzbris({
     izbris:v.izbris,
-    kandidati:si=>ex.slots[si]&&ex.slots[si].c,
+    kandidati:ena?c=>ex.grid[c]?[ex.digit]:[]:si=>ex.slots[si]&&ex.slots[si].c,
+    // Oznaka prečrta malo števko, pri mreži ene števke števko celice.
     izrisiMrezo:(izbrane,oznake)=>cellEls.forEach((c,si)=>{
+      if(!c) return;
       c.classList.toggle('izbrana-izbris',izbrane.has(si));
-      maleStevke(c).forEach(cd=>cd.classList.toggle('oznaka',oznake.has(kljucIzbrisa(si,+cd.dataset.d))));
+      if(ena) c.classList.toggle('oznaka',oznake.has(kljucIzbrisa(si,ex.digit)));
+      else maleStevke(c).forEach(cd=>cd.classList.toggle('oznaka',oznake.has(kljucIzbrisa(si,+cd.dataset.d))));
     }),
     poSpremembi:()=>osveziPomoc(),
   });
-  Object.assign(izbrisVaje,{vzorec:v.ps,sporocilo:v.sporocilo,koncaj:()=>koncaj(v.sporocilo)});
+  Object.assign(izbrisVaje,{vzorec:v.ps,sporocilo:v.sporocilo,koncaj:()=>koncaj(v.odgovorHtml||`<b>Pravilno!</b> ${v.sporocilo}`)});
   vajaEl.div.insertBefore(izbrisVaje.el,vajaEl.btnRow);
 }
 

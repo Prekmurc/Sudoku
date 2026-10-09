@@ -774,7 +774,7 @@ function oznakaTehnike(kljuc) {
 //   (trening/index.html ima nadomestek, enak polju; izpolni ga trening.js),
 // - razlaga: kako vzorec prepoznaš,
 // - posledica: kaj izbrišeš (pri enojčkih vpišeš) in zakaj,
-// - navodilo: kaj izbereš v vaji "Spoznaj" (od naloge 4b pri 3-6 še 2. faza - izbris, docs/izbris-nacrt.md).
+// - navodilo: kaj izbereš v vaji "Spoznaj" (od naloge 4b pri 3-13 še 2. faza - izbris, docs/izbris-nacrt.md).
 // Razlaga in posledica sta v treningu v zložljivem razdelku "Razlaga" pod nalogo, v igri v
 // oknu Pomoč (opisTehnike()); pod nalogo je povzetek z navodilom (opisVaje()).
 // Pravila besedil (faza 6): glagol "izbriši" (ne "odstrani", "izloči"), druga oseba ednine,
@@ -851,7 +851,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Če je števka v dveh vrsticah mogoča samo v istih dveh stolpcih, jo izbrišeš iz teh dveh stolpcev v vseh drugih vrsticah (ali z zamenjanimi vrsticami in stolpci).',
     razlaga: 'Poišči dve vrstici, v katerih je števka mogoča samo v dveh celicah – v obeh vrsticah v istih dveh stolpcih. Te štiri celice so vogali pravokotnika. Enako deluje z zamenjanimi vlogami: dva stolpca, v katerih je števka mogoča samo v istih dveh vrsticah.',
     posledica: 'V vsaki od obeh vrstic mora biti števka v enem od dveh vogalov. V istem stolpcu ne moreta biti obe, zato je ena v prvem, druga v drugem stolpcu – oba stolpca imata števko že v vogalih. Iz vseh drugih celic obeh stolpcev jo izbrišeš. Pri dveh stolpcih (vlogi zamenjani) jo enako izbrišeš iz obeh vrstic zunaj vogalov.',
-    navodilo: 'Izberi vse štiri vogale.',
+    navodilo: 'Izberi vse štiri vogale, nato izbriši kandidate, ki zaradi vzorca odpadejo.',
   },
   'swordfish': {
     ime: 'Mečarica',
@@ -859,7 +859,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Razširjeno X-krilo: če je števka v treh vrsticah mogoča samo v istih treh stolpcih, jo iz teh stolpcev izbrišeš v vseh drugih vrsticah.',
     razlaga: 'Poišči tri vrstice, v katerih je števka mogoča samo v istih treh stolpcih. V posamezni vrstici je lahko mogoča v vseh treh ali samo v dveh od teh stolpcev. Enako deluje z zamenjanimi vlogami: trije stolpci, v katerih je števka mogoča samo v istih treh vrsticah.',
     posledica: 'V vsaki od treh vrstic mora biti števka v enem od teh treh stolpcev, in to vsakič v drugem – torej ima vsak od treh stolpcev števko že v vzorcu. Iz vseh drugih celic teh treh stolpcev jo izbrišeš. Pri treh stolpcih (vlogi zamenjani) jo enako izbrišeš iz treh vrstic zunaj vzorca.',
-    navodilo: 'Izberi vse celice vzorca.',
+    navodilo: 'Izberi vse celice vzorca, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   'turbot-fish': {
     ime: 'Veriga ene števke',
@@ -867,7 +867,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Dve povezavi iste števke se z enim koncem vidita – števko izbrišeš iz celic, ki vidijo oba druga konca. (Povezava je vrstica ali stolpec, kjer je števka mogoča samo v dveh celicah; celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku.)',
     razlaga: 'Za eno števko poišči dve povezavi. Povezava je vrstica ali stolpec, v katerem je števka mogoča samo v dveh celicah – to sta konca povezave. Povezavi sta lahko dve vrstici, dva stolpca ali vrstica in stolpec. En konec prve povezave mora videti en konec druge: celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Če sta povezavi dve vrstici (ali dva stolpca) in sta konca, ki se vidita, v istem stolpcu (ali vrstici), je to Nebotičnik (Skyscraper). Če sta povezavi vrstica in stolpec in sta konca, ki se vidita, v istem bloku, je to Zmaj z dvema vrvicama (2-String Kite).',
     posledica: 'Konca, ki se vidita, ne moreta imeti števke oba. Če je ni na enem od njiju, je na drugem koncu njegove povezave – zato je števka vsaj na enem od preostalih dveh koncev. Iz celic, ki vidijo oba ta konca, jo izbrišeš.',
-    navodilo: 'Števka je označena. Izberi vse štiri konce obeh povezav.',
+    navodilo: 'Števka je označena. Izberi vse štiri konce obeh povezav, nato izbriši kandidate, ki zaradi vzorca odpadejo.',
   },
   'w-wing': {
     ime: 'W-krilo',
@@ -875,7 +875,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Dve celici z istim parom {x, y}, ki se ne vidita (nista v isti vrstici, stolpcu ali bloku), povezuje vrstica, stolpec ali blok, kjer je y mogoč samo v dveh celicah – x izbrišeš iz celic, ki vidijo obe celici para.',
     razlaga: 'Poišči dve celici z natanko istima kandidatoma {x, y}, ki se ne vidita – celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Nato poišči enoto (vrstico, stolpec ali blok), v kateri je y mogoč samo v dveh celicah, ki nista celici para. To je povezava: ena njena celica mora videti prvo celico para, druga drugo.',
     posledica: 'Celici para ne moreta biti obe y: obe celici povezave bi takrat videli y in v povezavi y ne bi bil mogoč nikjer. Torej je vsaj v eni celici para x. Iz vseh celic, ki vidijo obe celici para, x izbrišeš.',
-    navodilo: 'Izberi obe celici para in obe celici povezave (štiri celice).',
+    navodilo: 'Izberi obe celici para in obe celici povezave (štiri celice), nato izbriši kandidate, ki zaradi vzorca odpadejo.',
   },
   'xy-wing': {
     ime: 'XY-krilo',
@@ -883,7 +883,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Pivot (osrednja celica) {x, y} vidi krili {x, z} in {y, z} – z izbrišeš iz celic, ki vidijo obe krili.',
     razlaga: 'Poišči pivot (osrednjo celico) z natanko dvema kandidatoma {x, y}. Nato poišči dve krili – celici z natanko dvema kandidatoma, ki ju pivot vidi (sta z njim v isti vrstici, stolpcu ali bloku): eno krilo ima {x, z}, drugo {y, z}. Krili si delita števko z, ki je pivot nima.',
     posledica: 'Če je v pivotu x, krilo {x, z} ne more biti x, zato je z. Če je v pivotu y, je z v krilu {y, z}. V enem od kril je torej z – iz vseh celic, ki vidijo obe krili, z izbrišeš.',
-    navodilo: 'Izberi pivot in obe krili (tri celice).',
+    navodilo: 'Izberi pivot in obe krili (tri celice), nato izbriši kandidate, ki zaradi vzorca odpadejo.',
   },
   'unique-rectangle': {
     ime: 'Edinstveni pravokotnik',
@@ -891,7 +891,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Trije vogali pravokotnika v dveh blokih imajo isti par {x, y}: iz četrtega vogala izbrišeš x in y, sicer bi imela uganka dve rešitvi.',
     razlaga: 'Poišči štiri celice, ki so vogali pravokotnika: ležijo v dveh vrsticah in dveh stolpcih, vse skupaj pa v natanko dveh blokih. Trije vogali imajo natanko ista kandidata {x, y}, četrti pa ima poleg x in y še vsaj enega kandidata.',
     posledica: 'Če bi bila v četrtem vogalu x ali y, bi v vseh štirih vogalih ostala samo x in y. Potem bi ju lahko po vogalih zamenjal in dobil drugo rešitev, uganka pa ima natanko eno. Zato četrti vogal ne more biti ne x ne y – oba izbrišeš iz njega.',
-    navodilo: 'Izberi vse štiri vogale pravokotnika.',
+    navodilo: 'Izberi vse štiri vogale pravokotnika, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   // XY-veriga (13, ekspertna raven; docs/xy-veriga-nacrt.md, razdelek 6).
   'xy-chain': {
@@ -900,7 +900,7 @@ const TEHNIKE_OPISI = {
     povzetek: 'Celice z natanko dvema kandidatoma tvorijo verigo: zaporedni celici se vidita in imata skupen kandidat. Če imata oba konca verige kandidat z, z izbrišeš iz celic, ki vidijo oba konca.',
     razlaga: 'Poišči zaporedje vsaj štirih celic z natanko dvema kandidatoma. Zaporedni celici se vidita – sta v isti vrstici, stolpcu ali bloku – in imata skupen kandidat, ki ju povezuje: prva celica {z, x} in druga {x, y} si delita x, druga in tretja y, in tako naprej. Zadnja celica ima poleg povezovalne števke spet z, torej imata oba konca verige kandidat z. Veriga treh celic je XY-krilo (11).',
     posledica: 'Če prva celica ni z, je x. Potem druga ni x, torej je y, tretja ni y … in zadnja celica je z. Vsaj en konec verige je torej z. Iz vseh celic, ki vidijo oba konca, z izbrišeš.',
-    navodilo: 'Izberi vse celice verige.',
+    navodilo: 'Izberi vse celice verige, nato izbriši kandidate, ki zaradi nje odpadejo.',
   },
 };
 

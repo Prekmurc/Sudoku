@@ -1,8 +1,8 @@
 # Spoznaj: druga faza – izbris (naloga 4b) – načrt
 
 Načrt 2026-10-09 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4b – dodana ob ročnem pregledu
-naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); koraka 1 in 2
-narejena (razdelek 9).
+naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); koraki 1–3
+narejeni (razdelek 9).
 
 Izhodišče: commit `705349a` (zaključek naloge 4a).
 
@@ -550,3 +550,46 @@ Korak ni razdeljen (D3) – 3–6 skupaj z osnovo.
   na mreži rožnate celice (kot legenda »Rešitve« v 1. fazi – sicer bi bila rožnata nepojasnjena); nepopoln odgovor ima modro
   sporočilo (`fb info`, kot »delno« v »Vadi v uganki«), prazen odgovor rdeče (kot »Izberi natanko dve celici.«).
 
+
+### Korak 3 – 7–13 (2026-10-09)
+
+**Najprej popravek** (napaka od `705349a`): pri 3–6 z enoto blok (vaja 3 kroga) so bile oznake celic (V4S4 … V6S6)
+nad razdelkom »Shema«, mreža pa pod njim. Oznake so del mreže bloka – `renderExercise()` vstavi razdelek »Shema« (in
+vrstico s preslikavo) pred oznake. Test: `tests/trening-shema-vaja.test.js` (»enota blok – shema nad oznakami
+celic«, na stari kodi pade 4 od 4); stari test »shema tik nad mrežo« je pri vaji 3 zahteval mrežo tik za shemo – zdaj
+oznake celic šteje za del mreže bloka. Posnetka D2 sta zato posneta znova (`3-oznake-375.png` je vaja z blokom).
+
+- **`trening/trening.js`:** `zacniIzbris()` je en prehod v 2. fazo za 3–13 – `v = { ps, izbris, sporocilo, uvod,
+  odgovorHtml, oznaciOdgovor, zacetek }` (oznake odgovora po tehniki namesto kode za 3–6; pri 3–6
+  `odgovorPodmnozice()`). Celica je indeks v `cellEls` (pri 7 in 8 0–80, sicer indeks v `ex.slots`).
+  - **7, 8:** izbris – pri 7 celice izbrisa po pravilu X-krila (`elimNow`), pri 8 `eliminate` koraka `swordfish()`
+    (O10); oznaka je razred `oznaka` na celici `xw-cell` (prečrtana števka celice, celica ostane bela), izbira
+    `izbrana-izbris`, gumb je omogočen samo za števko vaje. Po 1. fazi »**Vzorec je pravilen (vrstična mečarica).**
+    Števka 5 je v treh vrsticah (V1, V7, V9) mogoča samo v stolpcih S7, S1, S3. Zdaj izbriši kandidate, ki zaradi
+    vzorca odpadejo.« (O11 – brez »→ … jo izbrišeš«); Rešitev v 2. fazi »**Vrstična mečarica:** Števka 5 … → iz
+    preostanka teh stolpcev jo izbrišeš.« (O9); po 2. fazi sporočilo in `xw-elim` kot prej.
+  - **9–13:** izbris `eliminate` koraka funkcije tehnike, ki ga je sprejel »Preveri«; po 1. fazi
+    `IZBRIS_VZOREC_PRAVILEN`, po 2. fazi sporočilo koraka, `elimcell` in `elim` kot prej. **13:** zaporedne številke
+    verige se pokažejo že po 1. fazi (so del vzorca) in ostanejo; končno stanje je enako kot prej.
+  - Rešitev v 2. fazi pri 7 in 8: celica izbrisa `peek-elim` (prečrtana števka, rožnata), napačna oznaka `peek-napacna`
+    na celici; `legendaIzbrisa()` pozna celice `xw-cell` in zelene `xw-correct`/`xw-sf-correct`.
+- **`trening/trening.css`:** `.xw-cell.izbrana-izbris` (modra; na zeleni celici vzorca zelena z modrim okvirjem 3 px),
+  `.xw-cell.oznaka` (rdeča prečrtana števka), `.xw-cell.oznaka.peek-napacna` (brez črte, temno rdeč obroč okoli
+  števke – `radial-gradient`, ker celica nima elementa male števke).
+- **Navodila:** `TEHNIKE_OPISI[].navodilo` 7–13 in `ex.desc` pri 7 in 8 (generator in vaji po shemi) dobijo drugi del
+  »…, nato izbriši kandidate, ki zaradi vzorca (njega, nje) odpadejo.«
+- **Testi:** `tests/trening-izbris.test.js` +22 testov (46; na kodi pred korakom 3 jih pade 21 – zelen je samo krog
+  9 / 9, ki deluje tudi brez 2. faze). Izbris izračuna test sam: pri 7 po pravilu X-krila, pri 8 s `swordfish()`, pri
+  9–13 s funkcijo tehnike. Pomožna `tests/odgovor-spoznaj.js` je bila že splošna – brez spremembe.
+- **Brskalnik:** `tools/preveri-izbris-brskalnik.js` še za 7, 8, 10, 12, 13 (375 px z dotikom – celice 30 px, 1280 px
+  z miško; končno stanje enako izhodišču `705349a`), »Rešitev« v 2. fazi pri 8, posnetka D5
+  `docs/slike/izbris/8-oznake-375.png` in `12-oznake-375.png`. `tools/odgovor-spoznaj-brskalnik.js` klikne tudi celice
+  `xw-cell`.
+- **Izvzeto v primerjavah z izhodiščem (D1):** navodila 9–13 (`NAVODILA_PRED_4B` – cela poved, kot pri 3–6) in drugi
+  del opisa vaj 7 in 8 (`DODATEK_78` – ex.desc ima števko in smer vaje, zato se odreže samo dodatek, in to samo, če se
+  besedilo začne s povzetkom X-krila ali mečarice). Drugega se ne rahlja.
+- **Odstopanje (orodje):** `preveri-izbris-brskalnik.js` je pri W-krilu javil razliko `innerHTML`, čeprav sta bila
+  izrisa enaka do znaka: `razlikeIzrisa()` je novi izris preslikal z `ZNANE_RAZLIKE` (besedila W-krila x, y → a, b za
+  izhodišča pred popravkom 5 naloge 4a), izhodišče `705349a` pa ga že ima. `razlikeIzrisa()` dobi možnost
+  `{ znaneRazlike: false }`, ki jo uporabi samo ta scenarij (drugi scenariji imajo starejša izhodišča in ostanejo, kot
+  so). Aplikacija se zaradi tega ne spremeni.
