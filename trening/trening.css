@@ -98,6 +98,9 @@ header.top{max-width:560px}
 .vaja-presek .kand{font-size:calc(var(--gcs)*.34)}
 /* 2. faza (izbris) pri 1 in 2: oznaka je k-izbris (shared/mreza.css - rdeče prečrtan kandidat); ob »Rešitvi« je
    napačna oznaka (k-napacna) brez črte, s temno rdečim obročem - kot .cd.oznaka.peek-napacna */
+/* Oznaka na poudarjeni števki (2. faza pri 1 in 2 - števka vaje je poudarjena): temnejša rdeča, ker ima rdeča
+   --red na rumenem poudarku --poud kontrast samo 3,5 : 1 (#8E1B1B: 5,4 : 1) - popravek po ročnem pregledu 2026-10-10 */
+.vaja-presek .kand.poud.k-izbris{color:var(--okvir-napacno)}
 .vaja-presek .kand.k-napacna{color:var(--ink);font-weight:700;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--okvir-napacno)}
 
 /* E1 in E2 (Spoznaj): plošča iz shared/plosca.js (docs/pripomocki-e1-e2-nacrt.md) - niz

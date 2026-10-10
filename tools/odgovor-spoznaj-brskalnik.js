@@ -47,9 +47,10 @@ async function dokoncajDrugoFazo(b) {
   const pari = await b.izvedi(`(() => { const f = document.querySelector('#exerciseArea .izbris-faza');
     return f && !f.hidden && typeof izbrisVaje !== 'undefined' && izbrisVaje ? izbrisVaje.izbris : null; })()`);
   if (pari) {
-    for (const d of [...new Set(pari.map(([, x]) => x))]) {
+    // Po parih (celica, nato gumb števke) - deluje z vklopljeno in izklopljeno kljukico »več celic«.
+    for (const [c, d] of pari) {
       await b.tipka('Escape', { code: 'Escape' });
-      for (const [c] of pari.filter(([, x]) => x === d)) await b.klikni(celicaVaje(c));
+      await b.klikni(celicaVaje(c));
       await b.klikni(`#exerciseArea .izbris-faza button[data-d="${d}"]`);
       await odmakniMisko(b);
     }

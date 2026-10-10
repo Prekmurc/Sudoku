@@ -1,5 +1,8 @@
 'use strict';
 // »Spoznaj«: druga faza – izbris (docs/izbris-nacrt.md) v pravem brskalniku; raste po korakih načrta.
+// Popravka po ročnem pregledu (2026-10-10): A – pri 1 in 2 je števka vaje v 2. fazi poudarjena, oznaka na poudarku
+// temnejša rdeča s kontrastom vsaj 4,5 : 1 (izmeri); B – kljukica »več celic« v nizu (privzeto po tehniki, pri
+// izklopljeni dotik izbere samo to celico, dotik izbrane jo odizbere). Posnetka 1-poudarek-375.png in 3-vec-celic-375.png.
 // Korak 4 – isto še pri 1 · Izločitev izven bloka in 2 · Izločitev v bloku (delna mreža iz shared/mreza.js – celice
 // .vaja-presek .celica): po 1. fazi vzorec jantaren, brez poudarka in rožnatih celic; oznaka ima slog .kand.k-izbris,
 // celica ostane bela; izbrana celica vzorca jantarna z modrim okvirjem; končno stanje enako izhodišču. 1: »Rešitev« v
@@ -142,19 +145,47 @@ async function vajaNova(b, mode, sirina) {
   if (PRESEK(mode)) {
     const p = await b.izvedi(`(() => { const c = [...document.querySelectorAll('#exerciseArea .vaja-presek .celica')];
       return { vzorec: c.map((e, i) => e.classList.contains('k-vzorec') ? i : -1).filter(i => i >= 0).join(), cilj: [...vajaNaZaslonu.solutionCells].sort((a, b) => a - b).join(),
-        poud: document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud').length, roza: document.querySelectorAll('#exerciseArea .vaja-presek .celica.k-izbris').length }; })()`);
-    preveri(`${mode}, ${sirina} px: po 1. fazi vzorec jantaren, brez poudarka, brez rožnatih celic`, p.vzorec === p.cilj && !p.poud && !p.roza, p);
+        poud: document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud').length, poudCilj: vajaNaZaslonu.vidne.filter(i => !vajaNaZaslonu.grid[i] && vajaNaZaslonu.kandidati[i] & (1 << vajaNaZaslonu.digit)).length, roza: document.querySelectorAll('#exerciseArea .vaja-presek .celica.k-izbris').length }; })()`);
+    // Popravek A (2026-10-10): števka vaje ostane poudarjena kot v 1. fazi.
+    preveri(`${mode}, ${sirina} px: po 1. fazi vzorec jantaren, števka vaje poudarjena (${p.poud}), brez rožnatih celic`, p.vzorec === p.cilj && p.poud === p.poudCilj && p.poud > 0 && !p.roza, p);
   }
   preveri(`${mode}, ${sirina} px: gumbi niza vsaj 24 px (najmanjši ${s.min.toFixed(1)} px), celice vsaj 24 px (${s.celica.toFixed(1)} px), brez preliva`, s.min >= 24 && s.celica >= 24 && !s.preliv, s);
   const izbris = await b.izvedi('izbrisVaje.izbris');
   const [si, d] = izbris[0];
+  // Popravek B (2026-10-10): kljukica »več celic« v glavi niza, v kartici; privzeto vklopljena pri 1, 2, 7–11, 13.
+  const vk = await b.izvedi(`(() => { const i = document.querySelector('#exerciseArea .izbris-faza input[type=checkbox]'), e = document.querySelector('#exerciseArea .exercise').getBoundingClientRect();
+    const r = i && i.closest('label').getBoundingClientRect(); return i ? { checked: i.checked, napis: i.closest('label').textContent.trim(), vKartici: r.left >= e.left && r.right <= e.right, visina: r.height } : null; })()`);
+  const privzeto = !['naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple', 'unique-rectangle'].includes(mode);
+  preveri(`${mode}, ${sirina} px: kljukica »več celic« v kartici, privzeto ${privzeto ? 'vklopljena' : 'izklopljena'}`, !!vk && vk.napis === 'več celic' && vk.checked === privzeto && vk.vKartici, vk);
+  if (!privzeto) {
+    const drugi = [...new Set(izbris.map(([c]) => c))].find(c => c !== si);
+    if (drugi !== undefined) {
+      await dotakni(b, sirina, celicaVaje(si));
+      await dotakni(b, sirina, celicaVaje(drugi));
+      await odmakniMisko(b);
+      const izb = await b.izvedi('[...izbrisVaje.izbrane]');
+      preveri(`${mode}, ${sirina} px: izklopljena »več celic« – dotik druge celice izbere samo njo`, JSON.stringify(izb) === JSON.stringify([drugi]), izb);
+      await dotakni(b, sirina, celicaVaje(drugi));
+      await odmakniMisko(b);
+      const prazna = await b.izvedi('izbrisVaje.izbrane.size');
+      preveri(`${mode}, ${sirina} px: dotik izbrane celice jo odizbere`, prazna === 0, prazna);
+    }
+  }
   // Oznaka s pravim dotikom/klikom celice in gumba števke.
   await dotakni(b, sirina, celicaVaje(si));
   await dotakni(b, sirina, `#exerciseArea .izbris-faza button[data-d="${d}"]`);
   await odmakniMisko(b);
   let st = await slogStevke(b, si, d);
-  preveri(`${mode}, ${sirina} px: oznaka (gumb) ima slog izbrisane števke (${st.barva}, ${st.crta}, ${st.debelina})`,
-    st.oznacena && st.barva === st.ref.barva && st.crta === st.ref.crta && st.debelina === st.ref.debelina && st.crta.includes('line-through'), st);
+  if (PRESEK(mode)) {
+    // Popravek A (2026-10-10): števka vaje je v 2. fazi poudarjena; oznaka na poudarku je temnejša rdeča (--okvir-napacno).
+    const k = await kontrastOznake(b, si, d);
+    kontrasti.push({ mode, sirina, ...k });
+    preveri(`${mode}, ${sirina} px: oznaka na poudarjeni števki – prečrtana, krepka, kontrast ${k.kontrast.toFixed(2)} : 1 (vsaj 4,5; z rdečo --red bi bil ${k.kontrastRdeca.toFixed(2)} : 1)`,
+      st.oznacena && k.poud && st.crta.includes('line-through') && st.debelina === '700' && st.barva === RDECA_OKVIR && k.kontrast >= 4.5, { st, k });
+  } else {
+    preveri(`${mode}, ${sirina} px: oznaka (gumb) ima slog izbrisane števke (${st.barva}, ${st.crta}, ${st.debelina})`,
+      st.oznacena && st.barva === st.ref.barva && st.crta === st.ref.crta && st.debelina === st.ref.debelina && st.crta.includes('line-through'), st);
+  }
   if (PRESEK(mode)) {
     const roza = await b.izvedi(`document.querySelector(${JSON.stringify(celicaVaje(si))}).classList.contains('k-izbris')`);
     preveri(`${mode}, ${sirina} px: označena celica ostane bela (rožnata šele po pravilnem odgovoru)`, !roza, roza);
@@ -249,9 +280,9 @@ async function oznakePredPreveri(b) {
   await prvaFaza(b, 375);
   await klikniGumb(b, 375, 'Preveri');
   const izbris = await b.izvedi('izbrisVaje.izbris');
-  for (const d of [...new Set(izbris.map(([, x]) => x))]) {
+  for (const [si, d] of izbris) {
     await b.tipka('Escape', { code: 'Escape' });
-    for (const [si] of izbris.filter(([, x]) => x === d)) await b.tapni(`#exerciseArea .gc[data-si="${si}"]`);
+    await b.tapni(`#exerciseArea .gc[data-si="${si}"]`);
     await b.tapni(`#exerciseArea .izbris-faza button[data-d="${d}"]`);
   }
   // Zadnja izbira ostane (izbira je po oznaki vidna) - na posnetku se vidi tudi ↺ na gumbu.
@@ -261,11 +292,12 @@ async function oznakePredPreveri(b) {
   await b.posnetek(path.join(SLIKE, '3-oznake-375.png'));
 }
 
-// Korak 3: oznake s pravimi dotiki (po števkah Escape, celice, gumb števke); zadnja izbira ostane.
+// Korak 3: oznake s pravimi dotiki (po parih Escape, celica, gumb števke - deluje z vklopljeno in izklopljeno
+// kljukico »več celic«); zadnja izbira ostane.
 async function oznaciDotiki(b, sirina, pari) {
-  for (const d of [...new Set(pari.map(([, x]) => x))]) {
+  for (const [c, d] of pari) {
     await b.tipka('Escape', { code: 'Escape' });
-    for (const [c] of pari.filter(([, x]) => x === d)) await dotakni(b, sirina, celicaVaje(c));
+    await dotakni(b, sirina, celicaVaje(c));
     await dotakni(b, sirina, `#exerciseArea .izbris-faza button[data-d="${d}"]`);
   }
   await odmakniMisko(b);
@@ -354,6 +386,29 @@ async function resitevPresek(b, sirina) {
 }
 
 // Posnetek D6a (375 px, dvojna ločljivost): 1 · Izločitev izven bloka z oznakami pred »Preveri«; zadnja izbira ostane.
+// Posnetka popravkov A in B (375 px, dvojna ločljivost): 1 · Izločitev izven bloka v 2. fazi s poudarkom in eno oznako;
+// 3 · Očitni par v 2. fazi s kljukico »več celic« (izklopljena), eno oznako in izbrano celico.
+async function posnetkaAB(b) {
+  await odpri(b, 'pointing', 375);
+  await prvaFaza(b, 375);
+  await klikniGumb(b, 375, 'Preveri');
+  let izbris = await b.izvedi('izbrisVaje.izbris');
+  await oznaciDotiki(b, 375, [izbris[0]]);
+  await b.tipka('Escape', { code: 'Escape' });
+  const n = await b.izvedi(`[document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud').length, document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud.k-izbris').length]`);
+  preveri(`1, 375 px: poudarek v 2. fazi (${n[0]} poudarjenih), ena oznaka na poudarku`, n[0] > 1 && n[1] === 1, n);
+  await b.posnetek(path.join(SLIKE, '1-poudarek-375.png'));
+  await odpri(b, 'naked-pair', 375);
+  await prvaFaza(b, 375);
+  await klikniGumb(b, 375, 'Preveri');
+  izbris = await b.izvedi('izbrisVaje.izbris');
+  await oznaciDotiki(b, 375, [izbris[0]]);
+  const drugi = izbris.find(([c, x]) => c !== izbris[0][0] && x !== izbris[0][1]) || izbris[1];
+  await b.tapni(celicaVaje(drugi[0]));
+  await odmakniMisko(b);
+  await b.posnetek(path.join(SLIKE, '3-vec-celic-375.png'));
+}
+
 async function posnetekD6a(b) {
   await odpri(b, 'pointing', 375);
   await prvaFaza(b, 375);
@@ -393,7 +448,15 @@ async function prekrivanjeCelice(b, sel, dodatno = '') {
     return { stik, zakritih };
   })()`);
 }
-const meritve = [];
+const meritve = [], kontrasti = [];
+const KONTRAST = `const lum = c => { const [r, g, b] = c.match(/\\d+(\\.\\d+)?/g).slice(0, 3).map(x => { x = +x / 255; return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b; }; const kontrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };`;
+// Oznaka na delni mreži (1, 2): kontrast barve proti podlagi poudarka; za primerjavo še z --red.
+const kontrastOznake = (b, c, d) => b.izvedi(`(() => { ${KONTRAST}
+  const k = document.querySelector(${JSON.stringify(celicaVaje(c))}).querySelector('.kandidati').children[${d} - 1], s = getComputedStyle(k);
+  const rdeca = getComputedStyle(document.documentElement).getPropertyValue('--red').trim(), t = document.createElement('span'); t.style.color = rdeca; document.body.appendChild(t);
+  const rgbRdeca = getComputedStyle(t).color; t.remove();
+  return { poud: k.classList.contains('poud'), barva: s.color, podlaga: s.backgroundColor, kontrast: kontrast(s.color, s.backgroundColor), kontrastRdeca: kontrast(rgbRdeca, s.backgroundColor) }; })()`);
 async function meritevOkvirja(b, mode) {
   await odpri(b, mode, 375);
   await prvaFaza(b, 375);
@@ -447,6 +510,9 @@ async function main() {
     await oznakePredPreveri(b);
     console.log('swordfish in unique-rectangle, oznake pred »Preveri«, 375 px (D5)');
     await posnetkaD5(b);
+    console.log('popravka A in B: posnetka 1-poudarek-375.png in 3-vec-celic-375.png');
+    await posnetkaAB(b);
+    console.log(JSON.stringify(kontrasti));
     console.log('pointing, oznake pred »Preveri«, 375 px (D6a)');
     await posnetekD6a(b);
     console.log('popravek okvirja: prekrivanje z malimi števkami pri 375 px (hidden-pair, hidden-triple, unique-rectangle)');

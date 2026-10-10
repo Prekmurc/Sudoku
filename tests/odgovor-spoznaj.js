@@ -51,8 +51,9 @@ function dokoncajDrugoFazo(dom, run) {
   const izbris = vsi(dom.el('exerciseArea')).find(e => e.classList && e.classList.contains('izbris-faza') && !e.hidden);
   if (izbris) {
     const pari = JSON.parse(run('JSON.stringify(izbrisVaje.izbris)'));
-    for (const d of [...new Set(pari.map(([, x]) => x))]) {
-      run(`izbrisVaje.pocistiIzbiro(); izbrisVaje.izbris.filter(([, x]) => x === ${d}).forEach(([c]) => izbrisVaje.izberi(c));`);
+    // Po parih (celica, nato gumb števke) - deluje z vklopljeno in izklopljeno kljukico »več celic«.
+    for (const [c, d] of pari) {
+      run(`izbrisVaje.pocistiIzbiro(); izbrisVaje.izberi(${c});`);
       vsi(izbris).find(e => e.tagName === 'BUTTON' && String(e.dataset.d) === String(d)).sprozi('click');
     }
     run('izbrisVaje.pocistiIzbiro()');

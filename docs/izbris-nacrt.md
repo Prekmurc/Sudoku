@@ -2,7 +2,7 @@
 
 Načrt 2026-10-09 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4b – dodana ob ročnem pregledu
 naloge 4a). **Stanje: potrjen 2026-10-09** (razdelek 3a – odločitve in dodatki D1–D4); koraki 1–4
-narejeni (razdelek 9), ročni pregled čaka.
+narejeni (razdelek 9), ročni pregled točk 1–5 potrjen 2026-10-10, popravka A in B po pregledu narejena (čakata na pregled).
 
 Izhodišče: commit `705349a` (zaključek naloge 4a).
 
@@ -645,3 +645,31 @@ Izbrana celica se z malimi števkami ne prekriva bolj kot zelena brez izbire (po
   ali 2 in vsebuje »– izberi te celice, nato jo izbriši iz«); velja v `preveri-izbris-` (končno stanje 1 in 2) in
   `preveri-vadi-brskalnik.js` (»Spoznaj« 1 in 2). Ostanejo izvzetja iz korakov 2 in 3 (navodila 3–13 – `NAVODILA_NAZAJ`,
   drugi del opisa vaj 7 in 8 – `DODATEK_78`, razdelek `.phase2` izhodišča). Drugega se ne rahlja.
+
+### Popravka po ročnem pregledu (2026-10-10)
+
+Ročni pregled (razdelek 7, `docs/rocni-test.md`, »Spoznaj – izbris«): vseh pet točk deluje. Iz opažanj dva popravka.
+
+- **A – poudarek pri 1 in 2.** V 2. fazi je števka vaje poudarjena kot v 1. fazi (prej izklopljena) – sicer se ne vidi, kje v
+  vrstici ali stolpcu je. `buildPresekLayout()`: poudarek izklopljen samo ob oznakah koraka (»Rešitev« v 2. fazi, »Rešitev« v
+  1. fazi in po pravilnem odgovoru – vse kot prej). Poudarek in oznaka se ne izključujeta (kandidat ima razreda `poud` in
+  `k-izbris`), a rdeča `--red` (#B23A2E) ima na rumenem poudarku `--poud` (#F6C026) kontrast samo **3,53 : 1**, zato je
+  oznaka na poudarku temnejša rdeča `--okvir-napacno` (#8E1B1B): **5,38 : 1** (izmerjeno v brskalniku pri 375 in 1280 px na 1 in
+  2; `.vaja-presek .kand.poud.k-izbris` v `trening/trening.css`). Črta in krepkost ostaneta.
+- **B – kljukica »več celic«** v glavi niza »Izbriši kandidata« (kot v »Vadi v uganki«, `trening/izbris.js`: možnosti `vecCelic` in
+  `obVecCelic`). Vklopljena: klik celico doda ali odstrani (kot prej). Izklopljena: klik izbere samo to celico, klik edine izbrane
+  jo odizbere; izklop počisti izbiro (kot plošča v »Vadi v uganki«). Privzeto vklopljena pri 1, 2, 7–11, 13 (ena števka),
+  izklopljena pri 3–6 in 12 (`IZBRIS_VEC_CELIC` v `trening/trening.js`). Igralčeva sprememba velja do konca kroga
+  (`izbrisVecCelicKrog`, `zacniKrog()` ga ponastavi). Izbira po oznaki ostane. Pomoč treninga dopolnjena.
+- **Testi:** `tests/trening-izbris.test.js` +4 testi (59) za B in spremenjeno pričakovanje za A (»poudarek izklopljen« → števka
+  vaje poudarjena v 2. fazi, ob Rešitvi brez poudarka, po zaprtju spet); na kodi pred popravkoma jih pade 10 (6 za A, 4 za B).
+  Pomožne funkcije, ki so označevale »po števkah« (več celic, nato gumb – `oznaci()`, `oznaciVaja()`, `oznaciPresek()` v testu,
+  `dokoncajDrugoFazo()` v `tests/odgovor-spoznaj.js` in `tools/odgovor-spoznaj-brskalnik.js`, `oznaciDotiki()` in posnetek D2a
+  v scenariju), označujejo zdaj po parih (celica, nato gumb) – deluje z vklopljeno in izklopljeno kljukico; pričakovanja ostanejo.
+  Test preseka gumbov pri 3–6 (več izbranih celic) kljukico izrecno vklopi.
+- **Brskalnik:** `tools/preveri-izbris-brskalnik.js` – kontrast oznake na poudarku (vsaj 4,5 : 1), poudarek po 1. fazi pri 1 in 2
+  (prej preverjanje »brez poudarka«), kljukica v kartici s privzeto vrednostjo pri vseh 13 tehnikah, pri 3–6 izklopljena (dotik
+  druge celice izbere samo njo, dotik izbrane jo odizbere); končna stanja enaka izhodišču `705349a` kot prej. Posnetka
+  `docs/slike/izbris/1-poudarek-375.png` (1 v 2. fazi s poudarkom in eno oznako) in `3-vec-celic-375.png` (3 v 2. fazi s
+  kljukico, eno oznako in izbrano celico); `1-oznake-375.png` posnet znova (poudarek).
+- **Izvzeto v primerjavah z izhodiščem (D1):** nič novega – končno stanje po 2. fazi in izris pred 2. fazo se ne spremenita.

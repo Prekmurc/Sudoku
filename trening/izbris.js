@@ -46,18 +46,32 @@ function namigIzbrisa(izbris) {
 //   izbris            - pari [celica, števka] najdenega vzorca (O10),
 //   kandidati(c)      - kandidati celice (polje števk; prazno - celice ni mogoče izbrati),
 //   izrisiMrezo(izbrane, oznake) - aplikacija pokaže izbiro (Set celic) in oznake (Set ključev),
-//   poSpremembi()     - po spremembi izbire ali oznak (osvežitev odprte Rešitve).
+//   poSpremembi()     - po spremembi izbire ali oznak (osvežitev odprte Rešitve),
+//   vecCelic          - začetno stanje kljukice »več celic« (popravek po ročnem pregledu 2026-10-10),
+//   obVecCelic(v)     - igralec je kljukico spremenil (aplikacija si stanje zapomni do konca kroga).
+// Kljukica »več celic« (kot v »Vadi v uganki«): vklopljena - klik celico doda v izbiro ali jo odstrani; izklopljena -
+// klik izbere samo to celico, klik edine izbrane jo odizbere; izklop počisti izbiro.
 // Vrne { el, izbris, izbrane, oznake, izberi, stevka, pocistiIzbiro, pocisti, presodi, obTipki, izrisi }.
 // Gumb števke je omogočen, kadar je števka kandidat v vseh izbranih celicah (presek, O2a); če je v vseh
 // že označena, ima ↺ in klik oznako odstrani.
 function ustvariIzbris(o) {
   const izbrane = new Set(), oznake = new Set();
   const el = document.createElement('div'); el.className = 'izbris-faza';
-  const glava = document.createElement('div'); glava.className = 'niz-oznaka';
+  const glava = document.createElement('div'); glava.className = 'niz-oznaka glava-s-kljukico';
+  const napis = document.createElement('span');
   const poj = document.createElement('span'); poj.className = 'niz-pojasnilo';
   const vrni = document.createElement('span'); vrni.className = 'vzorec-vrni'; vrni.textContent = '↺';
   poj.append('· ', vrni, ' = vrni');
-  glava.append('Izbriši kandidata ', poj);
+  napis.append('Izbriši kandidata ', poj);
+  const kljukica = document.createElement('label'); kljukica.className = 'vec-hkrati';
+  kljukica.title = 'Izberi več celic in izbriši isto števko iz vseh';
+  const vec = document.createElement('input'); vec.type = 'checkbox'; vec.checked = !!o.vecCelic;
+  kljukica.append(vec, ' več celic');
+  vec.addEventListener('change', () => {
+    if (o.obVecCelic) o.obVecCelic(vec.checked);
+    if (!vec.checked && izbrane.size) { izbrane.clear(); spremenjeno(); }
+  });
+  glava.append(napis, kljukica);
   const niz = document.createElement('div'); niz.className = 'niz niz-odstrani';
   niz.setAttribute('role', 'group'); niz.setAttribute('aria-label', 'Izbriši kandidata');
   const gumbi = [];
@@ -94,11 +108,12 @@ function ustvariIzbris(o) {
     o.izrisiMrezo(izbrane, oznake);
   }
   function spremenjeno() { izrisi(); if (o.poSpremembi) o.poSpremembi(); }
-  // Klik celice: doda v izbiro ali odstrani (celica brez kandidatov se ne izbere).
+  // Klik celice: z »več celic« doda v izbiro ali odstrani, brez nje izbere samo to celico (klik edine izbrane jo
+  // odizbere). Celica brez kandidatov se ne izbere.
   function izberi(c) {
-    if (izbrane.has(c)) izbrane.delete(c);
-    else if (kand(c).length) izbrane.add(c);
-    else return;
+    if (izbrane.has(c) && (vec.checked || izbrane.size === 1)) izbrane.delete(c);
+    else if (!kand(c).length) return;
+    else { if (!vec.checked) izbrane.clear(); izbrane.add(c); }
     spremenjeno();
   }
   // Klik števke: označi v vseh izbranih celicah ali (↺) oznako odstrani. Izbira ostane.
@@ -129,7 +144,7 @@ function ustvariIzbris(o) {
   }
   izrisi();
   return {
-    el, izbris: o.izbris, izbrane, oznake, izberi, stevka, pocistiIzbiro, pocisti, obTipki, izrisi,
+    el, izbris: o.izbris, izbrane, oznake, vecCelic: vec, izberi, stevka, pocistiIzbiro, pocisti, obTipki, izrisi,
     presodi: () => presodiIzbris(o.izbris, oznake),
   };
 }

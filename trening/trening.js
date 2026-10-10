@@ -105,7 +105,7 @@ let menuPolozaj=0;
 // bi ostal položaj menija (brskalnik ga le zmanjša na višino krajše strani) in glava bi bila odrezana.
 function zacniKrog(m,n){
   if(menuEl.style.display!=='none')menuPolozaj=window.scrollY||0;
-  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
+  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;izbrisVecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';
   renderExercise();
   window.scrollTo(0,0);
@@ -197,7 +197,7 @@ function buildLayout(div,ex,M){
 // prečrtan izbris) - poudarek je takrat izklopljen, da rumena podlaga ne prekrije izbrisa.
 // 2. faza - izbris (docs/izbris-nacrt.md, korak 4): faza2 = { izbrane, oznake, resitev } (množici iz
 // trening/izbris.js); vzorec jantarno, oznake rdeče prečrtane (oznake.izbris), celice ostanejo bele,
-// poudarek izklopljen, izbira vidna. Ob »Rešitvi« (resitev) ves izbris prečrtan, celice izbrisa
+// števka vaje poudarjena kot v 1. fazi, izbira vidna. Ob »Rešitvi« (resitev) brez poudarka, ves izbris prečrtan, celice izbrisa
 // rožnate, napačna oznaka k-napacna.
 function buildPresekLayout(div,ex,M){
   const okvir=document.createElement('div');okvir.className='vaja-presek';
@@ -227,7 +227,9 @@ function buildPresekLayout(div,ex,M){
     const v2=faza2&&!vajaResena;
     mreza.izrisi({
       grid:ex.grid,danosti:ex.danosti,kandidati:ex.kandidati,
-      barva:d=>!korak&&!v2&&d===ex.digit?0:-1,
+      // Števka vaje je poudarjena tudi v 2. fazi (popravek po ročnem pregledu 2026-10-10 - sicer se ne vidi, kje v
+      // vrstici ali stolpcu je); ob oznakah koraka (Rešitev, pravilen odgovor) ne.
+      barva:d=>!korak&&!(v2&&faza2.resitev)&&d===ex.digit?0:-1,
       // Izbira je vidna tudi ob odprti Rešitvi (O12), po pravilnem odgovoru je ni več.
       izbrane:v2?[...faza2.izbrane]:korak&&vajaResena?[]:selected,sosede:null,
       oznake:v2?oznakeFaze2():korak?oznakeKoraka():null,
@@ -1266,6 +1268,13 @@ function checkSingle(ex,M,cellEls,checkBtn,nextBtn,fb){
   }
 }
 
+// Kljukica »več celic« v nizu »Izbriši kandidata« (popravek po ročnem pregledu 2026-10-10): privzeto vklopljena pri
+// tehnikah, kjer se briše ena števka (1, 2, 7-11, 13), izklopljena pri 3-6 in 12 (več različnih števk - izbira samo ene
+// celice prihrani odizbiranje). Igralčeva sprememba velja do konca kroga (izbrisVecCelicKrog, zacniKrog() ga ponastavi).
+const IZBRIS_VEC_CELIC=new Set(['pointing','box-line','x-wing','swordfish','turbot-fish','w-wing','xy-wing','xy-chain']);
+let izbrisVecCelicKrog=null;
+function izbrisVecCelic(){return izbrisVecCelicKrog!==null?izbrisVecCelicKrog:IZBRIS_VEC_CELIC.has(mode);}
+
 // 2. faza - izbris (docs/izbris-nacrt.md) po pravilni 1. fazi pri 3-13. Celica je indeks v cellEls: pri 3-6
 // in 9-13 indeks v ex.slots, pri 7 in 8 (mreža ene števke - števka je besedilo celice xw-cell) 0-80.
 // v = { ps, izbris, sporocilo, uvod?, odgovorHtml?, oznaciOdgovor?, zacetek? }: celice sprejetega vzorca,
@@ -1304,6 +1313,7 @@ function zacniIzbris(ex,M,cellEls,checkBtn,nextBtn,fb,v){
       else maleStevke(c).forEach(cd=>cd.classList.toggle('oznaka',oznake.has(kljucIzbrisa(si,+cd.dataset.d))));
     }),
     poSpremembi:()=>osveziPomoc(),
+    vecCelic:izbrisVecCelic(),obVecCelic:v=>{izbrisVecCelicKrog=v;},
   });
   Object.assign(izbrisVaje,{vzorec:v.ps,sporocilo:v.sporocilo,koncaj:()=>koncaj(v.odgovorHtml||`<b>Pravilno!</b> ${v.sporocilo}`)});
   vajaEl.div.insertBefore(izbrisVaje.el,vajaEl.btnRow);
@@ -1321,6 +1331,7 @@ function zacniIzbrisPreseka(ex,checkBtn,nextBtn,fb){
     kandidati:i=>ex.vidne.includes(i)&&!ex.grid[i]?[1,2,3,4,5,6,7,8,9].filter(d=>ex.kandidati[i]&(1<<d)):[],
     izrisiMrezo:(izbrane,oznake)=>presek.faza2(izbrane,oznake),
     poSpremembi:()=>osveziPomoc(),
+    vecCelic:izbrisVecCelic(),obVecCelic:v=>{izbrisVecCelicKrog=v;},
   });
   Object.assign(izbrisVaje,{vzorec:izbira1,sporocilo:ex.solutionMessage,koncaj:()=>{
     presek.koncajFazo2();

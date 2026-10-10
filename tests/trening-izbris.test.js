@@ -79,11 +79,11 @@ function prvaFaza(dom, cells) {
   for (const si of cells) celica(dom, si).sprozi('click');
   gumb(dom, 'Preveri').sprozi('click');
 }
-// Oznake s kliki: po števkah - Escape, celice s to števko, gumb števke.
+// Oznake s kliki: po parih - Escape, celica, gumb števke (deluje z vklopljeno in izklopljeno kljukico »več celic«).
 function oznaci(dom, pari) {
-  for (const d of [...new Set(pari.map(([, x]) => x))]) {
+  for (const [si, d] of pari) {
     tipka(dom, { key: 'Escape', code: 'Escape' });
-    for (const [si] of pari.filter(([, x]) => x === d)) celica(dom, si).sprozi('click');
+    celica(dom, si).sprozi('click');
     gumbStevke(dom, d).sprozi('click');
   }
   tipka(dom, { key: 'Escape', code: 'Escape' });
@@ -139,7 +139,10 @@ for (const tehnika of TEHNIKE) {
     assert.ok(vsi(celica(dom, si)).some(e => +e.dataset.d === d && !ima(e, 'hide')), 'kandidat ostane viden');
     gumbStevke(dom, d).sprozi('click');
     assert.deepEqual(stevke(dom, 'oznaka'), [], '↺ oznako odstrani');
-    // Presek: druga celica brez skupnega kandidata ali s skupnim.
+    // Presek: druga celica brez skupnega kandidata ali s skupnim - z vklopljeno kljukico »več celic« (pri 3–6
+    // privzeto izklopljena, popravek B 2026-10-10).
+    const vec = kljukicaVec(dom);
+    if (!vec.checked) { vec.checked = true; vec.sprozi('change'); }
     const drugaSi = ex.slots.findIndex((s, i) => i !== si && s.c);
     celica(dom, drugaSi).sprozi('click');
     const skupni = ex.slots[si].c.filter(x => ex.slots[drugaSi].c.includes(x));
@@ -435,11 +438,11 @@ function korakVzorca(run, ex, tehnika, cells) {
   const vSi = c => tehnika === 'swordfish' ? c : ex.slots.findIndex(s => s.idx === c);
   return { izbris: k.eliminate.map(([c, d]) => [vSi(c), d]), sporocilo: k.message, veriga: k.veriga ? k.cells.map(vSi) : null };
 }
-// Oznake s kliki celic in gumbov števk (celica vaje - xw-cell ali .gc).
+// Oznake s kliki celic in gumbov števk (celica vaje - xw-cell ali .gc), po parih kot oznaci().
 function oznaciVaja(dom, pari) {
-  for (const d of [...new Set(pari.map(([, x]) => x))]) {
+  for (const [c, d] of pari) {
     tipka(dom, { key: 'Escape', code: 'Escape' });
-    for (const [c] of pari.filter(([, x]) => x === d)) celicaVaje(dom, c).sprozi('click');
+    celicaVaje(dom, c).sprozi('click');
     gumbStevke(dom, d).sprozi('click');
   }
   tipka(dom, { key: 'Escape', code: 'Escape' });
@@ -665,11 +668,13 @@ function izbrisPreseka(ex, tehnika) {
 const presekZ = (run, r) => celicePreseka(run).map((c, i) => (ima(c, r) ? i : -1)).filter(i => i >= 0);
 const kandZ = (run, r) => celicePreseka(run).flatMap((c, i) => (c.children[0] && !ima(c, 'izven') ? c.children[0].children : [])
   .map((s, k) => (ima(s, r) ? `${i}:${k + 1}` : null)).filter(Boolean)).sort();
+// Kandidati števke vaje v vidnih praznih celicah (poudarek v 1. in 2. fazi).
+const poudarjeniKand = ex => ex.vidne.filter(i => !ex.grid[i] && ex.kandidati[i] & (1 << ex.digit)).map(i => `${i}:${ex.digit}`).sort();
 const poudarjenih = run => celicePreseka(run).filter(c => vsi(c).some(s => ima(s, 'poud'))).length;
 function oznaciPresek(dom, run, pari) {
-  for (const d of [...new Set(pari.map(([, x]) => x))]) {
+  for (const [c, d] of pari) {
     tipka(dom, { key: 'Escape', code: 'Escape' });
-    for (const [c] of pari.filter(([, x]) => x === d)) celicePreseka(run)[c].sprozi('click');
+    celicePreseka(run)[c].sprozi('click');
     gumbStevke(dom, d).sprozi('click');
   }
   tipka(dom, { key: 'Escape', code: 'Escape' });
@@ -695,7 +700,8 @@ for (const tehnika of PRESEK) {
       assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells), 'vzorec jantaren');
       assert.deepEqual(presekZ(run, 'k-izbris'), [], 'celice izbrisa še niso rožnate');
       assert.deepEqual(kandZ(run, 'k-izbris'), [], 'izbrisa še ni');
-      assert.equal(poudarjenih(run), 0, 'poudarek izklopljen (kot ob oznakah koraka)');
+      // Popravek A (ročni pregled 2026-10-10): števka vaje ostane poudarjena kot v 1. fazi.
+      assert.deepEqual(kandZ(run, 'poud'), poudarjeniKand(ex), 'števka vaje poudarjena v vseh vidnih praznih celicah');
       assert.deepEqual(presekZ(run, 'izbrana'), [], 'izbira 1. faze izpraznjena');
       // Skrita in dana celica se ne izbereta; celica vzorca in celica izbrisa se.
       const c = celicePreseka(run), skrita = [...Array(81).keys()].find(i => !ex.vidne.includes(i)), dana = ex.vidne.find(i => ex.grid[i]);
@@ -710,6 +716,7 @@ for (const tehnika of PRESEK) {
       for (let x = 1; x <= 9; x++) assert.equal(gumbStevke(dom, x).disabled, !(ex.kandidati[ci] & (1 << x)), `gumb ${x}: omogočen natanko pri kandidatu celice`);
       gumbStevke(dom, d).sprozi('click');
       assert.deepEqual(kandZ(run, 'k-izbris'), [`${ci}:${d}`], 'kandidat označen (rdeče prečrtan)');
+      assert.ok(kandZ(run, 'poud').includes(`${ci}:${d}`), 'označen kandidat ostane poudarjen');
       assert.ok(!ima(c[ci], 'k-izbris'), 'celica ostane bela');
       assert.deepEqual(presekZ(run, 'izbrana'), [ci], 'izbira ostane');
       gumbStevke(dom, d).sprozi('click');
@@ -769,6 +776,7 @@ for (const tehnika of PRESEK) {
     assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells));
     assert.deepEqual(presekZ(run, 'k-izbris'), urejeno(new Set(izbris.map(([x]) => x))), 'celice izbrisa rožnate');
     assert.deepEqual(legenda(okvir), ['celice vzorca', 'celica izbrisa', 'kandidat za izbris', 'napačno označen kandidat']);
+    assert.equal(poudarjenih(run), 0, 'ob Rešitvi brez poudarka (kot prej)');
     // Osvežitev ob oznaki: napačno oznako odstrani (↺).
     tipka(dom, { key: 'Escape', code: 'Escape' });
     celicePreseka(run)[nap[0]].sprozi('click');
@@ -780,6 +788,7 @@ for (const tehnika of PRESEK) {
     assert.deepEqual(kandZ(run, 'k-izbris'), kljuci([izbris[0]]), 'po zaprtju samo oznaka');
     assert.deepEqual(presekZ(run, 'k-izbris'), [], 'celice izbrisa spet bele');
     assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells), 'vzorec ostane jantaren');
+    assert.deepEqual(kandZ(run, 'poud'), poudarjeniKand(ex), 'po zaprtju spet poudarek');
     gumb(dom, 'Rešitev').sprozi('click');
     oznaciPresek(dom, run, izbris.slice(1));
     gumb(dom, 'Preveri').sprozi('click');
@@ -828,4 +837,78 @@ test('besedila 2. faze 1 in 2: navodila; Pomoč treninga omeni 2. fazo in Shift+
   assert.match(spoznaj, /<b>Izbriši kandidata<\/b>/, 'niz »Izbriši kandidata«');
   assert.match(spoznaj, /pobriše vse oznake/, 'napačen odgovor');
   assert.match(razdelek('Tipkovnica'), /»Spoznaj«[^<]*<kbd>Shift<\/kbd>\+števka/, 'Shift+števka v »Spoznaj«');
+});
+
+// --- Popravek B (ročni pregled 2026-10-10): kljukica »več celic« v nizu »Izbriši kandidata« ---
+// Vklopljena: klik celico doda ali odstrani (kot prej). Izklopljena: klik izbere samo to celico, klik izbrane jo
+// odizbere. Privzeto vklopljena pri tehnikah, kjer se briše ena števka (1, 2, 7–11, 13), izklopljena pri 3–6 in 12.
+// Igralčeva sprememba velja do konca kroga; izklop počisti izbiro (kot v »Vadi v uganki«).
+const VSE_1_13 = ['pointing', 'box-line', 'naked-pair', 'hidden-pair', 'naked-triple', 'hidden-triple', 'x-wing', 'swordfish',
+  'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle', 'xy-chain'];
+const VEC_CELIC_PRIVZETO = new Set(['pointing', 'box-line', 'x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'xy-chain']);
+const kljukicaVec = dom => vsi(faza(dom)).find(e => e.tagName === 'INPUT');
+const prvaFazaPravilno = (dom, run) => { run(`{ const ex = vajaNaZaslonu, M = MODES[mode];
+  selected = M.isXWing || M.isSwordfish ? (ex.rect || ex.sfCells).map(([r, c]) => r * 9 + c)
+    : M.isPointing || M.isBoxLine ? [...ex.solutionCells]
+    : M.isXYWing || M.isUR || M.isTurbot || M.isWWing || M.isXYChain ? ex.solutionCells.map(c => ex.slots.findIndex(s => s.idx === c))
+    : [...ex.targetSlots]; }`); gumb(dom, 'Preveri').sprozi('click'); };
+
+test('»več celic« v 2. fazi: kljukica v glavi niza, privzeto po tehniki (1, 2, 7–11, 13 vklopljena; 3–6, 12 izklopljena)', () => {
+  for (const t of VSE_1_13) {
+    const { dom, run } = zacni(t);
+    prvaFazaPravilno(dom, run);
+    const k = kljukicaVec(dom);
+    assert.ok(k && k.type === 'checkbox', `${t}: kljukica v nizu`);
+    assert.match(vsi(faza(dom)).find(e => e.tagName === 'LABEL').textContent, /več celic/, `${t}: napis`);
+    assert.equal(k.checked, VEC_CELIC_PRIVZETO.has(t), `${t}: privzeto`);
+  }
+});
+
+test('3 · Očitni par: izklopljena »več celic« – klik izbere samo to celico, klik izbrane jo odizbere; vklop – doda', () => {
+  const { dom, run } = zacni('naked-pair');
+  const ex = vaja(run), izbris = izbrisVzorca(ex, 'naked-pair', ex.targetSlots);
+  prvaFaza(dom, ex.targetSlots);
+  const [a, b] = [...new Set(izbris.map(([si]) => si))];
+  celica(dom, a).sprozi('click');
+  celica(dom, b).sprozi('click');
+  assert.deepEqual(celiceZ(dom, 'izbrana-izbris'), [b], 'izbrana samo zadnja celica');
+  celica(dom, b).sprozi('click');
+  assert.deepEqual(celiceZ(dom, 'izbrana-izbris'), [], 'klik izbrane jo odizbere');
+  // Oznaka: izbira ostane.
+  celica(dom, a).sprozi('click');
+  gumbStevke(dom, izbris.find(([si]) => si === a)[1]).sprozi('click');
+  assert.deepEqual(celiceZ(dom, 'izbrana-izbris'), [a], 'izbira po oznaki ostane');
+  // Vklop: klik doda, ponoven klik odstrani; izklop počisti izbiro.
+  const k = kljukicaVec(dom);
+  k.checked = true; k.sprozi('change');
+  celica(dom, b).sprozi('click');
+  assert.deepEqual(celiceZ(dom, 'izbrana-izbris'), urejeno([a, b]), 'vklopljena: klik doda');
+  celica(dom, a).sprozi('click');
+  assert.deepEqual(celiceZ(dom, 'izbrana-izbris'), [b], 'vklopljena: klik izbrane jo odstrani');
+  celica(dom, a).sprozi('click');
+  k.checked = false; k.sprozi('change');
+  assert.deepEqual(celiceZ(dom, 'izbrana-izbris'), [], 'izklop počisti izbiro');
+});
+
+test('»več celic«: igralčeva sprememba velja do konca kroga, nov krog privzeto', () => {
+  const { dom, run } = zacni('naked-pair');
+  prvaFazaPravilno(dom, run);
+  const k = kljukicaVec(dom);
+  k.checked = true; k.sprozi('change');
+  gumb(dom, 'Naslednja vaja →') && run('exNum++; renderExercise();');
+  prvaFazaPravilno(dom, run);
+  assert.equal(kljukicaVec(dom).checked, true, 'naslednja vaja kroga');
+  run(`zacniKrog('naked-pair', 'spoznaj')`);
+  prvaFazaPravilno(dom, run);
+  assert.equal(kljukicaVec(dom).checked, false, 'nov krog: privzeto');
+  run(`zacniKrog('pointing', 'spoznaj')`);
+  prvaFazaPravilno(dom, run);
+  assert.equal(kljukicaVec(dom).checked, true, 'nov krog druge tehnike: njeno privzeto');
+});
+
+test('Pomoč treninga: kljukica »več celic« v »Spoznaj«', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  const spoznaj = (html.split('<h3 class="navodila-razdelek">Spoznaj in Vadi v uganki</h3>')[1] || '').split('<h3')[0];
+  assert.match(spoznaj, /<b>več celic<\/b>/, 'kljukica omenjena');
+  assert.match(spoznaj, /izklopljena/, 'izklopljena – samo ena celica');
 });
