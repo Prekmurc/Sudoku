@@ -70,8 +70,8 @@ function vajaPreseka(mode,v,korak){
     solutionCells:korak.cells,solutionEliminate:korak.eliminate,solutionMessage:korak.message,
     unitLabel:pointingVaja?`${boxLabel} → ${lineLabel}`:`${lineLabel} → ${boxLabel}`,
     desc:pointingVaja
-      ? `Števka ${d}: v bloku ${blok+1} je mogoča samo v celicah ${jeVrstica?'vrstice':'stolpca'} ${st+1} – izberi te celice. Iz ${jeVrstica?'vrstice':'stolpca'} ${st+1} zunaj bloka jo potem lahko izbrišeš.`
-      : `Števka ${d}: v ${jeVrstica?'vrstici':'stolpcu'} ${st+1} je mogoča samo v celicah bloka ${blok+1} – izberi te celice. Iz bloka ${blok+1} zunaj ${jeVrstica?'vrstice':'stolpca'} jo potem lahko izbrišeš.`,
+      ? `Števka ${d}: v bloku ${blok+1} je mogoča samo v celicah ${jeVrstica?'vrstice':'stolpca'} ${st+1} – izberi te celice, nato jo izbriši iz ${jeVrstica?'vrstice':'stolpca'} ${st+1} zunaj bloka.`
+      : `Števka ${d}: v ${jeVrstica?'vrstici':'stolpcu'} ${st+1} je mogoča samo v celicah bloka ${blok+1} – izberi te celice, nato jo izbriši iz bloka ${blok+1} zunaj ${jeVrstica?'vrstice':'stolpca'}.`,
   };
 }
 

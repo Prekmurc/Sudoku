@@ -91,8 +91,8 @@ for (const [mode, kljuc] of Object.entries(MODE)) {
       assert.ok(ex.desc.includes(mode === 'pointing' ? `bloku ${ex.blok + 1}` : `${ex.jeVrstica ? 'vrstici' : 'stolpcu'} ${ex.enotaSt + 1}`), ex.desc);
       // Opis pove, iz česa se števka izbriše (faza 6): pri 1 iz vrstice/stolpca zunaj bloka, pri 2 iz bloka.
       const vrsta = `${ex.jeVrstica ? 'vrstice' : 'stolpca'} ${ex.enotaSt + 1}`;
-      assert.ok(ex.desc.endsWith(mode === 'pointing' ? `Iz ${vrsta} zunaj bloka jo potem lahko izbrišeš.`
-        : `Iz bloka ${ex.blok + 1} zunaj ${ex.jeVrstica ? 'vrstice' : 'stolpca'} jo potem lahko izbrišeš.`), ex.desc);
+      assert.ok(ex.desc.endsWith(mode === 'pointing' ? `– izberi te celice, nato jo izbriši iz ${vrsta} zunaj bloka.`
+        : `– izberi te celice, nato jo izbriši iz bloka ${ex.blok + 1} zunaj ${ex.jeVrstica ? 'vrstice' : 'stolpca'}.`), ex.desc);
     }
     // Raznolikost: več različnih ugank, vrstice in stolpci.
     assert.ok(new Set(vaje.map(v => v.danosti)).size > vaje.length / 2, 'različne uganke');

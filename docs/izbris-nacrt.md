@@ -635,12 +635,13 @@ Izbrana celica se z malimi števkami ne prekriva bolj kot zelena brez izbire (po
 - **Brskalnik:** `tools/preveri-izbris-brskalnik.js` še za 1 in 2 (375 px z dotikom – celice 30 px, 1280 px z miško; končno
   stanje enako izhodišču `705349a`), »Rešitev« v 2. fazi pri 1, meritev prekrivanja okvirja, posnetek D6a
   `docs/slike/izbris/1-oznake-375.png`. `tools/odgovor-spoznaj-brskalnik.js` klikne tudi celice delne mreže.
-- **Izvzeto v primerjavah z izhodiščem (D1):** nič novega. Pri 1 in 2 »Spoznaj« pokaže `ex.desc` (ne navodila), ta pa
-  ostane enak, zato se izris pred odgovorom in končno stanje ujemata z izhodiščem brez izvzetja. Ostanejo izvzetja iz
-  korakov 2 in 3 (navodila 3–13 – `NAVODILA_NAZAJ`, drugi del opisa vaj 7 in 8 – `DODATEK_78`, razdelek `.phase2`
-  izhodišča).
-- **Odstopanje od načrta:** `ex.desc` pri 1 in 2 ni spremenjen. Zadnja poved (»Iz vrstice 8 zunaj bloka jo potem lahko
-  izbrišeš.«) že napove 2. fazo, sprememba pa bi zahtevala spremembo pričakovanja obstoječega testa
-  `tests/pocasni/trening-presek.test.js` (opis se konča s to povedjo) – po pravilu za ustavitev je nisem naredil. Če želiš
-  izrecen poziv (npr. »… – izberi te celice, nato jo izbriši iz vrstice 8 zunaj bloka.«), je to majhna sprememba skupaj s
-  testom.
+- **Opis vaj 1 in 2** (`ex.desc` v `trening/generators.js`, odločitev 2026-10-10 po poročilu koraka 4): izrecen poziv k
+  izbrisu – »… – izberi te celice, nato jo izbriši iz vrstice 8 zunaj bloka.« (pri stolpcu »iz stolpca 8 zunaj bloka«, pri
+  2 »iz bloka 3 zunaj vrstice« / »zunaj stolpca«); prej »… – izberi te celice. Iz vrstice 8 zunaj bloka jo potem lahko
+  izbrišeš.« Pričakovanje v `tests/pocasni/trening-presek.test.js` je spremenjeno na novo poved (po odločitvi, ne po
+  pravilu za ustavitev). Prva izvedba koraka (`5b4874a`) opisa ni spremenila, ker bi morala spremeniti ta test.
+- **Izvzeto v primerjavah z izhodiščem (D1):** opis vaj 1 in 2 – nova poved se v strani pred meritvijo preslika nazaj v
+  staro (`NAVODILA_NAZAJ` v `tools/primerjava-slogov.js`, `POZIV_12`: samo besedilo pod nalogo, ki se začne s povzetkom 1
+  ali 2 in vsebuje »– izberi te celice, nato jo izbriši iz«); velja v `preveri-izbris-` (končno stanje 1 in 2) in
+  `preveri-vadi-brskalnik.js` (»Spoznaj« 1 in 2). Ostanejo izvzetja iz korakov 2 in 3 (navodila 3–13 – `NAVODILA_NAZAJ`,
+  drugi del opisa vaj 7 in 8 – `DODATEK_78`, razdelek `.phase2` izhodišča). Drugega se ne rahlja.

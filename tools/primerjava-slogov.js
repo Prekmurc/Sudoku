@@ -36,6 +36,11 @@ const NAVODILA_PRED_4B = {
 // ima od koraka 3 na koncu drugi del; preslika se nazaj samo pri teh dveh tehnikah (začetek je njun povzetek).
 const DODATEK_78 = ', nato izbriši kandidate, ki zaradi vzorca odpadejo.';
 const POVZETKI_78 = ['x-wing', 'swordfish'].map(m => OPISI[m].povzetek + ' ');
+// Lasten opis vaje pri 1 · Izločitev izven bloka in 2 · Izločitev v bloku (ex.desc, od koraka 4 izrecen poziv k izbrisu):
+// »… – izberi te celice, nato jo izbriši iz vrstice 8 zunaj bloka.« se preslika nazaj v »… – izberi te celice. Iz vrstice
+// 8 zunaj bloka jo potem lahko izbrišeš.« (pri 2 »… iz bloka 3 zunaj vrstice.«) - samo pri teh dveh tehnikah.
+const POVZETKI_12 = ['pointing', 'box-line'].map(m => OPISI[m].povzetek + ' ');
+const POZIV_12 = ' – izberi te celice, nato jo izbriši iz ';
 
 // Namerne razlike od izhodišča (popravka 5 in 6 po ročnem pregledu naloge 4a, docs/trening-ucenje-nacrt.md,
 // razdelek 7): besedila W-krila s črkama x, y (prej a, b) in barva območja #1565C0 (prej #1D3F6B - oznake roba
@@ -56,7 +61,9 @@ const ZNANE_RAZLIKE = [
 // začetku kode zajema izrisa) - tudi višine so potem kot v izhodišču; v izhodišču se nič ne spremeni.
 const NAVODILA = Object.entries(NAVODILA_PRED_4B).map(([m, prej]) => [`${OPISI[m].povzetek} ${OPISI[m].navodilo}`, `${OPISI[m].povzetek} ${prej}`]);
 const NAVODILA_NAZAJ = `document.querySelectorAll('#exerciseArea .exercise > .desc').forEach(p => { const m = ${JSON.stringify(NAVODILA)}.find(([n]) => n === p.textContent); if (m) p.textContent = m[1];
-  else if (${JSON.stringify(POVZETKI_78)}.some(z => p.textContent.startsWith(z)) && p.textContent.endsWith(${JSON.stringify(DODATEK_78)})) p.textContent = p.textContent.slice(0, -${DODATEK_78.length}) + '.'; });`;
+  else if (${JSON.stringify(POVZETKI_78)}.some(z => p.textContent.startsWith(z)) && p.textContent.endsWith(${JSON.stringify(DODATEK_78)})) p.textContent = p.textContent.slice(0, -${DODATEK_78.length}) + '.';
+  else if (${JSON.stringify(POVZETKI_12)}.some(z => p.textContent.startsWith(z)) && p.textContent.includes(${JSON.stringify(POZIV_12)}) && p.textContent.endsWith('.')) {
+    const [pred, kje] = p.textContent.split(${JSON.stringify(POZIV_12)}); p.textContent = pred + ' – izberi te celice. Iz ' + kje.slice(0, -1) + ' jo potem lahko izbrišeš.'; } });`;
 const nazaj = s => ZNANE_RAZLIKE.reduce((t, [n, st]) => t.split(n).join(st), s);
 
 // znaneRazlike: false - izhodišče že ima popravka 5 in 6 (npr. 705349a v preveri-izbris-brskalnik.js), zato se
