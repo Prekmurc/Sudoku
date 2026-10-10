@@ -1,7 +1,8 @@
 # Navigacija po straneh (naloga 4c) – načrt
 
 Načrt 2026-10-10 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4c, in postavka 4.3 »Navigacija med
-aplikacijami«). **Stanje: čaka na potrditev.** Koda aplikacije se pri načrtu ni spremenila.
+aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **korak 1 narejen** 2026-10-10
+(razdelek 9).
 
 Izhodišče: commit `d51d2fc` (zaključek naloge 4b).
 
@@ -340,12 +341,54 @@ drsenje preveri brskalnik.
    odpre se stran (ne seznam datotek); ali je zbirka ista, je odvisno od brskalnika. *Zakaj ročno:* scenarij
    teče prek strežnika HTTP.
 
-## 8. Odločitve, ki jih potrebujem
+## 8. Odločitve (potrjeno 2026-10-10)
 
-O1–O15 – pri vsaki je priporočilo; posebej:
+**O1–O15 po priporočilu:** O1 A (kazalo razdelkov), O2 A (vrstica oznak tehnik brez ločil), O3 A (lepljiva glava
+okna Pomoč z »↑ Na vrh« in ✕), O4 A (kazalo tehnik v meniju), **O5 A (okrogel plavajoč »↑«, 44 × 44 px)**, O6 A
+(»Nazaj na izbiro« tudi pod kartico vaje, vedno), O7 A (brez vprašanja), **O8 A (zavihki v svoji vrstici nad
+nadnaslovom, +32 px)**, O9 A (statičen HTML), O10 A (isti zavihek, poti z `index.html`), **O11 A (vprašanje pri
+odhodu iz kroga)**, **O12 A (vprašanje pri neshranjeni uganki v reševalcu)**, O13 A (`pagehide`/`pageshow`),
+**O14 B (`index.html` v korenu preusmeri na igro)**, O15 A (brez povezav v besedilih).
 
-- **O8** – zavihki v svoji vrstici (+32 px) ali namesto nadnaslova (+0 px, brez podnaslova);
-- **O11** – vprašanje pri odhodu iz kroga ali ohranitev kroga v `sessionStorage`;
-- **O12** – vprašanje v reševalcu ali ohranitev vnosa;
-- **O5** – okrogel »↑« ali gumb z napisom;
-- **O14** – preusmeritev korena na igro, vstopna stran ali nič.
+**Dodatki:**
+
+- **D1 (O3):** lepljiva glava **samo v oknu Pomoč** (`.dialog-navodila`). Okna »Zbirka ugank« in »Nova uganka« v
+  igri in okno zbirke v reševalcu (isti razredi `.dialog*` iz `shared/pomoc.css`) ostanejo enaka – korak 3 jih
+  primerja z izhodiščem (drevo in izračunani slogi). V »Kasneje« (`docs/uskladitev.md`) zapisano: ✕ v dolgem oknu
+  »Zbirka ugank« po drsenju ni dosegljiv.
+- **D2 (O11):** brez vprašanja, dokler je krog pri vaji 1 in še ni bilo nobenega »Preveri« (nič se ne izgubi).
+- **D3 (O2, O4):** oznake v kazalu tehnik (okno Pomoč in meni treninga) so pri 375 px **vsaj 32 px visoke** –
+  izmeri scenarij in zapiše poročilo koraka (koraka 2 in 3).
+- **D4:** ročno točko 5 (`file://`) poskusim preveriti v brskalniku brez glave (korak 4); če gre, jo črtam z
+  ročnega seznama (razdelek 7).
+
+Ročni pregled je en sam, po koraku 5, največ 5 točk, pri vsaki zakaj ni avtomatsko; po korakih 1–4 ga ni.
+
+## 9. Izvedba
+
+### Korak 1 – »Nazaj na izbiro« na dnu vaje (2026-10-10)
+
+- `trening/index.html`: v `#trainer` za `#exerciseArea` drugi gumb `#backBtnDno` »← Nazaj na izbiro« (isti
+  razred `back-btn`); `trening/trening.css`: `button.back-btn-dno` – spodnji odmik 24 px, da gumb na dnu strani ni
+  prilepljen ob rob.
+- `trening/trening.js`: učinek zgornjega gumba je v funkciji `nazajNaIzbiro()` (prekine iskanje »Vadi v uganki«,
+  pokaže meni na položaju ob odhodu, kartico tehnike v oknu); oba gumba jo pokličeta.
+- Test `tests/trening-meni.test.js`: gumb je v HTML v `#trainer` za `#exerciseArea`, z istim napisom; klik ima
+  isti učinek kot zgornji v »Spoznaj«, »Vadi v uganki« (iskanje prekinjeno) in pri »Končano!«. Na kodi pred
+  korakom padeta oba nova testa.
+- Scenarij `tools/preveri-navigacija-brskalnik.js --korak 1` (nov, raste po korakih): glej poročilo koraka spodaj.
+
+
+**Poročilo koraka 1 (preverjeno avtomatsko).**
+
+- Testi: `tests/trening-meni.test.js` (3 testi, nova 2 na kodi pred korakom padeta), hitri in vsi testi zeleni.
+- `tools/preveri-navigacija-brskalnik.js --korak 1` (375 px s pravim dotikom, 1280 px s pravo miško; 529
+  preverjanj, vsa držijo): »Spoznaj« vseh 15 tehnik (vaji 1 in 3), »Vadi v uganki« E1, 4, 8, 11, 13 in »Končano!« –
+  spodnji gumb je viden, pod vso vajo, **45 px** pod najnižjim gumbom vaje (pri vseh vajah in obeh širinah;
+  zahteva vsaj 24 px), v širini strani, izračunan slog enak zgornjemu (147 × 39 px), na dnu strani ves v oknu,
+  brez preliva; pravi dotik/klik vrne v meni na položaj ob odhodu s kartico tehnike v oknu; dotik/klik med »Iščem
+  vajo …« iskanje prekine (po 2 s vaje ni); brez napak JS. Posnetek dna vaje X-krilo pri 375 px:
+  `dno-x-wing-375.png` v mapi scenarija.
+- Obstoječi scenariji: `preveri-vadi-brskalnik.js` (»Spoznaj« enak izhodišču – gumb je zunaj `#exerciseArea`),
+  `preveri-sheme-brskalnik.js` (»Nazaj na izbiro« vrne meni na položaj ob kliku) in `preveri-videz-brskalnik.js`
+  (brez preliva pri 320–1280 px).

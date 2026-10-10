@@ -122,15 +122,17 @@ document.querySelectorAll('.menu-card').forEach(card=>{
   card.appendChild(nacini);
 });
 // Nazaj na izbiro: položaj menija kot ob odhodu; če kartica tehnike vseeno ni v oknu (npr. drugačna
-// velikost okna), se pomakne do nje.
-document.getElementById('backBtn').addEventListener('click',()=>{
+// velikost okna), se pomakne do nje. Gumb je nad vajo in pod njo (naloga 4c, O6 v docs/navigacija-nacrt.md).
+function nazajNaIzbiro(){
   vadiPrekini();
   trainerEl.style.display='none';menuEl.style.display='block';
   window.scrollTo(0,menuPolozaj);
   const card=menuEl.querySelector(`.menu-card[data-mode="${mode}"]`);
   if(card)card.scrollIntoView({block:'nearest'});
   mode=null;
-});
+}
+document.getElementById('backBtn').addEventListener('click',nazajNaIzbiro);
+document.getElementById('backBtnDno').addEventListener('click',nazajNaIzbiro);
 
 function makeCell(slot,si,M){
   const gc=document.createElement('div');gc.className='gc';gc.dataset.si=si;
