@@ -673,3 +673,45 @@ Ročni pregled (razdelek 7, `docs/rocni-test.md`, »Spoznaj – izbris«): vseh 
   `docs/slike/izbris/1-poudarek-375.png` (1 v 2. fazi s poudarkom in eno oznako) in `3-vec-celic-375.png` (3 v 2. fazi s
   kljukico, eno oznako in izbrano celico); `1-oznake-375.png` posnet znova (poudarek).
 - **Izvzeto v primerjavah z izhodiščem (D1):** nič novega – končno stanje po 2. fazi in izris pred 2. fazo se ne spremenita.
+
+
+### Popravek C po ročnem pregledu točk 6 in 7 (2026-10-10)
+
+Ročni pregled točk 6 in 7 (`docs/rocni-test.md`): poudarek v 2. fazi deluje (točka 6 potrjena), kljukica deluje. En popravek.
+
+- **C – poudarek pri 1 in 2 v vseh stanjih.** Prej je rumeni poudarek števke vaje izginil, ko se je pokazal korak (»Rešitev« v
+  1. in 2. fazi, po pravilnem odgovoru), zato se v končni sliki ni videlo, da je števka ostala samo v celicah vzorca. Zdaj je
+  poudarjena v vseh stanjih: 1. faza, 2. faza, »Rešitev« v obeh fazah, po pravilnem odgovoru in »Rešitev« po njem
+  (`buildPresekLayout()` v `trening/trening.js`: `barva: d => d === ex.digit ? 0 : -1`). Prečrtana števka na poudarku je v vseh
+  stanjih temnejša rdeča `--okvir-napacno` (#8E1B1B) – isto pravilo `.vaja-presek .kand.poud.k-izbris` kot v 2. fazi (popravek A),
+  CSS ni spremenjen (samo komentar).
+- **Kontrast** (izmerjen v brskalniku pri 375 in 1280 px na 1 in 2, enak pri obeh širinah in tehnikah). Prečrtana števka stoji na
+  rumenem kvadratku poudarka (`.kand.poud` zapolni polje kandidata), zato je njena neposredna podlaga v vseh celicah `--poud`;
+  za varnost je izmerjen še kontrast proti podlagi celice:
+
+  | Kje | Števka / podlaga | Proti poudarku #F6C026 | Proti celici | Z `--red` proti poudarku |
+  |---|---|---|---|---|
+  | 2. faza, oznaka v beli celici | #8E1B1B / bela | 5,38 : 1 | 9,04 : 1 | 3,53 : 1 |
+  | 2. faza, napačna oznaka v jantarni celici vzorca | #8E1B1B / #EFD8A0 | 5,38 : 1 | 6,46 : 1 | 3,53 : 1 |
+  | »Rešitev« v 1. fazi, rožnata celica izbrisa | #8E1B1B / #F0B4AA | 5,38 : 1 | 5,09 : 1 | 3,53 : 1 |
+  | po pravilnem odgovoru, rožnata celica izbrisa | #8E1B1B / #F0B4AA | 5,38 : 1 | 5,09 : 1 | 3,53 : 1 |
+
+  Vse nad 4,5 : 1. Ločljivost rumenega kvadratka od rožnate in jantarne celice ni izmerjena (presoja očesa – točka 8 ročnega
+  pregleda).
+- **Testi:** `tests/trening-izbris.test.js` +2 testa (61; popravek C pri 1 in 2: poudarek v vseh stanjih, prečrtana števka vedno na
+  poudarku) – na kodi pred popravkom padeta oba (»Rešitev v 1. fazi: poudarek ostane«). Spremenjena pričakovanja starega obnašanja:
+  v istem testu dve (»po pravilnem odgovoru brez poudarka«, »ob Rešitvi brez poudarka«), v `tests/pocasni/trening-presek.test.js`
+  tri (»poudarek izklopljen« po pravilnem odgovoru, »med držanjem ni poudarka«, »poudarek je spet vklopljen«) – zdaj poudarek
+  ostane.
+- **Brskalnik:** `tools/preveri-izbris-brskalnik.js` – nov del »popravek C« pri 1 in 2, 375 in 1280 px s pravimi dotiki/kliki:
+  poudarjeni natanko kandidati števke vaje v vidnih praznih celicah v vseh stanjih, nobena prečrtana števka brez poudarka,
+  kontrast (tabela zgoraj); »Rešitev« v 2. fazi pri 1 – prečrtane števke na poudarku v temnejši rdeči (prej `--red`).
+  Posnetka (375 px, dvojna ločljivost): `docs/slike/izbris/1-koncno-375.png` (1 po pravilnem odgovoru, brez pomoči) in
+  `1-resitev-faza1-375.png` (1 z odprto »Rešitvijo« v 1. fazi).
+- **Izvzeto v primerjavah z izhodiščem (D1):** končno stanje po 2. fazi pri 1 in 2 (`preveri-izbris-brskalnik.js`, izhodišče
+  `705349a`) ni več enako izhodišču – razlika je natanko poudarek. Pred meritvijo se kandidatom s poudarkom odstranita razreda
+  `poud` in `b0` (s tem odpade tudi temnejša rdeča prečrtanih števk na poudarku); scenarij pred tem preveri, da so to natanko
+  kandidati števke vaje v vidnih praznih celicah (3 pri 1, 4 pri 2). Vse drugo (razredi celic, oznake koraka, izbira, sporočilo,
+  legenda, slogi) se primerja kot prej. Drugega se ne rahlja; izris pred 2. fazo (`preveri-vadi-`, `-presek-brskalnik.js`) se ne
+  spremeni.
+- **Kasneje:** »Uskladitev videza »Spoznaj« 1 in 2 s 3–13« (`docs/uskladitev.md`, razdelek »Kasneje«) – nova naloga z načrtom.

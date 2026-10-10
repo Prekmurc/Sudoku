@@ -3,6 +3,14 @@
 // Popravka po ročnem pregledu (2026-10-10): A – pri 1 in 2 je števka vaje v 2. fazi poudarjena, oznaka na poudarku
 // temnejša rdeča s kontrastom vsaj 4,5 : 1 (izmeri); B – kljukica »več celic« v nizu (privzeto po tehniki, pri
 // izklopljeni dotik izbere samo to celico, dotik izbrane jo odizbere). Posnetka 1-poudarek-375.png in 3-vec-celic-375.png.
+// Popravek C (2026-10-10): pri 1 in 2 je števka vaje poudarjena v vseh stanjih – 1. faza, »Rešitev« v 1. in 2. fazi,
+// 2. faza in po pravilnem odgovoru; prečrtana števka na poudarku je temnejša rdeča (--okvir-napacno). Kontrast prečrtane
+// števke se izmeri na beli celici, na jantarni celici vzorca (napačna oznaka v 2. fazi) in na rožnati celici izbrisa
+// (»Rešitev« v 1. fazi, po pravilnem odgovoru) – proti podlagi poudarka in proti podlagi celice. Končna slika pri 1 in 2
+// zato ni enaka izhodišču: izvzeto izrecno (D1) je samo to, da so kandidati števke vaje poudarjeni – pred primerjavo se
+// jim odstranita razreda poud in b0 (scenarij prej preveri, da so to natanko kandidati števke vaje v vidnih praznih
+// celicah), s tem odpade tudi temnejša rdeča prečrtanih števk na poudarku. Posnetka 1-koncno-375.png (po pravilnem
+// odgovoru) in 1-resitev-faza1-375.png (odprta »Rešitev« v 1. fazi).
 // Korak 4 – isto še pri 1 · Izločitev izven bloka in 2 · Izločitev v bloku (delna mreža iz shared/mreza.js – celice
 // .vaja-presek .celica): po 1. fazi vzorec jantaren, brez poudarka in rožnatih celic; oznaka ima slog .kand.k-izbris,
 // celica ostane bela; izbrana celica vzorca jantarna z modrim okvirjem; končno stanje enako izhodišču. 1: »Rešitev« v
@@ -100,18 +108,30 @@ async function prvaFaza(b, sirina) {
   return cells;
 }
 // Izris območja vaje za primerjavo z izhodiščem (kot preveri-presek-brskalnik.js).
-async function izris(b) {
+// brezPoudarka (popravek C, izvzeto D1): poudarek števke vaje na delni mreži (1, 2) se med meritvijo odstrani – razreda
+// poud in b0 na kandidatih; vrne še seznam teh kandidatov (celica:števka), da scenarij preveri, da ni izvzel česa drugega.
+async function izris(b, brezPoudarka = false) {
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     ${NAVODILA_NAZAJ}
+    const pc = ${brezPoudarka} ? [...document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud')] : [];
+    const poudarjeni = pc.map(e => { const c = e.closest('.celica'); return (+c.dataset.r * 9 + +c.dataset.c) + ':' + e.textContent; }).sort();
+    const razrediPoud = pc.map(e => e.className);
+    pc.forEach(e => e.classList.remove('poud', 'b0'));
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
     k.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
     const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
     const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
-    return { html: k.innerHTML, slogi };
+    pc.forEach((e, i) => { e.className = razrediPoud[i]; });
+    return { html: k.innerHTML, slogi, poudarjeni };
   })()`);
 }
+// Kandidati števke vaje v vidnih praznih celicah (celica:števka) – kar mora biti pri 1 in 2 poudarjeno.
+const POUD_CILJ = `(() => { const ex = vajaNaZaslonu; return ex.vidne.filter(i => !ex.grid[i] && ex.kandidati[i] & (1 << ex.digit)).map(i => i + ':' + ex.digit).sort(); })()`;
+const POUD_ZDAJ = `[...document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud')].map(e => { const c = e.closest('.celica'); return (+c.dataset.r * 9 + +c.dataset.c) + ':' + e.textContent; }).sort()`;
+// Prečrtane števke (k-izbris) na delni mreži, ki niso na poudarku.
+const IZBRIS_BREZ_POUDARKA = `document.querySelectorAll('#exerciseArea .vaja-presek .kand.k-izbris:not(.poud)').length`;
 // Slog male števke (c, d) in referenčne izbrisane števke (.cd.elim v isti postavitvi); pri 7 in 8 (mreža ene števke)
 // števke celice in referenčne celice izbrisa po pravilnem odgovoru (.xw-cell.xw-elim).
 const slogStevke = (b, c, d) => b.izvedi(`(() => {
@@ -229,13 +249,19 @@ async function vajaNova(b, mode, sirina) {
   const oznake = await dokoncajDrugoFazo(b);
   s = await b.izvedi(STRAN);
   preveri(`${mode}, ${sirina} px: pravilna 2. faza (${oznake.length} oznak) → »Pravilno!«, niza ni več`, s.fb.startsWith('Pravilno!') && !s.niz, s);
-  return izris(b);
+  if (!PRESEK(mode)) return izris(b);
+  // Popravek C: poudarek ostane; za primerjavo z izhodiščem se izvzame (D1) – samo kandidati števke vaje.
+  const cilj = await b.izvedi(POUD_CILJ), r = await izris(b, true);
+  preveri(`${mode}, ${sirina} px: po pravilnem odgovoru poudarjeni natanko kandidati števke vaje (${r.poudarjeni.length}) – izvzeti iz primerjave (D1)`,
+    JSON.stringify(r.poudarjeni) === JSON.stringify(cilj) && cilj.length > 0, { poudarjeni: r.poudarjeni, cilj });
+  return { html: r.html, slogi: r.slogi };
 }
 async function vajaStara(b, mode, sirina) {
   await odpri(b, mode, sirina);
   await prvaFaza(b, sirina);
   await dokoncajOdgovor(b);
-  return izris(b);
+  const r = await izris(b);
+  return { html: r.html, slogi: r.slogi };
 }
 
 // 5 · Očitna trojica: »Rešitev« v 2. fazi z eno pravilno in eno napačno oznako (in posnetek D2b).
@@ -372,8 +398,9 @@ async function resitevPresek(b, sirina) {
   await klikniGumb(b, sirina, 'Rešitev');
   await pocakaj(b);
   const prav = await Promise.all(izbris.map(x => slogStevke(b, ...x))), nap = await slogStevke(b, ...napacna);
-  preveri(`1, ${sirina} px: ob »Rešitvi« vsi kandidati za izbris (${izbris.length}) rdeče prečrtani`,
-    prav.every(x => x.crta.includes('line-through') && x.barva === x.ref.barva), prav);
+  // Popravek C: ob »Rešitvi« ostane poudarek, prečrtana števka na njem je temnejša rdeča.
+  preveri(`1, ${sirina} px: ob »Rešitvi« vsi kandidati za izbris (${izbris.length}) prečrtani na poudarku, temnejša rdeča`,
+    prav.every(x => x.crta.includes('line-through') && /\bpoud\b/.test(x.razredi) && x.barva === RDECA_OKVIR), prav);
   preveri(`1, ${sirina} px: napačna oznaka brez črte, s temno rdečim obročem (${nap.obroc})`,
     nap.crta === 'none' && nap.obroc.startsWith(RDECA_OKVIR) && nap.razredi.includes('k-napacna'), nap);
   const roza = await b.izvedi(`[...document.querySelectorAll('#exerciseArea .vaja-presek .celica')].map((e, i) => e.classList.contains('k-izbris') ? i : -1).filter(i => i >= 0).join()`);
@@ -407,6 +434,82 @@ async function posnetkaAB(b) {
   await b.tapni(celicaVaje(drugi[0]));
   await odmakniMisko(b);
   await b.posnetek(path.join(SLIKE, '3-vec-celic-375.png'));
+}
+
+// Popravek C: poudarek v vseh stanjih pri 1 in 2 (s pravimi dotiki/kliki) in kontrast prečrtane števke na poudarku.
+const kontrastStevke = (b, c, d) => b.izvedi(`(() => { ${KONTRAST}
+  const ce = document.querySelector(${JSON.stringify(celicaVaje(c))}), k = ce.querySelector('.kandidati').children[${d} - 1], s = getComputedStyle(k);
+  const t = document.createElement('span'); t.style.color = 'var(--red)'; document.body.appendChild(t); const rgbRdeca = getComputedStyle(t).color; t.remove();
+  const celica = getComputedStyle(ce).backgroundColor;
+  return { razredi: k.className, celicaRazredi: ce.className, barva: s.color, crta: s.textDecorationLine, podlaga: s.backgroundColor, celica,
+    kontrast: kontrast(s.color, s.backgroundColor), kontrastCelica: kontrast(s.color, celica), kontrastRdeca: kontrast(rgbRdeca, s.backgroundColor) }; })()`);
+const kontrastiC = [];
+function preveriKontrast(ime, k, vrsta) {
+  kontrastiC.push({ ime, ...k });
+  preveri(`${ime}: prečrtana števka na poudarku (${vrsta}) – temnejša rdeča, kontrast ${k.kontrast.toFixed(2)} : 1 proti poudarku, ${k.kontrastCelica.toFixed(2)} : 1 proti celici (vsaj 4,5; z --red ${k.kontrastRdeca.toFixed(2)} : 1)`,
+    /\bpoud\b/.test(k.razredi) && /k-izbris/.test(k.razredi) && k.crta.includes('line-through') && k.barva === RDECA_OKVIR && k.kontrast >= 4.5 && k.kontrastCelica >= 4.5, k);
+}
+async function popravekC(b, mode, sirina) {
+  const ime = `${mode === 'pointing' ? 1 : 2}, ${sirina} px`;
+  await odpri(b, mode, sirina);
+  const cilj = await b.izvedi(POUD_CILJ);
+  const stanje = async (opis, zIzbrisom) => {
+    const z = await b.izvedi(POUD_ZDAJ), brez = await b.izvedi(IZBRIS_BREZ_POUDARKA);
+    preveri(`${ime}: ${opis} – poudarjeni natanko kandidati števke vaje (${z.length})${zIzbrisom ? ', vse prečrtane števke na poudarku' : ''}`,
+      JSON.stringify(z) === JSON.stringify(cilj) && cilj.length > 0 && brez === 0, { z, cilj, brez });
+  };
+  await stanje('1. faza');
+  await klikniGumb(b, sirina, 'Rešitev');
+  await pocakaj(b);
+  await stanje('»Rešitev« v 1. fazi', true);
+  const [ci, d] = await b.izvedi('vajaNaZaslonu.solutionEliminate[0]');
+  preveriKontrast(`${ime}, »Rešitev« v 1. fazi`, await kontrastStevke(b, ci, d), 'rožnata celica izbrisa');
+  await klikniGumb(b, sirina, 'Skrij rešitev');
+  await stanje('po zaprtju »Rešitve«');
+  await prvaFaza(b, sirina);
+  await klikniGumb(b, sirina, 'Preveri');
+  await stanje('2. faza');
+  const vz = await b.izvedi('izbrisVaje.vzorec[0]'), dv = await b.izvedi('vajaNaZaslonu.digit');
+  await oznaciDotiki(b, sirina, [[vz, dv]]);
+  await b.tipka('Escape', { code: 'Escape' });
+  preveriKontrast(`${ime}, 2. faza, napačna oznaka v celici vzorca`, await kontrastStevke(b, vz, dv), 'jantarna celica vzorca');
+  await oznaciDotiki(b, sirina, [[vz, dv]]); // ↺
+  await b.tipka('Escape', { code: 'Escape' });
+  const izbris = await b.izvedi('izbrisVaje.izbris');
+  await oznaciDotiki(b, sirina, [izbris[0]]);
+  await b.tipka('Escape', { code: 'Escape' });
+  preveriKontrast(`${ime}, 2. faza, oznaka v beli celici`, await kontrastStevke(b, ...izbris[0]), 'bela celica');
+  await klikniGumb(b, sirina, 'Rešitev');
+  await pocakaj(b);
+  await stanje('»Rešitev« v 2. fazi', true);
+  await klikniGumb(b, sirina, 'Skrij rešitev');
+  await stanje('po zaprtju »Rešitve« v 2. fazi', true);
+  await oznaciDotiki(b, sirina, [izbris[0]]); // ↺ – dokoncajDrugoFazo() označi vse pare (označen bi se odznačil)
+  await b.tipka('Escape', { code: 'Escape' });
+  await dokoncajDrugoFazo(b);
+  const s = await b.izvedi(STRAN);
+  preveri(`${ime}: pravilen odgovor`, s.fb.startsWith('Pravilno!') && !s.preliv, s);
+  await stanje('po pravilnem odgovoru', true);
+  preveriKontrast(`${ime}, po pravilnem odgovoru`, await kontrastStevke(b, ...izbris[0]), 'rožnata celica izbrisa');
+  await klikniGumb(b, sirina, 'Rešitev');
+  await pocakaj(b);
+  await stanje('»Rešitev« po pravilnem odgovoru', true);
+}
+// Posnetka popravka C (375 px, dvojna ločljivost): a) 1 po pravilnem odgovoru (brez pomoči), b) 1 z odprto »Rešitvijo«
+// v 1. fazi.
+async function posnetkaC(b) {
+  await odpri(b, 'pointing', 375);
+  await prvaFaza(b, 375);
+  await klikniGumb(b, 375, 'Preveri');
+  await dokoncajDrugoFazo(b);
+  await odmakniMisko(b);
+  preveri('1, 375 px: posnetek a – »Pravilno!« s poudarkom', (await b.izvedi(STRAN)).fb.startsWith('Pravilno!') && (await b.izvedi(POUD_ZDAJ)).length > 0);
+  await b.posnetek(path.join(SLIKE, '1-koncno-375.png'));
+  await odpri(b, 'pointing', 375);
+  await klikniGumb(b, 375, 'Rešitev');
+  await pocakaj(b);
+  preveri('1, 375 px: posnetek b – »Rešitev« v 1. fazi s poudarkom', (await b.izvedi(POUD_ZDAJ)).length > 0 && (await b.izvedi(IZBRIS_BREZ_POUDARKA)) === 0);
+  await b.posnetek(path.join(SLIKE, '1-resitev-faza1-375.png'));
 }
 
 async function posnetekD6a(b) {
@@ -513,6 +616,13 @@ async function main() {
     console.log('popravka A in B: posnetka 1-poudarek-375.png in 3-vec-celic-375.png');
     await posnetkaAB(b);
     console.log(JSON.stringify(kontrasti));
+    for (const sirina of SIRINE) for (const mode of ['pointing', 'box-line']) {
+      console.log(`popravek C: ${mode}, ${sirina} px`);
+      await popravekC(b, mode, sirina);
+    }
+    console.log(JSON.stringify(kontrastiC));
+    console.log('popravek C: posnetka 1-koncno-375.png in 1-resitev-faza1-375.png');
+    await posnetkaC(b);
     console.log('pointing, oznake pred »Preveri«, 375 px (D6a)');
     await posnetekD6a(b);
     console.log('popravek okvirja: prekrivanje z malimi števkami pri 375 px (hidden-pair, hidden-triple, unique-rectangle)');

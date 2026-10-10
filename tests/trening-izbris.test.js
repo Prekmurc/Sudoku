@@ -670,7 +670,6 @@ const kandZ = (run, r) => celicePreseka(run).flatMap((c, i) => (c.children[0] &&
   .map((s, k) => (ima(s, r) ? `${i}:${k + 1}` : null)).filter(Boolean)).sort();
 // Kandidati števke vaje v vidnih praznih celicah (poudarek v 1. in 2. fazi).
 const poudarjeniKand = ex => ex.vidne.filter(i => !ex.grid[i] && ex.kandidati[i] & (1 << ex.digit)).map(i => `${i}:${ex.digit}`).sort();
-const poudarjenih = run => celicePreseka(run).filter(c => vsi(c).some(s => ima(s, 'poud'))).length;
 function oznaciPresek(dom, run, pari) {
   for (const [c, d] of pari) {
     tipka(dom, { key: 'Escape', code: 'Escape' });
@@ -747,7 +746,7 @@ for (const tehnika of PRESEK) {
       assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells));
       assert.deepEqual(presekZ(run, 'k-izbris'), urejeno(new Set(izbris.map(([x]) => x))), 'celice izbrisa rožnate');
       assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris), 'izbris prečrtan');
-      assert.equal(poudarjenih(run), 0);
+      assert.deepEqual(kandZ(run, 'poud'), poudarjeniKand(ex), 'poudarek ostane (popravek C)');
       assert.deepEqual(presekZ(run, 'izbrana'), []);
       assert.ok(faza(dom).hidden, 'niz skrit');
       assert.equal(run('izbrisVaje'), null);
@@ -776,7 +775,7 @@ for (const tehnika of PRESEK) {
     assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells));
     assert.deepEqual(presekZ(run, 'k-izbris'), urejeno(new Set(izbris.map(([x]) => x))), 'celice izbrisa rožnate');
     assert.deepEqual(legenda(okvir), ['celice vzorca', 'celica izbrisa', 'kandidat za izbris', 'napačno označen kandidat']);
-    assert.equal(poudarjenih(run), 0, 'ob Rešitvi brez poudarka (kot prej)');
+    assert.deepEqual(kandZ(run, 'poud'), poudarjeniKand(ex), 'ob Rešitvi poudarek ostane (popravek C)');
     // Osvežitev ob oznaki: napačno oznako odstrani (↺).
     tipka(dom, { key: 'Escape', code: 'Escape' });
     celicePreseka(run)[nap[0]].sprozi('click');
@@ -796,6 +795,46 @@ for (const tehnika of PRESEK) {
     assert.match(fb(dom).textContent, /s pomočjo – ne šteje/);
     assert.equal(odprtiOkvirji(dom).length, 0, 'pravilen odgovor Rešitev zapre');
     assert.equal(rezultat(dom), '0/0');
+  });
+}
+
+// Popravek C (ročni pregled 2026-10-10): pri 1 in 2 je števka vaje poudarjena v vseh stanjih – 1. faza, »Rešitev« v
+// 1. in 2. fazi, 2. faza in po pravilnem odgovoru (prej je poudarek ob oznakah koraka izginil, zato se v končni sliki
+// ni videlo, da je števka ostala samo v celicah vzorca). Prečrtana števka je na poudarku (razreda poud in k-izbris –
+// temnejša rdeča v trening/trening.css). Na kodi pred popravkom pade.
+for (const tehnika of PRESEK) {
+  test(`${tehnika}: popravek C – števka vaje poudarjena v vseh stanjih, tudi ob »Rešitvi« in po pravilnem odgovoru`, () => {
+    const { dom, run } = zacni(tehnika);
+    const ex = vajaPreseka(run), izbris = izbrisPreseka(ex, tehnika), cilj = poudarjeniKand(ex);
+    const izbrisNaPoudarku = () => kandZ(run, 'k-izbris').every(k => kandZ(run, 'poud').includes(k));
+    assert.deepEqual(kandZ(run, 'poud'), cilj, '1. faza');
+    gumb(dom, 'Rešitev').sprozi('click');
+    assert.deepEqual(presekZ(run, 'k-vzorec'), urejeno(ex.solutionCells), 'Rešitev v 1. fazi kaže korak');
+    assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris), 'Rešitev v 1. fazi: izbris prečrtan');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'Rešitev v 1. fazi: poudarek ostane');
+    assert.ok(izbrisNaPoudarku(), 'Rešitev v 1. fazi: prečrtana števka na poudarku');
+    gumb(dom, 'Skrij rešitev').sprozi('click');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'po zaprtju Rešitve');
+    prvaFazaPreseka(dom, run, ex);
+    assert.deepEqual(kandZ(run, 'poud'), cilj, '2. faza');
+    oznaciPresek(dom, run, [izbris[0]]);
+    assert.ok(kandZ(run, 'k-izbris').length === 1 && izbrisNaPoudarku(), '2. faza: oznaka na poudarku');
+    gumb(dom, 'Rešitev').sprozi('click');
+    assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris), 'Rešitev v 2. fazi: izbris prečrtan');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'Rešitev v 2. fazi: poudarek ostane');
+    assert.ok(izbrisNaPoudarku(), 'Rešitev v 2. fazi: prečrtana števka na poudarku');
+    gumb(dom, 'Skrij rešitev').sprozi('click');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'po zaprtju Rešitve v 2. fazi');
+    oznaciPresek(dom, run, izbris.slice(1));
+    gumb(dom, 'Preveri').sprozi('click');
+    assert.equal(run('vajaResena'), true);
+    assert.deepEqual(kandZ(run, 'k-izbris'), kljuci(izbris), 'po pravilnem odgovoru izbris prečrtan');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'po pravilnem odgovoru poudarek ostane');
+    assert.ok(izbrisNaPoudarku(), 'po pravilnem odgovoru prečrtana števka na poudarku');
+    gumb(dom, 'Rešitev').sprozi('click');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'Rešitev po pravilnem odgovoru');
+    gumb(dom, 'Skrij rešitev').sprozi('click');
+    assert.deepEqual(kandZ(run, 'poud'), cilj, 'končno stanje');
   });
 }
 

@@ -1392,6 +1392,12 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   (vrstica, stolpec, blok), kot v »Spoznaj« pri 3–6; med koraki v uganki se izbere tisti, katerega enota je na vrsti, če
   tak obstaja. Preveriti tudi: 11 · XY-krilo in 12 · Edinstveni pravokotnik v »Spoznaj« nimata kroženja po številki
   vaje.
+- **Uskladitev videza »Spoznaj« 1 in 2 s 3–13** (zapisano 2026-10-10 ob popravku C naloge 4b; nova naloga z načrtom,
+  zdaj se koda ne spreminja). Vaji 1 in 2 (delna mreža iz `shared/mreza.js`) in vaje 3–13 (lastni izris v
+  `trening/trening.js`) imata dva izrisa z vidnimi razlikami, npr.: poudarek števke vaje (pri 1 in 2 v vseh stanjih,
+  pri 3–13 ga ni), barva celic vzorca po 1. fazi (pri 1 in 2 jantarna, pri 3–13 zelena), ime v legendi (»celice
+  vzorca« / »tvoj vzorec«), končna slika po pravilnem odgovoru. Načrt naj najprej našteje **popoln seznam razlik**,
+  nato odločitve po postavkah. Izrisa ostaneta dva.
 
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 

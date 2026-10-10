@@ -261,7 +261,7 @@ for (const mode of Object.keys(MODE)) {
     assert.ok(fbUI(dom).html.startsWith('<b>To še ni pravi vzorec.</b>'), fbUI(dom).html);
     assert.deepEqual(izbrane(), [], 'izbira je po napačnem odgovoru počiščena');
     assert.equal(rezultatUI(dom), '0/1');
-    // Pravilen odgovor: celice koraka → "Pravilno!", oznake koraka, poudarek izklopljen.
+    // Pravilen odgovor: celice koraka → "Pravilno!", oznake koraka, poudarek ostane (popravek C, 2026-10-10).
     ex.solutionCells.forEach(i => celice[i].sprozi('click'));
     dokoncajOdgovor(dom, run);
     assert.ok(fbUI(dom).className.includes('ok'));
@@ -272,7 +272,7 @@ for (const mode of Object.keys(MODE)) {
       assert.ok(razredi(celice[i]).includes('k-izbris'), `celica z izbrisom ${i}`);
       assert.ok(razredi(celice[i].children[0].children[d - 1]).includes('k-izbris'), `izbris ${d} v ${i}`);
     }
-    assert.ok(!celice.some(imaPoudarek), 'poudarek izklopljen');
+    assert.ok(celice.some(imaPoudarek), 'poudarek ostane');
     // Po pravilnem odgovoru se nič več ne izbere, oznake ostanejo tudi po ogledu rešitve.
     celice[napacne[0]].sprozi('click');
     assert.deepEqual(izbrane(), []);
@@ -288,10 +288,10 @@ for (const mode of Object.keys(MODE)) {
     const celice = run('presek.mreza.celice');
     odpriPomoc(dom, 'resitev');
     assert.ok(ex.solutionCells.every(i => razredi(celice[i]).includes('k-vzorec')), 'med držanjem je vzorec označen');
-    assert.ok(!celice.some(imaPoudarek), 'med držanjem ni poudarka');
+    assert.ok(celice.some(imaPoudarek), 'poudarek ostane tudi ob Rešitvi (popravek C)');
     zapriPomoc(dom, 'resitev');
     assert.ok(!celice.some(c => razredi(c).includes('k-vzorec')), 'po spustu oznak ni');
-    assert.ok(celice.some(imaPoudarek), 'poudarek je spet vklopljen');
+    assert.ok(celice.some(imaPoudarek), 'poudarek po zaprtju');
     odpriPomoc(dom, 'namig');
     const namig = vsi(dom.el('exerciseArea')).find(e => /peek-overlay/.test(e.className) && /visible/.test(e.className));
     const polozaji = ex.solutionCells.map(i => `V${Math.floor(i / 9) + 1}S${i % 9 + 1}`).join(', ');

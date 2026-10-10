@@ -194,11 +194,12 @@ function buildLayout(div,ex,M){
 // poudarjena kot v igri. Izbira (selected, indeksi celic 0-80) je izbira mreže; kliknejo
 // se samo prazne vidne celice, po pravilnem odgovoru nič več. Korak vaje (pravilen
 // odgovor ali "Rešitev") se pokaže z oznakami koraka kot v igri (jantarno vzorec, rdeče
-// prečrtan izbris) - poudarek je takrat izklopljen, da rumena podlaga ne prekrije izbrisa.
+// prečrtan izbris). Števka vaje je poudarjena v vseh stanjih - tudi ob oznakah koraka (popravek C po ročnem
+// pregledu 2026-10-10: sicer se v končni sliki ne vidi, da je števka ostala samo v celicah vzorca); prečrtana
+// števka na poudarku je temnejša rdeča (trening.css).
 // 2. faza - izbris (docs/izbris-nacrt.md, korak 4): faza2 = { izbrane, oznake, resitev } (množici iz
 // trening/izbris.js); vzorec jantarno, oznake rdeče prečrtane (oznake.izbris), celice ostanejo bele,
-// števka vaje poudarjena kot v 1. fazi, izbira vidna. Ob »Rešitvi« (resitev) brez poudarka, ves izbris prečrtan, celice izbrisa
-// rožnate, napačna oznaka k-napacna.
+// izbira vidna. Ob »Rešitvi« (resitev) ves izbris prečrtan, celice izbrisa rožnate, napačna oznaka k-napacna.
 function buildPresekLayout(div,ex,M){
   const okvir=document.createElement('div');okvir.className='vaja-presek';
   div.appendChild(okvir);
@@ -227,9 +228,8 @@ function buildPresekLayout(div,ex,M){
     const v2=faza2&&!vajaResena;
     mreza.izrisi({
       grid:ex.grid,danosti:ex.danosti,kandidati:ex.kandidati,
-      // Števka vaje je poudarjena tudi v 2. fazi (popravek po ročnem pregledu 2026-10-10 - sicer se ne vidi, kje v
-      // vrstici ali stolpcu je); ob oznakah koraka (Rešitev, pravilen odgovor) ne.
-      barva:d=>!korak&&!(v2&&faza2.resitev)&&d===ex.digit?0:-1,
+      // Števka vaje je poudarjena v vseh stanjih (popravka A in C po ročnem pregledu 2026-10-10).
+      barva:d=>d===ex.digit?0:-1,
       // Izbira je vidna tudi ob odprti Rešitvi (O12), po pravilnem odgovoru je ni več.
       izbrane:v2?[...faza2.izbrane]:korak&&vajaResena?[]:selected,sosede:null,
       oznake:v2?oznakeFaze2():korak?oznakeKoraka():null,
