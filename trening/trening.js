@@ -106,7 +106,7 @@ let menuPolozaj=0;
 function zacniKrog(m,n){
   if(menuEl.style.display!=='none')menuPolozaj=window.scrollY||0;
   mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;izbrisVecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
-  updateScore();menuEl.style.display='none';trainerEl.style.display='block';
+  updateScore();menuEl.style.display='none';trainerEl.style.display='block';naVrh.osvezi();
   renderExercise();
   window.scrollTo(0,0);
 }
@@ -121,6 +121,21 @@ document.querySelectorAll('.menu-card').forEach(card=>{
   }
   card.appendChild(nacini);
 });
+// Kazalo tehnik nad prvo kartico (naloga 4c, O4 v docs/navigacija-nacrt.md; shared/navigacija.js): klik
+// pomakne do kartice (12 px pod vrh okna; kartica blizu dna – stran do konca), vaje ne začne; fokus gre na
+// »Spoznaj« te kartice. Gumb »↑« (O5): samo v meniju, po enem zaslonu drsenja; klik na vrh, fokus na kazalo.
+const kazaloEl=document.getElementById('kazaloTehnik');
+izrisiKazaloTehnik(kazaloEl,p=>{
+  const card=menuEl.querySelector(`.menu-card[data-mode="${p.kljuc}"]`);
+  if(!card)return;
+  window.scrollTo({top:Math.max(0,card.getBoundingClientRect().top+window.scrollY-12),behavior:nacinPomika()});
+  const b=card.querySelector('.nacin-btn');
+  if(b)b.focus({preventScroll:true});
+});
+const naVrh=ustvariNaVrh(()=>menuEl.style.display!=='none',()=>{
+  const b=kazaloEl.querySelector('button');
+  if(b)b.focus({preventScroll:true});
+});
 // Nazaj na izbiro: položaj menija kot ob odhodu; če kartica tehnike vseeno ni v oknu (npr. drugačna
 // velikost okna), se pomakne do nje. Gumb je nad vajo in pod njo (naloga 4c, O6 v docs/navigacija-nacrt.md).
 function nazajNaIzbiro(){
@@ -130,6 +145,7 @@ function nazajNaIzbiro(){
   const card=menuEl.querySelector(`.menu-card[data-mode="${mode}"]`);
   if(card)card.scrollIntoView({block:'nearest'});
   mode=null;
+  naVrh.osvezi(); // položaj menija je lahko nižje od enega zaslona – »↑« takoj, brez drsenja
 }
 document.getElementById('backBtn').addEventListener('click',nazajNaIzbiro);
 document.getElementById('backBtnDno').addEventListener('click',nazajNaIzbiro);

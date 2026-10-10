@@ -170,3 +170,37 @@ footer.note {
 .tag.t-expert { background: var(--turq-bg); color: var(--turq); }
 .tag.t-chain { background: var(--red-bg); color: var(--red); }
 .tag.t-basic { background: var(--blue-bg); color: var(--blue); }
+
+/* navigacija po straneh (naloga 4c, shared/navigacija.js): kazalo tehnik – oznake E1 … 13 v barvah
+   ravni (.tag.t-*), cilj za dotik vsaj 32 px (D3 v docs/navigacija-nacrt.md) – in okrogel plavajoč gumb
+   »↑« 44 × 44 px spodaj desno (pri 320 px ne seže nad gumba kartice menija treninga) */
+.kazalo-tehnik {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.kazalo-tehnik button.tag {
+  min-width: 36px;
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+.kazalo-tehnik button.tag:hover { border-color: currentColor; }
+button.na-vrh {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--blue);
+  background: var(--card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}

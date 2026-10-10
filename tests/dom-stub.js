@@ -120,11 +120,13 @@ function makeDom(shramba = new Map()) {
   };
 
   // window: poslušalci (dogodek "storage" ob zapisu v drugem zavihku) in položaj strani
-  // (scrollY, scrollTo - vrnitev v meni treninga).
+  // (scrollY, scrollTo - vrnitev v meni treninga; tudi scrollTo({ top }) - gumb »↑«), višina okna
+  // (innerHeight - gumb »↑« v meniju treninga). Dogodka "scroll" scrollTo ne sproži (test: sprozi('scroll')).
   const window = {
     poslusalci: {},
     scrollY: 0,
-    scrollTo(x, y) { this.scrollY = y; },
+    innerHeight: 667,
+    scrollTo(x, y) { this.scrollY = x && typeof x === 'object' ? (x.top === undefined ? this.scrollY : x.top) : y; },
     addEventListener(tip, f) { (this.poslusalci[tip] = this.poslusalci[tip] || []).push(f); },
     sprozi(tip, dogodek = {}) { for (const f of this.poslusalci[tip] || []) f(dogodek); },
   };

@@ -1,8 +1,8 @@
 # Navigacija po straneh (naloga 4c) – načrt
 
 Načrt 2026-10-10 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4c, in postavka 4.3 »Navigacija med
-aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **korak 1 narejen** 2026-10-10
-(razdelek 9).
+aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraka 1 in 2 narejena**
+2026-10-10 (razdelek 9).
 
 Izhodišče: commit `d51d2fc` (zaključek naloge 4b).
 
@@ -392,3 +392,61 @@ Ročni pregled je en sam, po koraku 5, največ 5 točk, pri vsaki zakaj ni avtom
 - Obstoječi scenariji: `preveri-vadi-brskalnik.js` (»Spoznaj« enak izhodišču – gumb je zunaj `#exerciseArea`),
   `preveri-sheme-brskalnik.js` (»Nazaj na izbiro« vrne meni na položaj ob kliku) in `preveri-videz-brskalnik.js`
   (brez preliva pri 320–1280 px).
+
+### Korak 2 – meni treninga: kazalo tehnik in »↑« (2026-10-10)
+
+- `shared/navigacija.js` (nova): `kazaloTehnik()` – postavke kazala brez DOM-a (E1, E2, 1–13 v vrstnem redu kartic,
+  oznaka, ime »4 · Skriti par (Hidden Pair)«, razred ravni iz `tagClass()`); `izrisiKazaloTehnik(el, obKliku)` – gumbi
+  `.tag.t-*` z oznako, ime v `title` in `aria-label` (isto sestavino bo uporabilo okno Pomoč v koraku 3);
+  `naVrhViden()` – pravilo brez DOM-a (več kot en zaslon in aktiven); `ustvariNaVrh(aktiven, obKliku)` – okrogel
+  plavajoč »↑« v `<body>` (»Na vrh« v `title` in `aria-label`), vidnost ob `scroll`/`resize`; `nacinPomika()` – gladko,
+  pri `prefers-reduced-motion` takoj.
+- `shared/base.css`: `.kazalo-tehnik` (oznake vsaj 36 × 32 px, 13 px, razmik 6 px; barve iz `.tag.t-*` – iste kot značke
+  ravni na karticah) in `button.na-vrh` (44 × 44 px, okrogel, 16 px od desnega in spodnjega roba, `z-index` 20 – pod
+  oknom Pomoč).
+- `trening/index.html`: `<nav id="kazaloTehnik" class="kazalo-tehnik" aria-label="Kazalo tehnik">` kot prvi otrok
+  `#menu` (nad prvo kartico, z menijem se skrije v vaji); skripta `shared/navigacija.js` za `sheme.js`.
+- `trening/trening.js`: klik oznake pomakne kartico 12 px pod vrh okna (pri karticah blizu dna stran do konca), vaje ne
+  začne, fokus gre na »Spoznaj« te kartice; »↑« je aktiven samo v meniju, `naVrh.osvezi()` v `zacniKrog()` in
+  `nazajNaIzbiro()` – po vrnitvi na položaj nižje od zaslona je viden takoj, ne šele ob drsenju; klik na vrh, fokus na
+  prvo oznako kazala. Pomik kazala je izračunan (`scrollTo`), ne `scroll-margin` na karticah, da se zgornji »Nazaj na
+  izbiro« (`scrollIntoView` na kartico) ne spremeni.
+- Testi: `tests/trening-meni.test.js` – trije novi (kazalo v HTML, vsebina kazala, vidnost »↑«); na kodi pred korakom
+  padejo vsi trije (preverjeno tudi s prazno `shared/navigacija.js`, da padejo iz pravega razloga), stari trije ostanejo
+  zeleni. `tests/dom-stub.js`: `innerHeight` in `scrollTo({ top })`. `shared/navigacija.js` dodana v sezname datotek
+  testov, ki nalagajo trening, in v `tests/besedila-js.js` (ločila in izrazi).
+- Scenarij `tools/preveri-navigacija-brskalnik.js --korak 2` (koraki 1 … N, privzeto 2).
+
+**Poročilo koraka 2 (preverjeno avtomatsko).**
+
+- Testi: hitri (753) in vsi (937) zeleni.
+- `tools/preveri-navigacija-brskalnik.js --korak 2` pri 320, 375 px (posnemanje telefona, pravi dotik) in 1280 px
+  (prava miška), vsa preverjanja držijo (korak 1 še vedno):
+  - **kazalo:** 15 oznak E1 … 13 v vrstnem redu kartic, pod glavo in nad prvo kartico, v širini menija, brez preliva,
+    ime v `title` in `aria-label`, podlaga in pisava vsake oznake enaki znački ravni na njeni kartici (izračunan slog);
+  - **D3 – izmerjeno:** oznake so pri vseh treh širinah **32 px visoke** in 36 px široke (pisava 13 px JetBrains
+    Mono); kazalo je pri 375 px 70 px visoko v 2 vrsticah (pri 1280 px enako), pri 320 px 108 px v 3 vrsticah;
+  - pravi dotik/klik vsake od 15 oznak: kartica pristane **12 px pod vrhom okna**, kartice blizu dna (pri 375 px 12 in
+    13, pri 320 px 12 in 13, pri 1280 px 11–13) so ob strani, pomaknjeni do konca, vse v oknu; vaja se ne začne, fokus
+    je na »Spoznaj« te kartice; pri `prefers-reduced-motion` je pomik takojšen;
+  - **»↑«:** na vrhu in po natanko enem zaslonu skrit, po pravem drsenju (poteg prsta pri 320 in 375 px, kolesce pri
+    1280 px) čez en zaslon viden; 44 × 44 px, okrogel, 16 px od desnega roba, v oknu; pravi dotik/klik → vrh, gumb
+    skrit, fokus na prvi oznaki kazala;
+  - **prekrivanje:** drsenje po vsem meniju v korakih po 20 px (po dogodku `scroll`) – na vsakem položaju je »↑« viden
+    natanko po pravilu in ne prekrije nobenega gumba »Spoznaj« / »Vadi v uganki«; najmanjši vodoravni razmik do gumba
+    kartice v isti višini: **14 px pri 320 px**, 69 px pri 375 px, 614 px pri 1280 px (gumb pri 320 px leži ob desnem
+    robu kartice, ne nad gumboma);
+  - **v vaji ni viden:** »Spoznaj« 13 · XY-veriga in »Vadi v uganki« 8 · Mečarica, pomaknjeni do konca s pravim
+    drsenjem;
+  - **po »Nazaj na izbiro«** (pravi dotik/klik spodnjega in zgornjega gumba) iz 11 · XY-krilo in 12 · Edinstveni
+    pravokotnik se meni vrne na položaj nižje od enega zaslona in **»↑« je viden brez dodatnega drsenja**; iz E1 (meni
+    blizu vrha) ostane skrit;
+  - posnetki `meni-kazalo-320.png`, `meni-kazalo-375.png`, `meni-na-vrh-320.png`, `meni-na-vrh-375.png` v mapi
+    scenarija; brez napak JS.
+- Obstoječi scenariji: `preveri-videz-brskalnik.js` (brez preliva pri 320–1280 px, skupne sestavine enake v vseh
+  treh; 339 preverjanj), `preveri-vadi-brskalnik.js` (meni z gumboma na karticah, »Spoznaj« enak izhodišču – kazalo in
+  »↑« sta zunaj `#exerciseArea`; 378), `preveri-sheme-brskalnik.js` (»Nazaj na izbiro« vrne meni na položaj ob kliku;
+  967) – vsi držijo. Posnetek igre (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`):
+  enako, 99 posnetkov.
+- Ročnega pregleda po tem koraku ni (razdelek 8); točka 3 razdelka 7 (ali okrogel »↑« na pravem telefonu kdaj moti
+  dotik kartice) ostane za skupni pregled po koraku 5.
