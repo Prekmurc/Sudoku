@@ -715,3 +715,20 @@ Ročni pregled točk 6 in 7 (`docs/rocni-test.md`): poudarek v 2. fazi deluje (t
   legenda, slogi) se primerja kot prej. Drugega se ne rahlja; izris pred 2. fazo (`preveri-vadi-`, `-presek-brskalnik.js`) se ne
   spremeni.
 - **Kasneje:** »Uskladitev videza »Spoznaj« 1 in 2 s 3–13« (`docs/uskladitev.md`, razdelek »Kasneje«) – nova naloga z načrtom.
+
+### Zaključek (2026-10-10)
+
+Ročni pregled je potrjen (`docs/rocni-test.md`, razdelek »Spoznaj – izbris«): točke 1–5 in 6 (popravek A) 2026-10-10, 7 (popravek
+B) in 8 (popravek C) 2026-10-10, popravkov ni. **Naloga 4b je zaključena 2026-10-10**; naslednja je naloga 4c (Navigacija po
+straneh, `docs/uskladitev.md`).
+
+- **Izid:** v »Spoznaj« pri vseh tehnikah 1–13 po pravilni izbiri vzorca 2. faza – izbris kandidatov, ki zaradi vzorca odpadejo
+  (niz »Izbriši kandidata« s kljukico »več celic«, oznaka, ↺, Shift+števka, »Preveri«, Namig in Rešitev v 2. fazi); pri 4 in 6
+  izbris nadomesti nekdanjo izbiro števk; končno stanje po pravilnem odgovoru je kot pred nalogo (pri 1 in 2 razen poudarka
+  števke vaje, ki od popravka C ostane v vseh stanjih).
+- **Commiti:** načrt `7035567`; korak 1 `f013931`; korak 2 `03322ba`; korak 3 `654b006`; korak 4 `5b4874a`, `35bcad7`;
+  popravka A in B `7598a59` (`abeee8f` – število testov); popravek C `e8b1992`.
+- **Preverjanje:** `tests/trening-izbris.test.js` (61 testov) in testi, ki odgovarjajo prek `tests/odgovor-spoznaj.js`;
+  v brskalniku `tools/preveri-izbris-brskalnik.js`.
+- **Kasneje:** »Uskladitev videza »Spoznaj« 1 in 2 s 3–13« (`docs/uskladitev.md`, z dopolnitvijo ob zaključku – barva vzorčka
+  prečrtane števke v legendi, poudarek v jantarni celici vzorca) in »Sporočilo pri 7 in 8 našteje stolpce nerazvrščeno«.
