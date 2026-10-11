@@ -6,7 +6,9 @@ Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6
 narejen**. Razlog: oznake postavi uporabnik sam tik pred tem, vijoličen okvir pa že razložita Pomoč treninga (razdelek
 »Označi izbrane«) in namig ob gumbu. Koraka 1 in 3 ter zaključek so narejeni (razdelek 8). **Ročni pregled** točk 1 in 2
 (2026-10-11, različica 2026-10-11 14:02): en popravek – prečrtan kandidat za izbris (razdelek 8, »Popravek po ročnem
-pregledu«); nato zaprtje naloge. Čaka ročni pregled popravka.
+pregledu«); nato zaprtje naloge. **Ročni pregled popravka potrjen 2026-10-11** (monitor in telefon, točke 1–3 v `docs/rocni-test.md`) – **naloga 6 je
+zaključena 2026-10-11.** Ob pregledu zapisano v »Kasneje« (`docs/uskladitev.md`): prečrtana števka v mali mreži in
+povečavi reševalca je na telefonu slabše razpoznavna – zaenkrat ostane.
 
 Izhodišče: commit `e24738b` (zaključek naloge 4c).
 

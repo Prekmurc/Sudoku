@@ -384,6 +384,8 @@ na telefonu, različica 2026-10-11 11:42, popravkov ni – **naloga 4c je zaklju
 
 ## Naloga 6 – podlage in Escape (igra, reševalec)
 
+**Naloga 6 je zaključena 2026-10-11** – točke 1–3 potrjene na monitorju in telefonu.
+
 Načrt `docs/naloga6-nacrt.md` (razdelek 6). Podlagi vzorca in izbrisa sta v igri in reševalcu zdaj kot v treningu
 (#EFD8A0 / #F0B4AA, korak 1), Escape zapre povečan prikaz v reševalcu (korak 3). Legenda »tvoje oznake« (korak 2) ni
 narejena, zato točke o njej ni. Točki 1 in 2 sta pregledani 2026-10-11 (različica 2026-10-11 14:02) – en popravek:
@@ -398,9 +400,9 @@ scenarij ga preveri s pravimi tipkami.
 
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
-| 1 | igra, telefon in monitor | Odpri uganko, »Naslednji korak« trikrat pri koraku z izbrisom (npr. 1 · Izločitev izven bloka); nato poudari števko izbrisa. V Pomoči (»Pomoč pri reševanju«) poglej čipa »jantarne« in »rdeče prečrtani«. | Jantarne in rožnate celice jasno vidne, kandidati v njih berljivi; **prečrtana števka temna in krepka, rdeča črta jasno vidna v rožnati celici in na rumenem poudarku**; rumen kvadrat poudarka še ločiš od jantarne celice; čipa sta enaka celicam. (barve potrjene 11. 10. 2026; prečrtana števka nepotrjeno) | Presoja barv na pravem zaslonu (svetlost, barvni profil, zunanja svetloba) – kontrast je samo številka (črta na rožnati 3,34, na poudarku 3,53). |
-| 2 | reševalec, telefon | »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male mreže; povečavo zapri z dotikom. | Barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px); **prečrtana števka temna, črta vidna tudi v mali mreži** in v legendi pod njo; povečava se z dotikom zapre. (barve potrjene 11. 10. 2026; prečrtana števka nepotrjeno) | Isto kot 1 – berljivost drobnih števk in 2 px črte na pravem zaslonu. |
-| 3 | trening, telefon | »Spoznaj« 1 · Izločitev izven bloka in 3 · Očitni par: »Rešitev«; »Vadi v uganki« 4 s kljukico »pokaži jih prečrtane« in »Rešitev«. | Prečrtana števka kot v igri (pri 1 na rumenem poudarku črta vidna), v legendi enako; sivo prečrtani kandidati v »Vadi v uganki« ostanejo sivi in se ločijo od temnih s črto. (nepotrjeno) | Isto kot 1 – presoja vidnosti na pravem zaslonu; ločljivost sive in temne prečrtane števke. |
+| 1 | igra, telefon in monitor | Odpri uganko, »Naslednji korak« trikrat pri koraku z izbrisom (npr. 1 · Izločitev izven bloka); nato poudari števko izbrisa. V Pomoči (»Pomoč pri reševanju«) poglej čipa »jantarne« in »rdeče prečrtani«. | Jantarne in rožnate celice jasno vidne, kandidati v njih berljivi; **prečrtana števka temna in krepka, rdeča črta jasno vidna v rožnati celici in na rumenem poudarku**; rumen kvadrat poudarka še ločiš od jantarne celice; čipa sta enaka celicam. (potrjeno 11. 10. 2026) | Presoja barv na pravem zaslonu (svetlost, barvni profil, zunanja svetloba) – kontrast je samo številka (črta na rožnati 3,34, na poudarku 3,53). |
+| 2 | reševalec, telefon | »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male mreže; povečavo zapri z dotikom. | Barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px); **prečrtana števka temna, črta vidna tudi v mali mreži** in v legendi pod njo; povečava se z dotikom zapre. (potrjeno 11. 10. 2026; prečrtana števka v mali mreži na telefonu slabše razpoznavna – zapisano v »Kasneje«, zaenkrat ostane) | Isto kot 1 – berljivost drobnih števk in 2 px črte na pravem zaslonu. |
+| 3 | trening, telefon | »Spoznaj« 1 · Izločitev izven bloka in 3 · Očitni par: »Rešitev«; »Vadi v uganki« 4 s kljukico »pokaži jih prečrtane« in »Rešitev«. | Prečrtana števka kot v igri (pri 1 na rumenem poudarku črta vidna), v legendi enako; sivo prečrtani kandidati v »Vadi v uganki« ostanejo sivi in se ločijo od temnih s črto. (potrjeno 11. 10. 2026) | Isto kot 1 – presoja vidnosti na pravem zaslonu; ločljivost sive in temne prečrtane števke. |
 
 ## Zakaj ročno
 
