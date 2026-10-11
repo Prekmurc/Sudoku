@@ -3,8 +3,10 @@
 //
 // Korak 1 (O1–O3) – trening, prehod med načinoma, pri 320, 375 (posnemanje telefona, pravi dotik) in 1280 px (miška):
 //   - zgornja vrstica vaje: levo »← Nazaj na izbiro«, desno »↔ Vadi v uganki« (v »Spoznaj«) oziroma »↔ Spoznaj«
-//     (v »Vadi v uganki«) – v eni vrstici, enako visoka, istega videza (izračunan slog), desni ob desnem robu vrstice,
-//     razmik vsaj 8 px, oba v širini strani, brez preliva; pisava gumba je Inter (znak »↔« v pisavi);
+//     (v »Vadi v uganki«) – v eni vrstici, kadar gresta vanjo (širini + 8 px ≤ širina vrstice), sicer drugi v novi
+//     vrstici 8 px nižje, desno (popravek P1 = A); enako visoka kot spodnji »Nazaj na izbiro« (napis se ne prelomi),
+//     istega videza (izračunan slog), desni ob desnem robu vrstice, razmik vsaj 8 px, oba v širini strani, brez
+//     preliva; pisava gumba je Inter (znak »↔« v pisavi);
 //   - vseh 15 tehnik v obeh smereh s pravim dotikom/klikom: nov krog iste tehnike v drugem načinu, vaja 1, rezultat
 //     0 / 0, stran na vrhu, meni skrit; iz »Vadi v uganki« pri lihih tehnikah med »Iščem vajo …« (iskanje prekinjeno –
 //     po 1,5 s je vaja še »Spoznaj«), pri sodih po najdeni vaji; nato pravi dotik/klik zgornjega »Nazaj na izbiro« –
@@ -51,7 +53,7 @@ const VRH = `(() => {
     nadRezultatom: r(vr).bottom <= r(document.querySelector('.score-bar')).top,
     n: { vrh: r(n).top, dno: r(n).bottom, levo: r(n).left, desno: r(n).right, sirina: r(n).width, visina: r(n).height },
     d: { vrh: r(d).top, dno: r(d).bottom, levo: r(d).left, desno: r(d).right, sirina: r(d).width, visina: r(d).height },
-    vrstica: { levo: r(vr).left, desno: r(vr).right },
+    vrstica: { levo: r(vr).left, desno: r(vr).right }, visinaDno: r(document.getElementById('backBtnDno')).height,
     razlike: LAST.filter(l => sn[l] !== sd[l]).map(l => l + ': ' + sn[l] + ' → ' + sd[l]),
     inter: document.fonts.check('15px Inter', '↔'),
     sirinaStrani: document.documentElement.clientWidth, preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -65,14 +67,17 @@ const STANJE = `({ mode, nacin, exNum, scoreRight, scoreTotal, scrollY: window.s
 const meritve1 = [];
 
 function vrstica(ime, m, napis) {
-  preveri(`${ime}: »← Nazaj na izbiro« levo, »${napis}« desno, v isti vrstici nad rezultatom`,
+  // Ena vrstica, kadar gumba gresta vanjo z razmikom 8 px; sicer drugi v novi vrstici, desno (P1 = A).
+  const ena = m.n.sirina + 8 + m.d.sirina <= m.vrstica.desno - m.vrstica.levo + 0.5;
+  preveri(`${ime}: »← Nazaj na izbiro« levo, »${napis}« desno, ${ena ? 'v isti vrstici' : 'v novi vrstici 8 px nižje'} nad rezultatom`,
     JSON.stringify(m.napisa) === JSON.stringify(['← Nazaj na izbiro', napis]) && m.isti && m.razred === 'vrh-vaje' && m.nadRezultatom
-      && Math.abs(m.n.vrh - m.d.vrh) < 0.5 && Math.abs(m.n.dno - m.d.dno) < 0.5, m);
-  preveri(`${ime}: enako visoka, istega videza (${Math.round(m.n.sirina)} in ${Math.round(m.d.sirina)} × ${Math.round(m.d.visina)} px), pisava Inter`,
-    m.razlike.length === 0 && m.d.visina >= 24 && m.inter, { razlike: m.razlike, inter: m.inter });
-  preveri(`${ime}: desni ob desnem robu vrstice, razmik ${Math.round(m.d.levo - m.n.desno)} px (vsaj 8), v širini strani, brez preliva`,
-    Math.abs(m.d.desno - m.vrstica.desno) < 0.5 && Math.abs(m.n.levo - m.vrstica.levo) < 0.5 && m.d.levo - m.n.desno >= 7.5
+      && (ena ? Math.abs(m.n.vrh - m.d.vrh) < 0.5 && Math.abs(m.n.dno - m.d.dno) < 0.5 : Math.abs(m.d.vrh - m.n.dno - 8) < 0.5), m);
+  preveri(`${ime}: enako visoka kot spodnji »Nazaj« (napis ni prelomljen), istega videza (${Math.round(m.n.sirina)} in ${Math.round(m.d.sirina)} × ${Math.round(m.d.visina)} px), pisava Inter`,
+    m.razlike.length === 0 && m.d.visina >= 24 && Math.abs(m.n.visina - m.visinaDno) < 0.5 && m.inter, { razlike: m.razlike, inter: m.inter, visina: m.n.visina, visinaDno: m.visinaDno });
+  preveri(`${ime}: desni ob desnem robu vrstice${ena ? `, razmik ${Math.round(m.d.levo - m.n.desno)} px (vsaj 8)` : ''}, v širini strani, brez preliva`,
+    Math.abs(m.d.desno - m.vrstica.desno) < 0.5 && Math.abs(m.n.levo - m.vrstica.levo) < 0.5 && (!ena || m.d.levo - m.n.desno >= 7.5)
       && m.n.levo >= 0 && m.d.desno <= m.sirinaStrani && !m.preliv, m);
+  return ena;
 }
 
 async function vstopi(b, mode, dotik) {
@@ -92,8 +97,8 @@ async function korak1(b, sirina) {
   for (const [i, mode] of modes.entries()) {
     const polozaj = await vstopi(b, mode, dotik);
     let m = await b.izvedi(VRH);
-    vrstica(`Spoznaj ${mode}`, m, '↔ Vadi v uganki');
-    if (i === 0) meritve1.push(`${sirina} px, Spoznaj: Nazaj ${Math.round(m.n.levo)}–${Math.round(m.n.desno)}, drugi način ${Math.round(m.d.levo)}–${Math.round(m.d.desno)} × ${Math.round(m.d.visina)} px, razmik ${Math.round(m.d.levo - m.n.desno)} px (stran ${m.sirinaStrani} px)`);
+    let ena = vrstica(`Spoznaj ${mode}`, m, '↔ Vadi v uganki');
+    if (i === 0) meritve1.push(`${sirina} px, Spoznaj: Nazaj ${Math.round(m.n.levo)}–${Math.round(m.n.desno)} × ${Math.round(m.n.visina)}, drugi način ${Math.round(m.d.levo)}–${Math.round(m.d.desno)} × ${Math.round(m.d.visina)} px, ${ena ? `razmik ${Math.round(m.d.levo - m.n.desno)} px` : `v novi vrstici ${Math.round(m.d.vrh - m.n.dno)} px nižje`} (stran ${m.sirinaStrani} px)`);
     if (mode === 'hidden-pair') await b.posnetek(path.join(mapa, `vrh-vaje-${sirina}-spoznaj.png`), { vsaStran: false });
 
     // Sredi kroga (vaja 3, rezultat 2 / 3), stran pomaknjena – pravi dotik/klik → »Vadi v uganki«.
@@ -107,8 +112,8 @@ async function korak1(b, sirina) {
     const medIskanjem = i % 2 === 0;
     if (!medIskanjem) { await b.cakaj('vadi !== null', 15000); await pocakaj(b, 100); }
     m = await b.izvedi(VRH);
-    vrstica(`Vadi v uganki ${mode}${medIskanjem ? ' (Iščem vajo …)' : ''}`, m, '↔ Spoznaj');
-    if (i === 0) meritve1.push(`${sirina} px, Vadi v uganki: drugi način ${Math.round(m.d.levo)}–${Math.round(m.d.desno)} × ${Math.round(m.d.visina)} px, razmik ${Math.round(m.d.levo - m.n.desno)} px`);
+    ena = vrstica(`Vadi v uganki ${mode}${medIskanjem ? ' (Iščem vajo …)' : ''}`, m, '↔ Spoznaj');
+    if (i === 0) meritve1.push(`${sirina} px, Vadi v uganki: drugi način ${Math.round(m.d.levo)}–${Math.round(m.d.desno)} × ${Math.round(m.d.visina)} px, ${ena ? `razmik ${Math.round(m.d.levo - m.n.desno)} px` : `v novi vrstici ${Math.round(m.d.vrh - m.n.dno)} px nižje`}`);
     if (mode === 'hidden-pair') await b.posnetek(path.join(mapa, `vrh-vaje-${sirina}-uganka.png`), { vsaStran: false });
 
     // Nazaj v »Spoznaj« (pri lihih med iskanjem – iskanje se prekine).

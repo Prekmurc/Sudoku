@@ -1,6 +1,6 @@
 # Pripomočki za uporabo (naloga 6b) – načrt
 
-Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1); korak b dopolnjen (razdelek 2.5) – čaka potrditev; korak c še ni pregledan.**
+Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c še ni pregledan.**
 
 Izhodišče: commit `b673dd3` (pravilo ob nepričakovanem izidu testa v `CLAUDE.md`).
 
@@ -376,7 +376,7 @@ nadomestni DOM nima `querySelector`; razporeditev preveri brskalnik.
 ## 9. Odločitve (čaka potrditev)
 
 Priporočilo: **O1 A, O2 A, O3 A, O4 A, O5 A, O6 B, O7 A, O8 A, O9 A, O10 A, O11 A**; dopolnitev b: **O12 A, O13 A**.
-Potrjeno 2026-10-11: O1, O2, O3 = A.
+Potrjeno 2026-10-11: O1, O2, O3 = A; popravek koraka a P1 = A; korak b – O4 A, O5 A, O6 B, O12 A, O13 A.
 
 Ročni pregled je en sam, po koraku 3, največ 5 točk; po korakih 1 in 2 ga ni.
 
@@ -408,3 +408,23 @@ drugiNacin(nacin))`. Testi v `tests/trening-meni.test.js` (trije novi, na stari 
   ali `shared/`; z `--samo 3 --izhodisce HEAD` vseh šest drži. Scenarija nisem spreminjal.
 - Posnetek igre: enako, 99 posnetkov. Scenarij `tools/preveri-naloga6b-brskalnik.js --korak 1`: vse drži (pribl. 2 min).
 
+**Popravek koraka a – ozek zaslon (P1), potrjen 2026-10-11.** Odločitev **P1 = A**: kadar gumba v zgornji vrstici
+vaje ne gresta v eno vrstico (pri 320 px v »Spoznaj«: 147 + 8 + 138 = 293 px > 288 px), gre drugi gumb v **novo
+vrstico, desno**; napisa se ne prelomita in gumba se ne skrčita (oba 39 px visoka kot spodnja vrstica). V skupnem
+pravilu `.vrh-vaje,.dno-vaje` prelom vrstice (`flex-wrap`) in desni gumb ob desnem robu (`margin-left:auto`) – pri
+spodnji vrstici se nič ne spremeni (gre v eno vrstico tudi pri 320 px). Scenarij `tools/preveri-navigacija-brskalnik.js`
+(popravek B, zgornji »Nazaj« enakega videza kot spodnja gumba) mora spet držati.
+
+**Potrditev koraka b 2026-10-11:** kazalo tehnik v meniju treninga je seznam – oznaka, krepko slovensko ime, pod njim
+angleško (2.5); telefon en stolpec, monitor dva stolpca; **O12 A** (po stolpcih, levo E1–6, desno 7–13); **O13 A**
+(nič dodatnega); **O4 A** – moder okvir na vrstici seznama in na kartici zadnje tehnike; **O5 A**; **O6 B**. Kazalo v
+oknu Pomoč ostane, kot je.
+
+Izvedba popravka P1: `trening/trening.css` – v pravilu `.vrh-vaje,.dno-vaje` `flex-wrap:wrap`, novo pravilo
+`:is(.vrh-vaje,.dno-vaje) button.back-btn:last-child{margin-left:auto}`; test v `tests/trening-meni.test.js` (na stari
+kodi pade); scenarij `tools/preveri-naloga6b-brskalnik.js --korak 1` pričakuje eno vrstico, kadar gumba gresta vanjo,
+sicer drugi gumb v novi vrstici 8 px nižje, desno, in višino gumba enako spodnjemu »Nazaj« (napis ni prelomljen).
+Izmerjeno pri 320 px v »Spoznaj«: »Nazaj« 16–163 × 39 px, »↔ Vadi v uganki« 166–304 × 39 px v novi vrstici; v »Vadi v
+uganki« ena vrstica, razmik 39 px; pri 375 in 1280 px enako kot pred popravkom. Scenarij vse drži (418 preverjanj);
+`tools/preveri-navigacija-brskalnik.js --izhodisce HEAD` (vsi koraki) vse drži (1539) – brez `--izhodisce` ostane šest
+starih razlik D1 proti privzetemu izhodišču `5f59f09` (korak 1, zgoraj). Posnetek igre: enako, 99 posnetkov.

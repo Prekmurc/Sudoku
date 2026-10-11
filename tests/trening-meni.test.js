@@ -254,6 +254,15 @@ test('korak 6b-a: zgornja vrstica vaje – levo »Nazaj na izbiro«, desno gumb 
   assert.doesNotMatch(css, /(^|\})\.dno-vaje\{display:flex/m, 'spodnja vrstica nima svojega pravila');
 });
 
+// Popravek koraka a (P1 = A v docs/naloga6b-nacrt.md, razdelek 10): kadar gumba ne gresta v eno vrstico (320 px,
+// »Spoznaj«), gre drugi v novo vrstico, desno – napisa se ne prelomita. Razporeditev preverja
+// tools/preveri-naloga6b-brskalnik.js --korak 1.
+test('popravek 6b-a: ozek zaslon – drugi gumb vrstice v novo vrstico, desno (isto pravilo za obe vrstici)', () => {
+  const css = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'trening.css'), 'utf8');
+  assert.match(css, /\.vrh-vaje,\.dno-vaje\{display:flex;flex-wrap:wrap;/, 'prelom vrstice');
+  assert.match(css, /:is\(\.vrh-vaje,\.dno-vaje\) button\.back-btn:last-child\{margin-left:auto\}/, 'drugi gumb ob desnem robu');
+});
+
 test('korak 6b-a: napis po načinu; dotik začne nov krog iste tehnike v drugem načinu, »Nazaj« vrne na isto mesto', () => {
   const dom = makeDom();
   dom.globals.setTimeout = () => 0; // iskanje vaje »Vadi v uganki« ostane v teku
