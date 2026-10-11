@@ -1,8 +1,8 @@
 # Navigacija po straneh (naloga 4c) – načrt
 
 Načrt 2026-10-10 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4c, in postavka 4.3 »Navigacija med
-aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraki 1–3 narejeni**
-(1 in 2 2026-10-10, 3 2026-10-11; razdelek 9).
+aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraki 1–4 narejeni**
+(1 in 2 2026-10-10, 3 in 4 2026-10-11; razdelek 9).
 
 Izhodišče: commit `d51d2fc` (zaključek naloge 4b).
 
@@ -337,9 +337,10 @@ drsenje preveri brskalnik.
 4. **Trening sredi kroga:** dotik zavihka »Igra« – besedilo vprašanja, »Prekliči«; nato potrdi in v svojem
    brskalniku pritisni »Nazaj«. *Zakaj ročno:* pravo okno vprašanja in obnova iz predpomnilnika sta odvisna od
    brskalnika.
-5. **`file://`:** odpri `igra/index.html` neposredno iz datoteke, klikni »Reševalec« in »Trening«. Pričakovano:
+5. ~~**`file://`:** odpri `igra/index.html` neposredno iz datoteke, klikni »Reševalec« in »Trening«. Pričakovano:
    odpre se stran (ne seznam datotek); ali je zbirka ista, je odvisno od brskalnika. *Zakaj ročno:* scenarij
-   teče prek strežnika HTTP.
+   teče prek strežnika HTTP.~~ **Črtano (D4, korak 4):** scenarij odpre `file://` v brskalniku brez glave in preveri
+   zavihke s pravim dotikom in klikom (razdelek 9, korak 4).
 
 ## 8. Odločitve (potrjeno 2026-10-10)
 
@@ -517,3 +518,85 @@ Ročni pregled je en sam, po koraku 5, največ 5 točk, pri vsaki zakaj ni avtom
 - Posnetek igre (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`): enako, 99 posnetkov.
 - Ročnega pregleda po tem koraku ni (razdelek 8); točka 2 razdelka 7 (okno Pomoč na pravem telefonu – inercijsko
   drsenje, Safari) ostane za skupni pregled po koraku 5.
+
+### Korak 4 – povezave med aplikacijami (2026-10-11)
+
+- `app/index.html`, `igra/index.html`, `trening/index.html`: prvi otrok `header.top` je vrstica zavihkov
+  `<nav id="aplikacije" class="aplikacije" aria-label="Aplikacije">` z `<a href="../igra/index.html">Igra</a>`,
+  `../app/index.html` »Reševalec«, `../trening/index.html` »Trening« (O8–O10: statičen HTML, isti zavihek, poti z
+  `index.html`); vrstice so enake razen `aria-current="page"` pri trenutni aplikaciji.
+- `shared/base.css`: `nav.aplikacije` – zavihki 28 px, 14 px, razmik 4 px, 16 px nad nadnaslovom; trenutni s
+  podlago kartice (`--card`) in obrobo (`--line`), pisava `--ink`, kazalec privzet; druga dva modri (`--blue`,
+  podčrtana ob `:hover`). Zgornji odmik `header.top` 26 → 14 px – glava je višja za natanko 32 px.
+- `shared/navigacija.js`: `poveziAplikacije(vprasanje)` – en poslušalec klika na vrstici; `vprasanje()` aplikacije vrne
+  besedilo ali `null`, `confirm` ga postavi, preklic prepreči odhod (`preventDefault`). Trenutni zavihek ne naredi nič
+  (sicer bi se stran znova naložila in krog bi se izgubil). Klik s Ctrl/⌘/Shift/Alt ali srednjim gumbom odpre nov
+  zavihek oz. okno – ta stran ostane, zato brez vprašanja. Pravilo brez DOM-a: `odhodDovoljen()`.
+- `trening/trening.js` (O11, D2): `vprasanjeOdhoda()` – `null` v meniju, pri »Končano!« in pri vaji 1, dokler v krogu ni
+  bilo nobenega »Preveri« (`preveriKrog` – nastavi ga `preveri()`, skozi katerega gredo vsi gumbi »Preveri« v
+  »Spoznaj« in »Vadi v uganki«; `zacniKrog()` ga ponastavi); sicer »Zapustiš trening? Krog 4 · Skriti par (vaja 3 / 9,
+  pravilno 2 / 2) se ne shrani.«, pri »Vadi v uganki« »Krog 7 · X-krilo · Vadi v uganki (…)«. »Nazaj na izbiro« ne
+  vpraša (O7).
+- `app/zbirka.js` (O12): `vprasanjeOdhoda()` – »Zapustiš reševalec? Uganka v mreži ni shranjena v zbirko.«, kadar mreža
+  ni prazna, ni vgrajeni primer in je ni v zbirki. Igra (`igra/igra.js`) poda `null`. Reševalec in igra kličeta
+  `poveziAplikacije()` z `typeof` varovalom (testi, ki ju nalagajo brez `navigacija.js`), kot `izrisiTehnike()` kazalo.
+- `shared/zbirka-ui.js` (O13): `zbirkaObSpremembiDrugje()` si ob `pagehide` zapomni `sudoku.zbirka.v1` in
+  `sudoku.igra.v1`; ob `pageshow` s `persisted` za vsak spremenjen ključ pokliče isti odziv kot dogodek `storage`
+  (`{ key, oldValue, newValue }` – igra po `oldValue` prepozna izbrisano odprto uganko in izprazni mrežo).
+- `index.html` v korenu (O14): `<meta http-equiv="refresh" content="0; url=igra/index.html">` in povezave na igro,
+  reševalec in trening za primer, ko preusmeritev ne dela.
+- Testi: `tests/navigacija.test.js` (6 testov; na kodi pred korakom padejo vsi): vrstica v treh `index.html` (prvi
+  otrok glave, enaka razen `aria-current`, cilji obstajajo, brez `target`), koren, vprašanje v treningu (meni,
+  trenutni zavihek, D2, po »Preveri« z besedilom, preklic pusti krog, modifikatorji, vaja 3 z rezultatom kroga,
+  »Končano!«, »Vadi v uganki«, po »Nazaj na izbiro«), v reševalcu (prazna mreža, primer, uganka iz zbirke brez;
+  spremenjena in vtipkana z vprašanjem, po »Reši« brez), igra brez, O13 (`pagehide`/`pageshow` z izbrisom druge in
+  odprte uganke, navadno nalaganje brez odziva). `tests/razlicica.test.js` ni bilo treba spreminjati – nove skripte
+  ni (`poveziAplikacije()` je v `shared/navigacija.js`), koren nima lokalnih skript.
+- Scenarij `tools/preveri-navigacija-brskalnik.js --korak 4` (privzeto zdaj 4; `--izhodisce4`, privzeto `bfd2ccc` – za
+  primerjavo glave in igre) – glej poročilo.
+
+**Poročilo koraka 4 (preverjeno avtomatsko).**
+
+- Testi: hitri (769) in vsi (953) zeleni; `tests/navigacija.test.js` 6 testov.
+- `tools/preveri-navigacija-brskalnik.js` (koraki 1–4; 1158 preverjanj, vsa držijo – koraki 1–3 tudi z novo glavo); korak 4:
+  - **glava** vseh treh pri 320, 375, 430 in 1280 px: trije zavihki Igra · Reševalec · Trening, trenutni pravi, vrstica
+    je prvi otrok glave nad nadnaslovom in v širini glave, **zavihki v eni vrstici** (pri 320 px od 16 do 235 px, glava
+    do 320 px), 28 px visoki, **stran brez vodoravnega preliva**; trenutni s podlago kartice in obrobo, druga dva modra
+    s kontrastom vsaj 4,5 : 1; **glava je višja natanko za 32 px** kot v izhodišču `bfd2ccc` (320 / 375 / 1280 px: igra
+    123 → 155 / 123 → 155 / 99 → 131, reševalec 258 → 290 / 237 → 269 / 192 → 224, trening 194 → 226 / 149 → 181 /
+    149 → 181 – pri 375 in 1280 px enako kot meritev prototipa v 2.4);
+  - **igra pri 375 × 667 z uganko** (dno elementa, okno 667 px): mreža pred korakom ves vidna (520 px), po njem ves
+    vidna (552 px); niz »Vpiši« pred ves viden (592), po ves viden (624); niz **»Izbriši kandidata«** pred delno viden
+    (32 od 38 px), **po njem ni viden** (vrh pri 667 px – vidna je samo njegova oznaka, za gumbe je treba podrsati);
+    mreža in oba niza so nižje natanko za 32 px;
+  - **pravi dotiki (375 px) in kliki (1280 px) med vsemi šestimi pari** (igra → reševalec → trening → igra → trening →
+    reševalec → igra): odpre se druga aplikacija brez vprašanja, števec zbirke in zapis zbirke v shrambi enaka, igra
+    enaka (uganka, 3 poteze, kazalec 2 – ena razveljavljena); trenutni zavihek ne naredi nič;
+  - **pravo okno `confirm`:** trening pri vaji 1 brez »Preveri« odide brez vprašanja (D2); po pravem »Preveri« okno z
+    besedilom »Zapustiš trening? Krog 3 · Očitni par (vaja 1 / 9, pravilno 0 / 0) se ne shrani.«; »Prekliči« – stran,
+    krog in vaja enaki; potrditev odpre igro; reševalec – prazna mreža brez vprašanja, uganka, vtipkana v polje Niz, z
+    vprašanjem (preklic pusti mrežo), po pravem »Reši« (uganka v zbirki) brez; igra z odprto uganko brez;
+  - **gumb brskalnika »Nazaj«** (Chromium – Edge): iz igre nazaj v trening sredi kroga pri obeh širinah obnova iz
+    predpomnilnika (`pageshow.persisted`), krog ostane (3 · Očitni par, vaja 1);
+  - **O13:** igra → reševalec → izbris odprte uganke → »Nazaj«: igra obnovljena iz predpomnilnika, mreža prazna, števec 0,
+    brez zapisa igre – z dogodkom `storage` (Chromium ga ob obnovi dostavi: 2 dogodka) in **brez njega** (ustavi ga
+    skripta, vstavljena pred skriptami strani – `Page.addScriptToEvaluateOnNewDocument`; dostavljenih 0): takrat igro
+    izprazni samo `pageshow`. Na kodi brez O13 (`shared/zbirka-ui.js` iz `bfd2ccc`) ta varianta pade – igra ostane z
+    izbrisano uganko, števec 1;
+  - **D4 – `file://`:** pri 375 px (pravi dotik) in 1280 px (pravi klik) zavihki »Reševalec«, »Trening«, »Igra« odprejo
+    stran (`file:///…/app/index.html` z mrežo reševalca, meni treninga, mreža igre), ne seznama datotek; shramba je
+    v Chromiumu pri `file://` skupna (zapis igre je viden v reševalcu); koren `file:///…/index.html` in
+    `http://…/index.html` preusmeri na igro, igra deluje. **Ročna točka 5 (razdelek 7) je zato črtana** – drugi
+    brskalniki pri `file://` (ločena shramba) ostanejo, kot je zapisano v `CLAUDE.md`;
+  - posnetki `glava-<igra|app|trening>-<320|375>.png` in `igra-375x667.png` v mapi scenarija; brez napak JS (tudi v
+    izhodišču).
+- Obstoječi scenariji z novo glavo držijo: `preveri-videz-brskalnik.js` (brez preliva pri 320–1280 px v vseh treh,
+  skupne sestavine glave enake), `preveri-pomoc-brskalnik.js`, `preveri-sheme-brskalnik.js`, `preveri-presek-brskalnik.js`,
+  `preveri-enojcki-brskalnik.js` in `preveri-vadi-brskalnik.js` (»Spoznaj« enak izhodiščem – glava je zunaj
+  `#exerciseArea`). `preveri-izbira-brskalnik.js` pade z 82 neujemanji pri slogu prečrtane števke – **na izhodišču
+  `bfd2ccc` (pred korakom, v `git worktree`) natanko iste**: scenarij je zastarel od popravka C naloge 4b (vzorec sloga
+  vzame pri vaji 2, kjer je prečrtana števka na poudarku zdaj temno rdeča); zapisano v »Kasneje« v
+  `docs/uskladitev.md`, ne popravljam.
+- Posnetek igre (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`): enako, 99 posnetkov
+  (glava ni v posnetku).
+- Ročnega pregleda po tem koraku ni (razdelek 8); točki 1 in 4 razdelka 7 ostaneta za skupni pregled po koraku 5.

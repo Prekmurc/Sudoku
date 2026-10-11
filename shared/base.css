@@ -65,10 +65,39 @@ body {
 /* ---------- skupne sestavine (faza 5, N3-N7): glava, kartica, gumbi, noga, oznake
    korakov. Širino glave, vsebine in noge nastavi aplikacija (480 / 560 / 960 px). ---------- */
 
-/* glava: nadnaslov (z gumbi desno), naslov, neobvezen opis */
+/* glava: zavihki aplikacij, nadnaslov (z gumbi desno), naslov, neobvezen opis */
 header.top {
-  padding: 26px 16px 10px;
+  padding: 14px 16px 10px;
   margin: 0 auto;
+}
+/* zavihki »Igra · Reševalec · Trening« v svoji vrstici na vrhu glave (naloga 4c, O8 v
+   docs/navigacija-nacrt.md): 28 px visoki, 16 px nad nadnaslovom - glava je višja za 32 px (zgornji
+   odmik 26 -> 14 px). Trenutna aplikacija ima podlago kartice in obrobo, drugi dve sta modri povezavi. */
+nav.aplikacije {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 16px;
+}
+nav.aplikacije a {
+  display: inline-block;
+  height: 28px;
+  line-height: 26px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--blue);
+  text-decoration: none;
+}
+nav.aplikacije a:hover { text-decoration: underline; }
+nav.aplikacije a[aria-current="page"] {
+  background: var(--card);
+  border-color: var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  cursor: default;
 }
 header.top .top-row {
   display: flex;

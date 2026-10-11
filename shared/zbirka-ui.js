@@ -11,9 +11,26 @@
 // in igra, lahko odprta v več zavihkih. Brskalnik ob zapisu v drugem zavihku sproži
 // dogodek "storage" (v zavihku, ki je pisal, ne) - takrat aplikacija osveži števec
 // na gumbu "Zbirka" in odprt seznam. `e.key === null` pomeni localStorage.clear().
+// Vrnitev z gumbom brskalnika »Nazaj« (stran iz predpomnilnika – pageshow s persisted; naloga 4c, O13 v
+// docs/navigacija-nacrt.md): za ključ, ki se je od odhoda (pagehide) spremenil, isti odziv, kot da bi prišel
+// dogodek "storage" s staro vrednostjo – za brskalnike, ki dogodka ob obnovi ne dostavijo (Chromium ga dostavi;
+// dvojni klic je neškodljiv). Sicer bi se v igro vrnil z uganko, ki si jo vmes izbrisal v reševalcu.
 function zbirkaObSpremembiDrugje(obSpremembi) {
+  const KLJUCA = [ZBIRKA_KLJUC, IGRA_KLJUC];
+  const beri = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  let obOdhodu = null;
   window.addEventListener('storage', (e) => {
-    if (e.key === null || e.key === ZBIRKA_KLJUC || e.key === IGRA_KLJUC) obSpremembi(e);
+    if (e.key === null || KLJUCA.includes(e.key)) obSpremembi(e);
+  });
+  window.addEventListener('pagehide', () => { obOdhodu = KLJUCA.map(beri); });
+  window.addEventListener('pageshow', (e) => {
+    const prej = obOdhodu;
+    obOdhodu = null;
+    if (!e.persisted || !prej) return;
+    KLJUCA.forEach((key, i) => {
+      const newValue = beri(key);
+      if (newValue !== prej[i]) obSpremembi({ key, oldValue: prej[i], newValue });
+    });
   });
 }
 

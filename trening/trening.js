@@ -101,11 +101,13 @@ function razdelekShema(m,risba){
 // Položaj menija ob odhodu v vajo: "Nazaj na izbiro" ga obnovi, da seznam ostane pri tehniki,
 // iz katere si prišel (popravek po pregledu koraka 1 faze 3a - prej je skočil na začetek, E1).
 let menuPolozaj=0;
+// V krogu je bil vsaj en »Preveri« (preveri()) – do takrat pri vaji 1 odhod po povezavi ne vpraša (D2).
+let preveriKrog=false;
 // Nov krog vaj tehnike m v načinu n ('spoznaj' ali 'uganka'). Vaja začne na vrhu strani - sicer
 // bi ostal položaj menija (brskalnik ga le zmanjša na višino krajše strani) in glava bi bila odrezana.
 function zacniKrog(m,n){
   if(menuEl.style.display!=='none')menuPolozaj=window.scrollY||0;
-  mode=m;nacin=n;exNum=0;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;izbrisVecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
+  mode=m;nacin=n;exNum=0;preveriKrog=false;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;izbrisVecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';naVrh.osvezi();
   renderExercise();
   window.scrollTo(0,0);
@@ -149,6 +151,16 @@ function nazajNaIzbiro(){
 }
 document.getElementById('backBtn').addEventListener('click',nazajNaIzbiro);
 document.getElementById('backBtnDno').addEventListener('click',nazajNaIzbiro);
+
+// Povezave Igra · Reševalec · Trening v glavi (naloga 4c, O11 v docs/navigacija-nacrt.md): odhod iz odprtega
+// kroga vpraša, ker se krog ne shrani. Brez vprašanja v meniju, pri »Končano!« in pri vaji 1, dokler v krogu
+// ni bilo nobenega »Preveri« (D2 – nič se ne izgubi).
+function vprasanjeOdhoda(){
+  if(mode===null||exNum>=MAX_EX||(exNum===0&&!preveriKrog))return null;
+  const krog=imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true,anglesko:false})+(nacin==='uganka'?' · Vadi v uganki':'');
+  return `Zapustiš trening? Krog ${krog} (vaja ${exNum+1} / ${MAX_EX}, pravilno ${scoreRight} / ${scoreTotal}) se ne shrani.`;
+}
+poveziAplikacije(vprasanjeOdhoda);
 
 function makeCell(slot,si,M){
   const gc=document.createElement('div');gc.className='gc';gc.dataset.si=si;
@@ -1403,7 +1415,7 @@ function oznaciPomoc(){
 let legendaOdgovora=null;
 // Preverjanje odgovora; če je bil poskus ocenjen pri vaji s pomočjo, sporočilo to pove.
 function preveri(f,fb){
-  stetoObPreveri=false;legendaOdgovora=null;
+  preveriKrog=true;stetoObPreveri=false;legendaOdgovora=null;
   f();
   if(stetoObPreveri&&pomocVaje){
     const o=document.createElement('span');o.className='s-pomocjo';o.textContent=' (s pomočjo – ne šteje)';

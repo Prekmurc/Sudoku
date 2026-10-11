@@ -39,9 +39,24 @@
 //   - D1: okna »Zbirka ugank« in »Nova uganka« v igri ter okno zbirke v reševalcu (375, 1280 px) so enaka
 //     izhodišču (--izhodisce, privzeto 5f59f09 – korak 2; izvleček z git archive): drevo, HTML, vse izračunane
 //     lastnosti vseh elementov in položaji.
-// --korak N požene korake 1 … N (privzeto 3), --samo N samo korak N.
+// Korak 4 (O8–O14, D2, D4) – povezave med aplikacijami:
+//   - glava vseh treh pri 320, 375, 430 in 1280 px: tri zavihke v eni vrstici, prvi otrok glave nad nadnaslovom,
+//     28 px, trenutni s podlago kartice in obrobo, druga dva modra (kontrast vsaj 4,5), brez preliva; glava višja
+//     za natanko 32 px kot v izhodišču (--izhodisce4, privzeto bfd2ccc – korak 3); igra pri 375 × 667 z uganko:
+//     kaj je vidno brez drsenja (mreža, niza »Vpiši« in »Izbriši kandidata«) pred korakom in po njem – izpiše;
+//     posnetki glava-<mapa>-<širina>.png (320, 375) in igra-375x667.png;
+//   - pravi dotiki (375 px) in kliki (1280 px) med vsemi šestimi pari aplikacij: druga stran, brez vprašanja,
+//     zbirka (števec, shramba) in igra (uganka, poteze, kazalec) enaki; trenutni zavihek ne naredi nič;
+//   - pravo okno confirm: trening pri vaji 1 brez »Preveri« ne vpraša (D2), po »Preveri« vpraša – preklic pusti
+//     krog, potrditev odpre igro, »Nazaj« (izpiše, ali se krog obnovi); reševalec – prazna mreža ne vpraša,
+//     vtipkana uganka vpraša (preklic pusti mrežo), po »Reši« ne; igra ne vpraša;
+//   - O13: igra → reševalec → izbris odprte uganke → »Nazaj«: igra prazna, števec 0 – z dogodkom »storage« in
+//     brez njega (ustavi ga zajemni poslušalec, igro izprazni pageshow);
+//   - D4: file:// – dotik/klik zavihka odpre stran, ne seznama datotek (375, 1280 px); koren prek file:// in
+//     HTTP preusmeri na igro; brez napak JS.
+// --korak N požene korake 1 … N (privzeto 4), --samo N samo korak N.
 //
-//   node tools/preveri-navigacija-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>]
+//   node tools/preveri-navigacija-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>] [--izhodisce4 <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
@@ -56,7 +71,7 @@ const KOREN = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-navigacija'));
-const korak = Number(arg('--korak', '3'));
+const korak = Number(arg('--korak', '4'));
 const izhodisce = arg('--izhodisce', '5f59f09');
 // --samo N: samo korak N (za sprotno delo).
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
@@ -627,6 +642,304 @@ async function korak3D1(b) {
   }
 }
 
+// ---------- Korak 4 (O8–O14, D2, D4) – povezave med aplikacijami ----------
+
+const izhodisce4 = arg('--izhodisce4', 'bfd2ccc');
+const APL = [
+  { ime: 'igra', mapa: 'igra', stevec: '#zbirkaBtn' },
+  { ime: 'reševalec', mapa: 'app', stevec: '#libraryBtn' },
+  { ime: 'trening', mapa: 'trening', stevec: null },
+];
+const ZAVIHEK = mapa => `nav.aplikacije a[href="../${mapa}/index.html"]`;
+// Dve uganki iz docs/uganke.md, ki nista vgrajena primera in imata eno rešitev (izračuna program).
+const [UG_P, UG_Q] = (() => {
+  const { loadContext, loadPuzzles } = require('../tests/load-engine.js');
+  const { run } = loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js', 'shared/generator.js']);
+  return loadPuzzles().map(p => p.danosti.replace(/\./g, '0'))
+    .filter(d => !run(`!!zbirkaPrimerZa(${J(d)})`) && run(`countSolutions(${J(d)})`) === 1);
+})();
+
+// Kontrast po WCAG iz »rgb(r, g, b)«.
+function kontrast(a, b) {
+  const L = s => {
+    const [r, g, c] = s.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number).map(v => v / 255)
+      .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * c;
+  };
+  const [x, y] = [L(a), L(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+
+const GLAVA = `(() => {
+  const h = document.querySelector('header.top'), n = document.querySelector('nav.aplikacije'), eb = document.querySelector('header.top .eyebrow');
+  const r = e => e.getBoundingClientRect();
+  const korenS = getComputedStyle(document.documentElement);
+  return {
+    visina: r(h).height, levo: r(h).left, desno: r(h).right, eyebrowVrh: r(eb).top,
+    preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    nav: n && { vrh: r(n).top, dno: r(n).bottom, levo: r(n).left, desno: r(n).right, prviOtrok: h.firstElementChild === n },
+    povezave: n ? [...n.querySelectorAll('a')].map(a => { const s = getComputedStyle(a), q = r(a); return {
+      napis: a.textContent, trenutna: a.getAttribute('aria-current'), vrh: q.top, dno: q.bottom, levo: q.left, desno: q.right, visina: q.height,
+      barva: s.color, podlaga: s.backgroundColor, obroba: s.borderTopColor, pisava: s.fontSize }; }) : [],
+    podlagaStrani: getComputedStyle(document.body).backgroundColor,
+    card: korenS.getPropertyValue('--card').trim(), line: korenS.getPropertyValue('--line').trim(),
+  };
+})()`;
+const hex = s => `rgb(${s.slice(1).match(/../g).map(x => parseInt(x, 16)).join(', ')})`;
+
+// Igra pri 375 × 667 z uganko: kaj je vidno brez drsenja (dno elementov glede na okno).
+const IGRA_VIDNO = `(() => { const r = id => document.getElementById(id).getBoundingClientRect();
+  return { okno: innerHeight, scrollY, mrezaVrh: r('mreza').top, mreza: r('mreza').bottom, vpisiVrh: r('nizVpisi').top, vpisi: r('nizVpisi').bottom,
+    odstraniVrh: r('nizOdstrani').top, odstrani: r('nizOdstrani').bottom, glava: document.querySelector('header.top').getBoundingClientRect().height }; })()`;
+
+const meritve4 = [];
+
+async function glaveInIgra(b, ime) {
+  const izid = {};
+  for (const s of [320, 375, 430, 1280]) for (const a of APL) {
+    await b.odpri(`${a.mapa}/index.html`, { sirina: s, visina: s < 500 ? 667 : 800, mobilno: s < 500 });
+    izid[`${a.ime} ${s}`] = await b.izvedi(GLAVA);
+    if (ime === 'novo' && (s === 320 || s === 375)) await b.posnetek(path.join(mapa, `glava-${a.mapa}-${s}.png`), { vsaStran: false });
+  }
+  await b.odpri('igra/index.html', { sirina: 375, visina: 667, mobilno: true });
+  await b.izvedi(`zacniIgro(${J(UG_P)}); true`);
+  await pocakaj(b, 200);
+  izid.igra = await b.izvedi(IGRA_VIDNO);
+  if (ime === 'novo') await b.posnetek(path.join(mapa, 'igra-375x667.png'), { vsaStran: false });
+  await b.izvedi('localStorage.clear(); true');
+  return izid;
+}
+
+async function korak4Glava(b) {
+  console.log(`\nKorak 4 – glava z zavihki pri 320, 375, 430, 1280 px; primerjava z izhodiščem ${izhodisce4}`);
+  const novo = await glaveInIgra(b, 'novo');
+  const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
+  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce4], { cwd: KOREN });
+  execFileSync('tar', ['-xf', 'izhodisce.tar'], { cwd: star });
+  const bStar = await zazeni({ koren: star });
+  let staro;
+  try {
+    staro = await glaveInIgra(bStar, 'staro');
+    preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);
+  } finally {
+    await bStar.zapri();
+    fs.rmSync(star, { recursive: true, force: true });
+  }
+  for (const s of [320, 375, 430, 1280]) for (const a of APL) {
+    const g = novo[`${a.ime} ${s}`], st = staro[`${a.ime} ${s}`], ime = `${a.ime}, ${s} px`;
+    const p = g.povezave;
+    preveri(`${ime}: tri povezave Igra · Reševalec · Trening, trenutna ${a.ime}`,
+      J(p.map(x => x.napis)) === J(['Igra', 'Reševalec', 'Trening']) && J(p.map(x => x.trenutna)) === J(APL.map(x => (x === a ? 'page' : null))), p);
+    preveri(`${ime}: vrstica je prvi otrok glave, nad nadnaslovom, v širini glave`,
+      g.nav && g.nav.prviOtrok && g.nav.dno <= g.eyebrowVrh && g.nav.levo >= g.levo - 0.5 && g.nav.desno <= g.desno + 0.5, g.nav);
+    preveri(`${ime}: zavihki v eni vrstici, vsi v vrstici, 28 px visoki`,
+      p.every(x => Math.abs(x.vrh - p[0].vrh) < 0.5 && x.visina >= 27.5 && x.desno <= g.nav.desno + 0.5), p.map(x => [x.vrh, x.visina, x.desno]));
+    preveri(`${ime}: stran brez vodoravnega preliva`, !g.preliv);
+    const tr = p.find(x => x.trenutna), dr = p.filter(x => !x.trenutna);
+    preveri(`${ime}: trenutni zavihek s podlago kartice in obrobo, druga dva modri povezavi s kontrastom vsaj 4,5`,
+      tr.podlaga === hex(g.card) && tr.obroba === hex(g.line) && dr.every(x => x.barva === 'rgb(31, 95, 168)' && kontrast(x.barva, g.podlagaStrani) >= 4.5)
+      && kontrast(tr.barva, tr.podlaga) >= 4.5, { tr, dr: dr.map(x => x.barva) });
+    preveri(`${ime}: glava višja za 32 px (${Math.round(st.visina)} → ${Math.round(g.visina)})`, Math.abs(g.visina - st.visina - 32) < 0.5, [st.visina, g.visina]);
+    if (s === 320 && a.ime === 'igra') meritve4.push(`320 px: zavihki od ${Math.round(p[0].levo)} do ${Math.round(p[2].desno)} px (glava do ${Math.round(g.desno)} px), ena vrstica, preliva ni`);
+  }
+  // Igra pri 375 × 667: kaj je vidno brez drsenja pred korakom in po njem.
+  const opis = (v, kaj) => {
+    const d = v[kaj], vrh = v[kaj + 'Vrh'] ?? v.mrezaVrh;
+    return d <= v.okno ? `ves viden (dno ${Math.round(d)} px)` : vrh >= v.okno ? `ni viden (vrh ${Math.round(vrh)} px)` : `delno viden (${Math.round(v.okno - vrh)} od ${Math.round(d - vrh)} px)`;
+  };
+  for (const [kaj, napis] of [['mreza', 'mreža'], ['vpisi', 'niz »Vpiši«'], ['odstrani', 'niz »Izbriši kandidata«']]) {
+    meritve4.push(`igra 375 × 667, ${napis}: pred ${opis(staro.igra, kaj)}, po ${opis(novo.igra, kaj)}`);
+  }
+  preveri('igra 375 × 667: mreža in niza so nižje natanko za 32 px', ['mreza', 'vpisi', 'odstrani'].every(k => Math.abs(novo.igra[k] - staro.igra[k] - 32) < 0.5),
+    { staro: staro.igra, novo: novo.igra });
+}
+
+// Okno confirm() potrdi ali prekliče DevTools (b.odgovor); vprašanja se zapišejo v b.vprasanja.
+function poslusajVprasanja(b) {
+  if (b.vprasanja) return;
+  b.vprasanja = [];
+  b.odgovor = true;
+  b.cdp.naDogodek(s => {
+    if (s.method !== 'Page.javascriptDialogOpening') return;
+    b.vprasanja.push(s.params.message);
+    b.cdp.poslji('Page.handleJavaScriptDialog', { accept: b.odgovor });
+  });
+}
+// Čaka, da je odprta stran v mapi (tudi po obnovi iz predpomnilnika, ko loadEventFired ne pride).
+async function pocakajStran(b, mapaStrani, ms = 10000) {
+  const konec = Date.now() + ms;
+  while (Date.now() < konec) {
+    try {
+      if (await b.izvedi(`location.pathname.endsWith('/${mapaStrani}/index.html') && document.readyState === 'complete'`)) {
+        await b.izvedi('document.fonts ? document.fonts.ready.then(() => true) : true');
+        return true;
+      }
+    } catch { /* stran se ravno menja */ }
+    await pocakaj(b, 50);
+  }
+  return false;
+}
+// Pravi dotik/klik zavihka. Vrne true, če se je odprla stran ciljne aplikacije.
+async function zavihek(b, cilj, dotik, { pricakujOdhod = true } = {}) {
+  await b.izvedi('window.__ostal = 1; true');
+  if (dotik) await b.tapni(ZAVIHEK(cilj)); else await b.klikni(ZAVIHEK(cilj));
+  if (!pricakujOdhod) { await pocakaj(b, 600); return false; }
+  return pocakajStran(b, cilj);
+}
+// Pred odhodom: zapomni si obnovo iz predpomnilnika (pageshow.persisted) in štej dogodke "storage".
+const OZNACI = `(() => { window.__obnova = null; window.__storage = 0;
+  addEventListener('pageshow', e => { window.__obnova = e.persisted; });
+  addEventListener('storage', () => { window.__storage++; }); return true; })()`;
+
+async function korak4Pari(b, sirina) {
+  const dotik = sirina < 500;
+  console.log(`\nKorak 4 – pravi ${dotik ? 'dotiki' : 'kliki'} med aplikacijami, ${sirina} px`);
+  poslusajVprasanja(b);
+  const odpri = s => b.odpri(s, { sirina, visina: dotik ? 667 : 800, mobilno: dotik });
+  await odpri('igra/index.html');
+  await b.izvedi('localStorage.clear(); true');
+  await odpri('igra/index.html');
+  await b.izvedi(`dodajVZbirko(${J(UG_P)}, '', 'rocno'); zacniIgro(${J(UG_P)});
+    const prazne = [...igra.danosti].map((d, i) => (d === '0' ? i : -1)).filter(i => i >= 0).slice(0, 3);
+    for (const c of prazne) izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] });
+    plosca.razveljavi(); true`);
+  const IGRA_STANJE = `({ danosti: igra && igra.danosti, poteze: igra && igra.poteze.length, kazalec: igra && igra.kazalec, stevec: document.getElementById('zbirkaBtn').textContent })`;
+  const zacetek = await b.izvedi(IGRA_STANJE);
+  const zbirka0 = await b.izvedi("localStorage.getItem('sudoku.zbirka.v1')");
+  preveri('izhodišče: uganka v zbirki, 3 poteze, ena razveljavljena', zacetek.danosti === UG_P && zacetek.poteze === 3 && zacetek.kazalec === 2 && zacetek.stevec === 'Zbirka (1)', zacetek);
+  b.vprasanja.length = 0;
+
+  // Vseh šest parov: igra → reševalec → trening → igra → trening → reševalec → igra.
+  const pot = ['igra', 'app', 'trening', 'igra', 'trening', 'app', 'igra'];
+  for (let i = 1; i < pot.length; i++) {
+    const [od, cilj] = [pot[i - 1], pot[i]];
+    const ime = `${APL.find(a => a.mapa === od).ime} → ${APL.find(a => a.mapa === cilj).ime}`;
+    const ok = await zavihek(b, cilj, dotik);
+    preveri(`${ime}: odpre se druga aplikacija, brez vprašanja`, ok && b.vprasanja.length === 0, { ok, vprasanja: b.vprasanja });
+    const st = APL.find(a => a.mapa === cilj).stevec;
+    if (st) preveri(`${ime}: zbirka enaka (${st} »Zbirka (1)«)`, (await b.izvedi(`document.querySelector('${st}').textContent`)) === 'Zbirka (1)');
+    if (cilj === 'igra') {
+      const s = await b.izvedi(IGRA_STANJE);
+      preveri(`${ime}: igra enaka (uganka, 3 poteze, kazalec 2)`, J(s) === J(zacetek), s);
+    }
+    preveri(`${ime}: zbirka v shrambi enaka`, (await b.izvedi("localStorage.getItem('sudoku.zbirka.v1')")) === zbirka0);
+    // Trenutni zavihek ne naredi nič.
+    await zavihek(b, cilj, dotik, { pricakujOdhod: false });
+    preveri(`${APL.find(a => a.mapa === cilj).ime}: trenutni zavihek ne naredi nič`, (await b.izvedi('window.__ostal === 1 && location.pathname')) === `/${cilj}/index.html` && b.vprasanja.length === 0);
+  }
+
+  // Trening: vaja 1 brez »Preveri« (D2) – brez vprašanja.
+  await odpri('trening/index.html');
+  await vstopi(b, 'naked-pair', 'spoznaj', dotik);
+  preveri('trening, vaja 1 brez »Preveri«: odide brez vprašanja (D2)', (await zavihek(b, 'igra', dotik)) && b.vprasanja.length === 0, b.vprasanja);
+  // Po »Preveri«: pravo okno, preklic → krog enak.
+  await odpri('trening/index.html');
+  await vstopi(b, 'naked-pair', 'spoznaj', dotik);
+  await b.izvedi(`[...document.querySelectorAll('#exerciseArea button')].find(g => g.textContent === 'Preveri').id = 'preveriTest'; true`);
+  if (dotik) await b.tapni('#preveriTest'); else await b.klikni('#preveriTest');
+  await pocakaj(b, 200);
+  const KROG = `({ mode, nacin, exNum, scoreRight, scoreTotal, trener: getComputedStyle(document.getElementById('trainer')).display,
+    vaja: document.getElementById('exerciseArea').innerHTML.length })`;
+  const krog = await b.izvedi(KROG);
+  const besedilo = `Zapustiš trening? Krog 3 · Očitni par (vaja 1 / 9, pravilno ${krog.scoreRight} / ${krog.scoreTotal}) se ne shrani.`;
+  b.odgovor = false;
+  await zavihek(b, 'igra', dotik, { pricakujOdhod: false });
+  const poPreklicu = await b.izvedi(KROG);
+  preveri(`trening po »Preveri«: pravo okno z besedilom »${besedilo}«`, J(b.vprasanja) === J([besedilo]), b.vprasanja);
+  preveri('trening, »Prekliči«: stran ostane, krog in vaja enaka',
+    (await b.izvedi('window.__ostal === 1 && location.pathname')) === '/trening/index.html' && J(poPreklicu) === J(krog), { krog, poPreklicu });
+  b.odgovor = true;
+  await b.izvedi(OZNACI);
+  preveri('trening, potrditev: odpre se igra', await zavihek(b, 'igra', dotik), b.vprasanja);
+  preveri('trening, potrditev: drugo vprašanje enako', b.vprasanja.length === 2 && b.vprasanja[1] === besedilo, b.vprasanja);
+  // Gumb brskalnika »Nazaj«: kaj se obnovi.
+  await b.izvedi('history.back(); true');
+  const nazajT = await pocakajStran(b, 'trening');
+  const obnova = nazajT ? await b.izvedi(`({ obnova: window.__obnova, ostal: window.__ostal === 1, mode: typeof mode === 'undefined' ? null : mode, exNum: typeof exNum === 'undefined' ? null : exNum })`) : null;
+  preveri('»Nazaj« vrne v trening', nazajT);
+  meritve4.push(`${sirina} px, »Nazaj« iz igre v trening sredi kroga: ${obnova && obnova.obnova ? `obnova iz predpomnilnika (pageshow.persisted), krog ${obnova.mode === 'naked-pair' && obnova.exNum === 0 ? 'ostane (3 · Očitni par, vaja 1)' : 'se izgubi'}` : `stran se naloži znova (${J(obnova)})`}`);
+
+  // Reševalec: prazna mreža brez vprašanja; vtipkana uganka vpraša; po »Reši« (v zbirki) ne.
+  await odpri('app/index.html');
+  preveri('reševalec, prazna mreža: odide brez vprašanja', (await zavihek(b, 'igra', dotik)) && b.vprasanja.length === 2, b.vprasanja);
+  await odpri('app/index.html');
+  await b.fokus('#nizDanosti');
+  await b.vtipkaj(UG_Q);
+  await pocakaj(b, 150);
+  b.odgovor = false;
+  await zavihek(b, 'igra', dotik, { pricakujOdhod: false });
+  preveri('reševalec, vtipkana uganka: pravo okno »Zapustiš reševalec? Uganka v mreži ni shranjena v zbirko.«',
+    b.vprasanja.length === 3 && b.vprasanja[2] === 'Zapustiš reševalec? Uganka v mreži ni shranjena v zbirko.', b.vprasanja);
+  preveri('reševalec, »Prekliči«: stran in mreža ostaneta',
+    (await b.izvedi(`window.__ostal === 1 && location.pathname === '/app/index.html' && currentGivens() === ${J(UG_Q)}`)));
+  b.odgovor = true;
+  if (dotik) await b.tapni('#solveBtn'); else await b.klikni('#solveBtn');
+  await b.cakaj(`document.getElementById('libraryBtn').textContent === 'Zbirka (2)'`);
+  preveri('reševalec po »Reši« (uganka v zbirki): odide brez vprašanja', (await zavihek(b, 'igra', dotik)) && b.vprasanja.length === 3, b.vprasanja);
+  // Igra ne vpraša.
+  preveri('igra z odprto uganko: odide brez vprašanja', (await zavihek(b, 'trening', dotik)) && b.vprasanja.length === 3, b.vprasanja);
+}
+
+// O13: igra → reševalec, tam izbris odprte uganke, »Nazaj«. Z dostavljenim dogodkom "storage" in brez
+// njega – ustavi ga poslušalec, ki ga skripta, vstavljena pred skriptami strani (addScriptToEvaluateOnNewDocument),
+// registrira prvi; takrat igro izprazni samo pageshow.
+async function korak4Nazaj(b) {
+  console.log('\nKorak 4 – O13: vrnitev z »Nazaj« po izbrisu uganke v reševalcu, 375 px');
+  for (const brezStorage of [false, true]) {
+    const ime = brezStorage ? 'brez dogodka »storage«' : 'z dogodkom »storage«';
+    const vstavljena = brezStorage ? await b.cdp.poslji('Page.addScriptToEvaluateOnNewDocument', {
+      source: "addEventListener('storage', e => { window.__ustavljen = (window.__ustavljen || 0) + 1; e.stopImmediatePropagation(); }, true);" }) : null;
+    await b.odpri('igra/index.html', { sirina: 375, visina: 667, mobilno: true });
+    await b.izvedi('localStorage.clear(); true');
+    await b.odpri('igra/index.html', { sirina: 375, visina: 667, mobilno: true });
+    await b.izvedi(`dodajVZbirko(${J(UG_P)}, '', 'rocno'); zacniIgro(${J(UG_P)});
+      const c = igra.danosti.indexOf('0'); izvedi({ tip: 'vpis', celica: c, stevka: resitev()[c] }); true`);
+    await b.izvedi(OZNACI);
+    await zavihek(b, 'app', true);
+    await b.izvedi(`zbirkaIzbrisi(${J(UG_P)}); true`);
+    await b.izvedi('history.back(); true');
+    const ok = await pocakajStran(b, 'igra');
+    await pocakaj(b, 300);
+    const s = await b.izvedi(`({ obnova: window.__obnova, storage: window.__storage, ustavljen: window.__ustavljen || 0, igra: igra === null ? null : igra.danosti,
+      stevec: document.getElementById('zbirkaBtn').textContent, opis: document.getElementById('opisUganke').textContent,
+      zapis: !!igreBeri().igre[${J(UG_P)}] })`);
+    meritve4.push(`O13, ${ime}: obnova iz predpomnilnika ${s.obnova}, dostavljenih dogodkov »storage« ${s.storage}${brezStorage ? ` (ustavljenih ${s.ustavljen})` : ''}`);
+    preveri(`O13, ${ime}: igra obnovljena iz predpomnilnika`, ok && s.obnova === true, s);
+    preveri(`O13, ${ime}: mreža prazna, števec 0, brez zapisa igre`, s.igra === null && s.stevec === 'Zbirka (0)' && s.opis === 'Ni odprte uganke.' && !s.zapis, s);
+    if (brezStorage) {
+      preveri(`O13, ${ime}: dogodek do igre ni prišel (ustavljen pred vsemi poslušalci strani)`, s.storage === 0, s);
+      await b.cdp.poslji('Page.removeScriptToEvaluateOnNewDocument', { identifier: vstavljena.identifier });
+    }
+  }
+}
+
+// D4: file:// – povezave odprejo stran, ne seznama datotek; koren preusmeri na igro (tudi prek HTTP).
+async function korak4File(b) {
+  console.log('\nKorak 4 – D4: file:// in koren');
+  const url = p => 'file:///' + path.join(KOREN, p).replace(/\\/g, '/');
+  for (const s of [375, 1280]) {
+    const dotik = s < 500;
+    await b.odpri('igra/index.html', { sirina: s, visina: dotik ? 667 : 800, mobilno: dotik });
+    const nal = b.cdp.dogodek('Page.loadEventFired');
+    await b.cdp.poslji('Page.navigate', { url: url('igra/index.html') });
+    await nal;
+    await b.izvedi("localStorage.setItem('sudoku.test.file', 'igra'); true");
+    for (const [cilj, el] of [['app', 'solveBtn'], ['trening', 'menu'], ['igra', 'mreza']]) {
+      const ok = await zavihek(b, cilj, dotik);
+      const st = await b.izvedi(`({ href: location.href, protokol: location.protocol, stran: !!document.getElementById('${el}'), zavihki: document.querySelectorAll('nav.aplikacije a').length, shramba: localStorage.getItem('sudoku.test.file') })`);
+      preveri(`file://, ${s} px, ${dotik ? 'dotik' : 'klik'} »${APL.find(a => a.mapa === cilj).ime}«: odpre se stran (${cilj}/index.html), ne seznam datotek`,
+        ok && st.protokol === 'file:' && st.href === url(`${cilj}/index.html`) && st.stran && st.zavihki === 3, st);
+      if (s === 375 && cilj === 'app') meritve4.push(`file://: shramba igre ${st.shramba === 'igra' ? 'je' : 'ni'} vidna v reševalcu (Chromium)`);
+    }
+  }
+  // Koren prek file:// in prek HTTP preusmeri na igro.
+  await b.cdp.poslji('Page.navigate', { url: url('index.html') });
+  preveri('koren file://index.html preusmeri na igro', await pocakajStran(b, 'igra'));
+  await b.cdp.poslji('Page.navigate', { url: b.osnova + 'index.html' });
+  preveri('koren http://…/index.html preusmeri na igro', await pocakajStran(b, 'igra'));
+  preveri('koren prek HTTP: igra deluje (mreža izrisana)', await b.izvedi("location.protocol === 'http:' && document.querySelectorAll('#mreza .celica').length === 81"));
+}
+
 (async () => {
   fs.mkdirSync(mapa, { recursive: true });
   const b = await zazeni();
@@ -642,6 +955,14 @@ async function korak3D1(b) {
       await korak3D1(b);
       console.log('\nD3 – meritev okna Pomoč:');
       for (const v of d3pomoc) console.log('  ' + v);
+    }
+    if (tece(4)) {
+      await korak4Glava(b);
+      for (const s of [375, 1280]) await korak4Pari(b, s);
+      await korak4Nazaj(b);
+      await korak4File(b);
+      console.log('\nKorak 4 – meritve:');
+      for (const v of meritve4) console.log('  ' + v);
     }
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } catch (e) {

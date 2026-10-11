@@ -183,4 +183,14 @@ zbirkaObSpremembiDrugje(() => {
   if (zbirkaTrenutne) zbirkaOsveziVrstico();
 });
 
+// Povezave Igra · Reševalec · Trening v glavi (naloga 4c, O12 v docs/navigacija-nacrt.md): reševalec vnosa ne
+// shranjuje, zato odhod vpraša, kadar je v mreži uganka, ki ni v zbirki in ni vgrajeni primer (vtipkana in še
+// ne rešena ali z več rešitvami). Prazna mreža, primer in uganka iz zbirke – brez vprašanja.
+function vprasanjeOdhoda() {
+  const danosti = currentGivens();
+  if (!/[1-9]/.test(danosti) || zbirkaPrimerZa(danosti) || zbirkaBeri().some(z => z.danosti === danosti)) return null;
+  return 'Zapustiš reševalec? Uganka v mreži ni shranjena v zbirko.';
+}
+if (typeof poveziAplikacije === 'function') poveziAplikacije(vprasanjeOdhoda);
+
 zbirkaOsveziGumb();

@@ -760,6 +760,11 @@ function jeVZbirkiNiza(niz, danosti) {
   }
 }
 
+// Povezave Igra · Reševalec · Trening v glavi (naloga 4c, docs/navigacija-nacrt.md): igra ne vpraša – igra,
+// zbirka in nastavitve so shranjene po vsaki spremembi; nepotrjena stanja (iskanje uganke, predlog ocen) so v
+// oknih, ki prekrijejo glavo.
+if (typeof poveziAplikacije === 'function') poveziAplikacije(null);
+
 zbirkaObSpremembiDrugje((e) => {
   if (igra && e.key === ZBIRKA_KLJUC && jeVZbirkiNiza(e.oldValue, igra.danosti)
     && !zbirkaBeri().some(z => z.danosti === igra.danosti)) izprazniIgro();

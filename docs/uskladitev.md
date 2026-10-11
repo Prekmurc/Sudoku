@@ -1382,6 +1382,12 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   še odstavki zložljive sheme (`details.tehnika-shema`), ki jih scenarij šteje zraven. Popraviti je treba
   scenarij (štetje odstavkov), ne aplikacije.
 
+- **Scenarij `tools/preveri-izbira-brskalnik.js` pade** (zapisano 2026-10-11 ob nalogi 4c, korak 4; ni popravljeno):
+  82 neujemanj, vsa pri slogu prečrtane števke – scenarij vzame za vzorec slog prečrtane števke pri vaji 2 (Izločitev
+  v bloku), ta pa je od popravka C naloge 4b (2026-10-10) na poudarku temno rdeča `--okvir-napacno` (#8E1B1B), pri
+  3–12 pa ostane `--red`. Na izhodišču `bfd2ccc` (pred korakom 4) natanko iste napake. Popraviti je treba scenarij
+  (vzorec sloga iz `.kand.k-izbris` brez poudarka), ne aplikacije.
+
 - **»Rešitev (drži)« v treningu kot stikalo** (**narejeno 2026-10-08**, naloga 4a, korak 1 – tudi »Namig«; → naloga 4a, del B; zapisano 2026-10-08 ob ročnem pregledu XY-verige): klik
   pokaže rešitev, ponoven klik jo skrije – pri držanju ni mogoče brati besedila. Velja za vse tehnike
   (»Spoznaj«; »Namig (drži)« ima isto obliko – ali tudi ta, določi načrt). Povezano s »gumb ›drži‹ na dnu

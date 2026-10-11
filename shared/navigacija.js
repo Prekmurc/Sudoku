@@ -1,5 +1,6 @@
 /* shared/navigacija.js — navigacija po straneh (naloga 4c, docs/navigacija-nacrt.md): kazalo tehnik
-   (meni treninga – O4; okno Pomoč – O2, korak 3) in okrogel plavajoč gumb »↑« (meni treninga – O5).
+   (meni treninga – O4; okno Pomoč – O2, korak 3), okrogel plavajoč gumb »↑« (meni treninga – O5) in
+   vprašanje pred odhodom po povezavah med aplikacijami (O11, O12; korak 4).
    Logika (seznam kazala, pravilo vidnosti gumba) je v funkcijah brez DOM-a; razporeditev in drsenje
    preverja tools/preveri-navigacija-brskalnik.js. Slogi so v shared/base.css. Naloži se za engine.js. */
 
@@ -61,4 +62,25 @@ function ustvariNaVrh(aktiven, obKliku) {
   document.body.appendChild(b);
   osvezi();
   return { el: b, osvezi };
+}
+
+// Povezave med aplikacijami (O8–O12): vrstica zavihkov nav#aplikacije v glavi je statičen HTML (O9),
+// tu je samo vprašanje pred odhodom. vprasanje() vrne besedilo (npr. krog v treningu, neshranjena uganka
+// v reševalcu) ali null – igra ga ne poda, ker je vse shranjeno. Klik trenutnega zavihka ne naredi nič
+// (stran bi se znova naložila in krog bi se izgubil). Klik z modifikatorjem ali srednjim gumbom odpre
+// nov zavihek ali okno – ta stran ostane, zato brez vprašanja.
+function odhodDovoljen(trenutni, besedilo, potrdi) {
+  if (trenutni) return false;
+  return !besedilo || !!potrdi(besedilo);
+}
+function poveziAplikacije(vprasanje) {
+  const nav = document.getElementById('aplikacije');
+  if (!nav) return;
+  nav.addEventListener('click', (e) => {
+    const a = e.target && (e.target.closest ? e.target.closest('a') : e.target);
+    if (!a || a.tagName !== 'A') return;
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button || 0) !== 0) return;
+    const trenutni = a.getAttribute('aria-current') === 'page';
+    if (!odhodDovoljen(trenutni, trenutni || !vprasanje ? null : vprasanje(), t => confirm(t))) e.preventDefault();
+  });
 }
