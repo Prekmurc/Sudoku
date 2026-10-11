@@ -32,7 +32,8 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 - Najprej test, ki na stari kodi pade, nato sprememba.
 - Po vsakem koraku commit in push, nato se ustavi.
 - Ročni pregled je en sam, na koncu naloge.
-- Ob nepričakovanem izidu testa ali primerjave se ustavi in poročaj.
+- Ob nepričakovanem izidu testa ali primerjave se ustavi in poročaj, kadar izid kaže na napako v aplikaciji ali vzroka
+  ne znaš pojasniti. Če je vzrok dokazano v napovedi načrta ali v pomožni skripti, nadaljuj in to zapiši v poročilo.
 
 **Opisi datotek in ta datoteka**
 - Pred spremembo preberi opis področja v `docs/opis/` (»Kazalo dokumentov«). Dokumentov ne uvažaj z `@` – tako bi se nalagali ob vsakem pogovoru.
