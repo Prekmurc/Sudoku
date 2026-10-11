@@ -406,7 +406,7 @@ scenarij ga preveri s pravimi tipkami.
 
 ## Naloga 6a – skrajšanje CLAUDE.md
 
-**Naloga 6a je zaključena 2026-10-11** – točka 1 potrjena, točka 2 se preveri ob začetku naloge 6b.
+**Naloga 6a je zaključena 2026-10-11** – točki 1 in 2 potrjeni 2026-10-11.
 
 Načrt `docs/claude-md-nacrt.md` (razdelek 7). Opisi datotek so v `docs/opis/`, `CLAUDE.md` ima samo pravila, ukaze,
 zemljevid in kazalo. Avtomatsko preverjeno: skripta prenosa (vsaka vrstica starega `CLAUDE.md` natanko enkrat v
@@ -416,7 +416,7 @@ datoteke, zemljevid). Koda aplikacije se ni spremenila, zato posnetka igre in br
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
 | 1 | `CLAUDE.md` | Preberi ga v celoti. | Nič ne pogrešaš in nič ni napisano tako, da bi ga razumel drugače kot prej. (potrjeno 11. 10. 2026) | Skripta preveri, da je vse staro besedilo nekje, ne pa, ali je v `CLAUDE.md` ostalo pravo. |
-| 2 | nov pogovor v VS Code | Začni nalogo 6b (»naredi načrt«). | Pred načrtom Claude prebere `docs/opis/trening.md` in `docs/opis/resevalec.md` (vidno med orodji) in ne vpraša nič, kar je v njiju. (preveri se ob začetku naloge 6b) | Obnašanje v novem pogovoru, ki ga test ne more pognati. |
+| 2 | nov pogovor v VS Code | Začni nalogo 6b (»naredi načrt«). | Pred načrtom Claude prebere `docs/opis/trening.md` in `docs/opis/resevalec.md` (vidno med orodji) in ne vpraša nič, kar je v njiju. (potrjeno 11. 10. 2026 – pred načrtom 6b sta bila prebrana opisa treninga in reševalca) | Obnašanje v novem pogovoru, ki ga test ne more pognati. |
 
 ## Zakaj ročno
 

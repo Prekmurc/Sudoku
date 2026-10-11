@@ -229,3 +229,90 @@ test('popravek B: klik »↑ Na vrh« na dnu vaje pomakne stran na vrh (Spoznaj,
     assert.equal(run('mode'), mode);
   }
 });
+
+// Naloga 6b, korak 1 (O1–O3 v docs/naloga6b-nacrt.md): v zgornji vrstici vaje desno od »Nazaj na izbiro« gumb za
+// drugi način iste tehnike – »↔ Vadi v uganki« v »Spoznaj«, »↔ Spoznaj« v »Vadi v uganki«, istega videza (back-btn).
+// Dotik začne nov krog v drugem načinu brez vprašanja (kot gumb na kartici); položaj menija ostane od odhoda iz
+// menija. Isto pravilo CSS za zgornjo in spodnjo vrstico, eno vrstico pri 320–1280 px preverja
+// tools/preveri-naloga6b-brskalnik.js --korak 1.
+test('korak 6b-a: zgornja vrstica vaje – levo »Nazaj na izbiro«, desno gumb drugega načina, pred rezultatom', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  const trainer = html.slice(html.indexOf('<div id="trainer">'), html.indexOf('<div id="pomocDialog"'));
+  const vrstica = trainer.match(/<div class="vrh-vaje">([\s\S]*?)<\/div>/);
+  assert.ok(vrstica, 'vrstica .vrh-vaje v #trainer');
+  assert.ok(trainer.indexOf('<div class="vrh-vaje">') < trainer.indexOf('class="score-bar"'), 'nad rezultatom');
+  const gumbi = [...vrstica[1].matchAll(/<button([^>]*)>([^<]*)<\/button>/g)];
+  assert.equal(gumbi.length, 2);
+  assert.match(gumbi[0][1], /id="backBtn"/);
+  assert.equal(gumbi[0][2], '← Nazaj na izbiro');
+  assert.match(gumbi[1][1], /id="drugiNacin"/);
+  assert.match(gumbi[1][1], /type="button"/);
+  for (const g of gumbi) assert.match(g[1], /class="[^"]*\bback-btn\b/, 'videz kot »Nazaj na izbiro«');
+  // Isto pravilo CSS za obe vrstici (ne kopija).
+  const css = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'trening.css'), 'utf8');
+  assert.match(css, /\.vrh-vaje,\.dno-vaje\{display:flex;/);
+  assert.doesNotMatch(css, /(^|\})\.dno-vaje\{display:flex/m, 'spodnja vrstica nima svojega pravila');
+});
+
+test('korak 6b-a: napis po načinu; dotik začne nov krog iste tehnike v drugem načinu, »Nazaj« vrne na isto mesto', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0; // iskanje vaje »Vadi v uganki« ostane v teku
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const okno = dom.globals.window;
+  const gumb = dom.el('drugiNacin');
+  assert.equal(run('napisDrugegaNacina("spoznaj")'), '↔ Vadi v uganki');
+  assert.equal(run('napisDrugegaNacina("uganka")'), '↔ Spoznaj');
+
+  okno.scrollY = 1334;
+  run('zacniKrog("hidden-pair", "spoznaj")');
+  assert.equal(gumb.textContent, '↔ Vadi v uganki', 'Spoznaj');
+  // Sredi kroga: vaja 4, rezultat 2 / 3, spremenjene nastavitve kroga.
+  run('exNum = 3; scoreRight = 2; scoreTotal = 3; sPomocjo = 1; razlagaKrog = true; vecCelicKrog = false; updateScore(); renderExercise()');
+  okno.scrollTo(0, 600);
+  dom.klikni('drugiNacin');
+  assert.equal(run('mode'), 'hidden-pair', 'ista tehnika');
+  assert.equal(run('nacin'), 'uganka', 'drugi način');
+  assert.equal(run('exNum'), 0, 'vaja 1');
+  assert.deepEqual([run('scoreRight'), run('scoreTotal'), run('sPomocjo')], [0, 0, 0]);
+  assert.equal(String(dom.el('scoreRight').textContent), '0');
+  assert.equal(String(dom.el('scoreTotal').textContent), '0');
+  assert.equal(run('razlagaKrog'), false, 'nastavitve kroga kot ob začetku iz menija');
+  assert.equal(run('vecCelicKrog'), null);
+  assert.equal(run('vadi') === null, true, 'iskanje vaje »Vadi v uganki« teče');
+  assert.equal(okno.scrollY, 0, 'nov krog na vrhu strani');
+  assert.equal(dom.el('menu').style.display, 'none');
+  assert.equal(dom.el('trainer').style.display, 'block');
+  assert.equal(run('menuPolozaj'), 1334, 'položaj menija od odhoda iz menija');
+  assert.equal(gumb.textContent, '↔ Spoznaj', 'Vadi v uganki');
+  assert.match(run('vprasanjeOdhoda() || ""'), /^$/, 'vaja 1 brez »Preveri« – brez vprašanja');
+  run('exNum = 2');
+  assert.match(run('vprasanjeOdhoda()'), /Krog 4 · Skriti par · Vadi v uganki \(vaja 3 \/ 9, pravilno 0 \/ 0\)/, 'vprašanje pove novi način');
+  run('exNum = 0');
+
+  // Iz »Vadi v uganki« nazaj v »Spoznaj« – iskanje »Iščem vajo …« se prekine.
+  const iskanje = run('vadiIskanje');
+  dom.klikni('drugiNacin');
+  assert.ok(run('vadiIskanje') > iskanje, 'iskanje prekinjeno');
+  assert.equal(run('nacin'), 'spoznaj');
+  assert.equal(run('mode'), 'hidden-pair');
+  assert.equal(gumb.textContent, '↔ Vadi v uganki');
+  dom.klikni('backBtn');
+  assert.equal(okno.scrollY, 1334, '»Nazaj na izbiro« po prehodu – položaj kot ob odhodu iz menija');
+  assert.equal(dom.el('menu').style.display, 'block');
+
+  // Pri »Končano!« gumb ostane (zunaj #exerciseArea) in začne krog v drugem načinu.
+  okno.scrollY = 400;
+  run('zacniKrog("x-wing", "spoznaj")');
+  run('exNum = MAX_EX; renderExercise()');
+  dom.klikni('drugiNacin');
+  assert.equal(run('nacin'), 'uganka');
+  assert.equal(run('exNum'), 0);
+  assert.equal(run('mode'), 'x-wing');
+  dom.klikni('backBtnDno');
+  assert.equal(okno.scrollY, 400);
+});
+
+test('korak 6b-a: Pomoč treninga omeni gumb drugega načina', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  assert.ok(html.includes('<p>Krog ima devet vaj. Zgoraj je rezultat, na koncu kroga povzetek; z <b>Nazaj na izbiro</b> izbereš drugo tehniko, z <b>↔ Vadi v uganki</b> oziroma <b>↔ Spoznaj</b> desno ob njem pa začneš nov krog iste tehnike v drugem načinu.</p>'));
+});

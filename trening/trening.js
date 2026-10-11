@@ -109,6 +109,7 @@ function zacniKrog(m,n){
   if(menuEl.style.display!=='none')menuPolozaj=window.scrollY||0;
   mode=m;nacin=n;exNum=0;preveriKrog=false;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;izbrisVecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';naVrh.osvezi();
+  document.getElementById('drugiNacin').textContent=napisDrugegaNacina(n);
   renderExercise();
   window.scrollTo(0,0);
 }
@@ -150,6 +151,11 @@ function nazajNaIzbiro(){
   naVrh.osvezi(); // položaj menija je lahko nižje od enega zaslona – »↑« takoj, brez drsenja
 }
 document.getElementById('backBtn').addEventListener('click',nazajNaIzbiro);
+// Prehod na drugi način iste tehnike (naloga 6b, korak 1, O1–O3 v docs/naloga6b-nacrt.md): gumb desno od zgornjega
+// »Nazaj na izbiro« začne nov krog brez vprašanja, kot gumb na kartici; položaj menija ostane od odhoda iz menija.
+const drugiNacin=n=>n==='uganka'?'spoznaj':'uganka';
+function napisDrugegaNacina(n){return drugiNacin(n)==='uganka'?'↔ Vadi v uganki':'↔ Spoznaj';}
+document.getElementById('drugiNacin').addEventListener('click',()=>zacniKrog(mode,drugiNacin(nacin)));
 document.getElementById('backBtnDno').addEventListener('click',nazajNaIzbiro);
 // »↑ Na vrh« na dnu vaje, desno od spodnjega »Nazaj na izbiro« (popravek B po ročnem pregledu naloge 4c): stran na vrh,
 // vaja ostane. Okrogel plavajoč »↑« je samo v meniju.

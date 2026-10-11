@@ -355,7 +355,8 @@ button.sm-btn{font-size:12.5px;padding:7px 11px} /* kot .majhen */
 button.back-btn{margin:16px 0 0}
 /* pod kartico vaje vrstica z drugim »Nazaj na izbiro« (naloga 4c, O6) in desno »↑ Na vrh« (popravek B po ročnem
    pregledu) – isti videz kot zgornji gumb, ni plavajoč; odmik od dna strani */
-.dno-vaje{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 24px}
-.dno-vaje button.back-btn{margin:0}
+.vrh-vaje,.dno-vaje{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 24px}
+.vrh-vaje{margin-bottom:0}
+:is(.vrh-vaje,.dno-vaje) button.back-btn{margin:0}
 .score-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0 0;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pencil)}
 .score-bar b{color:var(--ink)}

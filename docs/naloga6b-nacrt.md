@@ -1,6 +1,6 @@
 # Pripomočki za uporabo (naloga 6b) – načrt
 
-Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: čaka potrditev.**
+Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1); korak b se dopolnjuje (razdelek 2.5), korak c še ni pregledan.**
 
 Izhodišče: commit `b673dd3` (pravilo ob nepričakovanem izidu testa v `CLAUDE.md`).
 
@@ -89,8 +89,8 @@ meritve »predlog« in posnetki v `docs/slike/naloga6b/` (dvojna ločljivost pri
 - Pri 1280 px ima kartica pod miško turkizno obrobo in senco (`.menu-card:hover`) – na sliki 2-okvir-1280 jo ima
   kartica 10, ker je bila miška tam ob kliku »Nazaj na izbiro«.
 - Ob odprtju strani je meni na vrhu; v oknu so pri 375 × 667 in pri 1280 × 800 samo kazalo tehnik in kartice E1, E2, 1.
-- Trening shranjuje samo stikala seznamov (`sudoku.trening.seznami`) – opis v `docs/uskladitev.md` »trening zdaj
-  ničesar ne shranjuje« ni povsem točen (to samo navajam). Zadnje tehnike ne shrani nič.
+- Trening shranjuje samo stikala seznamov (`sudoku.trening.seznami`) – opis v `docs/uskladitev.md` je popravljen
+  2026-10-11 (D2). Zadnje tehnike ne shrani nič.
 
 ### 2.2 Predlog
 
@@ -291,4 +291,29 @@ Ročni pregled je en sam, po koraku 3, največ 5 točk; po korakih 1 in 2 ga ni.
 
 ## 10. Izvedba
 
-(Še ni začeta.)
+**Potrditev 2026-10-11:** korak a – O1, O2, O3 = A. Korak b se dopolni (razdelek 2.5), korak c še ni pregledan. Ob
+potrditvi zapisano še: D1 – `docs/rocni-test.md`, naloga 6a, točka 2 potrjena (pred načrtom 6b sta bila prebrana
+opisa treninga in reševalca); D2 – `docs/uskladitev.md`: trening shranjuje `sudoku.trening.seznami`; D3 –
+`docs/uskladitev.md`, naloga 11 in razdelek 1.3: angleško ime tehnike je vedno prikazano ob imenu v izbranem jeziku,
+izjema je izbrana angleščina.
+
+**Korak 1 – prehod med načinoma (a), narejen 2026-10-11.** `trening/index.html` – zgornja vrstica `.vrh-vaje` z
+`#backBtn` in `#drugiNacin`, stavek v Pomoči; `trening/trening.css` – eno pravilo `.vrh-vaje,.dno-vaje`;
+`trening/trening.js` – `drugiNacin()`, `napisDrugegaNacina()`, napis v `zacniKrog()`, klik → `zacniKrog(mode,
+drugiNacin(nacin))`. Testi v `tests/trening-meni.test.js` (trije novi, na stari kodi padejo vsi trije), scenarij
+`tools/preveri-naloga6b-brskalnik.js --korak 1`.
+
+- Izmerjeno (scenarij): pri 375 px »Nazaj« 16–163 px, »↔ Vadi v uganki« 221–359 × 39 px, razmik 58 px; »↔ Spoznaj«
+  257–359 px, razmik 94 px; pri 1280 px razmik 243 oziroma 279 px – kot v napovedi.
+- **Odstopanje od napovedi pri 320 px:** napoved »v eni vrstici z razmikom 8 px, brez preliva« drži, a gumba (147 +
+  8 + 138 = 293 px > 288 px prostora) se v »Spoznaj« skrčita in napisa se prelomita v dve vrstici – oba gumba 56 px
+  visoka (»Nazaj« 144 px, »↔ Vadi v uganki« 136 px široka); v »Vadi v uganki« sta v eni vrstici (39 px). Prototip
+  tega ni izpisal. Videz ni spremenjen brez tvoje odločitve – možnosti so v povzetku koraka.
+- `tools/preveri-navigacija-brskalnik.js` (vsi koraki): 1517 preverjanj drži, 22 ne. **16** – popravek B pri 320 px
+  (»Spoznaj« 15 tehnik in »Končano!«): spodnja gumba nista »istega videza kot zgornji«, ker je zgornji »Nazaj na izbiro«
+  zaradi preloma 56 px visok (spodnja 39 px) – ista posledica kot zgoraj; pri 375 in 1280 px vse drži. **6** – D1 (okni
+  »Zbirka ugank« in »Nova uganka« v igri, zbirka v reševalcu) proti izhodišču `5f59f09`: razlike v slogih glave okna
+  izvirajo iz poznejših commitov naloge 4c in 6, ne iz tega koraka – korak ne spremeni nobene datoteke igre, reševalca
+  ali `shared/`; z `--samo 3 --izhodisce HEAD` vseh šest drži. Scenarija nisem spreminjal.
+- Posnetek igre: enako, 99 posnetkov. Scenarij `tools/preveri-naloga6b-brskalnik.js --korak 1`: vse drži (pribl. 2 min).
+
