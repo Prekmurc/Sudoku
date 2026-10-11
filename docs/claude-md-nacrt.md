@@ -1,7 +1,9 @@
 # Skrajšanje CLAUDE.md (naloga 6a) – načrt
 
 Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6a).
-**Stanje: čaka potrditev.** Koda se ne spreminja (ne v tej nalogi ne v načrtu).
+**Stanje: potrjen 2026-10-11** (`23bba6d`) – odločitve O1–O7 povsod A, dodatki D1–D3 (razdelek 8; imajo prednost
+pred razdelki 3–7). **Korak 1 narejen** (razdelek 9); koraka 2 in 3 v drugem pogovoru (D1).
+Koda se ne spreminja (ne v tej nalogi ne v načrtu).
 
 Izhodišče: commit `a71e67f` (zapis naloge 6b v vrstni red).
 
@@ -242,9 +244,15 @@ njihovo prvotno besedilo ostane tudi v opisu v `docs/opis/` (dobesedni prenos �
 | N1 | Ko spremeniš datoteko, posodobi njen opis v `docs/opis/` (ne v `CLAUDE.md`); nova datoteka dobi vrstico v zemljevidu `CLAUDE.md` in opis v `docs/opis/`. | – | `CLAUDE.md`, Pravila dela |
 | N2 | Pred spremembo preberi opis področja (tabela v kazalu); dokumentov ne uvažaj z `@`. | – | `CLAUDE.md`, Pravila dela |
 | N3 | `CLAUDE.md` ima samo pravila, ukaze, zemljevid in kazalo; meja 25.000 znakov (varuje test – O4). | – | `CLAUDE.md`, Pravila dela |
+| N4 | Načrt naloge zapiši v `docs/<naloga>-nacrt.md` z odločitvami in koraki; kode pred potrditvijo ne spreminjaj. (D3) | – | `CLAUDE.md`, Pravila dela (»Postopek naloge«) |
+| N5 | Najprej test, ki na stari kodi pade, nato sprememba. (D3) | – | isto |
+| N6 | Po vsakem koraku commit in push, nato se ustavi. (D3) | – | isto |
+| N7 | Ročni pregled je en sam, na koncu naloge. (D3) | – | isto |
+| N8 | Ob nepričakovanem izidu testa ali primerjave se ustavi in poročaj. (D3, D2) | – | isto |
 
 Skupaj 47 pravil: 13 (A) + 12 (B) + 7 (C) + 12 (D) + 3 (N, nova); v `CLAUDE.md` jih je 44, tri (A7, S11, S12)
-ostanejo samo v opisu, ker jih varuje test ali zadevajo samo eno datoteko.
+ostanejo samo v opisu, ker jih varuje test ali zadevajo samo eno datoteko. Z dodatkom D3 (N4–N8) je pravil 52,
+v `CLAUDE.md` 49.
 
 Pravila iz pomnilnika (`MEMORY.md` – prestavitev testov na vajo 7) niso v `CLAUDE.md` in se ne spremenijo.
 
@@ -281,7 +289,8 @@ posnetkov) je omenjena v vsaj enem dokumentu `docs/opis/`; (d) vsaka datoteka v 
 Commit in push.
 
 **Korak 3 – zaključek.** `docs/uskladitev.md` (6a zaključena, naslednja 6b), razdelek 9 tega načrta, ročni pregled v
-`docs/rocni-test.md` (razdelek »Naloga 6a«). Hitri testi. Commit in push.
+`docs/rocni-test.md` (razdelek »Naloga 6a«). Hitri testi. Commit in push. **D1:** korak 3 se naredi v pogovoru
+koraka 2 (naloga ima dva pogovora: korak 1, nato koraka 2 in 3).
 
 Posnetek igre in brskalnik brez glave nista potrebna – koda aplikacije se ne spremeni (oznaka različice ostane).
 
@@ -306,6 +315,75 @@ Posnetek igre in brskalnik brez glave nista potrebna – koda aplikacije se ne s
 | O6 | Pravila iz opisov (skupini B in D) | **A** kratka vrstica v `CLAUDE.md`, prvotno besedilo ostane tudi v opisu; **B** samo v `CLAUDE.md` (opis se pri prenosu spremeni – ni več dobeseden) | A |
 | O7 | »Okolje: Windows 10« (sistem poroča Windows 11 Pro) | **A** popravim v novem `CLAUDE.md`; **B** pustim | A |
 
+**Odločeno 2026-10-11:** O1–O7 povsod **A**.
+
+**Dodatki 2026-10-11** (imajo prednost pred razdelki 3–7):
+
+- **D1** – zaključek (korak 3) se naredi v pogovoru koraka 2. Naloga ima dva pogovora: korak 1, nato koraka 2 in 3.
+- **D2** – ob nepričakovanem izidu testa ali preverjanja se ustavi in poročaj.
+- **D3** – v »Pravila dela« pridejo stalna pravila postopka N4–N8 (razdelek 4): načrt v `docs/<naloga>-nacrt.md` z
+  odločitvami in koraki, kode pred potrditvijo ne spreminjaj; najprej test, ki na stari kodi pade, nato sprememba;
+  po vsakem koraku commit in push, nato se ustavi; ročni pregled je en sam, na koncu naloge; ob nepričakovanem izidu
+  testa ali primerjave se ustavi in poročaj. Meja 25.000 znakov ostane.
+
 ## 9. Izvedba
 
-(prazno – izpolni se med koraki)
+### Korak 1 – prenos in nov `CLAUDE.md` (2026-10-11)
+
+Izhodišče: `23bba6d` (načrt). Skripti `prenos.js` in `preveri.js` sta bili v začasni mapi (ne v repozitoriju).
+
+**Prenos.** Enota je vrstica starega `CLAUDE.md` (vsaka postavka je ena vrstica). Skripta je enote zapisala v devet
+dokumentov `docs/opis/` po razporedu iz 3.2 (podpostavke brez zamika, »Arhitektura« z zamikom); vsak dokument ima na
+vrhu dve vrstici o namenu. Razporeditev testov in orodij po področjih je v skripti (seznam vrstic), znotraj področja
+zdajšnji vrstni red. Odstopanja od 3.2:
+
+- Glava `shared/` (»skupna osnova za vse tri aplikacije«) in »`CLAUDE.md` – ta datoteka.« sta ostali dobesedno v
+  zemljevidu `CLAUDE.md` (v `dokumenti.md` bi bila »ta datoteka« napačna).
+- Orodja imajo četrti podnaslov »Oznaka različice« (`oznaci-razlicico.js` ne sodi med podatke).
+- Dva namerna popravka pri prenosu: vrstica načrta 6a v `dokumenti.md` (»čaka potrditev« → »dodatki D1–D3; potrjen
+  2026-10-11«) in vrstica »Okolje« v `CLAUDE.md` (Windows 11 – O7).
+- `dokumenti.md` je dopolnjen z `docs/opis/`, `uskladitev.md`, `tehnike.md`, `trening-v-uganki-nacrt.md`,
+  `faza3a-nacrt.md`, `faza4-nacrt.md`, `faza6-nacrt.md`, `faza6-besedila.md`, `faza6-pomoc.md`, `faza7-nacrt.md` in
+  `docs/slike/` (razdelek »Dopolnjeno 2026-10-11«).
+
+Zastarela števila v prenesenih opisih (»774 testov«, »958 testov« v `docs/opis/testi.md`) so ostala dobesedno (O2);
+v `CLAUDE.md` so samo zaokrožena trajanja (O5).
+
+**Nov `CLAUDE.md`:** uvod, »O projektu« (dobesedno), »Pravila dela« (13 dobesedno, »Postopek naloge« N4–N8,
+»Opisi datotek in ta datoteka« N1–N3, »Pravila iz opisov«), »Zagon in testi«, »Arhitektura« (nova tehnika – mesta,
+vrstni red, edini viri, ključi shrambe), »Zemljevid datotek«, »Kazalo dokumentov« (3.3), »Izrazi« (dobesedno).
+
+**Izpis preverjanja** (`node preveri.js <stari CLAUDE.md> .`):
+
+```
+1. Enote starega CLAUDE.md (vrstice brez praznih in naslovov razdelkov ## in ločilnih vrstic tabel |---|)
+  enot 189: v docs/opis/ 157, dobesedno v CLAUDE.md 32; od tega namerno spremenjeni 2 (150 – stanje načrta 6a, 172 – Windows 11, O7)
+2. Pravila (razdelek 4 načrta + D3)
+  pravil 52: v CLAUDE.md 49, samo v opisih 3 (A7, S11, S12)
+3. Velikost
+  prej: 246976 znakov, 255960 bajtov, 205 vrstic
+  potem: 17129 znakov, 17591 bajtov, 123 vrstic (6.9 %)
+  docs/opis/dokumenti.md: 7638 znakov
+  docs/opis/igra.md: 18384 znakov
+  docs/opis/motor.md: 22770 znakov
+  docs/opis/orodja.md: 47768 znakov
+  docs/opis/resevalec.md: 6837 znakov
+  docs/opis/skupni-prikaz.md: 26391 znakov
+  docs/opis/stanje-zbirka.md: 17972 znakov
+  docs/opis/testi.md: 58464 znakov
+  docs/opis/trening.md: 39646 znakov
+  docs/opis/ skupaj: 245870 znakov
+4. Poti v CLAUDE.md
+  poti 49, neobstoječih 0
+5. Datoteke v zemljevidu in opisih
+  brez opisa 0, brez vrstice v zemljevidu 0
+Vse v redu.
+```
+
+»Natanko enkrat« je preverjeno ne glede na zamik vrstice: vsaka od 157 prenesenih enot je natanko enkrat v
+`docs/opis/` in ni v `CLAUDE.md`, vsaka od 32 ostalih je natanko enkrat v `CLAUDE.md` in ni v opisih. Ločilna vrstica
+tabele `|---|---|` je izvzeta kot oblika (v novem `CLAUDE.md` sta dve tabeli) – prvi zagon preverjanja jo je javil kot
+podvojeno enoto. Točka 5 je že predpregled pogojev (c) in (d) testa iz koraka 2.
+
+Velikost: prej 246.976 znakov (izmerjeno na `23bba6d`; 246.779 v razdelku 1 je izhodišče `a71e67f`, pred vrstico tega
+načrta), potem 17.129 (6,9 %; ocena v 3.1 je bila 19.500).

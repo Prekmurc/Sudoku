@@ -1,0 +1,40 @@
+# Opis – dokumenti v `docs/` in drugo v korenu
+
+Opis trenutnega stanja; ob spremembi datoteke posodobi njen opis tukaj.
+Do 2026-10-11 je bil ta opis v `CLAUDE.md` (naloga 6a, `docs/claude-md-nacrt.md`).
+
+- `docs/uganke.md` – preverjene testne uganke z opisom obnašanja reševalca (razdelek »Pokritost tehnik« pove, katere tehnike so slabo pokrite; razdelek »Porazdelitev naključnih ugank« je meritev 600 naključnih ugank, na kateri slonijo merila štirih stopenj generatorja); `docs/tehnike.md` – tabela tehnik iz `ALL_TECHNIQUES`.
+- `docs/geometrija-1-2-nacrt.md` – načrt naloge »prava geometrija pri tehnikah 1 in 2 v Spoznaj« (delna mreža iz `shared/mreza.js`, vaje iz banke, meritve, posnetki v `docs/slike/geometrija-1-2/`, odgovori).
+- `docs/pripomocki-e1-e2-nacrt.md` – načrt naloge »pripomočki za E1/E2 v Spoznaj« (plošča iz `shared/plosca.js` pri vajah enojčkov, prekrivanje z delom 6, barve poudarka iz nastavitev igre, posnetki v `docs/slike/pripomocki-e1-e2/`, odgovori, izvedba).
+- `docs/vadi-v-uganki-nacrt.md` – načrt dela 6 »Vadi v uganki« v treningu (uskladitev z deli 1–5, koraki 6a–6d, zaslon vaje, izidi »Preveri«, pomoč s klikom, iskanje z mejo 1 s in meritvijo v brskalniku, dodatki v `shared/`, posnetki prototipa v `docs/slike/vadi-v-uganki/`).
+- `docs/faza5-nacrt.md` – načrt in izvedba faze 5 »videz« iz `docs/uskladitev.md` (prelivi pri 320–430 px, izbira celice A2, skupna paleta in sestavine v `shared/base.css`, barve danosti v reševalcu, značke ravni; najdbe pregleda, odgovori, izvedba po korakih, posnetki v `docs/slike/faza5/`).
+- `docs/oznake-nacrt.md` – načrt in izvedba naloge »vidnost oznak in izbire v treningu (»Vadi v uganki«)«: različice A, B, C (posnetki v `docs/slike/oznake/`), odločitve, meritev prekrivanja okvirja z malimi števkami (C2, C3), izvedena C3 (`c3-izvedeno.png`).
+- `docs/izbira-spoznaj-nacrt.md` – načrt in izvedba naloge »enotna izbira v Spoznaj 3–12« (modra izbira, okvir ob »Rešitvi« pove, ali je izbira pravilna, meritev »kaj je pravilno« na 300 vajah vsake tehnike, prekrivanje z malimi števkami pri 375 px, različica B pri 5, 7 in 8, slika v `docs/slike/izbira-spoznaj/`).
+- `docs/precrtanje-resitev-nacrt.md` – načrt naloge »prečrtanje števke izbrisa ob »Rešitvi« v »Spoznaj« 3–12« (stanje po vajah, vzrok – `peekOn()` označi samo celice, mrtvi pravili `.xd` pri 7 in 8 –, predlog za 7–8, 9–12, 3–6, preverjanje, odločitve, izvedba in izid preverjanja).
+- `docs/xy-veriga-nacrt.md` – načrt naloge »XY-veriga« (tehnika 13, ekspertna raven): definicija in meja 4–8 celic, izbira verige, meritve hitrosti in ocene ugank, prikaz (zaporedne številke), trening, barva ekspertne ravni in značke »Ekstrem« / »Zelo težka«, Pomoč, primer Ekstrem, sedem korakov s pravili, seznam testov koraka 6, ročni pregled, mesto BUG+1, odločitve O1–O13 in izvedba po korakih (slike v `docs/slike/xy-veriga/`).
+- `docs/trening-ucenje-nacrt.md` – načrt in izvedba naloge 4a »Trening – učenje« (del A: vaji 1 in 2 »Spoznaj« po shemi pri 1–13, del B: »Namig« in »Rešitev« kot stikali; odločitve, koraki 1–5, popravki po ročnih pregledih).
+- `docs/izbris-nacrt.md` – načrt naloge 4b »Spoznaj: druga faza – izbris« (po pravilni izbiri vzorca označiš še kandidate, ki zaradi vzorca odpadejo, pri 1–13; meritve izbrisov in ciljev za dotik, odločitve O1–O13, potrditev z dodatki D1–D4, koraki in izvedba).
+- `docs/navigacija-nacrt.md` – načrt naloge 4c »Navigacija po straneh« (kazalo in »Na vrh« v oknu Pomoč, kazalo tehnik in »Na vrh« v meniju treninga, »Nazaj na izbiro« na dnu vaje, povezave Igra · Reševalec · Trening v glavi z vprašanjem pred odhodom iz vaje ali neshranjene uganke; meritve dolžin pri 375 in 1280 px, predlogi O1–O15, posnetki prototipa v `docs/slike/navigacija/`, pet korakov, ročni pregled; zaključeno 2026-10-11).
+- `docs/naloga6-nacrt.md` – načrt naloge 6 »Podlage, legenda, Escape« (podlagi vzorca in izbrisa v igri in reševalcu kot v treningu, postavka »tvoje oznake« v legendi pod »Pravilno!« v »Vadi v uganki« – ne bo narejena (odločitev 2026-10-11) –, Escape zapre povečan prikaz v reševalcu; meritve in kontrasti pri 375 in 1280 px, slika prej in potem v `docs/slike/naloga6/`, odločitve O1–O7, koraki 1 in 3 in popravek po ročnem pregledu – prečrtan kandidat za izbris – narejeni, ročni pregled v `docs/rocni-test.md`; zaključeno 2026-10-11).
+- `docs/claude-md-nacrt.md` – načrt naloge 6a »Skrajšanje CLAUDE.md« (velikosti razdelkov, opisi datotek v `docs/opis/`, pravila dela prej in potem, odločitve O1–O7, trije koraki, dodatki D1–D3; potrjen 2026-10-11).
+- `docs/kandidati-stikalo-nacrt.md` – načrt in izvedba naloge 5a »stikalo Kandidati v celicah« v igri (odločitve O1–O7 in dodatka, posnetki prototipa v `docs/slike/kandidati/`, koraki in preverjanje).
+- `docs/niz-resevalec-nacrt.md` – načrt naloge »niz danosti v reševalcu« (polje Niz, skupno branje v `shared/zbirka.js`, preverjanje s posnetkom igre in brskalnikom brez glave).
+- `docs/trening-v-uganki.md` – analiza in meritev za način treninga »Vadi v uganki« (skupna mreža, čas iskanja stanj po tehnikah, preverjanje odgovora, predlog in odprta vprašanja); meritev da `node tools/meri-trening-v-uganki.js [--ugank N] [--seme S] [--json pot]` (minimalne naključne uganke, pot z `nextStep()` brez prednosti števke, definiciji »strogo« in »skupina«, pribl. 60 ms na uganko skupaj z oceno stopnje).
+- `docs/rocni-test.md` – ročni pregled v brskalniku (česar testi, posnetek in brskalnik brez glave ne pokrijejo): del 5 (igralna plošča, točke 1–12), vnos niza, trening, faza 5 »videz« (vse tri aplikacije), stikalo »Kandidati v celicah« v igri (naloga 5a), vidnost oznak, enotna izbira in prečrtanje izbrisa v treningu, Trening – učenje (vaji 1 in 2 po shemi, »Namig« in »Rešitev« kot stikali), Spoznaj – izbris (2. faza pri 1–13), Navigacija (naloga 4c – kazala, »Na vrh«, zavihki med aplikacijami), naloga 6 (podlagi vzorca in izbrisa v igri in reševalcu); pri vsaki točki kje, kaj in pričakovan izid, »(nepotrjeno)« = izid še ni potrjen.
+- `docs/naloge/` – specifikacije posameznih nalog/popravkov za to sejo (naloga na datoteko, oštevilčeno).
+- `old/` – arhiv starejših verzij treninga pred refaktoriranjem (zunaj projekta, ni v gitu).
+- `index.html` (koren) – preusmeri na igro (`<meta http-equiv="refresh">` in povezave za primer, ko preusmeritev ne dela; naloga 4c, O14).
+
+## Dopolnjeno 2026-10-11 (dokumenti, ki jih seznam v `CLAUDE.md` ni imel)
+
+- `docs/opis/` – opisi datotek (ta mapa; naloga 6a): `motor.md`, `skupni-prikaz.md`, `stanje-zbirka.md`, `resevalec.md`, `trening.md`, `igra.md`, `testi.md`, `orodja.md`, `dokumenti.md`.
+- `docs/uskladitev.md` – popis neskladij med reševalcem, treningom in igro, odločitve in vrstni red nalog (»Vrstni red po fazi 6«) ter »Kasneje«.
+- `docs/tehnike.md` – tabela tehnik iz `ALL_TECHNIQUES` in razdelek »Vrstni red znotraj ravni« (viri SE in HoDoKu); razdelek »Stopnje ugank: najmanjše število različnih tehnik«.
+- `docs/trening-v-uganki-nacrt.md` – načrt »Trening v uganki« (deli 1–6; del 6 v `docs/vadi-v-uganki-nacrt.md`).
+- `docs/faza3a-nacrt.md` – načrt in izvedba faze 3a (vgrajeni primeri, shema vzorca pri razlagi tehnik 1–12).
+- `docs/faza4-nacrt.md` – načrt faze 4 (imena tehnik in izrazi; zaključena 2026-09-25).
+- `docs/faza6-nacrt.md` – načrt faze 6 »pomoč« (koraki a, b, c – besedila tehnik, legenda, okno Pomoč).
+- `docs/faza6-besedila.md` – izpis vseh besedil tehnik po koraku b faze 6.
+- `docs/faza6-pomoc.md` – izpis besedil oken Pomoč v vseh treh aplikacijah po koraku c faze 6.
+- `docs/faza7-nacrt.md` – načrt in izvedba faze 7 »ostanek skupne kode« (zaključena 2026-10-07).
+- `docs/slike/` – posnetki k načrtom nalog (podmapa po nalogi).
