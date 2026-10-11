@@ -3,7 +3,9 @@
 Načrt 2026-10-10 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4c, in postavka 4.3 »Navigacija med
 aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraki 1–5 narejeni**
 (1 in 2 2026-10-10, 3, 4 in 5 2026-10-11; razdelek 9); ročni pregled točk 1–4 potrjen 2026-10-11, popravka A in B po
-pregledu narejena 2026-10-11 – **čaka potrditev točk A in B** (`docs/rocni-test.md`, razdelek »Navigacija«, točki 5 in 6).
+pregledu narejena 2026-10-11, točki A in B potrjeni 2026-10-11 na telefonu (različica 2026-10-11 11:42), popravkov ni
+(`docs/rocni-test.md`, razdelek »Navigacija«, točki 5 in 6) – **naloga 4c je zaključena 2026-10-11**; naslednja je
+naloga 6 (`docs/uskladitev.md`, »Vrstni red po fazi 6«).
 
 Izhodišče: commit `d51d2fc` (zaključek naloge 4b).
 
@@ -663,5 +665,10 @@ potreba).
   vseh treh pri 320–1280 px, vsa okna), `preveri-presek-` (79), `preveri-enojcki-` (330) in `preveri-vadi-brskalnik.js`
   (382 – »Spoznaj« enak izhodiščem; vrstica je zunaj `#exerciseArea`). Posnetek igre
   (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`): enako, 99 posnetkov.
-- Ročni pregled: točki 5 (A) in 6 (B) v `docs/rocni-test.md`, razdelek »Navigacija«. Naloga 4c še ni zaključena –
-  čaka potrditev teh dveh točk.
+- Ročni pregled: točki 5 (A) in 6 (B) v `docs/rocni-test.md`, razdelek »Navigacija«.
+
+### Zaključek (2026-10-11)
+
+- Točki 5 (popravek A) in 6 (popravek B) potrjeni na telefonu, različica 2026-10-11 11:42; popravkov ni.
+- **Naloga 4c je zaključena 2026-10-11.** Naslednja je naloga 6 »Podlage, legenda, Escape« (`docs/uskladitev.md`,
+  »Vrstni red po fazi 6«).

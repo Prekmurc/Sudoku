@@ -370,7 +370,8 @@ preverjeno: `tests/trening-meni.test.js`, `tests/pomoc.test.js`, `tests/navigaci
 `tools/preveri-navigacija-brskalnik.js` (koraki 1–5 – pravi dotiki pri 320 in 375 px, kliki pri 1280 px, drsenje,
 pravo okno `confirm`, »Nazaj« brskalnika, `file://`). Točke 1–4 so pregledane na telefonu, različica 2026-10-11 09:58;
 ob pregledu zapisano brez popravka: okno Pomoč se odpre tam, kjer je bilo zaprto (ostane tako), niz »Izbriši kandidata«
-v igri (pod zaslonom pri 375 × 667, korak 4) je v redu. Točki 5 in 6 sta popravka A in B po tem pregledu.
+v igri (pod zaslonom pri 375 × 667, korak 4) je v redu. Točki 5 in 6 sta popravka A in B po tem pregledu; potrjeni sta
+na telefonu, različica 2026-10-11 11:42, popravkov ni – **naloga 4c je zaključena 2026-10-11**.
 
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
@@ -378,8 +379,8 @@ v igri (pod zaslonom pri 375 × 667, korak 4) je v redu. Točki 5 in 6 sta popra
 | 2 | igra, telefon | Okno Pomoč: drsenje s prstom, kazalo razdelkov, oznaka tehnike, »↑ Na vrh«, ✕. | Glava ostane na vrhu, kazali pomakneta do razdelka oz. tehnike, ✕ je vedno dosegljiv. (potrjeno 11. 10. 2026) | Inercijsko drsenje in Safari (lepljiv element v drsnem oknu) – brskalnik brez glave je Chromium. |
 | 3 | trening, telefon | Meni: oznaka v kazalu, drsenje, okrogel »↑«; vaja: »Nazaj na izbiro« na dnu. | Okrogel »↑« ne moti dotika kartice; spodnji »Nazaj na izbiro« vrne v meni na isto mesto. (potrjeno 11. 10. 2026) | Presoja, ali gumb moti pravi prst. |
 | 4 | trening sredi kroga | Dotik zavihka »Igra«: preberi vprašanje, »Prekliči«; nato potrdi in v svojem brskalniku pritisni »Nazaj«. | Vprašanje pove krog in rezultat; »Prekliči« pusti krog; po »Nazaj« je trening spet odprt. (potrjeno 11. 10. 2026) | Pravo okno vprašanja in obnova iz predpomnilnika sta odvisna od brskalnika. |
-| 5 | vse tri, telefon | Popravek A: okno Pomoč → »Tehnike« → dotik oznake (npr. 9); v glavi dotik »↑ Tehnike«, nato »↑ Na vrh«. Drsi s prstom gor in dol čez vrstico oznak. | Pod vrstico oznak gumb kaže »↑ Tehnike« in vrne k vrstici oznak (pod glavo); nad njo »↑ Na vrh«. Ob menjavi napisa se glava ne premakne (gumb je enako širok). **(nepotrjeno)** | Presoja, ali je menjava napisa med drsenjem razumljiva in ne moti; inercijsko drsenje na pravem telefonu (scenarij meri mejo in širino gumba pri 320, 375, 1280 px). |
-| 6 | trening, telefon (tudi 320 px, če ga imaš) | Popravek B: »Spoznaj« 9 · Veriga ene števke, »Vadi v uganki« 4 · Skriti par in »Končano!«: podrsaj do dna, dotik »↑ Na vrh«. | Na dnu sta v eni vrstici »← Nazaj na izbiro« (levo) in »↑ Na vrh« (desno), enakega videza; dotik »↑ Na vrh« pomakne stran na vrh, vaja ostane. Okrogel plavajoč »↑« je samo v meniju. **(nepotrjeno)** | Presoja, ali sta gumba na dnu dovolj ločena za pravi prst (scenarij izmeri eno vrstico, razmik in preliv pri 320, 375, 1280 px). |
+| 5 | vse tri, telefon | Popravek A: okno Pomoč → »Tehnike« → dotik oznake (npr. 9); v glavi dotik »↑ Tehnike«, nato »↑ Na vrh«. Drsi s prstom gor in dol čez vrstico oznak. | Pod vrstico oznak gumb kaže »↑ Tehnike« in vrne k vrstici oznak (pod glavo); nad njo »↑ Na vrh«. Ob menjavi napisa se glava ne premakne (gumb je enako širok). (potrjeno 11. 10. 2026) | Presoja, ali je menjava napisa med drsenjem razumljiva in ne moti; inercijsko drsenje na pravem telefonu (scenarij meri mejo in širino gumba pri 320, 375, 1280 px). |
+| 6 | trening, telefon (tudi 320 px, če ga imaš) | Popravek B: »Spoznaj« 9 · Veriga ene števke, »Vadi v uganki« 4 · Skriti par in »Končano!«: podrsaj do dna, dotik »↑ Na vrh«. | Na dnu sta v eni vrstici »← Nazaj na izbiro« (levo) in »↑ Na vrh« (desno), enakega videza; dotik »↑ Na vrh« pomakne stran na vrh, vaja ostane. Okrogel plavajoč »↑« je samo v meniju. (potrjeno 11. 10. 2026) | Presoja, ali sta gumba na dnu dovolj ločena za pravi prst (scenarij izmeri eno vrstico, razmik in preliv pri 320, 375, 1280 px). |
 
 ## Zakaj ročno
 
