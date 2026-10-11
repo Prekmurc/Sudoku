@@ -404,6 +404,20 @@ scenarij ga preveri s pravimi tipkami.
 | 2 | reševalec, telefon | »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male mreže; povečavo zapri z dotikom. | Barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px); **prečrtana števka temna, črta vidna tudi v mali mreži** in v legendi pod njo; povečava se z dotikom zapre. (potrjeno 11. 10. 2026; prečrtana števka v mali mreži na telefonu slabše razpoznavna – zapisano v »Kasneje«, zaenkrat ostane) | Isto kot 1 – berljivost drobnih števk in 2 px črte na pravem zaslonu. |
 | 3 | trening, telefon | »Spoznaj« 1 · Izločitev izven bloka in 3 · Očitni par: »Rešitev«; »Vadi v uganki« 4 s kljukico »pokaži jih prečrtane« in »Rešitev«. | Prečrtana števka kot v igri (pri 1 na rumenem poudarku črta vidna), v legendi enako; sivo prečrtani kandidati v »Vadi v uganki« ostanejo sivi in se ločijo od temnih s črto. (potrjeno 11. 10. 2026) | Isto kot 1 – presoja vidnosti na pravem zaslonu; ločljivost sive in temne prečrtane števke. |
 
+## Naloga 6a – skrajšanje CLAUDE.md
+
+**Naloga 6a je zaključena 2026-10-11** – točka 1 potrjena, točka 2 se preveri ob začetku naloge 6b.
+
+Načrt `docs/claude-md-nacrt.md` (razdelek 7). Opisi datotek so v `docs/opis/`, `CLAUDE.md` ima samo pravila, ukaze,
+zemljevid in kazalo. Avtomatsko preverjeno: skripta prenosa (vsaka vrstica starega `CLAUDE.md` natanko enkrat v
+`docs/opis/` ali v novem `CLAUDE.md`, načrt razdelek 9) in `tests/claude-md.test.js` (velikost, poti, opis vsake
+datoteke, zemljevid). Koda aplikacije se ni spremenila, zato posnetka igre in brskalnika brez glave ni.
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | `CLAUDE.md` | Preberi ga v celoti. | Nič ne pogrešaš in nič ni napisano tako, da bi ga razumel drugače kot prej. (potrjeno 11. 10. 2026) | Skripta preveri, da je vse staro besedilo nekje, ne pa, ali je v `CLAUDE.md` ostalo pravo. |
+| 2 | nov pogovor v VS Code | Začni nalogo 6b (»naredi načrt«). | Pred načrtom Claude prebere `docs/opis/trening.md` in `docs/opis/resevalec.md` (vidno med orodji) in ne vpraša nič, kar je v njiju. (preveri se ob začetku naloge 6b) | Obnašanje v novem pogovoru, ki ga test ne more pognati. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

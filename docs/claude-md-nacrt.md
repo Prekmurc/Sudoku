@@ -2,8 +2,8 @@
 
 Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6a).
 **Stanje: potrjen 2026-10-11** (`23bba6d`) – odločitve O1–O7 povsod A, dodatki D1–D3 (razdelek 8; imajo prednost
-pred razdelki 3–7). **Korak 1 narejen** (razdelek 9), pregledan in potrjen 2026-10-11; **korak 2 narejen**, dodatka
-D4–D5 (razdelek 8).
+pred razdelki 3–7). **Korak 1 narejen** (razdelek 9), pregledan in potrjen 2026-10-11; **korak 2 narejen** (`9194ee9`), dodatka
+D4–D5 (razdelek 8); **korak 3 narejen – naloga zaključena 2026-10-11**, naslednja je 6b.
 Koda se ne spreminja (ne v tej nalogi ne v načrtu).
 
 Izhodišče: commit `a71e67f` (zapis naloge 6b v vrstni red).
@@ -413,3 +413,11 @@ omenja `docs/opis/`, ki takrat še ni obstajala; (c) mape `docs/opis/` ni; (d) s
 
 **Na novi kodi:** pred opisom testa je padel samo (c) – javil je `tests/claude-md.test.js` (nova datoteka še brez
 opisa); po vrstici v `docs/opis/testi.md` (»Splošno in pomožne datoteke«) so vsi štirje zeleni.
+
+### Korak 3 – zaključek (2026-10-11)
+
+- `docs/uskladitev.md`: naloga 6a zaključena (koraki s commiti), naslednja 6b; v »Kasneje« krajšanje opisov v
+  `docs/opis/` (zgodovina, zastarela števila testov v `testi.md`).
+- `docs/rocni-test.md`, razdelek »Naloga 6a«: točka 1 (branje novega `CLAUDE.md`) potrjena 11. 10. 2026, točka 2
+  (nov pogovor prebere opise) se preveri ob začetku naloge 6b.
+- Hitri testi (commit spremeni samo `docs/`).
