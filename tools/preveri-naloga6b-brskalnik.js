@@ -28,8 +28,16 @@
 //     na vrhu, okvir na kartici in vrstici, mesto vrstice izpiše; neznan ključ – nič;
 //   - okno Pomoč igre, reševalca in treninga (375, 1280 px): kazalo tehnik enako izhodišču (--izhodisce, privzeto
 //     e52f994 – pred korakom 2; drevo, HTML, vsi izračunani slogi, položaji glede na kazalo), pri igri in reševalcu
-//     vse okno; posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
-// --korak N požene korake 1 … N (privzeto 2), --samo N samo korak N.
+//     vse okno (brez oznake različice in brez odstavka »Z okencem Pokaži …«, ki ga v reševalcu doda korak 3); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
+//
+// Korak 3 (O7–O11) – reševalec, filter korakov in okrogel »↑«, pri 320, 375 (dotik) in 1280 px (miška), primer P_14:
+//   - okence »Pokaži« v oznaki pod naslovom kartice »Koraki reševanja«, nad števcem, do desnega roba vsebine kartice,
+//     pisava Inter, brez preliva; možnosti enake moznostiKorakov() (9, »Brez enojčkov (12)«), izbrano »Vsi koraki«;
+//   - 22 kljukic s pravim dotikom/klikom, tipkovnica v okencu (fokus, puščica dol) → »Brez enojčkov«: vidni koraki 21.,
+//     22., 23. … z izvirnimi številkami, števec »22 / 69 opravljeno«; Skrij → Pokaži ohrani filter in kljukice;
+//   - »↑«: en gumb, na vrhu skrit, po enem zaslonu viden (44 × 44 px, 16 px od roba okna), dotik/klik → vrh, spet skrit;
+//     povečava male mreže je nad »↑«, Escape jo zapre; posnetki filter-, na-vrh-<375|1280>.png.
+// --korak N požene korake 1 … N (privzeto 3), --samo N samo korak N.
 //
 //   node tools/preveri-naloga6b-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>]
 //
@@ -46,7 +54,7 @@ const KOREN = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga6b'));
-const korak = Number(arg('--korak', '2'));
+const korak = Number(arg('--korak', '3'));
 const izhodisce = arg('--izhodisce', 'e52f994');
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
@@ -336,11 +344,105 @@ async function korak2(b, sirina) {
   preveri('neznan ključ: nobena kartica in vrstica nista označeni', z.zadnjeK.length === 0 && z.zadnjeV.length === 0, z);
 }
 
+// ---------- Korak 3 – reševalec: filter korakov in »↑« ----------
+const BREZ_P14 = [21, 22, 23, 24, 25, 27, 28, 33, 34, 37, 38, 44];
+const KORAKI = `(() => {
+  const k = document.getElementById('stepsCard'), lab = k.querySelector('label.filter-korakov'), sel = document.getElementById('stepsFilter');
+  const h2 = k.querySelector('h2'), tb = k.querySelector('.steps-toolbar'), r = e => e.getBoundingClientRect(), s = getComputedStyle(k);
+  const vsebina = { levo: r(k).left + parseFloat(s.paddingLeft) + parseFloat(s.borderLeftWidth), desno: r(k).right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) };
+  const li = [...document.querySelectorAll('#steps > li')];
+  return {
+    napis: lab.firstChild.textContent.trim(), vLabel: sel.parentElement === lab, vrstniRed: r(h2).bottom <= r(lab).top && r(lab).bottom <= r(tb).top,
+    sel: { levo: r(sel).left, desno: r(sel).right, sirina: r(sel).width, visina: r(sel).height }, lab: { levo: r(lab).left, desno: r(lab).right },
+    vsebina, pisava: getComputedStyle(sel).fontFamily, moznosti: [...sel.options].map(o => o.textContent), vrednost: sel.value,
+    vir: moznostiKorakov(lastSolve.log).map(m => m.napis),
+    vidne: li.filter(x => r(x).height > 0).map(x => Number(x.querySelector('.idx').textContent.replace('.', ''))),
+    skrite: li.filter(x => x.hidden).length, vseh: li.length, stevec: document.getElementById('progress').textContent,
+    sirinaStrani: document.documentElement.clientWidth, preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  };
+})()`;
+const NA_VRH = `(() => { const b = document.querySelector('button.na-vrh'), r = b.getBoundingClientRect();
+  return { n: document.querySelectorAll('button.na-vrh').length, skrit: b.hidden || getComputedStyle(b).display === 'none',
+    levo: r.left, desno: r.right, vrh: r.top, dno: r.bottom, sirina: r.width, visina: r.height, okno: [innerWidth, innerHeight], scrollY };
+})()`;
+const meritve3 = [];
+
+async function korak3(b, sirina) {
+  const dotik = sirina < 500;
+  console.log(`\nKorak 3 – reševalec, filter korakov in »↑«, ${sirina} px (${dotik ? 'dotik' : 'miška'})`);
+  await b.odpri('app/index.html', { sirina, visina: dotik ? 667 : 800, mobilno: dotik });
+  await b.cakaj('document.fonts.status === "loaded"', 15000);
+  let v = await b.izvedi(NA_VRH);
+  preveri('»↑«: en gumb, na vrhu strani skrit', v.n === 1 && v.skrit, v);
+  await b.izvedi(`(() => { const s = document.getElementById('exampleSelect'); s.value = String(PRIMERI.findIndex(p => p.ime === 'P_14'));
+    s.dispatchEvent(new Event('change')); return true; })()`);
+  await pritisni(b, '#solveBtn', dotik);
+  await b.cakaj('/^Rešeno/.test(document.getElementById("status").textContent)', 15000);
+  await pritisni(b, '#openStepsBtn', dotik);
+  await pocakaj(b, 200);
+
+  let k = await b.izvedi(KORAKI);
+  preveri('okence: »Pokaži« in okence v oznaki, pod naslovom, nad števcem', k.napis === 'Pokaži' && k.vLabel && k.vrstniRed, k);
+  preveri(`okence: do desnega roba vsebine kartice (${Math.round(k.sel.sirina)} × ${Math.round(k.sel.visina)} px), oznaka od levega, pisava Inter, brez preliva`,
+    Math.abs(k.sel.desno - k.vsebina.desno) < 0.5 && Math.abs(k.lab.levo - k.vsebina.levo) < 0.5 && k.sel.visina >= 32 && /^Inter/.test(k.pisava)
+      && k.sel.desno <= k.sirinaStrani && !k.preliv, k);
+  preveri('okence: možnosti P_14 (9) enake moznostiKorakov(), izbrano »Vsi koraki«, vidnih vseh 69',
+    J(k.moznosti) === J(k.vir) && k.moznosti.length === 9 && k.moznosti[1] === 'Brez enojčkov (12)' && k.vrednost === 'vsi' && k.vidne.length === 69, k.moznosti);
+  meritve3.push(`${sirina} px: okence ${Math.round(k.sel.levo)}–${Math.round(k.sel.desno)} × ${Math.round(k.sel.visina)} px (vsebina kartice ${Math.round(k.vsebina.levo)}–${Math.round(k.vsebina.desno)})`);
+
+  // Kljukice pri prvih 22 korakih (pravi dotik/klik), nato tipkovnica v okencu: fokus, puščica dol → »Brez enojčkov«.
+  for (let i = 1; i <= 22; i++) await pritisni(b, `#steps > li:nth-child(${i}) .done-check`, dotik);
+  await b.fokus('#stepsFilter');
+  await b.tipka('ArrowDown');
+  await pocakaj(b, 150);
+  k = await b.izvedi(KORAKI);
+  preveri('tipkovnica: puščica dol v okencu → »Brez enojčkov«; vidni koraki 21., 22., 23. … z izvirnimi številkami, 57 skritih',
+    k.vrednost === 'brez-enojckov' && J(k.vidne) === J(BREZ_P14) && k.skrite === 57, { vrednost: k.vrednost, vidne: k.vidne, skrite: k.skrite });
+  preveri('števec šteje vse korake: »22 / 69 opravljeno«', k.stevec === '22 / 69 opravljeno', k.stevec);
+  if (sirina !== 320) await b.posnetek(path.join(mapa, `filter-${sirina}.png`), { vsaStran: false });
+
+  // Skrij → Pokaži (pravi dotik/klik): filter in kljukice ostanejo.
+  await pritisni(b, '#openStepsBtn', dotik);
+  await pritisni(b, '#openStepsBtn', dotik);
+  await pocakaj(b, 150);
+  k = await b.izvedi(KORAKI);
+  preveri('Skrij → Pokaži: filter »Brez enojčkov«, vidni isti koraki, števec 22 / 69', k.vrednost === 'brez-enojckov' && J(k.vidne) === J(BREZ_P14) && k.stevec === '22 / 69 opravljeno', k);
+
+  // »↑«: po enem zaslonu viden, spodaj desno 44 × 44 px, 16 px od roba; dotik/klik → vrh strani.
+  await b.izvedi('(document.activeElement.blur(), window.scrollTo(0, innerHeight + 50), true)');
+  await pocakaj(b, 150);
+  v = await b.izvedi(NA_VRH);
+  preveri(`»↑«: po enem zaslonu drsenja viden, ${Math.round(v.sirina)} × ${Math.round(v.visina)} px, 16 px od desnega in spodnjega roba okna`,
+    !v.skrit && Math.abs(v.sirina - 44) < 0.5 && Math.abs(v.visina - 44) < 0.5 && Math.abs(v.okno[0] - v.desno - 16) < 0.5 && Math.abs(v.okno[1] - v.dno - 16) < 0.5, v);
+  meritve3.push(`${sirina} px: »↑« ${Math.round(v.levo)}–${Math.round(v.desno)} × ${Math.round(v.vrh)}–${Math.round(v.dno)} px okna ${v.okno.join(' × ')}`);
+  await pritisni(b, 'button.na-vrh', dotik);
+  const y = await b.izvedi(MIRUJE);
+  v = await b.izvedi(NA_VRH);
+  preveri(`»↑«: ${dotik ? 'dotik' : 'klik'} → vrh strani, gumb spet skrit`, y === 0 && v.skrit, { y, v });
+
+  // Povečava male mreže je nad »↑«; Escape jo zapre.
+  await pritisni(b, '#steps > li:nth-child(21) .mini-toggle', dotik);
+  await pocakaj(b, 150);
+  await b.izvedi('(window.scrollTo(0, document.querySelector("#steps > li:nth-child(21)").getBoundingClientRect().top + scrollY - 50), true)');
+  await pocakaj(b, 150);
+  if (sirina !== 320) await b.posnetek(path.join(mapa, `na-vrh-${sirina}.png`), { vsaStran: false });
+  await pritisni(b, '#steps > li:nth-child(21) .mini-container .mini-grid', dotik);
+  await pocakaj(b, 150);
+  const nad = await b.izvedi(`(() => { const r = document.querySelector('button.na-vrh').getBoundingClientRect();
+    const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { odprta: getComputedStyle(document.getElementById('lightbox')).display, vrhViden: !document.querySelector('button.na-vrh').hidden,
+      tocka: e ? e.id || e.className : null, vPovecavi: !!(e && e.closest('#lightbox')) }; })()`);
+  preveri('povečava odprta in nad »↑« (točka sredine gumba je v povečavi)', nad.odprta === 'block' && nad.vrhViden && nad.vPovecavi, nad);
+  await b.tipka('Escape');
+  await pocakaj(b, 100);
+  preveri('Escape zapre povečavo', await b.izvedi('getComputedStyle(document.getElementById("lightbox")).display === "none"'));
+}
+
 // Okno Pomoč vseh treh: kazalo tehnik (vrstica oznak) enako izhodišču – drevo, HTML, izračunani slogi in položaji
 // glede na kazalo; igra in reševalec še vse okno (HTML in slogi).
 const POMOC = [
   { ime: 'igra', stran: 'igra/index.html', gumb: '#navodilaBtn', okno: '#navodilaDialog', celo: true },
-  { ime: 'reševalec', stran: 'app/index.html', gumb: '#pomocBtn', okno: '#pomocDialog', celo: true },
+  { ime: 'reševalec', stran: 'app/index.html', gumb: '#pomocBtn', okno: '#pomocDialog', celo: true, novi: ['Z okencem Pokaži'] },
   { ime: 'trening', stran: 'trening/index.html', gumb: '#pomocBtn', okno: '#pomocDialog', celo: false },
 ];
 async function pomocKazalo(b, a, sirina) {
@@ -349,14 +451,24 @@ async function pomocKazalo(b, a, sirina) {
   await b.klikni(a.gumb);
   await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 });
   await b.izvedi('(document.activeElement && document.activeElement.blur && document.activeElement.blur(), new Promise(r => setTimeout(() => r(true), 300)))');
+  // Pisave, ki jih rabi samo okno (npr. krepki naslov), brskalnik naloži šele ob odprtju – brez čakanja so širine
+  // napisov pod obremenitvijo kdaj izmerjene s še nenaloženo pisavo (razlike 0,02–0,05 px).
+  await b.izvedi('document.fonts.ready.then(() => true)');
+  await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     const okno = document.querySelector(${J(a.okno)}), nav = okno.querySelector('.kazalo-tehnik');
     const slog = e => { const s = getComputedStyle(e); return [...s].filter(p => p !== '-webkit-tap-highlight-color').sort().map(p => p + ':' + s.getPropertyValue(p)).join(';'); };
     const n = nav.getBoundingClientRect();
     const pol = e => { const r = e.getBoundingClientRect(); return [r.left - n.left, r.top - n.top, r.width, r.height].map(v => Math.round(v * 100) / 100).join(','); };
-    const vsi = [nav, ...nav.querySelectorAll('*')], celo = [okno, ...okno.querySelectorAll('*')];
+    const vsi = [nav, ...nav.querySelectorAll('*')], NOVI = ${J(a.novi || [])};
+    // Vse okno brez oznake različice (vsak commit aplikacije jo spremeni) in brez odstavka, ki ga namerno doda korak 3.
+    const novo =p => NOVI.some(z => p.textContent.trim().startsWith(z));
+    const celo = [okno, ...okno.querySelectorAll('*')].filter(e => !(e.closest('p') && novo(e.closest('p'))));
+    const kopija = okno.cloneNode(true);
+    kopija.querySelectorAll('p').forEach(p => { if (novo(p)) { if (p.previousSibling && !p.previousSibling.textContent.trim()) p.previousSibling.remove(); p.remove(); } });
+    kopija.querySelectorAll('.dialog-razlicica').forEach(p => { p.textContent = ''; });
     return { drevo: vsi.map(e => e.tagName + '.' + e.className + '[' + (e.title || '') + ']'), html: nav.outerHTML, slogi: vsi.map(slog), polozaji: vsi.map(pol),
-      celoHtml: ${a.celo} ? okno.outerHTML : '', celoSlogi: ${a.celo} ? celo.map(slog) : [] };
+      celoHtml: ${a.celo} ? kopija.outerHTML : '', celoSlogi: ${a.celo} ? celo.map(slog) : [], celoDrevo: ${a.celo} ? celo.map(e => e.tagName + '.' + e.className + (e.id ? '#' + e.id : '')) : [] };
   })()`);
 }
 async function korak2Pomoc(b) {
@@ -372,11 +484,21 @@ async function korak2Pomoc(b) {
       const n = nova[`${a.ime} ${s}`], st = await pomocKazalo(bStar, a, s);
       const razSlogi = st.slogi.map((x, i) => (x !== n.slogi[i] ? n.drevo[i] : null)).filter(Boolean);
       const razPol = st.polozaji.map((x, i) => (x !== n.polozaji[i] ? `${n.drevo[i]} ${x} → ${n.polozaji[i]}` : null)).filter(Boolean);
-      const razCelo = st.celoSlogi.filter((x, i) => x !== n.celoSlogi[i]).length;
+      // Razlike v slogih vsega okna po elementih; pri odstavku koraka 3 (a.novi) je plošča okna višja – dovoljeno samo to.
+      const lastnosti = s => new Map(s.split(';').map(x => [x.slice(0, x.indexOf(':')), x.slice(x.indexOf(':') + 1)]));
+      const VISINA = ['height', 'block-size', 'perspective-origin', 'transform-origin'];
+      const razCeloKje = st.celoSlogi.map((x, i) => {
+        if (x === n.celoSlogi[i]) return null;
+        const p = lastnosti(x), q = lastnosti(n.celoSlogi[i] || '');
+        const kaj = [...p].filter(([k, v]) => q.get(k) !== v);
+        if (a.novi && /^DIV\.dialog-panel/.test(n.celoDrevo[i]) && kaj.every(([k]) => VISINA.includes(k))) return null;
+        return n.celoDrevo[i] + ' ' + kaj.map(([k, v]) => k + ': ' + v + ' → ' + q.get(k)).join(', ');
+      }).filter(Boolean);
+      const razCelo = razCeloKje.length;
       preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču${a.celo ? '; vse okno enako' : ''}`,
         J(n.drevo) === J(st.drevo) && n.html === st.html && razSlogi.length === 0 && razPol.length === 0
           && n.celoHtml === st.celoHtml && st.celoSlogi.length === n.celoSlogi.length && razCelo === 0,
-        { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === st.html, celoHtml: n.celoHtml === st.celoHtml, razCelo });
+        { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === st.html, celoHtml: n.celoHtml === st.celoHtml, razCelo, razCeloKje: razCeloKje.slice(0, 5) });
     }
     preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);
   } finally {
@@ -399,6 +521,11 @@ async function korak2Pomoc(b) {
       await korak2Pomoc(b);
       console.log('\nKorak 2 – meritve:');
       for (const v of meritve2) console.log('  ' + v);
+    }
+    if (tece(3)) {
+      for (const s of [320, 375, 1280]) await korak3(b, s);
+      console.log('\nKorak 3 – meritve:');
+      for (const v of meritve3) console.log('  ' + v);
     }
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } catch (e) {

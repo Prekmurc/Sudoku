@@ -245,6 +245,28 @@
   }
   .summary span b{ color:var(--ink); }
 
+  /* okence »Pokaži« nad koraki (filter, naloga 6b) - čez vso širino kartice, videz kot polje Niz */
+  .filter-korakov{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--ink2);
+    margin-bottom:10px;
+  }
+  .filter-korakov select{
+    flex:1;
+    min-width:0;
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    padding:7px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    color: var(--ink);
+    cursor:pointer;
+  }
+  .filter-korakov select:focus{ outline: 2px solid var(--blue); outline-offset:-1px; }
   .steps-toolbar{
     display:flex;
     align-items:center;

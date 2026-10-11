@@ -1,6 +1,6 @@
 # Pripomočki za uporabo (naloga 6b) – načrt
 
-Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c še ni pregledan.**
+Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c potrjen 2026-10-11 (O7, O8, O9, O10, O11 = A) in narejen (korak 3) z zaključkom – čaka ročni pregled.**
 
 Izhodišče: commit `b673dd3` (pravilo ob nepričakovanem izidu testa v `CLAUDE.md`).
 
@@ -373,10 +373,11 @@ nadomestni DOM nima `querySelector`; razporeditev preveri brskalnik.
 4. **Reševalec, telefon:** pri »Vsi koraki« odpri nekaj malih mrež in drsi; dotik »↑«. Pričakovano: gumb ne moti
    dotika male mreže, vrne na vrh. *Zakaj ročno:* presoja s pravim prstom in inercijskim drsenjem.
 
-## 9. Odločitve (čaka potrditev)
+## 9. Odločitve
 
 Priporočilo: **O1 A, O2 A, O3 A, O4 A, O5 A, O6 B, O7 A, O8 A, O9 A, O10 A, O11 A**; dopolnitev b: **O12 A, O13 A**.
-Potrjeno 2026-10-11: O1, O2, O3 = A; popravek koraka a P1 = A; korak b – O4 A, O5 A, O6 B, O12 A, O13 A.
+Potrjeno 2026-10-11: O1, O2, O3 = A; popravek koraka a P1 = A; korak b – O4 A, O5 A, O6 B, O12 A, O13 A; korak c – O7, O8, O9,
+O10, O11 = A.
 
 Ročni pregled je en sam, po koraku 3, največ 5 točk; po korakih 1 in 2 ga ni.
 
@@ -450,3 +451,44 @@ test oznak v meniju je zamenjan, kot napoveduje načrt), scenarij `tools/preveri
 - Scenarij `tools/preveri-naloga6b-brskalnik.js` (koraka 1 in 2): vse drži (527 preverjanj, okno Pomoč vseh treh enako
   izhodišču `e52f994`); `tools/preveri-navigacija-brskalnik.js --izhodisce e52f994` (vsi koraki): vse drži (1539).
   Posnetek igre: enako, 99 posnetkov. Testi: vsi (990) gredo.
+
+**Potrditev koraka c 2026-10-11:** O7, O8, O9, O10, O11 = A (okence `<select>` »Pokaži«; napisi »Vsi koraki (69)«,
+»Brez enojčkov (12)«, »4 · Skriti par (2)«, brez možnosti z 0 koraki; odprte male mreže ostanejo; seznam enkrat na
+rešitev, »Reši« z drugimi danostmi kartico skrije; okrogel »↑« vedno po enem zaslonu, na vrh strani). Ob potrditvi
+zapisani v »Kasneje« (`docs/uskladitev.md`) še legenda nad rešitvijo v reševalcu (»5 dana 5 izpeljana« se bere kot
+štetje) in zastarelo privzeto izhodišče `tools/preveri-navigacija-brskalnik.js` (k postavki o zastarelih scenarijih).
+
+**Korak 3 – filter korakov in »↑« v reševalcu (c) in zaključek, narejen 2026-10-11.** `app/app.js` – `stetjeTehnik()`
+(ena funkcija za povzetek pod rešitvijo in okence), `moznostiKorakov()`, `korakViden()`, `uporabiFilter()`; v
+`renderStepsList()` okence in koraki, zgrajeni z `createElement`; `korakiZa` (seznam enkrat na rešitev), `skrijKorake()`
+ga pobriše, »Reši« z drugimi danostmi pokliče `skrijKorake()`; `ustvariNaVrh(() => true)`. `app/index.html` – vrstica
+`<label class="filter-korakov">Pokaži <select id="stepsFilter">` pod naslovom kartice, odstavek v Pomoči; `app/app.css` –
+`.filter-korakov`. Test `tests/resevalec-koraki.test.js` (osem novih, na stari kodi padejo vsi), scenarij
+`tools/preveri-naloga6b-brskalnik.js --korak 3`.
+
+- **Odstopanje – besedilo Pomoči:** stavek iz načrta »Številke korakov ostanejo, …« krši pravilo besedil (»številk« v
+  HTML je dovoljen samo pri številkah tehnik – `tests/besedila-html.test.js`). Varovala nisem spreminjal; stavek je
+  »Koraki ostanejo oštevilčeni kot v celem seznamu, kljukice in števec veljajo za vse korake.«
+- **Odstopanje – gradnja koraka:** koraki so zgrajeni z `createElement` namesto predloge `innerHTML`, ker nadomestni DOM
+  predloge ne razčleni (brez tega testa filtra in O10 ne bi mogla teči). Izmerjeno v brskalniku proti `HEAD` (P_14, 375
+  in 1280 px): 552 elementov seznama, položaji vseh vidnih enaki; HTML se razlikuje samo v presledkih med oznakami
+  (prejšnja predloga), ki se ne izrišejo.
+- **Izmerjeno** (scenarij): okence pri 375 px 260 × 35 px (napoved 257 × 33), pri 1280 px 365 × 35 px (napoved 362 × 33),
+  pri 320 px 205 × 35 px – višina 35 px je iz odmika 7 px kot pri polju Niz; »↑« pri 375 px na 315–359 × 607–651 px
+  okna (kot napoved), pri 1280 px na 1220–1264 × 740–784 px. Povečava je nad »↑«, Escape jo zapre.
+- **Scenarij, korak 2 (okno Pomoč enako izhodišču `e52f994`):** po koraku 3 so padla štiri preverjanja »vse okno enako«.
+  Vzrok je v pomožni skripti, ne v aplikaciji: (1) na dnu okna Pomoč igre in reševalca je oznaka različice – v izhodišču
+  »2026-10-11 21:47«, po commitu koraka 2 »22:13« (pri koraku 2 sta bili še enaki, zato je takrat držalo); (2) pri
+  reševalcu je nov odstavek koraka 3, zaradi njega je plošča okna višja (+134 px pri 375, +71 px pri 1280 px).
+  Scenarij zdaj oznako različice in odstavek »Z okencem Pokaži …« izpusti, pri reševalcu dovoli samo višjo ploščo okna
+  in razlike izpiše po elementih. V dveh zagonih (pod obremenitvijo – vzporedno z vsemi testi) je pri igri in reševalcu
+  padlo še zaradi širin napisov, ki so se razlikovale za 0,02–0,05 px (»Pomoč« 57,77 → 57,81 px; vedno isti dve
+  vrednosti), pri igri, ki je korak ne spremeni. Vzrok je v scenariju: pisavo, ki jo rabi samo okno (krepki naslov),
+  brskalnik naloži šele ob odprtju, scenarij pa je meril 300 ms po kliku. Zdaj po odprtju počaka še na naložene
+  pisave (`document.fonts.ready`); pod enako obremenitvijo vse drži.
+- **Zaključek:** scenarij `tools/preveri-naloga6b-brskalnik.js` (koraki 1–3) vse drži (560 preverjanj);
+  `tools/preveri-navigacija-brskalnik.js --izhodisce 884945b` vse drži (1539); `tools/preveri-videz-brskalnik.js` vse
+  drži; posnetek igre enako, 99 posnetkov. Opisi: `docs/opis/resevalec.md`, `testi.md`, `orodja.md`, `dokumenti.md`
+  (`trening.md` je posodobljen v korakih 1 in 2); `docs/rocni-test.md`, razdelek »Naloga 6b«; `docs/uskladitev.md`
+  (naloga 6b, »Kasneje«). `CLAUDE.md` ostane – ključ `sudoku.trening.zadnja` je dopisan v koraku 2, scenariji so našteti
+  v `docs/opis/orodja.md`.

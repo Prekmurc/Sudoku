@@ -192,6 +192,40 @@ function legendaKoraka(s) {
   return legend;
 }
 
+// Število korakov vsake tehnike v dnevniku, po vrstnem redu tehnik (redTehnike), ne po pogostosti -
+// povzetek pod rešitvijo in okence »Pokaži« nad koraki (naloga 6b, O8).
+function stetjeTehnik(log) {
+  const counts = {};
+  log.forEach(s => { counts[s.technique] = (counts[s.technique] || 0) + 1; });
+  return Object.entries(counts).sort((a, b) => redTehnike(a[0]) - redTehnike(b[0]));
+}
+
+// Filter korakov (naloga 6b, O7–O9): možnosti okenca »Pokaži« in ali je korak pri izbrani možnosti viden.
+// »Brez enojčkov« = vse razen tehnik iz TRENING_ENOJCKA; možnost brez korakov se ne pokaže.
+const jeEnojcek = t => TRENING_ENOJCKA.some(([, kljuc]) => kljuc === t);
+function moznostiKorakov(log) {
+  const brez = log.filter(s => !jeEnojcek(s.technique)).length;
+  return [
+    { vrednost: 'vsi', napis: `Vsi koraki (${log.length})` },
+    ...(brez ? [{ vrednost: 'brez-enojckov', napis: `Brez enojčkov (${brez})` }] : []),
+    ...stetjeTehnik(log).map(([t, n]) => ({ vrednost: t, napis: `${imeTehnike(t, { stevilka: true, anglesko: false })} (${n})` })),
+  ];
+}
+function korakViden(technique, filter) {
+  if (filter === 'vsi') return true;
+  if (filter === 'brez-enojckov') return !jeEnojcek(technique);
+  return technique === filter;
+}
+
+// Koraki zunaj filtra dobijo atribut hidden - ostanejo v seznamu (številke, kljukice, odprte male mreže).
+const stepsFilter = document.getElementById('stepsFilter');
+function uporabiFilter() {
+  Array.from(stepsEl.children).forEach((li, i) => {
+    li.hidden = !korakViden(lastSolve.log[i].technique, stepsFilter.value);
+  });
+}
+stepsFilter.addEventListener('change', uporabiFilter);
+
 function updateProgress() {
   const total = stepsEl.children.length;
   const done = stepsEl.querySelectorAll('li.done').length;
@@ -205,8 +239,19 @@ document.getElementById('resetChecks').addEventListener('click', () => {
   updateProgress();
 });
 
+// Seznam korakov in okence »Pokaži« (filter »Vsi koraki«) za lastSolve. Zgradi se enkrat na rešitev (O10):
+// korakiZa so danosti, za katere je seznam zgrajen - »Skrij/Pokaži« ga samo skrije in pokaže.
+let korakiZa = null;
 function renderStepsList() {
   const { log } = lastSolve;
+  stepsFilter.innerHTML = '';
+  for (const m of moznostiKorakov(log)) {
+    const o = document.createElement('option');
+    o.value = m.vrednost;
+    o.textContent = m.napis;
+    stepsFilter.appendChild(o);
+  }
+  stepsFilter.value = 'vsi';
   stepsEl.innerHTML = '';
   log.forEach((s, idx) => {
     // Oznaka in naslov koraka imata kratko ime s številko ("4 · Skriti par"), celo
@@ -214,14 +259,20 @@ function renderStepsList() {
     const kratko = imeTehnike(s.technique, { stevilka: true, anglesko: false });
     const celo = imeTehnike(s.technique, { stevilka: true });
     const li = document.createElement('li');
-    li.innerHTML = `<input type="checkbox" class="done-check">
-                     <span class="tag ${tagClass(s.technique)}"></span><br>
-                     <span class="idx">${idx + 1}.</span><span class="msg"></span>`;
-    const tag = li.querySelector('.tag');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'done-check';
+    const tag = document.createElement('span');
+    tag.className = `tag ${tagClass(s.technique)}`;
     tag.textContent = kratko;
     tag.title = celo;
-    li.querySelector('.msg').textContent = s.message;
-    const checkbox = li.querySelector('.done-check');
+    const stevilka = document.createElement('span');
+    stevilka.className = 'idx';
+    stevilka.textContent = `${idx + 1}.`;
+    const msg = document.createElement('span');
+    msg.className = 'msg';
+    msg.textContent = s.message;
+    li.append(checkbox, tag, document.createElement('br'), stevilka, msg);
     checkbox.addEventListener('change', () => {
       li.classList.toggle('done', checkbox.checked);
       updateProgress();
@@ -278,6 +329,7 @@ function renderStepsList() {
 
     stepsEl.appendChild(li);
   });
+  korakiZa = lastSolve.givens;
   updateProgress();
 }
 
@@ -294,7 +346,7 @@ document.getElementById('openStepsBtn').addEventListener('click', () => {
     btn.textContent = 'Pokaži korake reševanja';
     return;
   }
-  renderStepsList();
+  if (korakiZa !== lastSolve.givens) renderStepsList();
   stepsCard.style.display = 'block';
   btn.textContent = 'Skrij korake reševanja';
   // Namenoma BREZ scrollIntoView - vnosna mreža, kandidati in rezultat
@@ -303,10 +355,12 @@ document.getElementById('openStepsBtn').addEventListener('click', () => {
 
 
 
-// Skrije kartico "Koraki reševanja" (ob novi uganki bi kazala stare korake).
+// Skrije kartico "Koraki reševanja" (ob novi uganki bi kazala stare korake); naslednji
+// »Pokaži korake reševanja« zgradi seznam znova.
 function skrijKorake() {
   stepsCard.style.display = 'none';
   document.getElementById('openStepsBtn').textContent = 'Pokaži korake reševanja';
+  korakiZa = null;
 }
 
 document.getElementById('clearBtn').addEventListener('click', () => {
@@ -503,15 +557,13 @@ document.getElementById('solveBtn').addEventListener('click', () => {
       solvedGridEl.appendChild(d);
     }
 
-    const counts = {};
-    log.forEach(s => { counts[s.technique] = (counts[s.technique] || 0) + 1; });
-    // Po vrstnem redu tehnik (redTehnike), ne po pogostosti; število uporab na koncu,
-    // da se ne zlepi s številko tehnike.
-    summaryEl.innerHTML = Object.entries(counts)
-      .sort((a, b) => redTehnike(a[0]) - redTehnike(b[0]))
+    // Število uporab na koncu, da se ne zlepi s številko tehnike.
+    summaryEl.innerHTML = stetjeTehnik(log)
       .map(([t, n]) => `<span>${imeTehnike(t, { stevilka: true })} – <b>${n}×</b></span>`)
       .join('');
 
+    // Seznam korakov drugih danosti se skrije kot ob novi uganki (O10); pri istih ostane, kot je.
+    if (korakiZa !== givens) skrijKorake();
     lastSolve = { givens, grid: board.grid.slice(), log };
     resultsEl.style.display = 'block';
     zbirkaPoResevanju(givens, board, log, solutionCount); // app/zbirka.js
@@ -540,5 +592,9 @@ document.getElementById('solveBtn').addEventListener('click', () => {
     // kandidati naj ostanejo vidni/dosegljivi brez posebnega scrollanja.
   }, 30);
 });
+
+// Okrogel »↑« po enem zaslonu drsenja kjerkoli na strani (naloga 6b, O11) - ista funkcija in slog kot v meniju
+// treninga (shared/navigacija.js); fokus ostane, kjer je (fokus na celici bi na telefonu odprl tipkovnico).
+if (typeof ustvariNaVrh === 'function') ustvariNaVrh(() => true);
 
 focusCell(0);
