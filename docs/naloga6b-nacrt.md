@@ -1,6 +1,6 @@
 # Pripomočki za uporabo (naloga 6b) – načrt
 
-Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1); korak b se dopolnjuje (razdelek 2.5), korak c še ni pregledan.**
+Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1); korak b dopolnjen (razdelek 2.5) – čaka potrditev; korak c še ni pregledan.**
 
 Izhodišče: commit `b673dd3` (pravilo ob nepričakovanem izidu testa v `CLAUDE.md`).
 
@@ -19,8 +19,9 @@ meritve »predlog« in posnetki v `docs/slike/naloga6b/` (dvojna ločljivost pri
 - **a)** V vaji desno od zgornjega »← Nazaj na izbiro« gumb **»↔ Vadi v uganki«** (v »Spoznaj«) oziroma **»↔ Spoznaj«**
   (v »Vadi v uganki«), enakega videza. Dotik začne **nov krog** iste tehnike v drugem načinu – brez vprašanja, kot
   »Nazaj na izbiro«; »Nazaj na izbiro« potem vrne na isto mesto v meniju (O1–O3).
-- **b)** Kartica tehnike, ki si jo nazadnje vadil, ima **moder okvir 2 px** (barva izbire), njena oznaka v kazalu tehnik
-  pa modro obrobo. Okvir ostane, dokler ne začneš druge tehnike. Po zaprtju strani se zapomni (nov ključ
+- **b)** Kartica tehnike, ki si jo nazadnje vadil, ima **moder okvir 2 px** (barva izbire), njena vrstica v kazalu tehnik
+  pa enak okvir. **Dopolnitev (2.5):** kazalo tehnik v meniju postane seznam – oznaka in ob njej slovensko in angleško
+  ime v dveh vrsticah; na telefonu en stolpec, na širokem zaslonu dva. Okvir ostane, dokler ne začneš druge tehnike. Po zaprtju strani se zapomni (nov ključ
   `sudoku.trening.zadnja`) – pribl. 15 vrstic kode in en test več (O4–O6).
 - **c)** Na vrhu kartice »Koraki reševanja« okence **»Pokaži«**: »Vsi koraki (69)«, »Brez enojčkov (12)«, nato vsaka
   uporabljena tehnika s številom korakov. Številke korakov ostanejo izvirne (21., 22., 27. …), kljukice in števec
@@ -97,16 +98,16 @@ meritve »predlog« in posnetki v `docs/slike/naloga6b/` (dvojna ločljivost pri
 - **Videz (O4 A):** kartica zadnje tehnike dobi razred `zadnja` – obroba in senca 1 px v barvi izbire `--izbira`
   (#4A86D8; skupaj 2 px, brez premika vsebine – višine kartic izmerjene enake), kontrast 3,46 : 1 na kartici
   (meja za grafične elemente 3 : 1). Modra je barva izbire v vseh treh aplikacijah, turkizna pa poudarek pod miško –
-  na sliki pri 1280 px se oba vidita hkrati in se ločita. Oznaka te tehnike v kazalu tehnik (`izrisiKazaloTehnik()`,
-  naloga 4c – brez spremembe funkcije, samo razred na obstoječem gumbu) dobi modro obrobo 2 px; ime v `aria-label`
-  dobi pripis »– nazadnje vadena«.
+  na sliki pri 1280 px se oba vidita hkrati in se ločita. Vrstica te tehnike v kazalu tehnik dobi enak okvir (dopolnitev 2.5 –
+  prej: modra obroba 2 px na oznaki, funkcija brez spremembe); ime v `aria-label` dobi pripis »– nazadnje vadena«.
 - **Kdaj izgine (O5 A):** ne izgine sam – ostane, dokler ne začneš kroga druge tehnike; takrat se premakne nanjo.
   Okvir se postavi ob začetku kroga (`zacniKrog()`), torej tudi, če se vrneš iz »Končano!«, z zavihkom ali z gumbom
   brskalnika »Nazaj«.
 - **Po zaprtju strani (O6 B):** `zacniKrog()` zapiše način vaje (npr. `xy-wing`) pod nov ključ
   `sudoku.trening.zadnja`, nalaganje strani ga prebere in označi kartico in oznako v kazalu (neznan ključ ali
   nedosegljiva shramba – nič, brez napake). Ker je ob odprtju strani meni na vrhu, kartica 11 pa daleč spodaj, je
-  oznaka v kazalu edino, kar se vidi brez drsenja (slika, tretja plošča). **Koliko dela:** pribl. 15 vrstic v
+  oznaka v kazalu edino, kar se vidi brez drsenja (slika, tretja plošča) – s seznamom iz 2.5 pri telefonu samo za
+  E1–8 (O13). **Koliko dela:** pribl. 15 vrstic v
   `trening/trening.js` (branje v `try/catch`, pisanje v `zacniKrog()`), test z nadomestnim `localStorage`
   (`tests/dom-stub.js` ga ima, tudi ohranitev med »ponovnimi nalaganji«), v scenariju ponovno odprtje strani, ključ v
   seznamu ključev v `CLAUDE.md` in v opisu – korak b se podaljša za pribl. tretjino.
@@ -132,6 +133,88 @@ meritve »predlog« in posnetki v `docs/slike/naloga6b/` (dvojna ločljivost pri
 ![Okvir kartice zadnje tehnike, 375 px](slike/naloga6b/2-okvir-375.png)
 
 ![Okvir kartice zadnje tehnike, 1280 px](slike/naloga6b/2-okvir-1280.png)
+
+Sliki 2-okvir-* kažeta kazalo pred dopolnitvijo (vrstica oznak); kazalo po dopolnitvi je na slikah 2b-kazalo-* (2.5).
+
+### 2.5 Dopolnitev 2026-10-11 – kazalo tehnik v meniju kot seznam z imeni
+
+**Zahteva** (Darko, 2026-10-11): kazalo tehnik v meniju treninga kot seznam – oznaka, ob njej v dveh vrsticah
+slovensko in angleško ime; na telefonu en stolpec, na širokem zaslonu več stolpcev, brez rezanja imen; zadnja tehnika
+označena v seznamu in na kartici; imena iz obstoječega vira, ista funkcija z dodatno možnostjo, ne nova kopija; kazalo
+v oknu Pomoč ostane, kot je.
+
+**Kako je zdaj** (izmerjeno): kazalo je vrstica 15 oznak 36 × 32 px (`izrisiKazaloTehnik()` iz `shared/navigacija.js`,
+`.kazalo-tehnik` v `shared/base.css`), ime tehnike je samo v `title` in `aria-label` (namig miške, bralnik zaslona).
+Kazalo je visoko 70 px (pri 375 px 8 + 7 oznak, pri 1280 px 12 + 3), vrh na 199 px, prva kartica na 281 px; stran menija
+je visoka 3.586 px pri 375 px in 3.221 px pri 1280 px.
+
+**Predlog** (prototip – kopija aplikacij v začasni mapi, meritve v brskalniku brez glave kot zgoraj):
+
+- **Postavka** je gumb čez vso širino stolpca (`.kazalo-vrstica`, 44 px visok): levo oznaka v barvi ravni (isti razred
+  `.tag.t-*` in iste mere 36 × 32 px kot zdaj), desno dve vrstici – slovensko ime (14 px, polkrepko, `--ink`) in
+  angleško ime (12,5 px, `--ink2`, kontrast 9,35 : 1 na beli). Klik kot zdaj: pomakne do kartice (12 px pod vrh okna),
+  vaje ne začne, fokus na »Spoznaj«. Pod miško siva obroba `--line` in podlaga kartice. Imeni sta vidni, zato `title`
+  odpade; `aria-label` ostane »E1 · Očitni enojček (Naked Single)« iz `imeTehnike()`.
+- **Stolpci:** CSS `columns: 230px` – stolpcev je, kolikor jih gre v širino menija, brez meje po napravi: pri 320–460 px
+  en stolpec, pri 1280 px (meni 528 px) dva. **Vrstni red (O12 A)** po stolpcih: levo E1–6 (lahka in srednja raven,
+  8 vrstic), desno 7–13 (napredna in ekspertna, 7 vrstic) – ravni ostanejo skupaj.
+- **Brez rezanja:** najširše ime je 154 px (»Izločitev izven bloka«), stolpec 343 px pri 375 px, 288 px pri 320 px in
+  258 px pri 1280 px. Izmerjeno: nobeno ime ni odrezano (`scrollWidth`) ne prelomljeno v dve vrstici, brez preliva.
+- **Zadnja tehnika** (O4 A, O5 A, O6 B iz 2.2): vrstica v kazalu in kartica dobita razred `zadnja` – obroba in senca
+  1 px `--izbira` (skupaj 2 px, brez premika vsebine; kontrast 3,69 : 1 na beli, 3,46 : 1 na kartici). Isto pravilo
+  CSS za kartico in vrstico (`trening/trening.css`).
+- **Okno Pomoč** kliče `izrisiKazaloTehnik()` brez nove možnosti – vrstica oznak ostane enaka v vseh treh aplikacijah.
+
+**Izmerjeno** (px; »zdaj« – trenutna koda, »predlog« – prototip):
+
+| | 375 × 667 zdaj | 375 × 667 predlog | 1280 × 800 zdaj | 1280 × 800 predlog |
+|---|---|---|---|---|
+| višina kazala | 70 | **720** | 70 | **380** |
+| vrh prve kartice | 281 | 931 | 281 | 591 |
+| višina strani menija | 3.586 | 4.236 | 3.221 | 3.531 |
+| razporeditev | 8 + 7 oznak | 1 stolpec, 15 vrstic | 12 + 3 oznake | 2 stolpca (8 + 7) |
+| vrstica 11 ob ponovnem odprtju strani | – | 775–819 (pod oknom) | – | 391–435 (v oknu) |
+| kartica 11 po »Nazaj na izbiro« (okno) | 193–370 | 193–370 | 260–437 | 260–437 |
+
+**Posledica pri telefonu:** kazalo je višje od zaslona (720 > 667 px). Ob odprtju strani se vidijo glava in vrstice
+E1–8; prva kartica je 650 px nižje kot zdaj (en poteg prsta več do kartic). Vrnitev iz vaje se ne spremeni (položaj
+menija se obnovi, kartica je na istem mestu). Vrstica zadnje tehnike je ob ponovnem odprtju strani vidna brez drsenja
+samo pri E1–8 – pri 9–13 je pod oknom (izmerjeno za 11: 775–819 px pri oknu 667 px). Na monitorju je kazalo 380 px in
+vse v oknu.
+
+**Odločitve:**
+
+| | Možnosti | Priporočilo |
+|---|---|---|
+| **O12** vrstni red pri dveh stolpcih | **A** po stolpcih – levo E1–6, desno 7–13 (ravni skupaj); **B** po vrsticah – E1 E2 / 1 2 / 3 4 … (raven se lomi čez oba stolpca) | A |
+| **O13** zadnja tehnika ob ponovnem odprtju pri telefonu | **A** nič dodatnega – pri 9–13 je vrstica en poteg niže; **B** ob odprtju strani z zapomnjeno tehniko se stran pomakne, da je njena vrstica v oknu (glava gre iz okna); **C** kazalo na telefonu zložljivo (»Kazalo tehnik ▸«, zaprto 44 px – imena so na dotik dlje) | A |
+
+**Kaj se spremeni v skupni kodi:**
+
+- `shared/navigacija.js` (pribl. 15 vrstic):
+  - `kazaloTehnik()` – postavka dobi še `slovensko` = `imeTehnike(tehnika, { anglesko: false })` in `anglesko` =
+    `TEHNIKE_OPISI[kljuc].anglesko` (obstoječa vira, brez kopije imen); obstoječa polja ostanejo.
+  - `izrisiKazaloTehnik(el, obKliku, { imena = false } = {})` – brez možnosti natanko kot zdaj (gumb `.tag` z oznako,
+    `title`, `aria-label`, `data-kazalo`); z `{ imena: true }` gumb `.kazalo-vrstica` z oznako `.tag` in imenoma
+    (`.kazalo-imena` → `.si`, `.en`), `el` dobi razred `z-imeni`. Klik, `aria-label` in `data-kazalo` sta pri obeh enaka.
+- `shared/base.css` (pribl. 15 vrstic): nova pravila `.kazalo-tehnik.z-imeni` (stolpci), `.kazalo-vrstica`,
+  `.kazalo-imena`; obstoječi pravili `.kazalo-tehnik` in `.kazalo-tehnik button.tag` ostaneta (okno Pomoč).
+- **Uporabniki:** meni treninga kliče `izrisiKazaloTehnik(kazaloEl, …, { imena: true })`; `shared/pomoc.js` (okno Pomoč
+  vseh treh) se ne spremeni – kliče brez možnosti in bere iz `kazaloTehnik()` samo `ime` in `kljuc`. Igra in
+  reševalec: nič (samo okno Pomoč, enako).
+- **Ni v skupni kodi:** razred `zadnja`, njegov slog in ključ `sudoku.trening.zadnja` (`trening/trening.js`,
+  `trening/trening.css`).
+
+**Slike** (prototip; 375 px v dvojni ločljivosti):
+
+- `docs/slike/naloga6b/2b-kazalo-375.png` – zdaj ob odprtju strani · predlog ob odprtju strani · predlog: vse kazalo
+  po ponovnem odprtju strani (vrstica 11 obrobljena) · predlog po »Nazaj na izbiro« iz 11 (kartica z okvirjem).
+- `docs/slike/naloga6b/2b-kazalo-1280.png` – zdaj ob odprtju strani · predlog po ponovnem odprtju strani (dva stolpca,
+  vrstica 11 obrobljena) · predlog po »Nazaj na izbiro« iz 11 (turkizna kartica 10 – poudarek pod miško ob kliku).
+
+![Kazalo tehnik kot seznam, 375 px](slike/naloga6b/2b-kazalo-375.png)
+
+![Kazalo tehnik kot seznam, 1280 px](slike/naloga6b/2b-kazalo-1280.png)
 
 ## 3. Korak c – reševalec: filter korakov in »↑«
 
@@ -216,8 +299,9 @@ meritve »predlog« in posnetki v `docs/slike/naloga6b/` (dvojna ločljivost pri
 
 - **Okrogel »↑«:** `ustvariNaVrh()` in `naVrhViden()` iz `shared/navigacija.js`, slog `button.na-vrh` iz
   `shared/base.css` – v reševalcu en klic, funkcija in slog ostaneta enaka (pri O11 C bi dobila neobvezen parameter).
-- **Kazalo tehnik:** obstoječi gumbi kazala v meniju treninga (`data-kazalo`) dobijo pri b) samo razred `zadnja`;
-  `izrisiKazaloTehnik()` ostane enaka. Pri O7 B bi jo razširil z neobveznim seznamom postavk (ne kopija).
+- **Kazalo tehnik:** pri b) `izrisiKazaloTehnik()` dobi neobvezno možnost `{ imena: true }` (2.5), `kazaloTehnik()` polji
+  `slovensko` in `anglesko` iz `imeTehnike()` in `TEHNIKE_OPISI`; vrstica v meniju dobi razred `zadnja`. Pri O7 B bi
+  funkcija dobila še neobvezen seznam postavk (ne kopija).
 - **Vrstica gumbov:** zgornja vrstica vaje uporabi isto pravilo CSS kot spodnja `.dno-vaje`; gumb ima razred `back-btn`.
 - **Imena, vrstni red, štetje:** `imeTehnike()`, `redTehnike()`, `TRENING_ENOJCKA` (katere tehnike so enojčki) in ena
   funkcija štetja za povzetek in okence.
@@ -227,8 +311,9 @@ meritve »predlog« in posnetki v `docs/slike/naloga6b/` (dvojna ločljivost pri
 
 - **Igra:** nič. Posnetek igre (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`) mora biti
   brez razlik.
-- **Skupna koda:** `shared/navigacija.js` in `shared/base.css` se pri priporočenih možnostih ne spremenita – meni
-  treninga in okno Pomoč vseh treh ostanejo enaki. Pri O7 B ali O11 C se `shared/navigacija.js` spremeni (neobvezen
+- **Skupna koda:** pri b) se `shared/navigacija.js` in `shared/base.css` spremenita (možnost `{ imena: true }`, nova
+  pravila – 2.5); okno Pomoč vseh treh ostane enako (kliče brez možnosti) – potrdi scenarij
+  `tools/preveri-navigacija-brskalnik.js` (korak 3) in primerjava izračunanih slogov okna Pomoč z izhodiščem. Pri O7 B ali O11 C se `shared/navigacija.js` spremeni (neobvezen
   parameter); takrat scenarij `tools/preveri-navigacija-brskalnik.js` potrdi, da sta meni in Pomoč enaka.
 - **Trening ↔ reševalec:** nič skupnega razen zgornjega. Nov ključ `sudoku.trening.zadnja` (O6 B) bere in piše samo
   trening; igra in reševalec ga ne poznata.
@@ -255,10 +340,15 @@ nadomestni DOM nima `querySelector`; razporeditev preveri brskalnik.
    izbiro« vrne na isto mesto), prekinjeno iskanje »Iščem vajo …«; stavek v Pomoči (testi besedil). Brskalnik: 320,
    375, 1280 px – gumba v eni vrstici, enako visoka, brez preliva; vseh 15 tehnik v obeh smereh s pravim dotikom/klikom;
    `preveri-navigacija-brskalnik.js` (zgornji in spodnji »Nazaj«) in posnetek igre brez razlik.
-2. **b) Okvir kartice** (O4–O6). Test: po vrnitvi natanko ena kartica in ena oznaka kazala z `zadnja`, nova tehnika ga
-   premakne; O6 B – zapis ob začetku kroga, branje ob nalaganju (shramba nadomestnega DOM-a med dvema nalaganjema),
-   neznan ključ in shramba, ki vrže napako. Brskalnik: izračunana barva in širina okvirja, kontrast vsaj 3 : 1, višine
-   kartic enake, okvir se loči od poudarka pod miško, ponovno odprta stran (O6 B), brez preliva; `CLAUDE.md` – ključ.
+2. **b) Okvir kartice in kazalo s seznamom** (O4–O6, O12, O13). Test: kazalo z imeni – 15 vrstic v vrstnem redu
+   kartic, oznaka in razred ravni, slovensko ime = `imeTehnike(…, { anglesko: false })`, angleško = `TEHNIKE_OPISI[].anglesko`,
+   `aria-label`, klik vaje ne začne; brez možnosti enako kot prej (okno Pomoč); obstoječi test kazala v
+   `tests/trening-meni.test.js` (napis gumba = oznaka, `title`) se za meni treninga namerno spremeni. Po vrnitvi natanko
+   ena kartica in ena vrstica kazala z `zadnja`, nova tehnika ga premakne; O6 B – zapis ob začetku kroga, branje ob nalaganju (shramba nadomestnega DOM-a med dvema nalaganjema),
+   neznan ključ in shramba, ki vrže napako. Brskalnik: 320, 375, 1280 px – stolpci (1, 1, 2), vrstni red po
+   stolpcih, nobeno ime odrezano ali prelomljeno, brez preliva, pravi dotik/klik vsake vrstice → kartica; okno Pomoč enako
+   izhodišču; izračunana barva in širina okvirja, kontrast vsaj 3 : 1, višine kartic enake, okvir se loči od poudarka pod
+   miško, ponovno odprta stran (O6 B), brez preliva; `CLAUDE.md` – ključ.
 3. **c) Filter in »↑«** (O7–O11) **in zaključek naloge.** Test (nov `tests/resevalec-koraki.test.js`): možnosti iz
    dnevnika P_14, P_1 (brez »Brez enojčkov«) in P_16 (poskus), število in vrstni red, štetje enako povzetku; filter
    skrije korake z izvirnimi številkami, števec in »Počisti kljukice« za vse; O9, O10 (Skrij/Pokaži, »Reši« z istimi
@@ -276,7 +366,7 @@ nadomestni DOM nima `querySelector`; razporeditev preveri brskalnik.
    in ga pravi prst ne zadene pomotoma.
 2. **Trening, telefon in monitor:** vrnitev iz vaje; nato zapri zavihek in trening odpri znova. Pričakovano: kartica
    zadnje tehnike z modrim okvirjem, na monitorju jasno drugačna od poudarka pod miško; po ponovnem odprtju obrobljena
-   oznaka v kazalu. *Zakaj ročno:* presoja vidnosti barve; pravo zapiranje brskalnika na telefonu.
+   vrstica v kazalu; kazalo na telefonu v enem stolpcu, na monitorju v dveh, imena berljiva in cela. *Zakaj ročno:* presoja vidnosti barve; pravo zapiranje brskalnika na telefonu.
 3. **Reševalec, telefon:** primer P_14, »Reši«, »Pokaži korake reševanja«, v okencu »Brez enojčkov«. Pričakovano:
    izbirnik sistema z vsemi možnostmi, nato samo koraki 21., 22., … *Zakaj ročno:* izbirnika sistema brskalnik brez
    glave ne pokaže.
@@ -285,7 +375,8 @@ nadomestni DOM nima `querySelector`; razporeditev preveri brskalnik.
 
 ## 9. Odločitve (čaka potrditev)
 
-Priporočilo: **O1 A, O2 A, O3 A, O4 A, O5 A, O6 B, O7 A, O8 A, O9 A, O10 A, O11 A.**
+Priporočilo: **O1 A, O2 A, O3 A, O4 A, O5 A, O6 B, O7 A, O8 A, O9 A, O10 A, O11 A**; dopolnitev b: **O12 A, O13 A**.
+Potrjeno 2026-10-11: O1, O2, O3 = A.
 
 Ročni pregled je en sam, po koraku 3, največ 5 točk; po korakih 1 in 2 ga ni.
 
