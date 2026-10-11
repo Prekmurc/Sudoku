@@ -151,7 +151,7 @@ je visoka 3.586 px pri 375 px in 3.221 px pri 1280 px.
 **Predlog** (prototip – kopija aplikacij v začasni mapi, meritve v brskalniku brez glave kot zgoraj):
 
 - **Postavka** je gumb čez vso širino stolpca (`.kazalo-vrstica`, 44 px visok): levo oznaka v barvi ravni (isti razred
-  `.tag.t-*` in iste mere 36 × 32 px kot zdaj), desno dve vrstici – slovensko ime (14 px, polkrepko, `--ink`) in
+  `.tag.t-*` in iste mere 36 × 32 px kot zdaj), desno dve vrstici – slovensko ime (14 px, krepko – potrditev 2026-10-11, prototip je imel polkrepko, `--ink`) in
   angleško ime (12,5 px, `--ink2`, kontrast 9,35 : 1 na beli). Klik kot zdaj: pomakne do kartice (12 px pod vrh okna),
   vaje ne začne, fokus na »Spoznaj«. Pod miško siva obroba `--line` in podlaga kartice. Imeni sta vidni, zato `title`
   odpade; `aria-label` ostane »E1 · Očitni enojček (Naked Single)« iz `imeTehnike()`.
@@ -428,3 +428,25 @@ Izmerjeno pri 320 px v »Spoznaj«: »Nazaj« 16–163 × 39 px, »↔ Vadi v ug
 uganki« ena vrstica, razmik 39 px; pri 375 in 1280 px enako kot pred popravkom. Scenarij vse drži (418 preverjanj);
 `tools/preveri-navigacija-brskalnik.js --izhodisce HEAD` (vsi koraki) vse drži (1539) – brez `--izhodisce` ostane šest
 starih razlik D1 proti privzetemu izhodišču `5f59f09` (korak 1, zgoraj). Posnetek igre: enako, 99 posnetkov.
+
+**Korak 2 – kazalo s seznamom in zadnja tehnika (b), narejen 2026-10-11.** `shared/navigacija.js` – `kazaloTehnik()` s
+poljema `slovensko` in `anglesko`, `izrisiKazaloTehnik(el, obKliku, { imena })` (brez možnosti kot prej); `shared/base.css`
+– `.kazalo-tehnik.z-imeni` (stolpci), `.kazalo-vrstica`, `.kazalo-imena`; `trening/trening.js` – kazalo z `{ imena: true }`,
+`oznaciZadnjo()`, ključ `sudoku.trening.zadnja` (pisanje v `zacniKrog()`, branje ob nalaganju); `trening/trening.css` –
+eno pravilo `.menu-card.zadnja,.kazalo-vrstica.zadnja`; `trening/index.html` – stavek v Pomoči. Testi v
+`tests/trening-meni.test.js` (sedem novih, na stari kodi pade šest – sedmi varuje vrstico oznak brez možnosti; prejšnji
+test oznak v meniju je zamenjan, kot napoveduje načrt), scenarij `tools/preveri-naloga6b-brskalnik.js --korak 2`.
+
+- **Odstopanje od napovedi:** slovensko ime je krepko (700) po potrditvi, prototip je imel polkrepko – najširše ime
+  157 px namesto 154 px. Z višino vrstic imen 1,25 je bila vrstica 45,1 px (kazalo 737 px); nastavil sem 1,2, da je
+  vrstica 44 px kot v napovedi. Izmerjeno potem enako napovedi: kazalo 720 px pri 320 in 375 px, 380 px pri 1280 px;
+  prva kartica na 931 px (375) in 591 px (1280); vrstica 11 ob ponovnem odprtju na 775–819 px (375, pod oknom) in
+  391–435 px (1280, v oknu); kartica 11 po »Nazaj« na 193–370 px (375) in 260–437 px (1280); kontrast okvirja 3,46 : 1
+  na kartici in 3,69 : 1 na beli.
+- `tools/preveri-navigacija-brskalnik.js`, korak 2: pred prilagoditvijo je padlo devet preverjanj (trije na širino) –
+  napis oznake je bil cel napis vrstice, `title` ni več, barva ravni je na oznaki v vrstici, ne na gumbu. Vzrok je
+  namerna sprememba kazala (načrt: »obstoječi test kazala … se za meni treninga namerno spremeni«), zato sem scenarij
+  prilagodil: oznako in barvo bere iz `.tag` v vrstici, ime iz `aria-label`, `title` pričakuje samo brez imen.
+- Scenarij `tools/preveri-naloga6b-brskalnik.js` (koraka 1 in 2): vse drži (527 preverjanj, okno Pomoč vseh treh enako
+  izhodišču `e52f994`); `tools/preveri-navigacija-brskalnik.js --izhodisce e52f994` (vsi koraki): vse drži (1539).
+  Posnetek igre: enako, 99 posnetkov. Testi: vsi (990) gredo.

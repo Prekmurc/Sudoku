@@ -1,15 +1,17 @@
 /* shared/navigacija.js — navigacija po straneh (naloga 4c, docs/navigacija-nacrt.md): kazalo tehnik
-   (meni treninga – O4; okno Pomoč – O2, korak 3), okrogel plavajoč gumb »↑« (meni treninga – O5) in
+   (meni treninga – O4, od naloge 6b seznam z imeni; okno Pomoč – O2, korak 3, vrstica oznak), okrogel plavajoč gumb »↑« (meni treninga – O5) in
    vprašanje pred odhodom po povezavah med aplikacijami (O11, O12; korak 4).
    Logika (seznam kazala, pravilo vidnosti gumba) je v funkcijah brez DOM-a; razporeditev in drsenje
    preverja tools/preveri-navigacija-brskalnik.js. Slogi so v shared/base.css. Naloži se za engine.js. */
 
 // Postavke kazala tehnik: E1, E2, 1–13 v vrstnem redu kartic treninga (TRENING_ENOJCKA, TRENING_TEHNIKE).
 // kljuc = način vaje (data-mode kartice), tehnika = ključ ALL_TECHNIQUES, oznaka = »E1« / »4«,
-// ime = »4 · Skriti par (Hidden Pair)« (namig miške in bralnik zaslona), razred = barva ravni (tagClass()).
+// ime = »4 · Skriti par (Hidden Pair)« (namig miške in bralnik zaslona), razred = barva ravni (tagClass()),
+// slovensko = »Skriti par«, anglesko = »Hidden Pair« (vidni imeni v kazalu z imeni – naloga 6b, korak 2).
 function kazaloTehnik() {
   return [...TRENING_ENOJCKA, ...TRENING_TEHNIKE].map(([kljuc, tehnika]) => ({
     kljuc, tehnika, oznaka: oznakaTehnike(kljuc), ime: imeTehnike(tehnika, { stevilka: true }), razred: tagClass(tehnika),
+    slovensko: imeTehnike(tehnika, { anglesko: false }), anglesko: TEHNIKE_OPISI[kljuc].anglesko,
   }));
 }
 
@@ -20,15 +22,34 @@ function nacinPomika() {
 }
 
 // Kazalo v el (vsebina se zamenja): za vsako postavko gumb z oznako v barvi ravni (.tag.t-*); klik
-// pokliče obKliku(postavka) – kam pomakne, pove aplikacija.
-function izrisiKazaloTehnik(el, obKliku) {
+// pokliče obKliku(postavka) – kam pomakne, pove aplikacija. Z { imena: true } (meni treninga, naloga 6b,
+// docs/naloga6b-nacrt.md, 2.5) je postavka vrstica .kazalo-vrstica: oznaka in pod seboj slovensko in angleško
+// ime (.kazalo-imena .si, .en), el dobi razred z-imeni (stolpci v shared/base.css); imeni sta vidni, zato brez title.
+function izrisiKazaloTehnik(el, obKliku, { imena = false } = {}) {
   el.textContent = '';
+  if (imena) el.classList.add('z-imeni');
   for (const p of kazaloTehnik()) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = `tag ${p.razred}`;
-    b.textContent = p.oznaka;
-    b.title = p.ime;
+    if (imena) {
+      b.className = 'kazalo-vrstica';
+      const oznaka = document.createElement('span');
+      oznaka.className = `tag ${p.razred}`;
+      oznaka.textContent = p.oznaka;
+      const ime = document.createElement('span');
+      ime.className = 'kazalo-imena';
+      for (const [razred, besedilo] of [['si', p.slovensko], ['en', p.anglesko]]) {
+        const s = document.createElement('span');
+        s.className = razred;
+        s.textContent = besedilo;
+        ime.appendChild(s);
+      }
+      b.append(oznaka, ime);
+    } else {
+      b.className = `tag ${p.razred}`;
+      b.textContent = p.oznaka;
+      b.title = p.ime;
+    }
     b.setAttribute('aria-label', p.ime);
     b.dataset.kazalo = p.kljuc;
     b.addEventListener('click', () => obKliku(p));

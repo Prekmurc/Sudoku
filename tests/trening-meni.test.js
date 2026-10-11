@@ -9,7 +9,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadContext } = require('./load-engine.js');
-const { makeDom } = require('./dom-stub.js');
+const { makeDom, Element, omogociIskanje } = require('./dom-stub.js');
 
 const DATOTEKE = ['shared/engine.js', 'shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js',
   'shared/mreza.js', 'shared/plosca.js', 'shared/pomoc.js', 'shared/sheme.js', 'shared/navigacija.js',
@@ -113,32 +113,6 @@ test('kazalo tehnik v HTML: <nav id="kazaloTehnik"> v #menu pred prvo kartico', 
   assert.ok(nav < meni.indexOf('class="menu-card"'), 'pred prvo kartico');
   assert.match(meni.slice(nav, meni.indexOf('>', nav)), /class="kazalo-tehnik"/);
   assert.match(meni.slice(nav, meni.indexOf('>', nav)), /aria-label="Kazalo tehnik"/);
-});
-
-test('kazalo tehnik: 15 oznak v vrstnem redu kartic, razred po ravni, ime v title in aria-label', () => {
-  const dom = makeDom();
-  dom.globals.setTimeout = () => 0;
-  const { run } = loadContext(DATOTEKE, dom.globals);
-  const kartice = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE].map(([m]) => m)');
-  const opisi = run('TEHNIKE_OPISI');
-  const gumbi = dom.el('kazaloTehnik').children;
-  assert.equal(gumbi.length, 15);
-  gumbi.forEach((g, i) => {
-    const o = OZNAKE[i], m = kartice[i];
-    assert.equal(g.tagName, 'BUTTON', o);
-    assert.equal(g.type, 'button', o);
-    assert.equal(g.textContent, o);
-    assert.equal(g.dataset.kazalo, m, `${o}: kartica ${m}`);
-    assert.ok(g.classList.contains('tag') && g.classList.contains(RAZRED(o)), `${o}: ${g.className}`);
-    assert.ok(g.title.startsWith(`${o} · ${opisi[m].ime} (`), `${o}: ${g.title}`);
-    assert.equal(g.getAttribute('aria-label'), g.title, o);
-  });
-  // Seznam brez DOM-a je isti (za kazalo v oknu Pomoč, korak 3).
-  assert.deepEqual([...run('kazaloTehnik().map(p => p.oznaka)')], OZNAKE);
-  // Klik oznake vaje ne začne (pomik do kartice preverja brskalnik).
-  gumbi[8].sprozi('click');
-  assert.equal(run('mode'), null);
-  assert.equal(dom.el('trainer').style.display, undefined);
 });
 
 test('gumb »↑«: skrit na vrhu in v vaji, v meniju viden po enem zaslonu – tudi takoj po »Nazaj na izbiro«', () => {
@@ -324,4 +298,163 @@ test('korak 6b-a: napis po načinu; dotik začne nov krog iste tehnike v drugem 
 test('korak 6b-a: Pomoč treninga omeni gumb drugega načina', () => {
   const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
   assert.ok(html.includes('<p>Krog ima devet vaj. Zgoraj je rezultat, na koncu kroga povzetek; z <b>Nazaj na izbiro</b> izbereš drugo tehniko, z <b>↔ Vadi v uganki</b> oziroma <b>↔ Spoznaj</b> desno ob njem pa začneš nov krog iste tehnike v drugem načinu.</p>'));
+});
+
+// Naloga 6b, korak 2 (O4 A, O5 A, O6 B, O12 A, O13 A in razdelek 2.5 v docs/naloga6b-nacrt.md): kazalo tehnik v meniju je
+// seznam – vrstica z oznako v barvi ravni ter slovenskim in angleškim imenom (izrisiKazaloTehnik(…, { imena: true })).
+// Kartica in vrstica tehnike, ki si jo nazadnje vadil, imata razred `zadnja` (moder okvir); postavi ga začetek kroga,
+// zapomni si ga ključ sudoku.trening.zadnja. Stolpce, okvir in razporeditev preverja
+// tools/preveri-naloga6b-brskalnik.js --korak 2. Okno Pomoč kliče brez možnosti – vrstica oznak ostane (pomoc.test.js).
+const ZADNJA_KLJUC = 'sudoku.trening.zadnja';
+const elementi = (el, out = []) => { for (const c of el.children || []) { out.push(c); elementi(c, out); } return out; };
+// Meni s 15 karticami (nadomestni DOM jih sicer nima) – za razred `zadnja` na kartici.
+function domSKarticami(shramba) {
+  const dom = makeDom(shramba);
+  dom.globals.setTimeout = () => 0;
+  const meni = dom.el('menu');
+  for (const m of ['naked-single', 'hidden-single', 'pointing', 'box-line', 'naked-pair', 'hidden-pair', 'naked-triple',
+    'hidden-triple', 'x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle', 'xy-chain']) {
+    const k = new Element('div');
+    k.className = 'menu-card';
+    k.dataset.mode = m;
+    meni.appendChild(k);
+  }
+  omogociIskanje(meni);
+  return dom;
+}
+const zadnjeKartice = dom => dom.el('menu').children.filter(k => k.classList.contains('menu-card') && k.classList.contains('zadnja')).map(k => k.dataset.mode);
+const zadnjeVrstice = dom => dom.el('kazaloTehnik').children.filter(v => v.classList.contains('zadnja')).map(v => v.dataset.kazalo);
+
+test('korak 6b-b: kazaloTehnik() ima še slovensko ime (imeTehnike brez angleškega) in angleško (TEHNIKE_OPISI)', () => {
+  const { run } = loadContext(DATOTEKE, makeDom().globals);
+  const postavke = run('kazaloTehnik()');
+  const opisi = run('TEHNIKE_OPISI');
+  assert.deepEqual(Array.from(postavke, p => p.oznaka), OZNAKE);
+  for (const p of postavke) {
+    assert.equal(p.slovensko, run('imeTehnike')(p.tehnika, { anglesko: false }), p.oznaka);
+    assert.equal(p.slovensko, opisi[p.kljuc].ime, p.oznaka);
+    assert.equal(p.anglesko, opisi[p.kljuc].anglesko, p.oznaka);
+    assert.equal(p.ime, `${p.oznaka} · ${p.slovensko} (${p.anglesko})`, 'obstoječe polje ostane');
+  }
+});
+
+test('korak 6b-b: izrisiKazaloTehnik() brez možnosti – vrstica oznak kot prej (okno Pomoč)', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const el = new Element('nav');
+  el.className = 'kazalo-tehnik';
+  const klik = [];
+  run('izrisiKazaloTehnik')(el, p => klik.push(p.kljuc));
+  assert.equal(el.className, 'kazalo-tehnik', 'brez razreda z-imeni');
+  assert.deepEqual(el.children.map(b => b.textContent), OZNAKE);
+  el.children.forEach((b, i) => {
+    assert.equal(b.className, `tag ${RAZRED(OZNAKE[i])}`);
+    assert.equal(b.children.length, 0, 'samo oznaka');
+    assert.equal(b.title, b.getAttribute('aria-label'));
+  });
+  el.children[3].sprozi('click');
+  assert.deepEqual(klik, ['box-line']);
+});
+
+test('korak 6b-b: kazalo v meniju – 15 vrstic z oznako, slovenskim in angleškim imenom, aria-label, klik vaje ne začne', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0;
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const kartice = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]');
+  const opisi = run('TEHNIKE_OPISI');
+  const nav = dom.el('kazaloTehnik');
+  assert.ok(nav.classList.contains('z-imeni'), 'nav ima razred z-imeni');
+  assert.equal(nav.children.length, 15);
+  nav.children.forEach((v, i) => {
+    const o = OZNAKE[i], [m, t] = kartice[i];
+    assert.equal(v.tagName, 'BUTTON', o);
+    assert.equal(v.type, 'button', o);
+    assert.equal(v.className, 'kazalo-vrstica', o);
+    assert.equal(v.dataset.kazalo, m, `${o}: kartica ${m}`);
+    const [oznaka, imena] = v.children;
+    assert.equal(oznaka.tagName, 'SPAN');
+    assert.equal(oznaka.className, `tag ${RAZRED(o)}`, `${o}: oznaka v barvi ravni`);
+    assert.equal(oznaka.textContent, o);
+    assert.equal(imena.className, 'kazalo-imena');
+    assert.deepEqual(imena.children.map(e => [e.tagName, e.className, e.textContent]),
+      [['SPAN', 'si', run('imeTehnike')(t, { anglesko: false })], ['SPAN', 'en', opisi[m].anglesko]], o);
+    assert.equal(v.title, '', `${o}: imeni sta vidni – brez title`);
+    assert.equal(v.getAttribute('aria-label'), run('imeTehnike')(t, { stevilka: true }), o);
+  });
+  nav.children[12].sprozi('click');
+  assert.equal(run('mode'), null, 'klik vaje ne začne');
+  assert.equal(dom.el('trainer').style.display, undefined);
+});
+
+test('korak 6b-b: zadnja tehnika – ob začetku kroga natanko ena kartica in ena vrstica kazala z `zadnja`, nova tehnika ga premakne', () => {
+  const dom = domSKarticami();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  assert.deepEqual(zadnjeKartice(dom), [], 'ob prvem odprtju brez oznake');
+  assert.deepEqual(zadnjeVrstice(dom), []);
+  run('zacniKrog("xy-wing", "spoznaj")');
+  dom.klikni('backBtn');
+  assert.deepEqual(zadnjeKartice(dom), ['xy-wing']);
+  assert.deepEqual(zadnjeVrstice(dom), ['xy-wing']);
+  const vrstica = m => dom.el('kazaloTehnik').children.find(v => v.dataset.kazalo === m);
+  assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing, Y-Wing) – nazadnje vadena');
+  // Drugi način iste tehnike – ostane; druga tehnika (tudi »Vadi v uganki«) – premakne se.
+  run('zacniKrog("xy-wing", "spoznaj")');
+  dom.klikni('drugiNacin');
+  assert.deepEqual(zadnjeVrstice(dom), ['xy-wing']);
+  dom.klikni('backBtnDno');
+  run('zacniKrog("hidden-single", "uganka")');
+  assert.deepEqual(zadnjeKartice(dom), ['hidden-single']);
+  assert.deepEqual(zadnjeVrstice(dom), ['hidden-single']);
+  assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing, Y-Wing)', 'pripis odstranjen');
+  assert.equal(vrstica('hidden-single').getAttribute('aria-label'), 'E2 · Skriti enojček (Hidden Single) – nazadnje vadena');
+  // Klik v kazalu ali premik po meniju oznake ne spremeni (O5 A).
+  dom.klikni('backBtn');
+  vrstica('x-wing').sprozi('click');
+  assert.deepEqual(zadnjeVrstice(dom), ['hidden-single']);
+});
+
+test('korak 6b-b: zadnja tehnika po ponovnem odprtju strani (O6 B) – ključ sudoku.trening.zadnja', () => {
+  const dom = domSKarticami();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  assert.equal(dom.shramba.has(ZADNJA_KLJUC), false, 'ob nalaganju se nič ne zapiše');
+  run('zacniKrog("unique-rectangle", "uganka")');
+  assert.equal(dom.shramba.get(ZADNJA_KLJUC), 'unique-rectangle', 'zapis ob začetku kroga');
+  // Ponovno nalaganje z isto shrambo.
+  const dom2 = domSKarticami(dom.shramba);
+  const ctx2 = loadContext(DATOTEKE, dom2.globals);
+  assert.deepEqual(zadnjeKartice(dom2), ['unique-rectangle']);
+  assert.deepEqual(zadnjeVrstice(dom2), ['unique-rectangle']);
+  assert.equal(ctx2.run('mode'), null, 'stran se odpre v meniju');
+  // Neznan ključ – nič, brez napake; nov krog ga prepiše.
+  const dom3 = domSKarticami(new Map([[ZADNJA_KLJUC, 'neznana-tehnika']]));
+  const ctx3 = loadContext(DATOTEKE, dom3.globals);
+  assert.deepEqual(zadnjeKartice(dom3), []);
+  assert.deepEqual(zadnjeVrstice(dom3), []);
+  ctx3.run('zacniKrog("x-wing", "spoznaj")');
+  assert.equal(dom3.shramba.get(ZADNJA_KLJUC), 'x-wing');
+});
+
+test('korak 6b-b: nedosegljiva shramba (getItem in setItem vržeta napako) – stran deluje, oznaka do zaprtja strani', () => {
+  const dom = domSKarticami();
+  dom.globals.localStorage = { getItem() { throw new Error('ni dostopa'); }, setItem() { throw new Error('ni dostopa'); }, removeItem() {} };
+  if (dom.globals.window) dom.globals.window.localStorage = dom.globals.localStorage;
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  assert.deepEqual(zadnjeVrstice(dom), []);
+  run('zacniKrog("swordfish", "spoznaj")');
+  assert.equal(run('mode'), 'swordfish', 'krog se začne');
+  dom.klikni('backBtn');
+  assert.deepEqual(zadnjeKartice(dom), ['swordfish']);
+  assert.deepEqual(zadnjeVrstice(dom), ['swordfish']);
+});
+
+test('korak 6b-b: slog – en okvir `zadnja` za kartico in vrstico (--izbira), stolpci kazala z imeni; Pomoč treninga', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'trening', 'trening.css'), 'utf8');
+  assert.match(css, /\.menu-card\.zadnja,\.kazalo-vrstica\.zadnja\{border-color:var\(--izbira\);box-shadow:0 0 0 1px var\(--izbira\)\}/);
+  assert.ok(css.indexOf('.menu-card.zadnja') > css.indexOf('.menu-card:hover'), 'za poudarkom pod miško – okvir ostane moder');
+  const base = fs.readFileSync(path.join(__dirname, '..', 'shared', 'base.css'), 'utf8');
+  assert.match(base, /\.kazalo-tehnik\.z-imeni \{[^}]*columns: 230px;/);
+  assert.match(base, /\.kazalo-tehnik button\.tag \{/, 'pravilo oznak okna Pomoč ostane');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  assert.ok(html.includes('<p>Kartica tehnike, ki si jo nazadnje vadil, in njena vrstica v kazalu tehnik imata moder okvir – tudi ko stran znova odpreš.</p>'));
 });

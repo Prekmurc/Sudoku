@@ -110,6 +110,8 @@ function zacniKrog(m,n){
   mode=m;nacin=n;exNum=0;preveriKrog=false;scoreRight=0;scoreTotal=0;sPomocjo=0;vecHkratiKrog=false;senciKrog=false;precrtaniKrog=false;vecCelicKrog=null;izbrisVecCelicKrog=null;razlagaKrog=false;shemaKrog=shemaPrivzetoOdprta(m,n);
   updateScore();menuEl.style.display='none';trainerEl.style.display='block';naVrh.osvezi();
   document.getElementById('drugiNacin').textContent=napisDrugegaNacina(n);
+  oznaciZadnjo(m);
+  try{localStorage.setItem(ZADNJA_KLJUC,m);}catch(e){}
   renderExercise();
   window.scrollTo(0,0);
 }
@@ -126,7 +128,8 @@ document.querySelectorAll('.menu-card').forEach(card=>{
 });
 // Kazalo tehnik nad prvo kartico (naloga 4c, O4 v docs/navigacija-nacrt.md; shared/navigacija.js): klik
 // pomakne do kartice (12 px pod vrh okna; kartica blizu dna – stran do konca), vaje ne začne; fokus gre na
-// »Spoznaj« te kartice. Gumb »↑« (O5): samo v meniju, po enem zaslonu drsenja; klik na vrh, fokus na kazalo.
+// »Spoznaj« te kartice. Od naloge 6b (2.5 v docs/naloga6b-nacrt.md) seznam z imeni – vrstica z oznako ter
+// slovenskim in angleškim imenom. Gumb »↑« (O5): samo v meniju, po enem zaslonu drsenja; klik na vrh, fokus na kazalo.
 const kazaloEl=document.getElementById('kazaloTehnik');
 izrisiKazaloTehnik(kazaloEl,p=>{
   const card=menuEl.querySelector(`.menu-card[data-mode="${p.kljuc}"]`);
@@ -134,7 +137,21 @@ izrisiKazaloTehnik(kazaloEl,p=>{
   window.scrollTo({top:Math.max(0,card.getBoundingClientRect().top+window.scrollY-12),behavior:nacinPomika()});
   const b=card.querySelector('.nacin-btn');
   if(b)b.focus({preventScroll:true});
-});
+},{imena:true});
+// Zadnja tehnika (naloga 6b, korak 2, O4–O6): kartica in vrstica kazala tehnike, ki si jo nazadnje vadil, imata
+// razred zadnja (moder okvir, trening.css), vrstica še pripis v aria-label. Postavi ga začetek kroga (zacniKrog()),
+// ostane, dokler ne začneš druge tehnike; zapomni si ga ključ sudoku.trening.zadnja (način vaje, npr. xy-wing), ki ga
+// prebere nalaganje strani – neznan način ali nedosegljiva shramba: nič.
+const ZADNJA_KLJUC='sudoku.trening.zadnja';
+function oznaciZadnjo(m){
+  for(const card of menuEl.querySelectorAll('.menu-card'))card.classList.toggle('zadnja',card.dataset.mode===m);
+  for(const v of kazaloEl.children){
+    const z=v.dataset.kazalo===m;
+    v.classList.toggle('zadnja',z);
+    v.setAttribute('aria-label',imeTehnike(TEHNIKA_VAJE[v.dataset.kazalo],{stevilka:true})+(z?' – nazadnje vadena':''));
+  }
+}
+try{const m=localStorage.getItem(ZADNJA_KLJUC);if(m&&TEHNIKA_VAJE[m])oznaciZadnjo(m);}catch(e){}
 const naVrh=ustvariNaVrh(()=>menuEl.style.display!=='none',()=>{
   const b=kazaloEl.querySelector('button');
   if(b)b.focus({preventScroll:true});

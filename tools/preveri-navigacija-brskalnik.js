@@ -14,7 +14,8 @@
 //
 // Korak 2 (O4, O5, D3) – meni treninga pri 320, 375 (posnemanje telefona, pravi dotik) in 1280 px (miška):
 //   - kazalo tehnik: 15 oznak E1 … 13 v vrstnem redu kartic, pod glavo in nad prvo kartico, v širini menija,
-//     brez preliva, ime v title in aria-label, barve = značka ravni na kartici, oznake vsaj 32 px visoke
+//     brez preliva, ime v aria-label (od naloge 6b je kazalo seznam z vidnimi imeni – oznaka in barva sta na .tag
+//     v vrstici, title ni), barve = značka ravni na kartici, oznake vsaj 32 px visoke
 //     (D3 – mere izpiše na koncu); pravi dotik/klik vsake oznake: kartica 12 px pod vrhom okna (ali stran do
 //     konca), vaja se ne začne, fokus na »Spoznaj«; pri prefers-reduced-motion pomik takoj;
 //   - gumb »↑«: na vrhu in po natanko enem zaslonu skrit, po pravem drsenju (poteg prsta / kolesce) viden,
@@ -224,8 +225,10 @@ const KAZALO = `(() => {
   const kartice = [...document.querySelectorAll('#menu .menu-card')];
   const meni = document.getElementById('menu').getBoundingClientRect(), r = nav.getBoundingClientRect();
   const pr = g => g.getBoundingClientRect();
+  // Od naloge 6b (seznam z imeni) je oznaka .tag v vrstici; brez imen je gumb sam .tag.
+  const tag = g => g.querySelector('.tag') || g;
   return {
-    oznake: gumbi.map(g => g.textContent), kljuci: gumbi.map(g => g.dataset.kazalo), kartice: kartice.map(k => k.dataset.mode),
+    oznake: gumbi.map(g => tag(g).textContent), zImeni: nav.classList.contains('z-imeni'), kljuci: gumbi.map(g => g.dataset.kazalo), kartice: kartice.map(k => k.dataset.mode),
     naslovi: gumbi.map(g => g.title), aria: gumbi.map(g => g.getAttribute('aria-label')), tip: gumbi.map(g => g.type),
     visine: gumbi.map(g => pr(g).height), sirine: gumbi.map(g => pr(g).width),
     navVisina: r.height, navDno: r.bottom + y, prvaVrh: kartice[0].getBoundingClientRect().top + y,
@@ -234,8 +237,8 @@ const KAZALO = `(() => {
     vrstice: new Set(gumbi.map(g => Math.round(pr(g).top))).size,
     preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     pisava: getComputedStyle(gumbi[0]).fontSize + ' ' + getComputedStyle(gumbi[0]).fontFamily.split(',')[0],
-    barve: gumbi.map(g => { const s = getComputedStyle(g), z = getComputedStyle(document.querySelector('.menu-card[data-mode="' + g.dataset.kazalo + '"] .badge'));
-      return { oznaka: g.textContent, bg: s.backgroundColor, c: s.color, zbg: z.backgroundColor, zc: z.color }; }),
+    barve: gumbi.map(g => { const s = getComputedStyle(tag(g)), z = getComputedStyle(document.querySelector('.menu-card[data-mode="' + g.dataset.kazalo + '"] .badge'));
+      return { oznaka: tag(g).textContent, bg: s.backgroundColor, c: s.color, zbg: z.backgroundColor, zc: z.color }; }),
   };
 })()`;
 
@@ -286,8 +289,8 @@ async function korak2(b, sirina) {
   const k = await b.izvedi(KAZALO);
   preveri('kazalo: 15 oznak E1 … 13', JSON.stringify(k.oznake) === JSON.stringify(OZN), k.oznake);
   preveri('kazalo: v vrstnem redu kartic', JSON.stringify(k.kljuci) === JSON.stringify(k.kartice), { kljuci: k.kljuci, kartice: k.kartice });
-  preveri('kazalo: gumbi (type=button), ime v title in aria-label (»4 · Skriti par (Hidden Pair)«)',
-    k.tip.every(t => t === 'button') && k.naslovi.every((t, i) => t.startsWith(OZN[i] + ' · ') && t.includes('(') && k.aria[i] === t), k.naslovi);
+  preveri(`kazalo: gumbi (type=button), ime v aria-label (»4 · Skriti par (Hidden Pair)«)${k.zImeni ? ', imena vidna – brez title' : ' in title'}`,
+    k.tip.every(t => t === 'button') && k.aria.every((t, i) => t.startsWith(OZN[i] + ' · ') && t.includes('(') && k.naslovi[i] === (k.zImeni ? '' : t)), k.aria);
   preveri(`kazalo: pod glavo, nad prvo kartico (dno ${Math.round(k.navDno)} ≤ kartica ${Math.round(k.prvaVrh)})`,
     k.navDno <= k.prvaVrh && k.navDno - k.navVisina >= k.glavaDno, k);
   preveri('kazalo: v širini menija, stran brez vodoravnega preliva', k.vMeniju && !k.preliv, k);
