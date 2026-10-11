@@ -153,7 +153,7 @@ async function igraStikalo(b, sirina) {
       opomba: op ? op.querySelector('p').textContent : '', gumbVKartici: !!g && g.left >= kartica.left && g.right <= kartica.right && g.width > 0 }; })()`);
   preveri('tretja stopnja: kandidati samo v celicah vzorca in izbrisov',
     K.stopnja === 3 && JSON.stringify(K.zKand) === JSON.stringify([...K.vKoraku].sort((a, b) => a - b)), K);
-  preveri('kandidat za izbris rdeč in prečrtan', K.izbrisBarva === 'rgb(178, 58, 46)' && K.izbrisCrta.includes('line-through'), [K.izbrisBarva, K.izbrisCrta]);
+  preveri('kandidat za izbris prečrtan (od naloge 6 temna števka, rdeča črta)', K.izbrisBarva === 'rgb(36, 48, 61)' && K.izbrisCrta.includes('line-through'), [K.izbrisBarva, K.izbrisCrta]);
   preveri('opomba z gumbom »Vklopi kandidate« v kartici',
     K.opomba === 'Kandidati so skriti: izbrise izvedeš, ko jih vklopiš – dotlej »Naslednji korak« najde isti korak.' && K.gumbVKartici, K.opomba);
   preveri('korak: brez vodoravnega preliva', !(await stanjeIgreStrani(b)).preliv);

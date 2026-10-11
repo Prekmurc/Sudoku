@@ -122,7 +122,7 @@
   font-weight:700;
 }
 /* prikazan korak (Naslednji korak): celice vzorca jantarno, celice z
-   izbrisom rdečkasto, kandidat za izbris rdeč prečrtan, števka za vpis zelena
+   izbrisom rdečkasto, kandidat za izbris temen z rdečo črto, števka za vpis zelena
    - kot na mini mreži v reševalcu; ima prednost pred sivino izbire */
 .celica.k-vzorec{ background: var(--k-vzorec-bg); }
 .celica.k-izbris{ background: var(--k-izbris-bg); }
@@ -149,11 +149,12 @@
   color:#fff;
   font-weight:700;
 }
+/* kandidat za izbris: temna krepka števka z rdečo črto 2 px - kot prečrtana črka v shemah (naloga 6,
+   popravek po ročnem pregledu: rdeča števka je imela na podlagi izbrisa samo 3,34 : 1) */
 .kand.k-izbris{
-  color: var(--red);
+  color: var(--ink);
   font-weight:700;
-  text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
+  text-decoration: line-through var(--red) 2px;
 }
 /* predlog vpisa (pogled.predlog - trening »Vadi v uganki«, E1/E2): vijolična poševna
    števka s črtkanim okvirjem - ni poteza, zato ni modra kot vpisi */
@@ -196,7 +197,7 @@
   z-index:2;
 }
 /* kandidat, ki ga ni več (pogled.precrtani - trening »Vadi v uganki«): sivo prečrtan;
-   izbris prikazanega koraka (k-izbris) ostane rdeč */
+   izbris prikazanega koraka (k-izbris) ostane temen z rdečo črto */
 .kand.precrtan:not(.k-izbris){
   color:#A9B2BC;
   text-decoration: line-through;

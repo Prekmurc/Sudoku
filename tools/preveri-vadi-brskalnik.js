@@ -277,7 +277,7 @@ async function odgovor1do12(b, sirina) {
   const leg = await b.izvedi(`(() => { const l = document.querySelector('.fb .legenda-vaje'); return l ? { besedilo: l.textContent, visina: l.getBoundingClientRect().height } : null; })()`);
   preveri('legenda: celice vzorca, izbrisani kandidati', leg && leg.visina > 0 && /celice vzorca.*izbrisani kandidati$/.test(leg.besedilo), leg);
   preveri('Razveljavi/Ponovi/Začni znova skriti', p.akcije === 0, p.akcije);
-  preveri('izbrisi koraka rdeče prečrtani', p.kIzbris === 'kand precrtan k-izbris' && p.barva === 'rgb(178, 58, 46)' && p.crta === 'line-through', p);
+  preveri('izbrisi koraka prečrtani (od naloge 6 temna števka, rdeča črta)', p.kIzbris === 'kand precrtan k-izbris' && p.barva === 'rgb(36, 48, 61)' && p.crta === 'line-through', p);
   preveri('vzorec koraka jantarno, brez zelene obrobe', p.vzorec && p.obroba === 'none', p);
   preveri('brez drsnika', p.sirina === sirina, p.sirina);
   await b.posnetek(path.join(mapa, `hidden-pair-pravilno-${sirina}.png`));
@@ -307,7 +307,7 @@ async function pomoc1do12(b, sirina) {
   p = await b.izvedi(`(() => { const o = document.querySelector('.vadi-pomoc'), k = document.querySelector('.vaja-uganka .kand.k-izbris');
     return { besedilo: o.textContent, izbris: k ? getComputedStyle(k).color : null, vzorec: document.querySelectorAll('.vaja-uganka .celica.k-vzorec').length,
       sirina: document.documentElement.scrollWidth, vKartici: o.getBoundingClientRect().right <= document.querySelector('.exercise').getBoundingClientRect().right }; })()`);
-  preveri('Rešitev: sporočilo koraka in oznake na mreži', p.besedilo.startsWith('Rešitev: ') && p.izbris === 'rgb(178, 58, 46)' && p.vzorec > 0, p);
+  preveri('Rešitev: sporočilo koraka in oznake na mreži', p.besedilo.startsWith('Rešitev: ') && p.izbris === 'rgb(36, 48, 61)' && p.vzorec > 0, p); // od naloge 6 (popravek po ročnem pregledu) temna števka, rdeča črta 2 px
   preveri('Rešitev: opravljeni izbris v seznamu', /Opravljeno: \d+ od \d+/.test(p.besedilo) || /Korak je izveden/.test(p.besedilo), p.besedilo);
   preveri('pomoč v kartici, brez drsnika', p.vKartici && p.sirina === sirina, p);
   await b.posnetek(path.join(mapa, `hidden-pair-resitev-${sirina}.png`));
@@ -683,13 +683,13 @@ async function oznakeSpoznajRazredi(b) {
     const r = Object.fromEntries([...o.children].map(c => [c.className, [getComputedStyle(c).backgroundColor, ...[...c.children].map(s => getComputedStyle(s).color)].join(' / ')]));
     o.remove(); return r; })()`);
   const pricakovano = {
-    'gc peek-hl': `${VZOREC_BG} / rgb(74, 85, 97) / rgb(178, 58, 46) / rgb(138, 47, 122)`,
+    'gc peek-hl': `${VZOREC_BG} / rgb(74, 85, 97) / rgb(36, 48, 61) / rgb(138, 47, 122)`,
     'xw-cell peek-hl': VZOREC_BG,
-    'gc peek-elim': `${IZBRIS_BG} / rgb(74, 85, 97) / rgb(178, 58, 46) / rgb(138, 47, 122)`,
+    'gc peek-elim': `${IZBRIS_BG} / rgb(74, 85, 97) / rgb(36, 48, 61) / rgb(138, 47, 122)`,
     'xw-cell peek-elim': IZBRIS_BG,
-    'gc elimcell': `${IZBRIS_BG} / rgb(74, 85, 97) / rgb(178, 58, 46) / rgb(138, 47, 122)`,
+    'gc elimcell': `${IZBRIS_BG} / rgb(74, 85, 97) / rgb(36, 48, 61) / rgb(138, 47, 122)`,
     'xw-cell xw-elim': IZBRIS_BG,
-    'gc correct': 'rgb(220, 238, 229) / rgb(138, 148, 160) / rgb(178, 58, 46) / rgb(138, 47, 122)',
+    'gc correct': 'rgb(220, 238, 229) / rgb(138, 148, 160) / rgb(36, 48, 61) / rgb(138, 47, 122)', // prečrtana (elim) od naloge 6 temna
     'xw-cell xw-correct': 'rgb(220, 238, 229)',
   };
   for (const [r, v] of Object.entries(pricakovano)) {

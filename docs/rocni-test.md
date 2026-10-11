@@ -386,15 +386,21 @@ na telefonu, različica 2026-10-11 11:42, popravkov ni – **naloga 4c je zaklju
 
 Načrt `docs/naloga6-nacrt.md` (razdelek 6). Podlagi vzorca in izbrisa sta v igri in reševalcu zdaj kot v treningu
 (#EFD8A0 / #F0B4AA, korak 1), Escape zapre povečan prikaz v reševalcu (korak 3). Legenda »tvoje oznake« (korak 2) ni
-narejena, zato točke o njej ni. Avtomatsko preverjeno: `tests/css-paleta.test.js`, `tests/app-zbirka.test.js`
-(Escape), `tools/preveri-naloga6-brskalnik.js` (izračunane podlage, kontrasti, pravi Escape pri 375 in 1280 px –
-povečava rešitve in koraka, povečava z oknom pod njo, fokus v polju Niz), `preveri-vadi-`, `-videz-`, `-sheme-`,
-`-veriga-`, `-pomoc-brskalnik.js`, posnetek igre. Escape zato ni na seznamu – scenarij ga preveri s pravimi tipkami.
+narejena, zato točke o njej ni. Točki 1 in 2 sta pregledani 2026-10-11 (različica 2026-10-11 14:02) – en popravek:
+rdeče prečrtana števka je imela na novi rožnati podlagi samo 3,34 : 1, zato je kandidat za izbris pri prikazanem koraku
+zdaj povsod temna krepka števka (`--ink`) z rdečo črto 2 px, kot prečrtana črka v shemah (siva prečrtana števka v
+»Vadi v uganki« ostane). Avtomatsko preverjeno: `tests/css-paleta.test.js`, `tests/css-precrtano.test.js`,
+`tests/app-zbirka.test.js` (Escape), `tools/preveri-naloga6-brskalnik.js` (izračunane podlage, kontrasti, pravi Escape
+pri 375 in 1280 px; korak 5 – slog prečrtane števke in črta na posnetku v vseh mrežah, legendah in čipu, kontrast črte
+proti podlagi: rožnata 3,34, rumen poudarek 3,53), `preveri-vadi-`, `-izbira-`, `-izbris-`, `-kandidati-`, `-presek-`,
+`-enojcki-`, `-videz-`, `-sheme-`, `-veriga-`, `-pomoc-brskalnik.js`, posnetek igre. Escape zato ni na seznamu –
+scenarij ga preveri s pravimi tipkami.
 
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
-| 1 | igra, telefon in monitor | Odpri uganko, »Naslednji korak« trikrat pri koraku z izbrisom (npr. 1 · Izločitev izven bloka); nato poudari števko vzorca. V Pomoči (»Pomoč pri reševanju«) poglej čipa »jantarne« in »rdeče prečrtani«. | Jantarne in rožnate celice jasno vidne, kandidati v njih berljivi, rdeče prečrtana števka vidna; rumen kvadrat poudarka še ločiš od jantarne celice; čipa sta enaka celicam. (nepotrjeno) | Presoja barv na pravem zaslonu (svetlost, barvni profil, zunanja svetloba) – kontrast je samo številka (poudarek ob jantarni celici 1,20). |
-| 2 | reševalec, telefon | »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male mreže; povečavo zapri z dotikom. | Barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px), povečava se z dotikom zapre. (nepotrjeno) | Isto kot 1 – berljivost drobnih kandidatov na pravem zaslonu. |
+| 1 | igra, telefon in monitor | Odpri uganko, »Naslednji korak« trikrat pri koraku z izbrisom (npr. 1 · Izločitev izven bloka); nato poudari števko izbrisa. V Pomoči (»Pomoč pri reševanju«) poglej čipa »jantarne« in »rdeče prečrtani«. | Jantarne in rožnate celice jasno vidne, kandidati v njih berljivi; **prečrtana števka temna in krepka, rdeča črta jasno vidna v rožnati celici in na rumenem poudarku**; rumen kvadrat poudarka še ločiš od jantarne celice; čipa sta enaka celicam. (barve potrjene 11. 10. 2026; prečrtana števka nepotrjeno) | Presoja barv na pravem zaslonu (svetlost, barvni profil, zunanja svetloba) – kontrast je samo številka (črta na rožnati 3,34, na poudarku 3,53). |
+| 2 | reševalec, telefon | »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male mreže; povečavo zapri z dotikom. | Barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px); **prečrtana števka temna, črta vidna tudi v mali mreži** in v legendi pod njo; povečava se z dotikom zapre. (barve potrjene 11. 10. 2026; prečrtana števka nepotrjeno) | Isto kot 1 – berljivost drobnih števk in 2 px črte na pravem zaslonu. |
+| 3 | trening, telefon | »Spoznaj« 1 · Izločitev izven bloka in 3 · Očitni par: »Rešitev«; »Vadi v uganki« 4 s kljukico »pokaži jih prečrtane« in »Rešitev«. | Prečrtana števka kot v igri (pri 1 na rumenem poudarku črta vidna), v legendi enako; sivo prečrtani kandidati v »Vadi v uganki« ostanejo sivi in se ločijo od temnih s črto. (nepotrjeno) | Isto kot 1 – presoja vidnosti na pravem zaslonu; ločljivost sive in temne prečrtane števke. |
 
 ## Zakaj ročno
 

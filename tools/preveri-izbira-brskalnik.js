@@ -222,7 +222,9 @@ async function prekrivanjeMeritev(b) {
 // Izris območja vaje (innerHTML in izračunani slogi) za primerjavo z izhodiščem. dovoljeno: za
 // element (indeks) lastnosti, ki se od izhodišča smejo razlikovati (docs/precrtanje-resitev-nacrt.md):
 // prečrtana števka (peek-izbris, pri 7 in 8 celica izbrisa) barvo in črto (border-top-color je
-// currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo.
+// currentColor), pri 3 in 5 (ocitni) celica izbrisa podlago in njene male števke barvo. Od naloge 6 (popravek po
+// ročnem pregledu - prečrtana števka temna, črta rdeča 2 px) se barva razlikuje tudi pri izbrisani števki po
+// pravilnem odgovoru (.cd.elim) in vzorčku legende (.izbris-vzorec).
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
 // Razdelek »Shema« (faza 3a) v izhodišču ni, vrstica z imenom tehnike (.ex-label) je od popravkov
@@ -233,7 +235,7 @@ const izris = (b, mode) => b.izvedi(`(() => { ${NAVODILA_NAZAJ} const sk = [...d
   const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
   const dovoljeno = {};
   vsi.forEach((e, i) => {
-    if (e.matches('.cd.peek-izbris, .xw-cell.peek-elim, .xw-cell.xw-elim')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];
+    if (e.matches('.cd.peek-izbris, .cd.elim, .xw-cell.peek-elim, .xw-cell.xw-elim, .legenda-vaje .izbris-vzorec')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl)')) dovoljeno[i] = ['background-color'];
     else if (ocitni && e.matches('.gc.peek-elim:not(.peek-hl) .cd')) dovoljeno[i] = ['color', 'border-top-color'];
   });
@@ -479,8 +481,8 @@ async function main() {
     for (const sirina of SIRINE) {
       const r = await slogIzbrisa2(bNov, sirina);
       preveri(`2 · Izločitev v bloku, ${sirina} px: »Rešitev« prečrta števko izbrisa (${JSON.stringify(r)})`,
-        !!r && r.barva === 'rgb(178, 58, 46)' && r.crta === 'line-through' && r.debelina === '700', r);
-      ref[sirina] = r || { barva: 'rgb(178, 58, 46)', debelina: '700', crta: 'line-through' };
+        !!r && r.barva === 'rgb(36, 48, 61)' && r.crta === 'line-through' && r.debelina === '700', r); // od naloge 6 (popravek po ročnem pregledu) temna števka, rdeča črta 2 px
+      ref[sirina] = r || { barva: 'rgb(36, 48, 61)', debelina: '700', crta: 'line-through' };
     }
     for (const sirina of SIRINE) for (const m of TEHNIKE) await preveriVajo(bNov, izh.b, m, sirina, ref[sirina]);
     console.log(`Pravilen odgovor (izhodišče ${izhodisce})`);

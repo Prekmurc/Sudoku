@@ -4,12 +4,14 @@
 // temnejša rdeča s kontrastom vsaj 4,5 : 1 (izmeri); B – kljukica »več celic« v nizu (privzeto po tehniki, pri
 // izklopljeni dotik izbere samo to celico, dotik izbrane jo odizbere). Posnetka 1-poudarek-375.png in 3-vec-celic-375.png.
 // Popravek C (2026-10-10): pri 1 in 2 je števka vaje poudarjena v vseh stanjih – 1. faza, »Rešitev« v 1. in 2. fazi,
-// 2. faza in po pravilnem odgovoru; prečrtana števka na poudarku je temnejša rdeča (--okvir-napacno). Kontrast prečrtane
+// 2. faza in po pravilnem odgovoru; prečrtana števka na poudarku je bila temnejša rdeča (--okvir-napacno), od naloge 6
+// (popravek po ročnem pregledu) je kot drugod temna (--ink) z rdečo črto 2 px (PRECRTANA). Kontrast prečrtane
 // števke se izmeri na beli celici, na jantarni celici vzorca (napačna oznaka v 2. fazi) in na rožnati celici izbrisa
 // (»Rešitev« v 1. fazi, po pravilnem odgovoru) – proti podlagi poudarka in proti podlagi celice. Končna slika pri 1 in 2
 // zato ni enaka izhodišču: izvzeto izrecno (D1) je samo to, da so kandidati števke vaje poudarjeni – pred primerjavo se
 // jim odstranita razreda poud in b0 (scenarij prej preveri, da so to natanko kandidati števke vaje v vidnih praznih
-// celicah), s tem odpade tudi temnejša rdeča prečrtanih števk na poudarku. Posnetka 1-koncno-375.png (po pravilnem
+// celicah), s tem odpade tudi temnejša rdeča prečrtanih števk na poudarku; od naloge 6 sta izvzeti še barva in
+// border-top-color prečrtanih števk (PRECRTANI) - v izhodišču rdeče, zdaj temne. Posnetka 1-koncno-375.png (po pravilnem
 // odgovoru) in 1-resitev-faza1-375.png (odprta »Rešitev« v 1. fazi).
 // Korak 4 – isto še pri 1 · Izločitev izven bloka in 2 · Izločitev v bloku (delna mreža iz shared/mreza.js – celice
 // .vaja-presek .celica): po 1. fazi vzorec jantaren, brez poudarka in rožnatih celic; oznaka ima slog .kand.k-izbris,
@@ -80,6 +82,9 @@ const SIRINE = [375, 1280];
 const SHIFT = { 1: '!', 2: '"', 3: '#', 4: '$', 5: '%', 6: '&', 7: '/', 8: '(', 9: ')' };
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'font-weight', 'visibility', 'display', 'width', 'height'];
 const MODRA = 'rgb(74, 134, 216)', ZELENA_BG = 'rgb(220, 238, 229)', RDECA_OKVIR = 'rgb(142, 27, 27)', JANTARNA_BG = 'rgb(239, 216, 160)';
+// Prečrtana števka (tudi na poudarku): od naloge 6 (popravek po ročnem pregledu) temna (--ink), črta rdeča 2 px - prej
+// na poudarku temnejša rdeča RDECA_OKVIR (popravka A in C 2026-10-10).
+const PRECRTANA = 'rgb(36, 48, 61)';
 
 async function odpri(b, mode, sirina, seme = 4242) {
   await b.odpri('trening/index.html', { sirina, visina: 1000, mobilno: sirina < 500, skala: sirina < 500 ? 2 : 1 });
@@ -110,10 +115,15 @@ async function prvaFaza(b, sirina) {
 // Izris območja vaje za primerjavo z izhodiščem (kot preveri-presek-brskalnik.js).
 // brezPoudarka (popravek C, izvzeto D1): poudarek števke vaje na delni mreži (1, 2) se med meritvijo odstrani – razreda
 // poud in b0 na kandidatih; vrne še seznam teh kandidatov (celica:števka), da scenarij preveri, da ni izvzel česa drugega.
+// Prečrtana števka (izvzeto kot D1): od naloge 6 (popravek po ročnem pregledu) temna (--ink) z rdečo črto 2 px, v
+// izhodišču rdeča - barva in border-top-color (currentColor) se v obeh izrisih nadomestita z oznako. Slog prečrtane
+// števke preverjata ta scenarij (PRECRTANA) in tools/preveri-naloga6-brskalnik.js --korak 5.
+const PRECRTANI = '.cd.elim, .cd.peek-izbris, .cd.oznaka, .xw-cell.xw-elim, .xw-cell.peek-elim, .xw-cell.oznaka, .kand.k-izbris, .izbris-vzorec';
 async function izris(b, brezPoudarka = false) {
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     ${NAVODILA_NAZAJ}
+    const PRECRTANI_IZBIRNIK = ${JSON.stringify(PRECRTANI)};
     const pc = ${brezPoudarka} ? [...document.querySelectorAll('#exerciseArea .vaja-presek .kand.poud')] : [];
     const poudarjeni = pc.map(e => { const c = e.closest('.celica'); return (+c.dataset.r * 9 + +c.dataset.c) + ':' + e.textContent; }).sort();
     const razrediPoud = pc.map(e => e.className);
@@ -121,7 +131,8 @@ async function izris(b, brezPoudarka = false) {
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
     k.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
     const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    const precrtana = e => e.matches(PRECRTANI_IZBIRNIK), barvi = ${JSON.stringify(['color', 'border-top-color'])};
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => (precrtana(e) && barvi.includes(p) ? 'prečrtana' : s.getPropertyValue(p))).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     pc.forEach((e, i) => { e.className = razrediPoud[i]; });
     return { html: k.innerHTML, slogi, poudarjeni };
@@ -197,11 +208,11 @@ async function vajaNova(b, mode, sirina) {
   await odmakniMisko(b);
   let st = await slogStevke(b, si, d);
   if (PRESEK(mode)) {
-    // Popravek A (2026-10-10): števka vaje je v 2. fazi poudarjena; oznaka na poudarku je temnejša rdeča (--okvir-napacno).
+    // Popravek A (2026-10-10): števka vaje je v 2. fazi poudarjena; oznaka na poudarku je temna (od naloge 6; prej --okvir-napacno).
     const k = await kontrastOznake(b, si, d);
     kontrasti.push({ mode, sirina, ...k });
     preveri(`${mode}, ${sirina} px: oznaka na poudarjeni števki – prečrtana, krepka, kontrast ${k.kontrast.toFixed(2)} : 1 (vsaj 4,5; z rdečo --red bi bil ${k.kontrastRdeca.toFixed(2)} : 1)`,
-      st.oznacena && k.poud && st.crta.includes('line-through') && st.debelina === '700' && st.barva === RDECA_OKVIR && k.kontrast >= 4.5, { st, k });
+      st.oznacena && k.poud && st.crta.includes('line-through') && st.debelina === '700' && st.barva === PRECRTANA && k.kontrast >= 4.5, { st, k });
   } else {
     preveri(`${mode}, ${sirina} px: oznaka (gumb) ima slog izbrisane števke (${st.barva}, ${st.crta}, ${st.debelina})`,
       st.oznacena && st.barva === st.ref.barva && st.crta === st.ref.crta && st.debelina === st.ref.debelina && st.crta.includes('line-through'), st);
@@ -398,9 +409,9 @@ async function resitevPresek(b, sirina) {
   await klikniGumb(b, sirina, 'Rešitev');
   await pocakaj(b);
   const prav = await Promise.all(izbris.map(x => slogStevke(b, ...x))), nap = await slogStevke(b, ...napacna);
-  // Popravek C: ob »Rešitvi« ostane poudarek, prečrtana števka na njem je temnejša rdeča.
-  preveri(`1, ${sirina} px: ob »Rešitvi« vsi kandidati za izbris (${izbris.length}) prečrtani na poudarku, temnejša rdeča`,
-    prav.every(x => x.crta.includes('line-through') && /\bpoud\b/.test(x.razredi) && x.barva === RDECA_OKVIR), prav);
+  // Popravek C: ob »Rešitvi« ostane poudarek, prečrtana števka na njem je temna (od naloge 6).
+  preveri(`1, ${sirina} px: ob »Rešitvi« vsi kandidati za izbris (${izbris.length}) prečrtani na poudarku, temna števka`,
+    prav.every(x => x.crta.includes('line-through') && /\bpoud\b/.test(x.razredi) && x.barva === PRECRTANA), prav);
   preveri(`1, ${sirina} px: napačna oznaka brez črte, s temno rdečim obročem (${nap.obroc})`,
     nap.crta === 'none' && nap.obroc.startsWith(RDECA_OKVIR) && nap.razredi.includes('k-napacna'), nap);
   const roza = await b.izvedi(`[...document.querySelectorAll('#exerciseArea .vaja-presek .celica')].map((e, i) => e.classList.contains('k-izbris') ? i : -1).filter(i => i >= 0).join()`);
@@ -446,8 +457,8 @@ const kontrastStevke = (b, c, d) => b.izvedi(`(() => { ${KONTRAST}
 const kontrastiC = [];
 function preveriKontrast(ime, k, vrsta) {
   kontrastiC.push({ ime, ...k });
-  preveri(`${ime}: prečrtana števka na poudarku (${vrsta}) – temnejša rdeča, kontrast ${k.kontrast.toFixed(2)} : 1 proti poudarku, ${k.kontrastCelica.toFixed(2)} : 1 proti celici (vsaj 4,5; z --red ${k.kontrastRdeca.toFixed(2)} : 1)`,
-    /\bpoud\b/.test(k.razredi) && /k-izbris/.test(k.razredi) && k.crta.includes('line-through') && k.barva === RDECA_OKVIR && k.kontrast >= 4.5 && k.kontrastCelica >= 4.5, k);
+  preveri(`${ime}: prečrtana števka na poudarku (${vrsta}) – temna, kontrast ${k.kontrast.toFixed(2)} : 1 proti poudarku, ${k.kontrastCelica.toFixed(2)} : 1 proti celici (vsaj 4,5; z --red ${k.kontrastRdeca.toFixed(2)} : 1)`,
+    /\bpoud\b/.test(k.razredi) && /k-izbris/.test(k.razredi) && k.crta.includes('line-through') && k.barva === PRECRTANA && k.kontrast >= 4.5 && k.kontrastCelica >= 4.5, k);
 }
 async function popravekC(b, mode, sirina) {
   const ime = `${mode === 'pointing' ? 1 : 2}, ${sirina} px`;

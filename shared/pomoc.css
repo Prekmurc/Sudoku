@@ -92,9 +92,9 @@
 .tehnike .tehnika-shema{ margin-top:4px; }
 .tehnike .tehnika-shema summary{ cursor:pointer; color:var(--blue); font-weight:600; font-size:13px; width:max-content; }
 /* barve oznak v besedilu (kot na mreži): podlagi kot celice koraka (naloga 6, O3) - »jantarne« s temno
-   pisavo (beseda opisuje podlago), »rdeče prečrtani« rdeče prečrtano kot kandidat na mreži */
+   pisavo (beseda opisuje podlago), »rdeče prečrtani« temno krepko z rdečo črto 2 px kot kandidat na mreži */
 .vzorec-vzorec{ background: var(--k-vzorec-bg); color: var(--ink); padding:0 3px; border-radius:3px; }
-.vzorec-izbris{ background: var(--k-izbris-bg); color: var(--red); padding:0 3px; border-radius:3px; text-decoration: line-through; }
+.vzorec-izbris{ background: var(--k-izbris-bg); color: var(--ink); font-weight:700; padding:0 3px; border-radius:3px; text-decoration: line-through var(--red) 2px; }
 .vzorec-vpis{ background: var(--green-bg); color: var(--green); padding:0 3px; border-radius:3px; }
 
 /* ---------- shema vzorca pri razlagi tehnik 1–12 (faza 3a, shared/sheme.js) ----------

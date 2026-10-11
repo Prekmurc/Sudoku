@@ -93,12 +93,11 @@ header.top{max-width:560px}
    ker so celice na telefonu majhne. Izbira je ista kot v igri (shared/mreza.css). */
 .vaja-presek{--gcs:min(46px,(min(560px,100vw) - 104px)/9);margin:0 auto 12px}
 .vaja-presek .kand{font-size:calc(var(--gcs)*.34)}
-/* 2. faza (izbris) pri 1 in 2: oznaka je k-izbris (shared/mreza.css - rdeče prečrtan kandidat); ob »Rešitvi« je
+/* 2. faza (izbris) pri 1 in 2: oznaka je k-izbris (shared/mreza.css - prečrtan kandidat); ob »Rešitvi« je
    napačna oznaka (k-napacna) brez črte, s temno rdečim obročem - kot .cd.oznaka.peek-napacna */
-/* Prečrtana števka na poudarku (pri 1 in 2 je števka vaje poudarjena v vseh stanjih - oznaka v 2. fazi, izbris ob
-   »Rešitvi« in po pravilnem odgovoru): temnejša rdeča, ker ima rdeča --red na rumenem poudarku --poud kontrast samo
-   3,5 : 1 (#8E1B1B: 5,4 : 1) - popravka A in C po ročnem pregledu 2026-10-10 */
-.vaja-presek .kand.poud.k-izbris{color:var(--okvir-napacno)}
+/* Prečrtana števka na poudarku (pri 1 in 2 je števka vaje poudarjena v vseh stanjih): od naloge 6 je števka
+   izbrisa povsod temna z rdečo črto (.kand.k-izbris), zato posebno pravilo ni več potrebno (prej temnejša rdeča
+   #8E1B1B - popravka A in C po ročnem pregledu 2026-10-10) */
 .vaja-presek .kand.k-napacna{color:var(--ink);font-weight:700;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--okvir-napacno)}
 
 /* E1 in E2 (Spoznaj): plošča iz shared/plosca.js (docs/pripomocki-e1-e2-nacrt.md) - niz
@@ -164,7 +163,7 @@ header.top{max-width:560px}
 .legenda-vaje .sw-izbris-okvir{background:var(--k-izbris-bg);border:2px solid var(--red)}
 .legenda-vaje .sw-pravilno{background:var(--green-bg);border:2px solid var(--green)}
 .legenda-vaje .sw-veriga{display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;border-radius:3px;margin-right:5px;background:var(--amber-ink);color:#fff;font-weight:700;font-size:10px;font-family:'JetBrains Mono',monospace}
-.legenda-vaje .izbris-vzorec{color:var(--red);font-weight:700;text-decoration:line-through;font-family:'JetBrains Mono',monospace;margin-right:5px}
+.legenda-vaje .izbris-vzorec{color:var(--ink);font-weight:700;text-decoration:line-through var(--red) 2px;font-family:'JetBrains Mono',monospace;margin-right:5px}
 .legenda-vaje .napacna-vzorec{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--okvir-napacno);color:var(--ink);font-weight:700;font-size:11px;font-family:'JetBrains Mono',monospace;margin-right:5px;vertical-align:-3px}
 /* niz »Izbriši kandidata« v 2. fazi (slogi niza iz shared/plosca.css): gumbi v širini kartice vaje, pod mrežo */
 .izbris-faza{--gcs:min(46px,(min(560px,100vw) - 70px)/9);margin:4px 0 0}
@@ -210,12 +209,13 @@ header.top{max-width:560px}
    (oznaciVerigo() v trening.js) - majhna polna jantarna oznaka kot v igri (.kand.k-veriga) */
 .cd.veriga-st{margin:4%;border-radius:2px;background:var(--amber-ink);color:#fff;font-weight:700}
 /* izbrisana števka: po pravilnem odgovoru (elim) in ob odprti "Rešitvi" (peek-izbris - peekOff ga
-   odstrani, elim ostane); kot .kand.k-izbris pri 1 in 2 (docs/precrtanje-resitev-nacrt.md) */
-.cd:is(.elim,.peek-izbris){color:var(--red);text-decoration:line-through;font-weight:700}
+   odstrani, elim ostane); kot .kand.k-izbris pri 1 in 2 (docs/precrtanje-resitev-nacrt.md) - temna krepka števka
+   z rdečo črto 2 px (naloga 6) */
+.cd:is(.elim,.peek-izbris){color:var(--ink);font-weight:700;text-decoration:line-through var(--red) 2px}
 /* oznaka v 2. fazi (izbris): isti videz kot izbrisana števka - kandidat ostane viden (O3); ob »Rešitvi«
    je napačna oznaka (peek-napacna) brez črte, s temno rdečim obročem (O9, isti okvir kot napačno izbrana
    celica) */
-.cd.oznaka{color:var(--red);text-decoration:line-through;font-weight:700}
+.cd.oznaka{color:var(--ink);font-weight:700;text-decoration:line-through var(--red) 2px}
 .cd.oznaka.peek-napacna{color:var(--ink);text-decoration:none;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--okvir-napacno)}
 .cd.hl{font-weight:700;font-size:calc(var(--cs)*.3)}
 .cd.hl-amber{color:var(--amber)}
@@ -232,8 +232,8 @@ header.top{max-width:560px}
 .cd.hl-plum{color:var(--plum)}
 .cd.hl-olive{color:var(--olive)}
 /* Turbot Fish ima označeno številko pobarvano že ob prikazu (.hl-plum); ko je
-   izbrisana, mora prevladati rdeča iz .cd.elim. */
-.cd.hl-plum:is(.elim,.peek-izbris,.oznaka){color:var(--red)}
+   izbrisana, mora prevladati temna barva iz .cd.elim. */
+.cd.hl-plum:is(.elim,.peek-izbris,.oznaka){color:var(--ink)}
 
 .digit-btns{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .digit-btns button{width:38px;height:38px;border-radius:8px;border:2px solid var(--line);background:#fff;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);cursor:pointer}
@@ -295,16 +295,16 @@ button.peek-btn:active{background:#F0F2F5}
 .xw-cell.xw-correct{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2px var(--green)}
 .xw-cell.xw-elim{background:var(--k-izbris-bg)!important}
 /* X-krilo in mečarica: celica ima eno samo števko (besedilo celice), zato je celica izbrisa
-   ob "Rešitvi" (peek-elim) in po pravilnem odgovoru (xw-elim) rdeče prečrtana kot .cd.elim;
+   ob "Rešitvi" (peek-elim) in po pravilnem odgovoru (xw-elim) prečrtana kot .cd.elim;
    za .xw-cell.has-digit, da prevlada nad njegovo barvo */
-.xw-cell:is(.peek-elim,.xw-elim){color:var(--red);text-decoration:line-through}
+.xw-cell:is(.peek-elim,.xw-elim){color:var(--ink);font-weight:700;text-decoration:line-through var(--red) 2px}
 /* 2. faza (izbris) pri X-krilu in mečarici: izbrana celica modra kot izbira (zelena celica vzorca obdrži
    podlago, okvir moder), oznaka prečrta števko celice kot izbris - celica ostane bela (rožnata šele po
    pravilnem odgovoru, O3); ob »Rešitvi« je napačna oznaka brez črte, s temno rdečim obročem okoli števke
    (O9, kot .cd.oznaka.peek-napacna). Okvir je pri obeh 2 px kot navadna izbira .xw-selected. */
 .xw-cell.izbrana-izbris{background:var(--izbira-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
 .xw-cell:is(.xw-correct,.xw-sf-correct).izbrana-izbris{background:var(--green-bg)!important;box-shadow:inset 0 0 0 2px var(--izbira)}
-.xw-cell.oznaka{color:var(--red);text-decoration:line-through}
+.xw-cell.oznaka{color:var(--ink);font-weight:700;text-decoration:line-through var(--red) 2px}
 .xw-cell.oznaka.peek-napacna{color:var(--ink);text-decoration:none;background-image:radial-gradient(circle,transparent calc(var(--cs)*.3 - .5px),var(--okvir-napacno) calc(var(--cs)*.3),var(--okvir-napacno) calc(var(--cs)*.3 + 1.5px),transparent calc(var(--cs)*.3 + 2px))!important}
 .xw-cell[data-c="2"],.xw-cell[data-c="5"]{border-right:2px solid var(--ink)}
 .xw-cell[data-c="0"]{border-left:2px solid var(--ink)}

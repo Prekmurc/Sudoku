@@ -4,7 +4,9 @@ Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6
 **Stanje: potrjen** (2026-10-11, commit načrta `b86ed36`) – odločitve O1–O7 in dodatka D1, D2 v razdelku 7.
 **Sprememba načrta (Darko, 2026-10-11, po koraku 1):** korak 2 – postavka »tvoje oznake« v legendi (O5) – **ne bo
 narejen**. Razlog: oznake postavi uporabnik sam tik pred tem, vijoličen okvir pa že razložita Pomoč treninga (razdelek
-»Označi izbrane«) in namig ob gumbu. Koraka 1 in 3 ter zaključek so narejeni (razdelek 8); čaka ročni pregled.
+»Označi izbrane«) in namig ob gumbu. Koraka 1 in 3 ter zaključek so narejeni (razdelek 8). **Ročni pregled** točk 1 in 2
+(2026-10-11, različica 2026-10-11 14:02): en popravek – prečrtan kandidat za izbris (razdelek 8, »Popravek po ročnem
+pregledu«); nato zaprtje naloge. Čaka ročni pregled popravka.
 
 Izhodišče: commit `e24738b` (zaključek naloge 4c).
 
@@ -323,3 +325,34 @@ Ročni pregled je en sam, po koraku 4, največ 5 točk (zdaj 3), pri vsaki zakaj
     posnetkih. Nič nepričakovanega v aplikaciji (D2).
 - **Zaključek (korak 4, D1), 2026-10-11.** `CLAUDE.md` (paleta v `shared/base.css`, kandidati v reševalcu, Escape,
   nadomestni DOM, testi, nov scenarij), `docs/uskladitev.md`, `docs/rocni-test.md` (razdelek »Naloga 6«, dve točki).
+- **Popravek po ročnem pregledu (Darko, 2026-10-11).** Točki 1 in 2 pregledani; opažanje: rdeče prečrtana števka ima na
+  novi rožnati podlagi preslab kontrast (3,34 : 1).
+  - *Odločitev:* kandidat za izbris pri prikazanem koraku je povsod temna (`--ink`) krepka števka z rdečo (`--red`)
+    črto 2 px – kot prečrtana črka v shemah (`.shema-izbris`). Velja za mrežo igre in treninga (`.kand.k-izbris`),
+    »Spoznaj« 3–13 (`.cd:is(.elim,.peek-izbris)`, X-krilo in mečarica `.xw-cell:is(.peek-elim,.xw-elim)`), malo mrežo
+    in povečavo reševalca (`.mcand-elim`), vzorčke v legendah (`.mini-legend .sw-izbris`, `.legenda-vaje
+    .izbris-vzorec`) in čip »rdeče prečrtani« v Pomoči igre (`.vzorec-izbris`). Siva prečrtana števka v »Vadi v uganki«
+    (`.kand.precrtan`, kandidat, ki ga ni več) ostane.
+  - *Tudi spremenjeno* (sicer bi se videz razšel): oznaka 2. faze v »Spoznaj« ima videz izbrisa (`.cd.oznaka`,
+    `.xw-cell.oznaka`; pri 1 in 2 je že `.kand.k-izbris`), zato enako; pravilo `.cd.hl-plum:is(.elim,…)` (označena
+    števka pri 9) nastavi `--ink` namesto rdeče; pravilo `.vaja-presek .kand.poud.k-izbris` (temnejša rdeča na
+    poudarku pri 1 in 2 – popravka A in C naloge 4b) je odstranjeno, ker je števka zdaj temna povsod.
+  - *Test pred spremembo:* nov `tests/css-precrtano.test.js` (devet pravil: `color: var(--ink)`, `font-weight: 700`,
+    `text-decoration: line-through var(--red) 2px`; nobeno pravilo s temi razredi ne nastavi druge barve; vzor
+    `.shema-izbris`; siva `.kand.precrtan` ostane). Na stari kodi pade 10 od 12 (zelena sta vzor in siva števka).
+    `tests/css-paleta.test.js`: pričakovanje čipa (O3 – rdeča pisava) je zdaj `--ink`.
+  - *Scenarij:* `tools/preveri-naloga6-brskalnik.js --korak 5` pri 375 (telefon) in 1280 px – izračunan slog in
+    črta, izmerjena na posnetku (z njo in s prozorno barvo črte): kontrast črte proti podlagi pod njo na rožnati 3,34,
+    na rumenem poudarku 3,53 (igra in »Spoznaj« 1), v legendi treninga 5,75, v »Vadi v uganki« 4,24; vse drži. Druge
+    tri barve poudarka (igralec jih izbere sam) – samo izpis: zelena 3,03, oranžna 2,58, modra 2,82 (črta vidna, a
+    kontrast pod 3). Ob prvem zagonu je meritev za podlago vzela piksel, kjer črta prečka temno števko (rdeča proti
+    `--ink` 2,26) – napaka meritve, zdaj šteje največji kontrast piksla s črto proti istemu pikslu brez nje.
+  - *Drugi scenariji:* pričakovanja rdeče prečrtane števke posodobljena v `preveri-vadi-`, `-izbira-`, `-izbris-` in
+    `-kandidati-brskalnik.js`; primerjave z izhodiščem v `-izbira-` (dovoljena barva še pri `.cd.elim` in
+    `.izbris-vzorec`) in `-izbris-` (barva prečrtanih števk izvzeta kot D1) pokažejo natanko to namerno razliko.
+  - *Preverjanje:* vsi testi zeleni (976; oznaka različice pred commitom osvežena); `preveri-naloga6-` (koraki 1, 3,
+    5), `-kandidati-`, `-vadi-`, `-izbira-`, `-izbris-`, `-presek-`, `-enojcki-`, `-sheme-`, `-videz-`, `-veriga-`,
+    `-pomoc-brskalnik.js` vse drži; posnetek igre enak v vseh 99 posnetkih (vidi samo DOM). Nič nepričakovanega v
+    aplikaciji (D2).
+  - *Zapisano v `docs/uskladitev.md`:* naloga 8 (Brez kandidatov) v »Samo če bo potreba«; v »Kasneje« oznaka števke
+    vzorca v mali mreži reševalca in napaka `tipka('Enter')` v `tools/brskalnik.js`.

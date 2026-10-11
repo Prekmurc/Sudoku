@@ -468,10 +468,11 @@
     color:#fff;
     font-weight:700;
   }
+  /* kandidat za izbris: temna krepka števka z rdečo črto 2 px (naloga 6, kot v igri in treningu) */
   .mcand-elim{
-    color: var(--red);
-    text-decoration: line-through;
+    color: var(--ink);
     font-weight:700;
+    text-decoration: line-through var(--red) 2px;
   }
 
   .mini-legend{
@@ -491,7 +492,7 @@
     justify-content:center; min-width:15px; height:15px; border-radius:3px;
     font-family:'JetBrains Mono', monospace; font-weight:700; font-size:11px;
   }
-  .mini-legend .sw-izbris{ background:var(--k-izbris-bg); color:var(--red); text-decoration:line-through; }
+  .mini-legend .sw-izbris{ background:var(--k-izbris-bg); color:var(--ink); font-weight:700; text-decoration:line-through var(--red) 2px; }
   .mini-legend .sw-vpis{ background:var(--green-bg); color:var(--green); }
   .mini-legend .sw-veriga{ background:var(--amber-ink); color:#fff; }
   .mini-container .mini-povecava{ text-align:center; margin:4px 0 0; }

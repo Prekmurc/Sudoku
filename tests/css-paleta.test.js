@@ -101,7 +101,7 @@ test('celice, legende, čipa in shema uporabljajo podlagi iz palete', () => {
     ['shared/pomoc.css', '.vzorec-vzorec', 'background', 'var(--k-vzorec-bg)'],
     ['shared/pomoc.css', '.vzorec-vzorec', 'color', 'var(--ink)'],
     ['shared/pomoc.css', '.vzorec-izbris', 'background', 'var(--k-izbris-bg)'],
-    ['shared/pomoc.css', '.vzorec-izbris', 'color', 'var(--red)'],
+    ['shared/pomoc.css', '.vzorec-izbris', 'color', 'var(--ink)'], // od popravka po ročnem pregledu temna števka, rdeča črta (css-precrtano.test.js)
     ['shared/pomoc.css', ':root', '--shema-vzorec-bg', 'var(--k-vzorec-bg)'],
     ['shared/pomoc.css', ':root', '--shema-izbris-bg', 'var(--k-izbris-bg)'],
   ];
