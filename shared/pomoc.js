@@ -2,11 +2,15 @@
    docs/faza6-nacrt.md): odpiranje in zapiranje okna, seznam »Tehnike« in seznam stopenj ugank.
    Slogi okna so v shared/pomoc.css. Potrebuje DOM; naloži se za shared/engine.js (imena, oznake in
    opisi tehnik), shared/generator.js (STOPNJE_UGANK - samo za izpisiStopnje()) in shared/sheme.js
-   (shema vzorca v seznamu »Tehnike« - faza 3a, korak 4; brez nje seznam nima shem). */
+   (shema vzorca v seznamu »Tehnike« - faza 3a, korak 4; brez nje seznam nima shem) in shared/navigacija.js
+   (kazalo tehnik v razdelku »Tehnike« in način pomika - naloga 4c, korak 3; brez nje seznam nima kazala). */
 
 // Okno Pomoč (element z razredom .dialog; odprto = razred "odprt"): gumbi ga odprejo, zapre ga
 // gumb z [data-zapri] (✕), klik ob oknu in Escape. Escape ob odprtem oknu ne pride do drugih
 // poslušalcev (tipkovnica plošče) - poslušalec je v fazi zajema. Vrne { odpri, zapri, odprto }.
+// Naloga 4c, korak 3 (docs/navigacija-nacrt.md, O1, O3): pod glavo okna kazalo razdelkov (gumbi z naslovi
+// h3.navodila-razdelek - iz HTML, zato je v vseh treh aplikacijah enako sestavljeno), v glavi pred ✕ gumb
+// »↑ Na vrh«, viden po 400 px (naVrhPomociViden()); glava je lepljiva (shared/pomoc.css, samo v oknu Pomoč).
 // Oznaka različice iz ?v= te skripte (tools/oznaci-razlicico.js), npr. »2026-10-05.1432«, ali ''.
 const RAZLICICA = (() => {
   const s = typeof document !== 'undefined' && document.currentScript && document.currentScript.src;
@@ -20,6 +24,21 @@ function razlicicaZaPrikaz(oznaka) {
   return m ? `Različica ${m[1]} ${m[2]}:${m[3]}${m[4]}` : (oznaka ? `Različica ${oznaka}` : '');
 }
 
+// »↑ Na vrh« v glavi okna Pomoč je viden, ko je okno pomaknjeno več kot 400 px.
+const POMOC_NA_VRH_PO = 400;
+function naVrhPomociViden(scrollTop) {
+  return scrollTop > POMOC_NA_VRH_PO;
+}
+
+// Pomik okna do elementa v njem (naslov razdelka, tehnika): gladko (pri prefers-reduced-motion takoj),
+// naslov pristane pod lepljivo glavo (scroll-margin-top v shared/pomoc.css), fokus gre nanj - brez
+// drugega pomika. Naslov strani se ne spremeni (brez #), zato »Nazaj« brskalnika ne hodi po razdelkih.
+function pomakniVPomoci(el) {
+  el.setAttribute('tabindex', '-1');
+  el.scrollIntoView({ behavior: typeof nacinPomika === 'function' ? nacinPomika() : 'auto', block: 'start' });
+  el.focus({ preventScroll: true });
+}
+
 function ustvariPomoc(okno, gumbi) {
   // Na dnu panela različica aplikacije - po objavi se vidi, ali brskalnik kaže novo.
   const panel = okno.querySelector && okno.querySelector('.dialog-panel');
@@ -29,9 +48,45 @@ function ustvariPomoc(okno, gumbi) {
     p.textContent = razlicicaZaPrikaz(RAZLICICA);
     panel.appendChild(p);
   }
+  // Kazalo razdelkov tik pred prvim razdelkom (pod glavo).
+  const naslovi = panel ? [...panel.querySelectorAll('h3.navodila-razdelek')] : [];
+  let kazalo = null;
+  if (naslovi.length) {
+    kazalo = document.createElement('nav');
+    kazalo.className = 'pomoc-kazalo';
+    kazalo.setAttribute('aria-label', 'Kazalo razdelkov');
+    for (const h of naslovi) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = h.textContent;
+      b.addEventListener('click', () => pomakniVPomoci(h));
+      kazalo.appendChild(b);
+    }
+    naslovi[0].parentNode.insertBefore(kazalo, naslovi[0]);
+  }
+  // »↑ Na vrh« v glavi pred ✕ (samo okno s kazalom - Pomoč): vrne na vrh, fokus na kazalo.
+  const glava = kazalo && okno.querySelector('.dialog-glava');
+  const zapriGumb = glava && okno.querySelector('[data-zapri]');
+  let osveziNaVrh = () => {};
+  if (zapriGumb) {
+    const gor = document.createElement('button');
+    gor.type = 'button';
+    gor.className = 'dialog-na-vrh';
+    gor.textContent = '↑ Na vrh';
+    glava.insertBefore(gor, zapriGumb);
+    osveziNaVrh = () => { gor.hidden = !naVrhPomociViden(okno.scrollTop || 0); };
+    gor.addEventListener('click', () => {
+      okno.scrollTo({ top: 0, behavior: typeof nacinPomika === 'function' ? nacinPomika() : 'auto' });
+      const prvi = kazalo.children[0];
+      if (prvi) prvi.focus({ preventScroll: true });
+    });
+    okno.addEventListener('scroll', osveziNaVrh, { passive: true });
+    osveziNaVrh();
+  }
   const odprto = () => okno.classList.contains('odprt');
   const odpri = () => {
     okno.classList.add('odprt');
+    osveziNaVrh();
     // Fokus na ✕: tipke ne gredo več v polje ali mrežo za oknom.
     const x = okno.querySelector('[data-zapri]');
     if (x && x.focus) x.focus();
@@ -55,14 +110,18 @@ function ustvariPomoc(okno, gumbi) {
 // v vseh treh aplikacijah. Pod posledico pri 1-13 zložljivo »Shema«, privzeto zaprto
 // (izrisiShemo() iz shared/sheme.js; faza 3a, korak 4 - 12 odprtih shem bi okno na telefonu
 // podaljšalo za več zaslonov).
+// Nad seznamom vrstica oznak E1 … 13 (izrisiKazaloTehnik() iz shared/navigacija.js - ista sestavina kot
+// kazalo v meniju treninga; naloga 4c, korak 3, O2): klik pomakne do tehnike.
 function izrisiTehnike(el) {
   const uvod = document.createElement('p');
   uvod.textContent = 'Tehnike so v štirih ravneh: lahke (E1, E2), srednje (1–6), napredne (7–12) in ekspertne (13) – '
     + 'v treningu jih kažejo značke na karticah. Stopnja uganke je raven njene najtežje tehnike.';
   const ul = document.createElement('ul');
   ul.className = 'tehnike';
+  const poKljucu = {};
   for (const [kljuc, tehnika] of [...TRENING_ENOJCKA, ...TRENING_TEHNIKE]) {
     const li = document.createElement('li');
+    poKljucu[kljuc] = li;
     const oznaka = document.createElement('span');
     oznaka.className = 'tehnika-oznaka';
     oznaka.textContent = oznakaTehnike(kljuc) + ' · ';
@@ -89,7 +148,13 @@ function izrisiTehnike(el) {
     }
     ul.appendChild(li);
   }
-  el.append(uvod, ul);
+  if (typeof izrisiKazaloTehnik === 'function') {
+    const nav = document.createElement('nav');
+    nav.className = 'kazalo-tehnik';
+    nav.setAttribute('aria-label', 'Kazalo tehnik');
+    izrisiKazaloTehnik(nav, p => pomakniVPomoci(poKljucu[p.kljuc]));
+    el.append(uvod, nav, ul);
+  } else el.append(uvod, ul);
 }
 
 // Seznam stopenj (element ul): pri vsaki stopnji ime z malo začetnico in opis iz STOPNJE_UGANK

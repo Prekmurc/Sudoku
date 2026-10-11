@@ -180,4 +180,26 @@ function makeDom(shramba = new Map()) {
   };
 }
 
-module.exports = { makeDom, Element };
+// Iskanje po drevesu za element, ki ga test zgradi sam (npr. okno Pomoč iz index.html – naloga 4c,
+// korak 3): querySelector/querySelectorAll s preprostimi izbirniki »oznaka.razred.razred[atribut]«
+// (brez presledkov in vejic). Samo na izbranih elementih – drugi testi ostanejo pri null / [].
+function ustrezaIzbirniku(e, izbirnik) {
+  const m = /^([a-z0-9]*)((?:\.[\w-]+)*)(?:\[([\w-]+)\])?$/i.exec(izbirnik);
+  if (!m || !(e instanceof Element)) return false;
+  const [, oznaka, razredi, atribut] = m;
+  if (oznaka && e.tagName !== oznaka.toUpperCase()) return false;
+  if (razredi && !razredi.slice(1).split('.').every(c => e.classList.contains(c))) return false;
+  if (atribut && e.getAttribute(atribut) === null) return false;
+  return true;
+}
+function omogociIskanje(el) {
+  const vsi = (k, izb, out = []) => {
+    for (const c of k.children || []) { if (ustrezaIzbirniku(c, izb)) out.push(c); vsi(c, izb, out); }
+    return out;
+  };
+  el.querySelectorAll = izb => vsi(el, izb);
+  el.querySelector = izb => vsi(el, izb)[0] || null;
+  return el;
+}
+
+module.exports = { makeDom, Element, omogociIskanje };

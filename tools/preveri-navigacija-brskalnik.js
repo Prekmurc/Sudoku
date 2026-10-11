@@ -23,21 +23,44 @@
 //     dotik/klik → vrh, skrit, fokus na kazalu; v vaji (»Spoznaj« 13, »Vadi v uganki« 8, pomaknjeni do
 //     konca) skrit; po »Nazaj na izbiro« (zgornji in spodnji) na položaj nižje od zaslona viden brez
 //     drsenja, blizu vrha skrit; posnetka meni-kazalo-<širina>.png in meni-na-vrh-<širina>.png (320, 375).
-// --korak N požene korake 1 … N (privzeto 2).
 //
-//   node tools/preveri-navigacija-brskalnik.js [--korak N] [--mapa <mapa>]
+// Korak 3 (O1–O3, D1, D3) – okno Pomoč v igri, reševalcu in treningu pri 320, 375 (posnemanje telefona, pravi
+// dotik) in 1280 px (miška):
+//   - glava okna (»Pomoč«, »↑ Na vrh«, ✕) je lepljiva, z neprozorno podlago, v panelu; kazalo razdelkov tik pod
+//     njo (gumbi = naslovi razdelkov v vrstnem redu), kazalo tehnik v »Tehnike« (15 oznak, ime v title in
+//     aria-label, barve = značka ravni), oba v panelu, brez preliva strani in okna, gumbi vsaj 32 px (D3 – mere
+//     in višine kazal izpiše na koncu);
+//   - pravi dotik/klik vsakega razdelka in vsake oznake (brez predhodnega pomika, element zadet – ni pod glavo):
+//     naslov oz. tehnika pristane pod glavo (ne za njo), v oknu, s fokusom; »Shema« pri 7 se odpre;
+//   - drsenje po vsem oknu po 50 px: glava na vrhu okna, »↑ Na vrh« viden natanko po 400 px; pravo drsenje
+//     (poteg prsta / kolesce) do konca – ✕ ves v oknu, zadet, zapre okno; ob ponovnem odprtju okno na vrhu;
+//     »↑ Na vrh« → vrh, fokus na kazalo; Escape in klik ob panelu zapreta okno; prefers-reduced-motion takoj;
+//     posnetka pomoc-<aplikacija>-<širina>.png in pomoc-<aplikacija>-dno-<širina>.png (320, 375);
+//   - D1: okna »Zbirka ugank« in »Nova uganka« v igri ter okno zbirke v reševalcu (375, 1280 px) so enaka
+//     izhodišču (--izhodisce, privzeto 5f59f09 – korak 2; izvleček z git archive): drevo, HTML, vse izračunane
+//     lastnosti vseh elementov in položaji.
+// --korak N požene korake 1 … N (privzeto 3), --samo N samo korak N.
+//
+//   node tools/preveri-navigacija-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const { zazeni } = require('./brskalnik.js');
+
+const KOREN = path.join(__dirname, '..');
 
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-navigacija'));
-const korak = Number(arg('--korak', '2'));
+const korak = Number(arg('--korak', '3'));
+const izhodisce = arg('--izhodisce', '5f59f09');
+// --samo N: samo korak N (za sprotno delo).
+const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
+const tece = n => (samo === null ? korak >= n : samo === n);
 
 let napak = 0;
 function preveri(ime, pogoj, podrobno = '') {
@@ -341,15 +364,284 @@ async function korak2(b, sirina) {
   await b.cdp.poslji('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
 }
 
+// ---------- Korak 3 (O1–O3, D1, D3) – okno Pomoč v vseh treh aplikacijah ----------
+
+const J = JSON.stringify;
+const POMOC = [
+  { ime: 'igra', stran: 'igra/index.html', gumb: '#navodilaBtn', okno: '#navodilaDialog' },
+  { ime: 'reševalec', stran: 'app/index.html', gumb: '#pomocBtn', okno: '#pomocDialog' },
+  { ime: 'trening', stran: 'trening/index.html', gumb: '#pomocBtn', okno: '#pomocDialog' },
+];
+
+// Pravi dotik/klik na element BREZ predhodnega pomika (brskalnik.klikni() element najprej pomakne v
+// sredino – pri lepljivi glavi bi to okno vrnilo na vrh). Vrne { vOknu, zadet }: element je ves v oknu in
+// je v svojem središču najvišji (ga ne prekriva npr. lepljiva glava).
+async function pritisni(b, izb, dotik) {
+  const t = await b.izvedi(`(() => { const el = document.querySelector(${J(izb)}); if (!el) return null;
+    const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, v = document.elementFromPoint(x, y);
+    return { x, y, vOknu: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, zadet: !!v && (v === el || el.contains(v)) }; })()`);
+  if (!t) throw new Error(`Ni elementa ${izb}.`);
+  if (dotik) {
+    await b.cdp.poslji('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: t.x, y: t.y }] });
+    await b.cdp.poslji('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  } else {
+    for (const type of ['mousePressed', 'mouseReleased']) await b.cdp.poslji('Input.dispatchMouseEvent', { type, x: t.x, y: t.y, button: 'left', clickCount: 1 });
+  }
+  return t;
+}
+// Okno miruje (gladek pomik je končan): scrollTop se 4-krat zapored ne spremeni.
+const OKNO_MIRUJE = okno => `new Promise(r => { const o = document.querySelector(${J(okno)}); let prej = -1, enako = 0; const t = () => {
+  if (o.scrollTop === prej) { if (++enako >= 4) return r(o.scrollTop); } else { enako = 0; prej = o.scrollTop; }
+  setTimeout(t, 60); }; setTimeout(t, 60); })`;
+// Pravo drsenje v oknu (poteg prsta / kolesce) za dy px navzdol.
+async function podrsaj(b, dotik, sirina, dy) {
+  if (dotik) await b.cdp.poslji('Input.synthesizeScrollGesture', { x: Math.round(sirina / 2), y: 500, yDistance: -dy, speed: 4000 });
+  else await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseWheel', x: Math.round(sirina / 2), y: 500, deltaX: 0, deltaY: dy });
+}
+
+// Stanje okna: glava, »↑ Na vrh«, kazali, preliv, fokus, element `cilj` (izbirnik) glede na glavo.
+const POMOC_STANJE = (okno, cilj = null) => `(() => {
+  const o = document.querySelector(${J(okno)}), p = o.querySelector('.dialog-panel'), g = o.querySelector('.dialog-glava');
+  const r = e => e.getBoundingClientRect(), cs = getComputedStyle(p);
+  const notri = [r(p).left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft), r(p).right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight)];
+  const vPanelu = e => r(e).left >= notri[0] - 0.5 && r(e).right <= notri[1] + 0.5;
+  const gor = g.querySelector('.dialog-na-vrh'), x = g.querySelector('[data-zapri]');
+  const k = o.querySelector('.pomoc-kazalo'), kg = [...k.querySelectorAll('button')];
+  const kt = o.querySelector('.kazalo-tehnik'), ktg = [...kt.querySelectorAll('button')];
+  const c = ${cilj || 'null'};
+  const d = document.documentElement, a = document.activeElement;
+  return {
+    odprto: o.classList.contains('odprt'), scrollTop: o.scrollTop, maks: o.scrollHeight - o.clientHeight, okno: innerHeight,
+    glava: { vrh: r(g).top, dno: r(g).bottom, otroci: [...g.children].map(e => e.tagName + (e.className ? '.' + e.className : '')),
+      podlaga: getComputedStyle(g).backgroundColor, polozaj: getComputedStyle(g).position, vPanelu: vPanelu(g) },
+    naVrh: { viden: getComputedStyle(gor).display !== 'none', napis: gor.textContent, sirina: r(gor).width, visina: r(gor).height },
+    zapri: { vrh: r(x).top, dno: r(x).bottom },
+    kazalo: { napisi: kg.map(e => e.textContent), naslovi: [...o.querySelectorAll('h3.navodila-razdelek')].map(e => e.textContent),
+      vrh: r(k).top, visina: r(k).height, vrstic: new Set(kg.map(e => Math.round(r(e).top))).size, vPanelu: kg.every(vPanelu),
+      visine: kg.map(e => r(e).height), prejsnji: k.previousElementSibling === g, naslednji: k.nextElementSibling && k.nextElementSibling.tagName },
+    oznake: { napisi: ktg.map(e => e.textContent), visine: ktg.map(e => r(e).height), sirine: ktg.map(e => r(e).width), visina: r(kt).height,
+      vrstic: new Set(ktg.map(e => Math.round(r(e).top))).size, vPanelu: ktg.every(vPanelu),
+      barve: ktg.map(e => { const s = getComputedStyle(e); const z = o.querySelectorAll('.tehnike li')[ktg.indexOf(e)].querySelector('.tehnika-raven');
+        return s.backgroundColor === getComputedStyle(z).backgroundColor && s.color === getComputedStyle(z).color; }),
+      title: ktg.map(e => e.title), aria: ktg.map(e => e.getAttribute('aria-label')) },
+    preliv: d.scrollWidth > d.clientWidth, oknoPreliv: o.scrollWidth > o.clientWidth,
+    cilj: c ? { vrh: r(c).top, dno: r(c).bottom, fokus: a === c } : null,
+    fokusPrvi: a === kg[0],
+  };
+})()`;
+
+const d3pomoc = [];
+
+async function korak3(b, sirina) {
+  const dotik = sirina < 500;
+  const OZN = ['E1', 'E2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+  for (const a of POMOC) {
+    console.log(`\nKorak 3 – okno Pomoč, ${a.ime}, ${sirina} px (${dotik ? 'dotik' : 'miška'})`);
+    await b.cdp.poslji('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+    await b.odpri(a.stran, { sirina, visina: dotik ? 667 : 800, mobilno: dotik });
+    await b.cakaj('document.fonts.status === "loaded"', 15000);
+    await pritisni(b, a.gumb, dotik);
+    await pocakaj(b, 250);
+    let s = await b.izvedi(POMOC_STANJE(a.okno));
+    preveri('pravi dotik/klik »Pomoč« odpre okno, okno na vrhu', s.odprto && s.scrollTop === 0, s);
+    const g0 = s.glava.vrh; // naravni položaj glave (odmik okna in panela)
+
+    // Glava in kazali.
+    preveri('glava: »Pomoč«, »↑ Na vrh«, ✕; lepljiva, neprozorna podlaga, v panelu',
+      J(s.glava.otroci) === J(['H2', 'BUTTON.dialog-na-vrh', 'BUTTON.dialog-zapri']) && s.glava.polozaj === 'sticky'
+        && !/rgba\(.*, 0\)|transparent/.test(s.glava.podlaga) && s.glava.vPanelu, s.glava);
+    preveri('»↑ Na vrh« na vrhu okna skrit', !s.naVrh.viden, s.naVrh);
+    preveri(`kazalo razdelkov: tik pod glavo, pred prvim razdelkom, gumbi = naslovi (${s.kazalo.napisi.join(' · ')})`,
+      s.kazalo.prejsnji && s.kazalo.naslednji === 'H3' && J(s.kazalo.napisi) === J(s.kazalo.naslovi) && s.kazalo.napisi.length >= 5, s.kazalo);
+    preveri('kazalo razdelkov v panelu, brez preliva strani in okna', s.kazalo.vPanelu && !s.preliv && !s.oknoPreliv, s);
+    preveri('kazalo razdelkov: gumbi vsaj 32 px visoki', Math.min(...s.kazalo.visine) >= 32, s.kazalo.visine);
+    preveri('kazalo tehnik: 15 oznak E1 … 13, ime v title in aria-label, barve = značka ravni',
+      J(s.oznake.napisi) === J(OZN) && s.oznake.title.every((t, i) => t.startsWith(OZN[i] + ' · ') && s.oznake.aria[i] === t) && s.oznake.barve.every(Boolean), s.oznake);
+    preveri('kazalo tehnik v panelu', s.oznake.vPanelu, s.oznake);
+    const minV = Math.min(...s.oznake.visine), maxV = Math.max(...s.oznake.visine);
+    preveri(`kazalo tehnik: oznake vsaj 32 px visoke (D3; ${minV}–${maxV} px)`, minV >= 32, s.oznake.visine);
+    d3pomoc.push(`${a.ime}, ${sirina} px: kazalo razdelkov ${Math.round(s.kazalo.visina)} px v ${s.kazalo.vrstic} vrsticah; `
+      + `oznake tehnik ${minV}–${maxV} × ${Math.round(Math.min(...s.oznake.sirine))}–${Math.round(Math.max(...s.oznake.sirine))} px, kazalo tehnik ${Math.round(s.oznake.visina)} px v ${s.oznake.vrstic} vrsticah; glava ${Math.round(s.glava.dno - s.glava.vrh)} px`);
+    if (dotik) await b.posnetek(path.join(mapa, `pomoc-${a.ime}-${sirina}.png`), { vsaStran: false });
+
+    // Pravi dotik/klik vsakega razdelka: naslov pod glavo (ne za njo), v oknu, s fokusom; glava na vrhu.
+    const razmiki = [];
+    for (let i = 0; i < s.kazalo.napisi.length; i++) {
+      await b.izvedi(`document.querySelector(${J(a.okno)}).scrollTop = 0; true`);
+      await pocakaj(b, 50);
+      const izb = `${a.okno} .pomoc-kazalo button:nth-child(${i + 1})`;
+      const t = await pritisni(b, izb, dotik);
+      await b.izvedi(OKNO_MIRUJE(a.okno));
+      const st = await b.izvedi(POMOC_STANJE(a.okno, `o.querySelectorAll('h3.navodila-razdelek')[${i}]`));
+      const glavaOk = Math.abs(st.glava.vrh - Math.max(0, g0 - st.scrollTop)) <= 0.5;
+      razmiki.push(Math.round(st.cilj.vrh - st.glava.dno));
+      preveri(`razdelek »${s.kazalo.napisi[i]}«: gumb zadet, naslov pod glavo (${Math.round(st.cilj.vrh - st.glava.dno)} px pod njo), v oknu, fokus, glava na vrhu`,
+        t.vOknu && t.zadet && st.cilj.vrh >= st.glava.dno - 0.5 && st.cilj.dno <= st.okno && st.cilj.fokus && glavaOk, { t, st: { cilj: st.cilj, glava: st.glava, scrollTop: st.scrollTop } });
+    }
+    console.log(`  naslov razdelka pod glavo: ${razmiki.join(', ')} px`);
+
+    // Pravi dotik/klik vsake oznake tehnike: tehnika pod glavo, v oknu, s fokusom.
+    const razmikiT = [];
+    for (let i = 0; i < OZN.length; i++) {
+      await b.izvedi(`(() => { const o = document.querySelector(${J(a.okno)}); o.querySelector('.kazalo-tehnik').scrollIntoView({ block: 'center' }); return true; })()`);
+      await pocakaj(b, 50);
+      const t = await pritisni(b, `${a.okno} .kazalo-tehnik button:nth-child(${i + 1})`, dotik);
+      await b.izvedi(OKNO_MIRUJE(a.okno));
+      const st = await b.izvedi(POMOC_STANJE(a.okno, `o.querySelectorAll('.tehnike > li')[${i}]`));
+      razmikiT.push(Math.round(st.cilj.vrh - st.glava.dno));
+      preveri(`oznaka ${OZN[i]}: zadeta, tehnika pod glavo, v oknu, fokus, glava na vrhu`,
+        t.vOknu && t.zadet && st.cilj.vrh >= st.glava.dno - 0.5 && st.cilj.vrh < st.okno && st.cilj.fokus && st.glava.vrh === 0, { t, cilj: st.cilj, glava: st.glava });
+      if (OZN[i] === '7') {
+        // Shema se odpre s pravim dotikom/klikom na »Shema« (povzetek ni pod glavo).
+        const sh = `${a.okno} .tehnike > li:nth-child(${i + 1}) summary`;
+        const ts = await pritisni(b, sh, dotik);
+        await pocakaj(b, 150);
+        const odprta = await b.izvedi(`document.querySelector(${J(sh)}).parentElement.open`);
+        preveri('7 · X-krilo: »Shema« zadeta in se odpre', ts.zadet && odprta, { ts, odprta });
+        await b.izvedi(`document.querySelector(${J(sh)}).parentElement.open = false; true`);
+      }
+    }
+    console.log(`  tehnika pod glavo: ${razmikiT.join(', ')} px`);
+
+    // Drsenje po vsem oknu po 50 px: glava na vrhu okna, »↑ Na vrh« viden natanko po 400 px.
+    const drsenje = await b.izvedi(`(async () => {
+      const o = document.querySelector(${J(a.okno)}), g = o.querySelector('.dialog-glava'), gor = g.querySelector('.dialog-na-vrh');
+      const okvir = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const maks = o.scrollHeight - o.clientHeight, napake = [];
+      let polozajev = 0;
+      for (let y = 0; y <= maks + 49; y += 50) {
+        o.scrollTop = Math.min(y, maks); await okvir(); polozajev++;
+        const vrh = g.getBoundingClientRect().top, viden = getComputedStyle(gor).display !== 'none';
+        if (Math.abs(vrh - Math.max(0, ${g0} - o.scrollTop)) > 0.5) napake.push('glava ' + o.scrollTop + ': ' + vrh);
+        if (viden !== o.scrollTop > 400) napake.push('na vrh ' + o.scrollTop + ': ' + viden);
+      }
+      o.scrollTop = 0; await okvir();
+      return { polozajev, maks, napake };
+    })()`);
+    preveri(`drsenje po vsem oknu (${drsenje.polozajev} položajev do ${drsenje.maks} px): glava na vrhu, »↑ Na vrh« natanko po 400 px`,
+      drsenje.napake.length === 0, drsenje.napake.slice(0, 6));
+
+    // Pravo drsenje do konca (poteg prsta / kolesce): glava na vrhu, ✕ zadet in zapre okno.
+    await b.izvedi(`document.querySelector(${J(a.okno)}).scrollTop = 0; true`);
+    await podrsaj(b, dotik, sirina, 350);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    s = await b.izvedi(POMOC_STANJE(a.okno));
+    preveri(`pravo drsenje (${dotik ? 'poteg prsta' : 'kolesce'}) do ${s.scrollTop} px: »↑ Na vrh« ${s.scrollTop > 400 ? 'viden' : 'skrit'}`,
+      s.scrollTop > 0 && s.naVrh.viden === s.scrollTop > 400, s.naVrh);
+    for (let n = 0; n < 40 && s.scrollTop < s.maks; n++) {
+      await podrsaj(b, dotik, sirina, 6000);
+      await b.izvedi(OKNO_MIRUJE(a.okno));
+      s = await b.izvedi(POMOC_STANJE(a.okno));
+    }
+    preveri(`pravo drsenje do konca (${s.scrollTop} od ${s.maks}): glava na vrhu okna, »↑ Na vrh« viden`,
+      s.scrollTop === s.maks && s.glava.vrh === 0 && s.naVrh.viden, { scrollTop: s.scrollTop, maks: s.maks, glava: s.glava });
+    if (dotik) await b.posnetek(path.join(mapa, `pomoc-${a.ime}-dno-${sirina}.png`), { vsaStran: false });
+    const zaprto = s.scrollTop;
+    let t = await pritisni(b, `${a.okno} [data-zapri]`, dotik);
+    await pocakaj(b, 200);
+    s = await b.izvedi(POMOC_STANJE(a.okno));
+    preveri('na koncu okna: ✕ ves v oknu, zadet, zapre okno', t.vOknu && t.zadet && !s.odprto, { t, odprto: s.odprto });
+
+    // Ponovno odprtje: okno je na istem mestu kot ob zaprtju (kot pred korakom 3), glava na vrhu, »↑ Na vrh«
+    // viden; po drsenju pravi dotik/klik »↑ Na vrh« → vrh, fokus na kazalo.
+    await pritisni(b, a.gumb, dotik);
+    await pocakaj(b, 250);
+    s = await b.izvedi(POMOC_STANJE(a.okno));
+    preveri(`ponovno odprto okno: na istem mestu (${s.scrollTop} px), glava na vrhu, »↑ Na vrh« viden`,
+      s.odprto && s.scrollTop === zaprto && s.glava.vrh === 0 && s.naVrh.viden, { scrollTop: s.scrollTop, zaprto, naVrh: s.naVrh });
+    await podrsaj(b, dotik, sirina, 2000);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    t = await pritisni(b, `${a.okno} .dialog-na-vrh`, dotik);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    await pocakaj(b, 100);
+    s = await b.izvedi(POMOC_STANJE(a.okno));
+    preveri(`»↑ Na vrh« (${Math.round(s.naVrh.sirina || 0)} × 36 px) zadet: okno na vrhu, gumb skrit, fokus na kazalu, okno odprto`,
+      t.vOknu && t.zadet && s.scrollTop === 0 && !s.naVrh.viden && s.fokusPrvi && s.odprto, { t, s: { scrollTop: s.scrollTop, naVrh: s.naVrh, fokus: s.fokusPrvi } });
+
+    // Escape in klik ob panelu zapreta okno (tudi po drsenju).
+    await podrsaj(b, dotik, sirina, 1500);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    await b.tipka('Escape');
+    await pocakaj(b, 150);
+    preveri('Escape po drsenju zapre okno', !(await b.izvedi(POMOC_STANJE(a.okno))).odprto);
+    await pritisni(b, a.gumb, dotik);
+    await pocakaj(b, 250);
+    for (const type of ['mousePressed', 'mouseReleased']) await b.cdp.poslji('Input.dispatchMouseEvent', { type, x: 4, y: 300, button: 'left', clickCount: 1 });
+    await pocakaj(b, 150);
+    preveri('klik ob panelu zapre okno', !(await b.izvedi(POMOC_STANJE(a.okno))).odprto);
+
+    // prefers-reduced-motion: pomik takoj.
+    await b.cdp.poslji('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+    await b.izvedi(`document.querySelector(${J(a.gumb)}).click(); true`);
+    const takoj = await b.izvedi(`(() => { const o = document.querySelector(${J(a.okno)}); o.querySelector('.pomoc-kazalo button:last-child').click();
+      const h = [...o.querySelectorAll('h3.navodila-razdelek')].pop(), g = o.querySelector('.dialog-glava');
+      return { scrollTop: o.scrollTop, razmik: h.getBoundingClientRect().top - g.getBoundingClientRect().bottom }; })()`);
+    preveri(`prefers-reduced-motion: pomik takoj (»Tehnike« ${Math.round(takoj.razmik)} px pod glavo)`, takoj.scrollTop > 0 && takoj.razmik >= -0.5 && takoj.razmik < 40, takoj);
+    await b.cdp.poslji('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+  }
+}
+
+// D1: okna »Zbirka ugank« in »Nova uganka« v igri ter okno zbirke v reševalcu ostanejo enaka izhodišču –
+// drevo, vse izračunane lastnosti vseh elementov in položaji (odprto okno, prazna zbirka).
+const DRUGA_OKNA = [
+  { ime: 'igra – Zbirka ugank', stran: 'igra/index.html', gumb: '#zbirkaBtn', okno: '#zbirkaDialog' },
+  { ime: 'igra – Nova uganka', stran: 'igra/index.html', gumb: '#novaBtn', okno: '#novaDialog' },
+  { ime: 'reševalec – Zbirka', stran: 'app/index.html', gumb: '#libraryBtn', okno: '#library' },
+];
+async function drugoOkno(b, o, sirina) {
+  await b.odpri(o.stran, { sirina, visina: 800, mobilno: sirina < 500 });
+  await b.izvedi('localStorage.clear(); true');
+  await b.odpri(o.stran, { sirina, visina: 800, mobilno: sirina < 500 });
+  await b.cakaj('document.fonts.status === "loaded"', 15000);
+  await b.klikni(o.gumb);
+  await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 });
+  await b.izvedi(`(document.activeElement && document.activeElement.blur && document.activeElement.blur(), new Promise(r => setTimeout(() => r(true), 300)))`);
+  return b.izvedi(`(() => {
+    const okno = document.querySelector(${J(o.okno)}), vsi = [okno, ...okno.querySelectorAll('*')];
+    const slog = e => { const s = getComputedStyle(e); return [...s].filter(p => p !== '-webkit-tap-highlight-color').sort().map(p => p + ':' + s.getPropertyValue(p)).join(';'); };
+    const pol = e => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map(v => Math.round(v * 100) / 100).join(','); };
+    return { odprto: getComputedStyle(okno).display !== 'none', drevo: vsi.map(e => e.tagName + '#' + e.id + '.' + e.className), slogi: vsi.map(slog), polozaji: vsi.map(pol), html: okno.innerHTML };
+  })()`);
+}
+async function korak3D1(b) {
+  const nova = {};
+  for (const s of [375, 1280]) for (const o of DRUGA_OKNA) nova[`${o.ime} ${s}`] = await drugoOkno(b, o, s);
+  console.log(`\nKorak 3, D1 – druga okna .dialog enaka izhodišču ${izhodisce}`);
+  const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
+  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce], { cwd: KOREN });
+  execFileSync('tar', ['-xf', 'izhodisce.tar'], { cwd: star }); // relativno ime: GNU tar bi "C:" bral kot strežnik
+  const bStar = await zazeni({ koren: star });
+  try {
+    for (const s of [375, 1280]) for (const o of DRUGA_OKNA) {
+      const n = nova[`${o.ime} ${s}`], st = await drugoOkno(bStar, o, s);
+      const razSlogi = st.slogi.map((x, i) => (x !== n.slogi[i] ? n.drevo[i] : null)).filter(Boolean);
+      const razPol = st.polozaji.map((x, i) => (x !== n.polozaji[i] ? `${n.drevo[i]} ${x} → ${n.polozaji[i]}` : null)).filter(Boolean);
+      preveri(`${o.ime}, ${s} px: odprto, drevo in HTML (${n.drevo.length} elementov), vse izračunane lastnosti in položaji enaki izhodišču`,
+        n.odprto && st.odprto && J(n.drevo) === J(st.drevo) && n.html === st.html && razSlogi.length === 0 && razPol.length === 0,
+        { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), drevo: J(n.drevo) === J(st.drevo), html: n.html === st.html });
+    }
+    preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);
+  } finally {
+    await bStar.zapri();
+    fs.rmSync(star, { recursive: true, force: true });
+  }
+}
+
 (async () => {
   fs.mkdirSync(mapa, { recursive: true });
   const b = await zazeni();
   try {
-    if (korak >= 1) for (const s of [375, 1280]) await korak1(b, s);
-    if (korak >= 2) {
+    if (tece(1)) for (const s of [375, 1280]) await korak1(b, s);
+    if (tece(2)) {
       for (const s of [320, 375, 1280]) await korak2(b, s);
       console.log('\nD3 – meritev kazala in »↑«:');
       for (const v of d3) console.log('  ' + v);
+    }
+    if (tece(3)) {
+      for (const s of [320, 375, 1280]) await korak3(b, s);
+      await korak3D1(b);
+      console.log('\nD3 – meritev okna Pomoč:');
+      for (const v of d3pomoc) console.log('  ' + v);
     }
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } catch (e) {

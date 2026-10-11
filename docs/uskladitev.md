@@ -1327,6 +1327,10 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   `docs/navigacija-nacrt.md`): glava okna (naslov in ✕) odide z vsebino; na telefonu okno po drsenju zapre samo dotik
   ozkega roba ob panelu (Escape na telefonu ni). Naloga 4c naredi lepljivo glavo samo v oknu Pomoč; okna »Zbirka
   ugank«, »Nova uganka« in zbirka v reševalcu ostanejo, kot so.
+- **Scenarija `preveri-pregled6-` in `preveri-faza7-brskalnik.js` sta zastarela** (zapisano 2026-10-11 ob koraku 3
+  naloge 4c): na kodi pred korakom 3 (`5f59f09`) dajeta 4 oziroma 15 neujemanj – pregled6 pričakuje 4 stopnje in 14
+  tehnik (zdaj 5 in 15, XY-veriga), faza7 primerja z izhodišči, ki imajo drugačni `--purple-dark` (XY-veriga, korak 2)
+  in `--obmocje` (popravek 6 naloge 4a). Popraviti pričakovanja v scenarijih (ne kode aplikacije).
 - **Navigacija med aplikacijami (4.3)** (→ naloga 4c, prej 9 – prestavljeno 2026-10-09) – povezave »Igra · Reševalec · Trening« v skupni
   glavi; nova funkcija.
 - **Povečan prikaz v reševalcu se z Escape ne zapre** (→ naloga 6; zapisano 2026-10-03 ob ročnem pregledu

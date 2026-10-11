@@ -1,8 +1,8 @@
 # Navigacija po straneh (naloga 4c) – načrt
 
 Načrt 2026-10-10 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4c, in postavka 4.3 »Navigacija med
-aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraka 1 in 2 narejena**
-2026-10-10 (razdelek 9).
+aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraki 1–3 narejeni**
+(1 in 2 2026-10-10, 3 2026-10-11; razdelek 9).
 
 Izhodišče: commit `d51d2fc` (zaključek naloge 4b).
 
@@ -450,3 +450,70 @@ Ročni pregled je en sam, po koraku 5, največ 5 točk, pri vsaki zakaj ni avtom
   enako, 99 posnetkov.
 - Ročnega pregleda po tem koraku ni (razdelek 8); točka 3 razdelka 7 (ali okrogel »↑« na pravem telefonu kdaj moti
   dotik kartice) ostane za skupni pregled po koraku 5.
+
+### Korak 3 – okno Pomoč: kazalo razdelkov, kazalo tehnik, lepljiva glava (2026-10-11)
+
+- `shared/pomoc.js`: `ustvariPomoc()` pod glavo okna doda kazalo razdelkov `nav.pomoc-kazalo` (gumbi z naslovi
+  `h3.navodila-razdelek`, iz HTML – v vseh treh aplikacijah enako sestavljeno; O1) in v glavo pred ✕ gumb
+  `.dialog-na-vrh` »↑ Na vrh« (O3), viden, ko je okno pomaknjeno več kot 400 px (`naVrhPomociViden()`, osveži se ob
+  `scroll` okna in ob odprtju); klik vrne okno na vrh in da fokus prvemu gumbu kazala. Klik v kazalu:
+  `pomakniVPomoci()` – `scrollIntoView` (gladko, pri `prefers-reduced-motion` takoj), fokus na naslov
+  (`tabindex="-1"`, brez drugega pomika), naslov strani brez `#`. `izrisiTehnike()` nad seznamom doda vrstico oznak
+  `nav.kazalo-tehnik` z `izrisiKazaloTehnik()` iz `shared/navigacija.js` (ista sestavina kot v meniju; O2), klik
+  pomakne do tehnike.
+- `shared/pomoc.css`: lepljiva glava **samo** `.dialog-navodila .dialog-glava` (D1) – `position: sticky`, neprozorna
+  podlaga, črta spodaj, 53 px; `top: -24px`, ker se lepljiv element v Chromu ustavi ob 24 px zgornjem odmiku
+  `.dialog` (s `top: 0` je med glavo in vrhom zaslona drselo besedilo; odmika `.dialog` zaradi drugih oken ne
+  spreminjam); `.pomoc-kazalo` (gumbi vsaj 32 px), `scroll-margin-top: 64px` na naslovih in tehnikah – po pomiku
+  11 px pod glavo.
+- `app/index.html`, `igra/index.html`: `shared/navigacija.js` za `sheme.js` (trening jo že nalaga).
+- Ponovno odprto okno ostane na mestu, kjer je bilo zaprto – kot pred korakom (brskalnik ohrani položaj); glava je
+  takrat na vrhu, »↑ Na vrh« viden.
+- Testi: `tests/pomoc.test.js` – okno zgradi test iz `index.html` (`zgradiOkno()`; `tests/dom-stub.js` dobi
+  `omogociIskanje()` – `querySelector` samo na elementih, ki jih test zgradi sam): kazalo razdelkov tik pod glavo
+  (napisi in vrstni red, klik → pomik do naslova in fokus), glava »Pomoč« / »↑ Na vrh« / ✕ (prag 400 px, klik na vrh,
+  osvežitev ob odprtju), vrstica 15 oznak v »Tehnike« (barva ravni, `title`/`aria-label`, klik → pomik do tehnike),
+  D1 (`position: sticky` samo pod `.dialog-navodila`, ki ga ima vsak `index.html` samo pri oknu Pomoč) – v vseh treh
+  aplikacijah. Na kodi pred korakom pade 13 testov (10 novih in 3 stari o »Tehnike«, kjer je kazalo zdaj drugi otrok).
+- Scenarij `tools/preveri-navigacija-brskalnik.js --korak 3` (privzeto zdaj 3; novo `--samo N` za en korak) – glej
+  poročilo.
+
+**Poročilo koraka 3 (preverjeno avtomatsko).**
+
+- Testi: hitri (763) in vsi (947) zeleni; `tests/pomoc.test.js` 19 testov.
+- `tools/preveri-navigacija-brskalnik.js --samo 3` – igra, reševalec in trening pri 320, 375 px (posnemanje telefona,
+  pravi dotik) in 1280 px (prava miška); vsa preverjanja držijo:
+  - glava okna: »Pomoč«, »↑ Na vrh«, ✕, lepljiva, neprozorna podlaga, v panelu; »↑ Na vrh« na vrhu skrit;
+  - kazalo razdelkov tik pod glavo, pred prvim razdelkom, gumbi = naslovi razdelkov v vrstnem redu; kazalo tehnik:
+    15 oznak, ime v `title` in `aria-label`, barve = značka ravni ob tehniki; oboje v panelu, **brez preliva** strani
+    in okna pri vseh širinah (tudi 320 px);
+  - **D3 – izmerjeno:** oznake tehnik so pri vseh širinah **32 px visoke** in 36 px široke, gumbi kazala razdelkov
+    32 px; glava 53 px;
+  - **višina kazal** (razdelki / tehnike): pri **320 px** igra 108 / 108 px (3 / 3 vrstice), reševalec 108 / 108 px,
+    trening **184** / 108 px (5 / 3 vrstice – dolgi naslovi »Spoznaj in Vadi v uganki«, »Namig, Rešitev in Razlaga«);
+    pri 375 px igra 108 / 108, reševalec 70 / 108, trening 108 / 108 px; pri 1280 px 32 (trening 70) / 70 px. Kazalo
+    tehnik je v panelu Pomoči pri 375 px v treh vrsticah (prototip z manjšimi oznakami: dve) – vsebina panela je
+    305 px, 15 oznak po 36 px z razmikom 6 px jih da 7 v vrstico;
+  - pravi dotik/klik vsakega razdelka in vsake oznake (brez predhodnega pomika; element v oknu in v svojem središču
+    najvišji – ni pod glavo): **naslov oz. tehnika pristane 11 px pod glavo** (ne za njo), v oknu, s fokusom, glava na
+    vrhu; zadnje tehnike, do katerih se okno ne more pomakniti dovolj, so niže (pri 1280 px 11–13: 123, 293, 483 px);
+    »Shema« pri 7 se s pravim dotikom/klikom odpre;
+  - drsenje po vsem oknu po 50 px (igra pri 320 px 246 položajev do 12 232 px): glava ves čas na vrhu zaslona,
+    »↑ Na vrh« viden natanko nad 400 px;
+  - **pravo drsenje do konca** (poteg prsta / kolesce): glava na vrhu, **✕ ves v oknu, zadet in zapre okno**;
+    ponovno odprto okno na istem mestu z glavo na vrhu; »↑ Na vrh« (pravi dotik/klik) → okno na vrhu, gumb skrit,
+    fokus na kazalu, okno odprto; Escape po drsenju in klik ob panelu zapreta okno; `prefers-reduced-motion` –
+    pomik takoj;
+  - **D1:** okni »Zbirka ugank« in »Nova uganka« v igri ter okno zbirke v reševalcu pri 375 in 1280 px so enaki
+    izhodišču `5f59f09` (korak 2): drevo, HTML, vse izračunane lastnosti vseh elementov in položaji;
+  - posnetki `pomoc-<aplikacija>-<širina>.png` (vrh s kazalom) in `pomoc-<aplikacija>-dno-<širina>.png` (konec okna z
+    lepljivo glavo) pri 320 in 375 px v mapi scenarija; brez napak JS.
+- Obstoječi scenariji: `preveri-pomoc-brskalnik.js` (odpiranje, ✕, klik ob panelu, Escape, 15 tehnik z značko),
+  `preveri-sheme-brskalnik.js` (sheme v Pomoči in treningu) in `preveri-videz-brskalnik.js` (brez preliva pri
+  320–1280 px, vsa okna) držijo. `preveri-pregled6-brskalnik.js` (4 neujemanja – pričakuje 4 stopnje in 14 tehnik) in
+  `preveri-faza7-brskalnik.js` (15 – barvi `--purple-dark` in `--obmocje` drugačni od starih izhodišč) dajeta
+  **na kodi pred korakom (5f59f09) natanko iste napake** – zastarela sta zaradi XY-verige in popravka 6 naloge 4a, ne
+  zaradi tega koraka (zapisano v »Kasneje« v `docs/uskladitev.md`, ne popravljam).
+- Posnetek igre (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`): enako, 99 posnetkov.
+- Ročnega pregleda po tem koraku ni (razdelek 8); točka 2 razdelka 7 (okno Pomoč na pravem telefonu – inercijsko
+  drsenje, Safari) ostane za skupni pregled po koraku 5.

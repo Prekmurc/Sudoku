@@ -39,6 +39,28 @@
 
 /* okno Pomoč: širši panel, razdelki, seznam tehnik */
 .dialog-navodila{ max-width:660px; }
+/* Naloga 4c, korak 3 (docs/navigacija-nacrt.md): lepljiva glava z »↑ Na vrh« in ✕ – samo v oknu Pomoč
+   (O3, D1; okna Zbirka in Nova uganka ostanejo, kot so), pod njo kazalo razdelkov (O1), v razdelku
+   »Tehnike« kazalo tehnik (O2, sestavina .kazalo-tehnik iz shared/base.css). Naslov razdelka in tehnika
+   po pomiku iz kazala pristaneta pod glavo (scroll-margin-top > višina glave 53 px). Lepljiv element se
+   ustavi ob robu odmika okna (.dialog ima zgoraj 24 px, ki jih zaradi drugih oken ne spreminjam), zato
+   top: -24px – glava je ob vrhu zaslona in nad njo ne drsi besedilo. */
+.dialog-navodila .dialog-glava{
+  position:sticky;
+  top:-24px;
+  z-index:2;
+  gap:8px;
+  margin-bottom:12px;
+  padding:8px 0;
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+}
+.dialog-navodila .dialog-glava h2{ margin-right:auto; }
+.dialog-na-vrh{ height:36px; padding:0 12px; border-radius:18px; font-size:13px; color:var(--blue); white-space:nowrap; }
+.pomoc-kazalo{ display:flex; flex-wrap:wrap; gap:6px; }
+.pomoc-kazalo button{ min-height:32px; padding:4px 10px; border-radius:6px; font-size:12.5px; color:var(--blue); }
+.dialog-navodila .kazalo-tehnik{ margin:0 0 12px; }
+.dialog-navodila .navodila-razdelek, .dialog-navodila .tehnike li{ scroll-margin-top:64px; }
 .navodila-razdelek{
   font-family:'Source Serif 4', serif;
   font-size:16px;
