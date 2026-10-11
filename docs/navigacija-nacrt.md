@@ -1,8 +1,9 @@
 # Navigacija po straneh (naloga 4c) – načrt
 
 Načrt 2026-10-10 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 4c, in postavka 4.3 »Navigacija med
-aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraki 1–4 narejeni**
-(1 in 2 2026-10-10, 3 in 4 2026-10-11; razdelek 9).
+aplikacijami«). **Stanje: potrjeno 2026-10-10** (odločitve in dodatki D1–D4 v razdelku 8); **koraki 1–5 narejeni**
+(1 in 2 2026-10-10, 3, 4 in 5 2026-10-11; razdelek 9); ročni pregled točk 1–4 potrjen 2026-10-11, popravka A in B po
+pregledu narejena 2026-10-11 – **čaka potrditev točk A in B** (`docs/rocni-test.md`, razdelek »Navigacija«, točki 5 in 6).
 
 Izhodišče: commit `d51d2fc` (zaključek naloge 4b).
 
@@ -342,6 +343,9 @@ drsenje preveri brskalnik.
    teče prek strežnika HTTP.~~ **Črtano (D4, korak 4):** scenarij odpre `file://` v brskalniku brez glave in preveri
    zavihke s pravim dotikom in klikom (razdelek 9, korak 4).
 
+Ročni pregled točk 1–4 je narejen 2026-10-11 na telefonu (različica 2026-10-11 09:58) – vse deluje; popravka A in B
+(razdelek 9) imata svoji točki v `docs/rocni-test.md`, razdelek »Navigacija«.
+
 ## 8. Odločitve (potrjeno 2026-10-10)
 
 **O1–O15 po priporočilu:** O1 A (kazalo razdelkov), O2 A (vrstica oznak tehnik brez ločil), O3 A (lepljiva glava
@@ -600,3 +604,64 @@ Ročni pregled je en sam, po koraku 5, največ 5 točk, pri vsaki zakaj ni avtom
 - Posnetek igre (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`): enako, 99 posnetkov
   (glava ni v posnetku).
 - Ročnega pregleda po tem koraku ni (razdelek 8); točki 1 in 4 razdelka 7 ostaneta za skupni pregled po koraku 5.
+
+### Ročni pregled točk 1–4 in popravka A, B (2026-10-11)
+
+Ročni pregled točk 1–4 (razdelek 7) na telefonu, različica 2026-10-11 09:58: vse deluje. Brez popravka, samo zapis:
+okno Pomoč se odpre tam, kjer je bilo zaprto (ostane, kot je); niz »Izbriši kandidata« v igri (po koraku 4 pri
+375 × 667 pod zaslonom) je v redu. V »Kasneje« (`docs/uskladitev.md`): lastno okno za vprašanja v barvah aplikacije
+namesto okna brskalnika (v temnem načinu belo na črnem); oznaka »nazadnje vadil« na kartici treninga (samo če bo
+potreba).
+
+- **A – okno Pomoč, gumb v glavi** (vse tri aplikacije): ko je okno v razdelku »Tehnike« pod vrstico oznak E1 … 13
+  (spodnji rob vrstice je na spodnjem robu lepljive glave ali nad njim), gumb kaže »↑ Tehnike« in vrne k vrstici
+  oznak (`scrollIntoView`, vrstica pristane pod glavo – `scroll-margin-top: 64px` tudi na `.kazalo-tehnik`; fokus na
+  E1); sicer »↑ Na vrh« kot prej. `shared/pomoc.js`: pravilo brez DOM-a `gumbGlavePomoci(scrollTop, podKazalomTehnik)`,
+  napisa v `NAPISI_GLAVE_POMOCI`; vrstica oznak se poišče ob vsaki osvežitvi (trening izriše »Tehnike« po
+  `ustvariPomoc()`). Glava ostane enako široka: v gumbu sta oba napisa (`span.napis-vrh`, `span.napis-tehnike`) v isti
+  celici mreže, neaktivni ima `visibility: hidden` (`shared/pomoc.css`) – gumb je vedno širok kot »↑ Tehnike«
+  (90 px); `data-napis` in `aria-label` po trenutnem napisu.
+- **B – »↑ Na vrh« na dnu vaje** (trening): `trening/index.html` – pod `#exerciseArea` vrstica `.dno-vaje` z
+  `#backBtnDno` »← Nazaj na izbiro« in desno `#naVrhDno` »↑ Na vrh« (oba razred `back-btn`, isti videz; ni plavajoč);
+  `trening/trening.css` – vrstica flex, `justify-content: space-between`, odmika 16 / 24 px kot prej pri spodnjem
+  gumbu (pravilo `button.back-btn-dno` je odstranjeno); `trening/trening.js` – klik pomakne stran na vrh (gladko, pri
+  `prefers-reduced-motion` takoj), vaja ostane. Velja v »Spoznaj«, »Vadi v uganki« in pri »Končano!« (gumb je zunaj
+  `#exerciseArea`). Okrogel plavajoč »↑« ostane samo v meniju.
+- Testi (najprej na stari kodi – padejo): `tests/pomoc.test.js` – popravek A v vseh treh (meja z nadomestnimi položaji,
+  napis, `aria-label`, klik »↑ Tehnike« → `scrollIntoView` vrstice in fokus na E1, klik »↑ Na vrh« kot prej, pravilo);
+  na stari kodi pade 6 testov (3 novi in 3 stari, ki zdaj berejo napis iz `aria-label`). `tests/trening-meni.test.js` –
+  dva nova (vrstica v HTML: Nazaj levo, Na vrh desno, razred `back-btn`, ne `na-vrh`; klik → stran na vrh v »Spoznaj«,
+  »Vadi v uganki«, »Končano!«, vaja ostane, okrogel »↑« skrit); na stari kodi padeta oba.
+- Scenarij `tools/preveri-navigacija-brskalnik.js --korak 5` (privzeto zdaj 5): glej poročilo koraka 5. V korakih 1
+  in 5 primerjava sloga spodnjega gumba z zgornjim ne vsebuje `display` (element vrstice flex je `block` namesto
+  `inline-block` – videz enak); korak 3 pri drsenju po vsem oknu preverja tudi napis (»↑ Tehnike« natanko pod vrstico
+  oznak), na koncu okna »↑ Tehnike« in nato »↑ Na vrh«.
+
+### Korak 5 – zaključek (2026-10-11)
+
+- `CLAUDE.md` (pomoč, trening, testi, scenarij, ročni test, število testov), `docs/uskladitev.md` (naloga 4c, 4.3,
+  »Kasneje«), `docs/rocni-test.md` (nov razdelek »Navigacija«: točke 1–4 potrjene, točki 5 in 6 za popravka A in B).
+
+**Poročilo koraka 5 (preverjeno avtomatsko).**
+
+- Testi: hitri (774) in vsi (958) zeleni (pred commitom pade samo `tests/razlicica.test.js` – oznako različice osveži
+  pre-commit hook).
+- `tools/preveri-navigacija-brskalnik.js` (koraki 1–5): koraki 1–4 vsa preverjanja držijo tudi s popravkoma (glava,
+  zavihki, vprašanje, »Nazaj«, O13, `file://` kot v koraku 4); korak 5 – 373 preverjanj, vsa držijo:
+  - **A** (igra, reševalec, trening pri 320, 375 – pravi dotik – in 1280 px – miška): 1 px nad mejo »↑ Na vrh«, 1 px
+    pod njo »↑ Tehnike« (vidni napis in `aria-label`); pred »Tehnike« nad 400 px »↑ Na vrh«, na vrhu skrit; **glava,
+    gumb, naslov in ✕ na istem mestu in iste velikosti pri obeh napisih** (gumb 90 × 36 px, napisa 56 in 64 px, glava
+    53 px – pri vseh širinah in v vseh treh); brez preliva strani in okna; pravi dotik/klik oznake 9 → »↑ Tehnike«,
+    dotik/klik → vrstica oznak pod glavo, fokus na E1, napis »↑ Na vrh«, dotik/klik → okno na vrhu, gumb skrit;
+  - **B** (trening pri 320, 375 in 1280 px; »Spoznaj« vseh 15 tehnik, »Vadi v uganki« E1, 4, 8, 13 in »Končano!«, pravo
+    drsenje do konca): oba gumba v isti vrstici (enak vrh in dno), »↑ Na vrh« desno ob robu vrstice (pri 320 px
+    Nazaj 16–163 px, Na vrh 213–304 px – razmik 50 px), isti izračunan slog kot zgornji »Nazaj na izbiro«, 39 px visoka,
+    v širini strani, **brez preliva tudi pri 320 px**, na dnu strani oba v oknu, okrogel »↑« skrit; pravi dotik/klik
+    »↑ Na vrh« → stran na vrhu, vaja ostane;
+  - posnetka `pomoc-tehnike-<320|375>.png` in `dno-vrstica-<320|375>.png` v mapi scenarija; brez napak JS.
+- Obstoječi scenariji držijo: `preveri-pomoc-` (66), `preveri-sheme-` (967), `preveri-videz-` (339 – brez preliva v
+  vseh treh pri 320–1280 px, vsa okna), `preveri-presek-` (79), `preveri-enojcki-` (330) in `preveri-vadi-brskalnik.js`
+  (382 – »Spoznaj« enak izhodiščem; vrstica je zunaj `#exerciseArea`). Posnetek igre
+  (`tools/posnetek-igre.js --primerjaj tools/posnetki/igra-po-xy-veriga.json`): enako, 99 posnetkov.
+- Ročni pregled: točki 5 (A) in 6 (B) v `docs/rocni-test.md`, razdelek »Navigacija«. Naloga 4c še ni zaključena –
+  čaka potrditev teh dveh točk.

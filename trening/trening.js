@@ -151,6 +151,9 @@ function nazajNaIzbiro(){
 }
 document.getElementById('backBtn').addEventListener('click',nazajNaIzbiro);
 document.getElementById('backBtnDno').addEventListener('click',nazajNaIzbiro);
+// »↑ Na vrh« na dnu vaje, desno od spodnjega »Nazaj na izbiro« (popravek B po ročnem pregledu naloge 4c): stran na vrh,
+// vaja ostane. Okrogel plavajoč »↑« je samo v meniju.
+document.getElementById('naVrhDno').addEventListener('click',()=>window.scrollTo({top:0,behavior:nacinPomika()}));
 
 // Povezave Igra · Reševalec · Trening v glavi (naloga 4c, O11 v docs/navigacija-nacrt.md): odhod iz odprtega
 // kroga vpraša, ker se krog ne shrani. Brez vprašanja v meniju, pri »Končano!« in pri vaji 1, dokler v krogu

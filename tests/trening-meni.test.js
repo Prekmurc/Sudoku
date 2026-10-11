@@ -190,3 +190,42 @@ test('gumb »↑«: skrit na vrhu in v vaji, v meniju viden po enem zaslonu – 
   okno.sprozi('scroll');
   assert.equal(gumb.hidden, true);
 });
+
+// Popravek B po ročnem pregledu naloge 4c (docs/navigacija-nacrt.md, razdelek 9): na dnu vaje desno od
+// spodnjega »Nazaj na izbiro« gumb »↑ Na vrh« v isti vrstici in istega videza (razred back-btn), ni plavajoč;
+// klik pomakne stran na vrh, vaja ostane. V »Spoznaj«, »Vadi v uganki« in pri »Končano!«. Okrogel plavajoč »↑«
+// ostane samo v meniju. Eno vrstico pri 320 px brez preliva preverja tools/preveri-navigacija-brskalnik.js --korak 5.
+test('popravek B: »↑ Na vrh« na dnu vaje – v HTML v isti vrstici desno od spodnjega »Nazaj na izbiro«, isti razred', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  const trainer = html.slice(html.indexOf('<div id="trainer">'), html.indexOf('<div id="pomocDialog"'));
+  const vrstica = trainer.match(/<div class="dno-vaje">([\s\S]*?)<\/div>/);
+  assert.ok(vrstica, 'vrstica .dno-vaje v #trainer');
+  assert.ok(trainer.indexOf('<div class="dno-vaje">') > trainer.indexOf('id="exerciseArea"'), 'vrstica za #exerciseArea');
+  const gumbi = [...vrstica[1].matchAll(/<button([^>]*)>([^<]*)<\/button>/g)];
+  assert.deepEqual(gumbi.map(g => g[2]), ['← Nazaj na izbiro', '↑ Na vrh'], 'Nazaj levo, Na vrh desno');
+  assert.match(gumbi[0][1], /id="backBtnDno"/);
+  assert.match(gumbi[1][1], /id="naVrhDno"/);
+  for (const g of gumbi) assert.match(g[1], /class="[^"]*\bback-btn\b/, 'isti videz kot »Nazaj na izbiro«');
+  assert.doesNotMatch(gumbi[1][1], /\bna-vrh\b/, 'ni okrogel plavajoč gumb');
+});
+
+test('popravek B: klik »↑ Na vrh« na dnu vaje pomakne stran na vrh (Spoznaj, Vadi v uganki, Končano!), vaja ostane', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0;
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const okno = dom.globals.window;
+  const plavajoc = dom.document.body.children.find(e => e.classList.contains('na-vrh'));
+  const primeri = [['x-wing', 'spoznaj', ''], ['hidden-pair', 'uganka', ''], ['naked-pair', 'spoznaj', 'konec']];
+  for (const [mode, nacin, konec] of primeri) {
+    run(`zacniKrog(${JSON.stringify(mode)}, ${JSON.stringify(nacin)})`);
+    if (konec) run('exNum = MAX_EX; renderExercise()');
+    okno.scrollTo(0, 1800);
+    okno.sprozi('scroll');
+    assert.equal(plavajoc.hidden, true, `${mode} ${nacin}: okrogel »↑« v vaji skrit`);
+    dom.klikni('naVrhDno');
+    assert.equal(okno.scrollY, 0, `${mode} ${nacin} ${konec}: stran na vrhu`);
+    assert.equal(dom.el('trainer').style.display, 'block', 'vaja ostane odprta');
+    assert.equal(dom.el('menu').style.display, 'none');
+    assert.equal(run('mode'), mode);
+  }
+});

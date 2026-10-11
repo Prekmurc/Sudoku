@@ -181,7 +181,7 @@ for (const ime of Object.keys(APLIKACIJE)) {
     const gor = o.glava.children[1];
     assert.equal(o.glava.children[2], o.x, '✕ zadnji');
     assert.equal(gor.className, 'dialog-na-vrh');
-    assert.equal(gor.textContent, '↑ Na vrh');
+    assert.equal(gor.getAttribute('aria-label'), '↑ Na vrh');
     assert.equal(gor.type, 'button');
     assert.equal(gor.getAttribute('data-zapri'), null, '»↑ Na vrh« okna ne zapre');
     dom.klikni(APLIKACIJE[ime].gumbi[0]);
@@ -236,6 +236,60 @@ for (const ime of Object.keys(APLIKACIJE)) {
       assert.equal(klici[0][1].block, 'start');
       assert.equal(li.getAttribute('tabindex'), '-1');
     });
+  });
+}
+
+// Popravek A po ročnem pregledu naloge 4c (docs/navigacija-nacrt.md, razdelek 9): ko je okno v razdelku »Tehnike«
+// pod vrstico oznak E1 … 13 (vrstica je vsa nad spodnjim robom lepljive glave), gumb v glavi kaže »↑ Tehnike« in
+// vrne k vrstici oznak (fokus na E1); sicer »↑ Na vrh« kot prej (po 400 px). Gumb ima oba napisa enega nad drugim
+// (neaktivni je neviden), zato je vedno enako širok – glava se ne spremeni; to in pravi pomik preverja
+// tools/preveri-navigacija-brskalnik.js --korak 5. Položaji so tu nadomestni (getBoundingClientRect v testu).
+for (const ime of Object.keys(APLIKACIJE)) {
+  test(`${ime}: popravek A – pod vrstico oznak v »Tehnike« gumb v glavi »↑ Tehnike« vrne k vrstici oznak, sicer »↑ Na vrh«`, () => {
+    const { dom, run, o } = nalozi(ime, { okno: true });
+    const gor = o.glava.children[1];
+    const kt = dom.el(APLIKACIJE[ime].tehnike).children[1];
+    assert.equal(kt.className, 'kazalo-tehnik');
+    // Oba napisa v gumbu (en nad drugim – širina gumba je širina daljšega).
+    assert.deepEqual(gor.children.map(e => [e.tagName, e.className, e.textContent]),
+      [['SPAN', 'napis-vrh', '↑ Na vrh'], ['SPAN', 'napis-tehnike', '↑ Tehnike']]);
+    // Glava je lepljiva (spodnji rob 53 px), vrstica oznak je v vsebini od 2900 do 2970 px.
+    o.glava.getBoundingClientRect = () => ({ top: 0, bottom: 53, height: 53 });
+    kt.getBoundingClientRect = () => ({ top: 2900 - o.okno.scrollTop, bottom: 2970 - o.okno.scrollTop, height: 70 });
+    const klici = [];
+    kt.scrollIntoView = x => klici.push(['scrollIntoView', x]);
+    kt.children[0].focus = x => klici.push(['focus', kt.children[0].textContent, x]);
+    dom.klikni(APLIKACIJE[ime].gumbi[0]);
+    for (const [y, napis] of [[0, null], [400, null], [401, 'vrh'], [2900, 'vrh'], [2916, 'vrh'], [2917, 'tehnike'], [6000, 'tehnike'], [1000, 'vrh']]) {
+      o.okno.scrollTop = y;
+      o.okno.sprozi('scroll');
+      assert.equal(gor.hidden, napis === null, `pomik ${y} px: ${napis ? 'viden' : 'skrit'}`);
+      if (napis) {
+        assert.equal(gor.dataset.napis, napis, `pomik ${y} px: napis`);
+        assert.equal(gor.getAttribute('aria-label'), napis === 'vrh' ? '↑ Na vrh' : '↑ Tehnike');
+      }
+    }
+    // Klik »↑ Tehnike«: vrstica oznak pod glavo (scrollIntoView, block start), fokus na E1 brez drugega pomika.
+    o.okno.scrollTop = 6000;
+    o.okno.sprozi('scroll');
+    o.klici.length = 0;
+    gor.sprozi('click');
+    assert.deepEqual(klici.map(k => k[0] === 'focus' ? k.slice(0, 2) : k[0]), ['scrollIntoView', ['focus', 'E1']]);
+    assert.equal(klici[0][1].block, 'start');
+    assert.equal(klici[1][2].preventScroll, true);
+    assert.deepEqual(o.klici.filter(k => k[0] === 'scrollTo'), [], 'ne na vrh okna');
+    // Klik »↑ Na vrh« kot prej.
+    klici.length = 0;
+    o.okno.scrollTop = 1000;
+    o.okno.sprozi('scroll');
+    gor.sprozi('click');
+    assert.deepEqual(o.klici.filter(k => k[0] === 'scrollTo').map(k => k[1].top), [0]);
+    assert.deepEqual(klici, []);
+    // Pravilo brez DOM-a.
+    assert.equal(run('gumbGlavePomoci(0, false)'), null);
+    assert.equal(run('gumbGlavePomoci(401, false)'), 'vrh');
+    assert.equal(run('gumbGlavePomoci(401, true)'), 'tehnike');
+    assert.equal(run('gumbGlavePomoci(100, true)'), 'tehnike');
   });
 }
 

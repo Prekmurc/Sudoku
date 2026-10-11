@@ -54,7 +54,14 @@
 //     brez njega (ustavi ga zajemni poslušalec, igro izprazni pageshow);
 //   - D4: file:// – dotik/klik zavihka odpre stran, ne seznama datotek (375, 1280 px); koren prek file:// in
 //     HTTP preusmeri na igro; brez napak JS.
-// --korak N požene korake 1 … N (privzeto 4), --samo N samo korak N.
+// Korak 5 – popravka po ročnem pregledu, pri 320, 375 (pravi dotik) in 1280 px (miška):
+//   - A: okno Pomoč vseh treh – tik nad mejo (spodnji rob vrstice oznak tehnik na spodnjem robu glave) »↑ Na vrh«,
+//     pod njo »↑ Tehnike«; glava, gumb, naslov in ✕ enaki pri obeh napisih, brez preliva; pravi dotik/klik oznake 9,
+//     »↑ Tehnike« → vrstica oznak pod glavo, fokus na E1, nato »↑ Na vrh« → vrh; posnetek pomoc-tehnike-<širina>.png;
+//   - B: trening – na dnu vaje (»Spoznaj« 15 tehnik, »Vadi v uganki« E1, 4, 8, 13, »Končano!«) »← Nazaj na izbiro« in
+//     desno »↑ Na vrh« v eni vrstici, istega videza kot zgornji gumb, brez preliva, okrogel »↑« skrit; pravi
+//     dotik/klik → stran na vrhu, vaja ostane; posnetek dno-vrstica-<širina>.png.
+// --korak N požene korake 1 … N (privzeto 5), --samo N samo korak N.
 //
 //   node tools/preveri-navigacija-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>] [--izhodisce4 <commit>]
 //
@@ -71,7 +78,7 @@ const KOREN = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-navigacija'));
-const korak = Number(arg('--korak', '4'));
+const korak = Number(arg('--korak', '5'));
 const izhodisce = arg('--izhodisce', '5f59f09');
 // --samo N: samo korak N (za sprotno delo).
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
@@ -98,7 +105,8 @@ const MERI = `(() => {
   const dnoGumbov = gumbi.length ? Math.max(...gumbi.map(e => e.getBoundingClientRect().bottom + y)) : null;
   const sz = getComputedStyle(z), sg = getComputedStyle(g);
   const LAST = ['fontFamily', 'fontSize', 'fontWeight', 'color', 'backgroundColor', 'borderTopWidth', 'borderTopStyle', 'borderTopColor',
-    'borderTopLeftRadius', 'paddingTop', 'paddingLeft', 'height', 'width', 'display'];
+    'borderTopLeftRadius', 'paddingTop', 'paddingLeft', 'height', 'width'];
+  // display ni v seznamu: spodnji gumb je od popravka B element vrstice flex (.dno-vaje), zato block namesto inline-block – videz enak.
   const razlike = LAST.filter(l => sz[l] !== sg[l]).map(l => l + ': ' + sz[l] + ' → ' + sg[l]);
   return {
     napis: g.textContent, viden: g.offsetParent !== null, vrh: r.top + y, dno: r.bottom + y, levo: r.left, desno: r.right,
@@ -429,7 +437,9 @@ const POMOC_STANJE = (okno, cilj = null) => `(() => {
     odprto: o.classList.contains('odprt'), scrollTop: o.scrollTop, maks: o.scrollHeight - o.clientHeight, okno: innerHeight,
     glava: { vrh: r(g).top, dno: r(g).bottom, otroci: [...g.children].map(e => e.tagName + (e.className ? '.' + e.className : '')),
       podlaga: getComputedStyle(g).backgroundColor, polozaj: getComputedStyle(g).position, vPanelu: vPanelu(g) },
-    naVrh: { viden: getComputedStyle(gor).display !== 'none', napis: gor.textContent, sirina: r(gor).width, visina: r(gor).height },
+    naVrh: { viden: getComputedStyle(gor).display !== 'none', napis: gor.dataset.napis, sirina: r(gor).width, visina: r(gor).height,
+      vidno: [...gor.children].filter(e => getComputedStyle(e).visibility !== 'hidden').map(e => e.textContent).join('|'), aria: gor.getAttribute('aria-label') },
+    podKazalomTehnik: r(kt).bottom <= r(g).bottom,
     zapri: { vrh: r(x).top, dno: r(x).bottom },
     kazalo: { napisi: kg.map(e => e.textContent), naslovi: [...o.querySelectorAll('h3.navodila-razdelek')].map(e => e.textContent),
       vrh: r(k).top, visina: r(k).height, vrstic: new Set(kg.map(e => Math.round(r(e).top))).size, vPanelu: kg.every(vPanelu),
@@ -521,6 +531,7 @@ async function korak3(b, sirina) {
     // Drsenje po vsem oknu po 50 px: glava na vrhu okna, »↑ Na vrh« viden natanko po 400 px.
     const drsenje = await b.izvedi(`(async () => {
       const o = document.querySelector(${J(a.okno)}), g = o.querySelector('.dialog-glava'), gor = g.querySelector('.dialog-na-vrh');
+      const kt = o.querySelector('.kazalo-tehnik');
       const okvir = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       const maks = o.scrollHeight - o.clientHeight, napake = [];
       let polozajev = 0;
@@ -528,12 +539,13 @@ async function korak3(b, sirina) {
         o.scrollTop = Math.min(y, maks); await okvir(); polozajev++;
         const vrh = g.getBoundingClientRect().top, viden = getComputedStyle(gor).display !== 'none';
         if (Math.abs(vrh - Math.max(0, ${g0} - o.scrollTop)) > 0.5) napake.push('glava ' + o.scrollTop + ': ' + vrh);
-        if (viden !== o.scrollTop > 400) napake.push('na vrh ' + o.scrollTop + ': ' + viden);
+        const pricakovan = kt.getBoundingClientRect().bottom <= g.getBoundingClientRect().bottom ? 'tehnike' : o.scrollTop > 400 ? 'vrh' : null;
+        if (viden !== !!pricakovan || (viden && gor.dataset.napis !== pricakovan)) napake.push('gumb ' + o.scrollTop + ': ' + (viden ? gor.dataset.napis : 'skrit') + ' ≠ ' + pricakovan);
       }
       o.scrollTop = 0; await okvir();
       return { polozajev, maks, napake };
     })()`);
-    preveri(`drsenje po vsem oknu (${drsenje.polozajev} položajev do ${drsenje.maks} px): glava na vrhu, »↑ Na vrh« natanko po 400 px`,
+    preveri(`drsenje po vsem oknu (${drsenje.polozajev} položajev do ${drsenje.maks} px): glava na vrhu, »↑ Na vrh« natanko po 400 px, pod vrstico oznak »↑ Tehnike« (popravek A)`,
       drsenje.napake.length === 0, drsenje.napake.slice(0, 6));
 
     // Pravo drsenje do konca (poteg prsta / kolesce): glava na vrhu, ✕ zadet in zapre okno.
@@ -548,8 +560,8 @@ async function korak3(b, sirina) {
       await b.izvedi(OKNO_MIRUJE(a.okno));
       s = await b.izvedi(POMOC_STANJE(a.okno));
     }
-    preveri(`pravo drsenje do konca (${s.scrollTop} od ${s.maks}): glava na vrhu okna, »↑ Na vrh« viden`,
-      s.scrollTop === s.maks && s.glava.vrh === 0 && s.naVrh.viden, { scrollTop: s.scrollTop, maks: s.maks, glava: s.glava });
+    preveri(`pravo drsenje do konca (${s.scrollTop} od ${s.maks}): glava na vrhu okna, gumb viden z napisom »↑ Tehnike« (popravek A)`,
+      s.scrollTop === s.maks && s.glava.vrh === 0 && s.naVrh.viden && s.naVrh.napis === 'tehnike' && s.naVrh.vidno === '↑ Tehnike', { scrollTop: s.scrollTop, maks: s.maks, glava: s.glava, naVrh: s.naVrh });
     if (dotik) await b.posnetek(path.join(mapa, `pomoc-${a.ime}-dno-${sirina}.png`), { vsaStran: false });
     const zaprto = s.scrollTop;
     let t = await pritisni(b, `${a.okno} [data-zapri]`, dotik);
@@ -557,15 +569,23 @@ async function korak3(b, sirina) {
     s = await b.izvedi(POMOC_STANJE(a.okno));
     preveri('na koncu okna: ✕ ves v oknu, zadet, zapre okno', t.vOknu && t.zadet && !s.odprto, { t, odprto: s.odprto });
 
-    // Ponovno odprtje: okno je na istem mestu kot ob zaprtju (kot pred korakom 3), glava na vrhu, »↑ Na vrh«
-    // viden; po drsenju pravi dotik/klik »↑ Na vrh« → vrh, fokus na kazalo.
+    // Ponovno odprtje: okno je na istem mestu kot ob zaprtju (kot pred korakom 3), glava na vrhu, gumb viden
+    // (»↑ Tehnike« – konec okna je v »Tehnike«); pravi dotik/klik → vrstica oznak (popravek A), nato »↑ Na vrh« →
+    // vrh, fokus na kazalo.
     await pritisni(b, a.gumb, dotik);
     await pocakaj(b, 250);
     s = await b.izvedi(POMOC_STANJE(a.okno));
-    preveri(`ponovno odprto okno: na istem mestu (${s.scrollTop} px), glava na vrhu, »↑ Na vrh« viden`,
+    preveri(`ponovno odprto okno: na istem mestu (${s.scrollTop} px), glava na vrhu, gumb v glavi viden`,
       s.odprto && s.scrollTop === zaprto && s.glava.vrh === 0 && s.naVrh.viden, { scrollTop: s.scrollTop, zaprto, naVrh: s.naVrh });
     await podrsaj(b, dotik, sirina, 2000);
     await b.izvedi(OKNO_MIRUJE(a.okno));
+    t = await pritisni(b, `${a.okno} .dialog-na-vrh`, dotik);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    await pocakaj(b, 100);
+    s = await b.izvedi(POMOC_STANJE(a.okno, `o.querySelector('.kazalo-tehnik')`));
+    preveri(`»↑ Tehnike« zadet: vrstica oznak pod glavo (${Math.round(s.cilj.vrh - s.glava.dno)} px), gumb »↑ Na vrh«`,
+      t.vOknu && t.zadet && s.cilj.vrh >= s.glava.dno - 0.5 && s.cilj.vrh - s.glava.dno < 20 && s.naVrh.napis === 'vrh' && s.naVrh.vidno === '↑ Na vrh' && s.odprto,
+      { t, cilj: s.cilj, glava: s.glava, naVrh: s.naVrh });
     t = await pritisni(b, `${a.okno} .dialog-na-vrh`, dotik);
     await b.izvedi(OKNO_MIRUJE(a.okno));
     await pocakaj(b, 100);
@@ -940,6 +960,139 @@ async function korak4File(b) {
   preveri('koren prek HTTP: igra deluje (mreža izrisana)', await b.izvedi("location.protocol === 'http:' && document.querySelectorAll('#mreza .celica').length === 81"));
 }
 
+// ---------- Korak 5 – popravka po ročnem pregledu (A: »↑ Tehnike« v glavi okna Pomoč, B: »↑ Na vrh« na dnu vaje) ----------
+
+// A: glava okna Pomoč – mere glave in gumba, vidni napis (oba napisa sta v gumbu, neaktivni neviden).
+const GLAVA_A = okno => `(() => {
+  const o = document.querySelector(${J(okno)}), g = o.querySelector('.dialog-glava'), gor = g.querySelector('.dialog-na-vrh');
+  const h = g.querySelector('h2'), x = g.querySelector('[data-zapri]'), kt = o.querySelector('.kazalo-tehnik'), r = e => e.getBoundingClientRect();
+  const cs = getComputedStyle(gor), notri = r(gor).width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  return {
+    scrollTop: o.scrollTop, napis: gor.dataset.napis, viden: cs.display !== 'none', aria: gor.getAttribute('aria-label'),
+    vidno: [...gor.children].filter(e => getComputedStyle(e).visibility !== 'hidden').map(e => e.textContent),
+    napisi: [...gor.children].map(e => ({ t: e.textContent, sirina: r(e).width })),
+    notri, gor: [r(gor).left, r(gor).width, r(gor).height], h2: [r(h).left, r(h).width], x: [r(x).left, r(x).width],
+    glava: [r(g).left, r(g).width, r(g).height], glavaDno: r(g).bottom, ktDno: r(kt).bottom, ktVrh: r(kt).top,
+    fokusE1: document.activeElement === kt.querySelector('button'),
+    preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth, oknoPreliv: o.scrollWidth > o.clientWidth,
+  };
+})()`;
+const meritve5 = [];
+
+async function korak5A(b, sirina) {
+  const dotik = sirina < 500;
+  for (const a of POMOC) {
+    console.log(`\nKorak 5, popravek A – »↑ Tehnike« v glavi okna Pomoč, ${a.ime}, ${sirina} px (${dotik ? 'dotik' : 'miška'})`);
+    await b.cdp.poslji('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+    await b.odpri(a.stran, { sirina, visina: dotik ? 667 : 800, mobilno: dotik });
+    await b.cakaj('document.fonts.status === "loaded"', 15000);
+    await pritisni(b, a.gumb, dotik);
+    await pocakaj(b, 250);
+    // Meja: položaj okna, pri katerem je spodnji rob vrstice oznak na spodnjem robu lepljive glave.
+    const meja = await b.izvedi(`(() => { const o = document.querySelector(${J(a.okno)}), g = o.querySelector('.dialog-glava');
+      o.scrollTop = 1000; const kt = o.querySelector('.kazalo-tehnik'); return o.scrollTop + kt.getBoundingClientRect().bottom - g.getBoundingClientRect().bottom; })()`);
+    const na = async y => {
+      await b.izvedi(`(async () => { const o = document.querySelector(${J(a.okno)}); o.scrollTop = ${y};
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); return true; })()`);
+      return b.izvedi(GLAVA_A(a.okno));
+    };
+    const vrh = await na(Math.floor(meja) - 1), teh = await na(Math.ceil(meja) + 1), zgoraj = await na(450), nic = await na(0);
+    preveri(`tik nad mejo (${vrh.scrollTop} px, vrstica oznak ${Math.round(vrh.ktDno - vrh.glavaDno)} px pod glavo): »↑ Na vrh«`,
+      vrh.viden && vrh.napis === 'vrh' && J(vrh.vidno) === J(['↑ Na vrh']) && vrh.aria === '↑ Na vrh', vrh);
+    preveri(`pod vrstico oznak (${teh.scrollTop} px): »↑ Tehnike«`,
+      teh.viden && teh.napis === 'tehnike' && J(teh.vidno) === J(['↑ Tehnike']) && teh.aria === '↑ Tehnike', teh);
+    preveri('pred »Tehnike« nad 400 px »↑ Na vrh«, na vrhu skrit', zgoraj.viden && zgoraj.napis === 'vrh' && !nic.viden, { zgoraj, nic });
+    // Glava ostane enako široka: gumb, naslov in ✕ na istem mestu in iste širine pri obeh napisih.
+    preveri(`glava enaka pri obeh napisih (gumb ${Math.round(teh.gor[1])} × ${Math.round(teh.gor[2])} px, glava ${Math.round(teh.glava[1])} × ${Math.round(teh.glava[2])} px)`,
+      J(vrh.gor) === J(teh.gor) && J(vrh.h2) === J(teh.h2) && J(vrh.x) === J(teh.x) && J(vrh.glava) === J(teh.glava), { vrh, teh });
+    preveri('oba napisa v gumbu, gumb desno od naslova, brez preliva strani in okna',
+      teh.napisi.every(n => n.sirina <= teh.notri + 0.5) && !teh.preliv && !teh.oknoPreliv && teh.h2[0] + teh.h2[1] <= teh.gor[0], teh);
+    meritve5.push(`A ${a.ime}, ${sirina} px: gumb ${Math.round(teh.gor[1])} × ${Math.round(teh.gor[2])} px (napisa ${teh.napisi.map(n => Math.round(n.sirina)).join(' / ')} px), glava ${Math.round(teh.glava[2])} px`);
+    // Pravi dotik/klik oznake 9 (okno pod vrstico oznak), nato »↑ Tehnike« → vrstica oznak pod glavo, fokus na E1;
+    // nato »↑ Na vrh« → vrh.
+    await b.izvedi(`(() => { document.querySelector(${J(a.okno)}).querySelector('.kazalo-tehnik').scrollIntoView({ block: 'center' }); return true; })()`);
+    await pocakaj(b, 50);
+    await pritisni(b, `${a.okno} .kazalo-tehnik button:nth-child(11)`, dotik);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    let s = await b.izvedi(GLAVA_A(a.okno));
+    preveri('po dotiku/kliku oznake 9: »↑ Tehnike«', s.napis === 'tehnike' && J(s.vidno) === J(['↑ Tehnike']), s);
+    if (dotik && a.ime === 'igra') await b.posnetek(path.join(mapa, `pomoc-tehnike-${sirina}.png`), { vsaStran: false });
+    let t = await pritisni(b, `${a.okno} .dialog-na-vrh`, dotik);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    s = await b.izvedi(GLAVA_A(a.okno));
+    preveri(`»↑ Tehnike« zadet: vrstica oznak ${Math.round(s.ktVrh - s.glavaDno)} px pod glavo, fokus na E1, napis »↑ Na vrh«`,
+      t.vOknu && t.zadet && s.ktVrh >= s.glavaDno - 0.5 && s.ktVrh - s.glavaDno < 20 && s.fokusE1 && s.napis === 'vrh' && J(s.vidno) === J(['↑ Na vrh']), { t, s });
+    t = await pritisni(b, `${a.okno} .dialog-na-vrh`, dotik);
+    await b.izvedi(OKNO_MIRUJE(a.okno));
+    s = await b.izvedi(GLAVA_A(a.okno));
+    preveri('nato »↑ Na vrh«: okno na vrhu, gumb skrit', t.zadet && s.scrollTop === 0 && !s.viden, s);
+  }
+}
+
+// B: vrstica na dnu vaje – »← Nazaj na izbiro« in »↑ Na vrh«.
+const DNO_B = `(() => {
+  const n = document.getElementById('backBtnDno'), v = document.getElementById('naVrhDno'), z = document.getElementById('backBtn');
+  const vr = n.parentElement, r = e => e.getBoundingClientRect();
+  const LAST = ['fontFamily', 'fontSize', 'fontWeight', 'color', 'backgroundColor', 'borderTopWidth', 'borderTopStyle', 'borderTopColor',
+    'borderTopLeftRadius', 'paddingTop', 'paddingLeft', 'height', 'position']; // display: element vrstice flex je block – videz enak
+  const sz = getComputedStyle(z);
+  const razlike = e => LAST.filter(l => sz[l] !== getComputedStyle(e)[l]).map(l => l + ': ' + sz[l] + ' → ' + getComputedStyle(e)[l]);
+  const plav = document.querySelector('button.na-vrh');
+  return {
+    napisa: [n.textContent, v.textContent], isti: vr === v.parentElement, razred: vr.className,
+    n: { vrh: r(n).top, dno: r(n).bottom, levo: r(n).left, desno: r(n).right },
+    v: { vrh: r(v).top, dno: r(v).bottom, levo: r(v).left, desno: r(v).right, sirina: r(v).width, visina: r(v).height },
+    vrstica: { levo: r(vr).left, desno: r(vr).right }, razlikeN: razlike(n), razlikeV: razlike(v),
+    sirinaStrani: document.documentElement.clientWidth, preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    okno: innerHeight, scrollY: window.scrollY, maks: document.documentElement.scrollHeight - innerHeight, plavajoc: !!plav && getComputedStyle(plav).display !== 'none',
+    vaja: getComputedStyle(document.getElementById('trainer')).display === 'block',
+  };
+})()`;
+
+async function korak5B(b, sirina) {
+  const dotik = sirina < 500;
+  console.log(`\nKorak 5, popravek B – »↑ Na vrh« na dnu vaje, ${sirina} px (${dotik ? 'dotik' : 'miška'})`);
+  await b.odpri('trening/index.html', { sirina, visina: dotik ? 667 : 800, mobilno: dotik });
+  await b.izvedi(SEME(20261011));
+  await b.cakaj('document.fonts.status === "loaded"', 15000);
+  const modes = await b.izvedi('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE].map(([k]) => k)');
+  const primeri = [...modes.map(m => [m, 'spoznaj']), ...['naked-single', 'hidden-pair', 'swordfish', 'xy-chain'].map(m => [m, 'uganka']), ['naked-pair', 'konec']];
+  for (const [mode, nacin] of primeri) {
+    const ime = nacin === 'konec' ? 'Končano!' : `${nacin === 'uganka' ? 'Vadi v uganki' : 'Spoznaj'} ${mode}`;
+    await vstopi(b, mode, nacin === 'uganka' ? 'uganka' : 'spoznaj', dotik);
+    if (nacin === 'uganka') { await b.cakaj('vadi !== null', 15000); await pocakaj(b); }
+    if (nacin === 'konec') await b.izvedi('exNum = MAX_EX; renderExercise(); true');
+    // Pravo drsenje do konca strani (poteg prsta / kolesce).
+    for (let i = 0; i < 30; i++) {
+      const st = await b.izvedi('({ y: window.scrollY, maks: document.documentElement.scrollHeight - innerHeight })');
+      if (st.y >= st.maks) break;
+      if (dotik) await b.cdp.poslji('Input.synthesizeScrollGesture', { x: Math.round(sirina / 2), y: 500, yDistance: -3000, speed: 6000 });
+      else await b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseWheel', x: Math.round(sirina / 2), y: 400, deltaX: 0, deltaY: 3000 });
+      await b.izvedi(MIRUJE);
+    }
+    const m = await b.izvedi(DNO_B);
+    preveri(`${ime}: »← Nazaj na izbiro« in »↑ Na vrh« v isti vrstici`,
+      J(m.napisa) === J(['← Nazaj na izbiro', '↑ Na vrh']) && m.isti && m.razred === 'dno-vaje' && Math.abs(m.n.vrh - m.v.vrh) < 0.5 && Math.abs(m.n.dno - m.v.dno) < 0.5, m);
+    preveri(`${ime}: »↑ Na vrh« desno (${Math.round(m.v.levo - m.n.desno)} px razmika), ob desnem robu vrstice`,
+      m.v.levo >= m.n.desno + 7.5 && Math.abs(m.v.desno - m.vrstica.desno) < 0.5, m);
+    preveri(`${ime}: oba istega videza kot zgornji »Nazaj na izbiro«, ni plavajoč (${Math.round(m.v.sirina)} × ${Math.round(m.v.visina)} px)`,
+      m.razlikeN.length === 0 && m.razlikeV.length === 0 && m.v.visina >= 24, { n: m.razlikeN, v: m.razlikeV });
+    // Stran, krajša od okna (»Končano!« pri 375 px), se ne pomakne – takrat je scrollY 0.
+    preveri(`${ime}: v širini strani, brez preliva; na dnu strani (${m.scrollY} od ${m.maks} px) oba v oknu; okrogel »↑« skrit`,
+      m.n.levo >= 0 && m.v.desno <= m.sirinaStrani && !m.preliv && m.v.vrh >= 0 && m.v.dno <= m.okno && !m.plavajoc && m.scrollY === Math.max(0, m.maks), m);
+    if (mode === 'x-wing' && dotik) await b.posnetek(path.join(mapa, `dno-vrstica-${sirina}.png`), { vsaStran: false });
+    if (mode === modes[0] || nacin !== 'spoznaj') {
+      meritve5.push(`B ${ime}, ${sirina} px: Nazaj ${Math.round(m.n.levo)}–${Math.round(m.n.desno)}, Na vrh ${Math.round(m.v.levo)}–${Math.round(m.v.desno)} px (stran ${m.sirinaStrani} px)`);
+    }
+    // Pravi dotik/klik »↑ Na vrh« → stran na vrhu, vaja ostane.
+    if (dotik) await b.tapni('#naVrhDno'); else await b.klikni('#naVrhDno');
+    await b.izvedi(MIRUJE);
+    const po = await b.izvedi(DNO_B);
+    preveri(`${ime}: ${dotik ? 'dotik' : 'klik'} »↑ Na vrh« → stran na vrhu, vaja ostane`, po.scrollY === 0 && po.vaja && !po.plavajoc, { scrollY: po.scrollY, vaja: po.vaja });
+    await b.izvedi('nazajNaIzbiro(); true');
+  }
+}
+
 (async () => {
   fs.mkdirSync(mapa, { recursive: true });
   const b = await zazeni();
@@ -963,6 +1116,12 @@ async function korak4File(b) {
       await korak4File(b);
       console.log('\nKorak 4 – meritve:');
       for (const v of meritve4) console.log('  ' + v);
+    }
+    if (tece(5)) {
+      for (const s of [320, 375, 1280]) await korak5A(b, s);
+      for (const s of [320, 375, 1280]) await korak5B(b, s);
+      console.log('\nKorak 5 – meritve:');
+      for (const v of meritve5) console.log('  ' + v);
     }
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } catch (e) {

@@ -29,6 +29,13 @@ const POMOC_NA_VRH_PO = 400;
 function naVrhPomociViden(scrollTop) {
   return scrollTop > POMOC_NA_VRH_PO;
 }
+// Napis gumba v glavi (popravek A po ročnem pregledu naloge 4c): 'tehnike' – okno je v razdelku »Tehnike« pod
+// vrstico oznak E1 … 13 (»↑ Tehnike« vrne k njej), 'vrh' – pomaknjeno več kot 400 px (»↑ Na vrh«), null – skrit.
+function gumbGlavePomoci(scrollTop, podKazalomTehnik) {
+  if (podKazalomTehnik) return 'tehnike';
+  return naVrhPomociViden(scrollTop) ? 'vrh' : null;
+}
+const NAPISI_GLAVE_POMOCI = { vrh: '↑ Na vrh', tehnike: '↑ Tehnike' };
 
 // Pomik okna do elementa v njem (naslov razdelka, tehnika): gladko (pri prefers-reduced-motion takoj),
 // naslov pristane pod lepljivo glavo (scroll-margin-top v shared/pomoc.css), fokus gre nanj - brez
@@ -64,7 +71,10 @@ function ustvariPomoc(okno, gumbi) {
     }
     naslovi[0].parentNode.insertBefore(kazalo, naslovi[0]);
   }
-  // »↑ Na vrh« v glavi pred ✕ (samo okno s kazalom - Pomoč): vrne na vrh, fokus na kazalo.
+  // »↑ Na vrh« v glavi pred ✕ (samo okno s kazalom - Pomoč): vrne na vrh, fokus na kazalo. Popravek A po ročnem
+  // pregledu naloge 4c: v razdelku »Tehnike« pod vrstico oznak (vrstica je vsa nad spodnjim robom glave) je napis
+  // »↑ Tehnike« in klik vrne k vrstici oznak (fokus na E1). Gumb ima oba napisa enega nad drugim, neaktivni je
+  // neviden (shared/pomoc.css) – gumb je zato vedno enako širok in glava se ne spremeni.
   const glava = kazalo && okno.querySelector('.dialog-glava');
   const zapriGumb = glava && okno.querySelector('[data-zapri]');
   let osveziNaVrh = () => {};
@@ -72,11 +82,41 @@ function ustvariPomoc(okno, gumbi) {
     const gor = document.createElement('button');
     gor.type = 'button';
     gor.className = 'dialog-na-vrh';
-    gor.textContent = '↑ Na vrh';
+    for (const [k, t] of Object.entries(NAPISI_GLAVE_POMOCI)) {
+      const s = document.createElement('span');
+      s.className = 'napis-' + k;
+      s.textContent = t;
+      gor.appendChild(s);
+    }
+    gor.dataset.napis = 'vrh';
+    gor.setAttribute('aria-label', NAPISI_GLAVE_POMOCI.vrh);
     glava.insertBefore(gor, zapriGumb);
-    osveziNaVrh = () => { gor.hidden = !naVrhPomociViden(okno.scrollTop || 0); };
+    // Vrstica oznak tehnik (izriše jo izrisiTehnike() - pred tem ali po tem klicu).
+    const kazaloTehnik = () => okno.querySelector('.kazalo-tehnik');
+    const podKazalomTehnik = () => {
+      const kt = kazaloTehnik();
+      if (!kt || !kt.getBoundingClientRect || !glava.getBoundingClientRect) return false;
+      const g = glava.getBoundingClientRect();
+      return g.height > 0 && kt.getBoundingClientRect().bottom <= g.bottom;
+    };
+    osveziNaVrh = () => {
+      const napis = gumbGlavePomoci(okno.scrollTop || 0, podKazalomTehnik());
+      gor.hidden = !napis;
+      if (napis) {
+        gor.dataset.napis = napis;
+        gor.setAttribute('aria-label', NAPISI_GLAVE_POMOCI[napis]);
+      }
+    };
     gor.addEventListener('click', () => {
-      okno.scrollTo({ top: 0, behavior: typeof nacinPomika === 'function' ? nacinPomika() : 'auto' });
+      const pomik = typeof nacinPomika === 'function' ? nacinPomika() : 'auto';
+      const kt = gor.dataset.napis === 'tehnike' && kazaloTehnik();
+      if (kt) {
+        kt.scrollIntoView({ behavior: pomik, block: 'start' });
+        const e1 = kt.children[0];
+        if (e1) e1.focus({ preventScroll: true });
+        return;
+      }
+      okno.scrollTo({ top: 0, behavior: pomik });
       const prvi = kazalo.children[0];
       if (prvi) prvi.focus({ preventScroll: true });
     });

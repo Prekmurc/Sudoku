@@ -363,6 +363,24 @@ malimi števkami; posnetki v `docs/slike/izbris/` (D2, D5, D6). »Spoznaj« pred
 | 7 | trening, »Spoznaj« | Popravek B: 3 · Očitni par in 4 · Skriti par – v 2. fazi označi števke v različnih celicah z izklopljeno kljukico »več celic«, nato kljukico vklopi in označi isto števko v dveh celicah; naslednja vaja kroga, nov krog. | Izklopljena: dotik izbere samo to celico, ni ročnega odizbiranja. Vklopljena: dotik celico doda. Tvoja izbira ostane do konca kroga; nov krog ima privzeto (pri 3 izklopljeno, pri 1 vklopljeno). (potrjeno 10. 10. 2026) | Presoja, ali privzete vrednosti po tehnikah ustrezajo poteku reševanja. |
 | 8 | trening, »Spoznaj«, telefon | Popravek C: 1 · Izločitev izven bloka in 2 · Izločitev v bloku – odpri »Rešitev« v 1. fazi, zapri, reši 1. fazo, v 2. fazi odpri in zapri »Rešitev«, reši; nato še enkrat odpri »Rešitev«. Posnetka `docs/slike/izbris/1-koncno-375.png` in `1-resitev-faza1-375.png`. | Števka vaje je poudarjena v vseh stanjih; v končni sliki se vidi, da je ostala samo v celicah vzorca (jantarnih). Prečrtana števka na poudarku je temno rdeča in berljiva tudi v rožnati celici izbrisa in v jantarni celici vzorca; rumeni kvadratek poudarka se loči od rožnate in jantarne podlage celice. (potrjeno 10. 10. 2026) | Kontrast prečrtane števke je izmerjen (glej `docs/izbris-nacrt.md`, popravek C), ločljivost rumenega kvadratka od rožnate in jantarne celice ter berljivost male prečrtane števke na tvojem zaslonu (in z drugo barvo poudarka iz igre) pa sta presoja očesa. |
 
+## Navigacija (naloga 4c: kazala, »Na vrh«, »Nazaj na izbiro« na dnu, zavihki med aplikacijami)
+
+Načrt: `docs/navigacija-nacrt.md` (razdelek 7; točka 5 – `file://` – je črtana, D4: preveri jo scenarij). Samodejno
+preverjeno: `tests/trening-meni.test.js`, `tests/pomoc.test.js`, `tests/navigacija.test.js` in v pravem brskalniku
+`tools/preveri-navigacija-brskalnik.js` (koraki 1–5 – pravi dotiki pri 320 in 375 px, kliki pri 1280 px, drsenje,
+pravo okno `confirm`, »Nazaj« brskalnika, `file://`). Točke 1–4 so pregledane na telefonu, različica 2026-10-11 09:58;
+ob pregledu zapisano brez popravka: okno Pomoč se odpre tam, kjer je bilo zaprto (ostane tako), niz »Izbriši kandidata«
+v igri (pod zaslonom pri 375 × 667, korak 4) je v redu. Točki 5 in 6 sta popravka A in B po tem pregledu.
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | vse tri, telefon | Glava z zavihki Igra · Reševalec · Trening: dotik zavihka. | Odpre se druga aplikacija; zbirka (število) in igra (poteze) ostaneta. (potrjeno 11. 10. 2026) | Presoja videza in pravi telefon (pisave, drsni trak, dotik). |
+| 2 | igra, telefon | Okno Pomoč: drsenje s prstom, kazalo razdelkov, oznaka tehnike, »↑ Na vrh«, ✕. | Glava ostane na vrhu, kazali pomakneta do razdelka oz. tehnike, ✕ je vedno dosegljiv. (potrjeno 11. 10. 2026) | Inercijsko drsenje in Safari (lepljiv element v drsnem oknu) – brskalnik brez glave je Chromium. |
+| 3 | trening, telefon | Meni: oznaka v kazalu, drsenje, okrogel »↑«; vaja: »Nazaj na izbiro« na dnu. | Okrogel »↑« ne moti dotika kartice; spodnji »Nazaj na izbiro« vrne v meni na isto mesto. (potrjeno 11. 10. 2026) | Presoja, ali gumb moti pravi prst. |
+| 4 | trening sredi kroga | Dotik zavihka »Igra«: preberi vprašanje, »Prekliči«; nato potrdi in v svojem brskalniku pritisni »Nazaj«. | Vprašanje pove krog in rezultat; »Prekliči« pusti krog; po »Nazaj« je trening spet odprt. (potrjeno 11. 10. 2026) | Pravo okno vprašanja in obnova iz predpomnilnika sta odvisna od brskalnika. |
+| 5 | vse tri, telefon | Popravek A: okno Pomoč → »Tehnike« → dotik oznake (npr. 9); v glavi dotik »↑ Tehnike«, nato »↑ Na vrh«. Drsi s prstom gor in dol čez vrstico oznak. | Pod vrstico oznak gumb kaže »↑ Tehnike« in vrne k vrstici oznak (pod glavo); nad njo »↑ Na vrh«. Ob menjavi napisa se glava ne premakne (gumb je enako širok). **(nepotrjeno)** | Presoja, ali je menjava napisa med drsenjem razumljiva in ne moti; inercijsko drsenje na pravem telefonu (scenarij meri mejo in širino gumba pri 320, 375, 1280 px). |
+| 6 | trening, telefon (tudi 320 px, če ga imaš) | Popravek B: »Spoznaj« 9 · Veriga ene števke, »Vadi v uganki« 4 · Skriti par in »Končano!«: podrsaj do dna, dotik »↑ Na vrh«. | Na dnu sta v eni vrstici »← Nazaj na izbiro« (levo) in »↑ Na vrh« (desno), enakega videza; dotik »↑ Na vrh« pomakne stran na vrh, vaja ostane. Okrogel plavajoč »↑« je samo v meniju. **(nepotrjeno)** | Presoja, ali sta gumba na dnu dovolj ločena za pravi prst (scenarij izmeri eno vrstico, razmik in preliv pri 320, 375, 1280 px). |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga
