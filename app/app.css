@@ -429,8 +429,9 @@
     color: var(--green);
     background: var(--green-bg);
   }
-  .mini-grid .mcell.hl-source{ background: var(--amber-bg); }
-  .mini-grid .mcell.hl-elimonly{ background: var(--red-bg); }
+  /* podlagi celic vzorca in izbrisa iz palete - enaki kot v igri in treningu (naloga 6, O1) */
+  .mini-grid .mcell.hl-source{ background: var(--k-vzorec-bg); }
+  .mini-grid .mcell.hl-elimonly{ background: var(--k-izbris-bg); }
 
   /* Vrstice in stolpci se smejo skrčiti pod višino vrstice besedila (minmax(0, 1fr), višina
      vrstice 1): s privzeto višino (pribl. 1,3 × pisava) so bile tri vrstice višje od celice
@@ -452,6 +453,10 @@
     line-height:1;
     color: var(--pencil);
   }
+  /* v celicah vzorca in izbrisa temnejši kot v igri in treningu (naloga 6, O2): --pencil bi imel na
+     rožnati podlagi kontrast 1,73 : 1, --kand-ink 4,28. :where() da specifičnost .mcand, zato
+     .mcand-veriga in .mcand-elim spodaj ostaneta bela oziroma rdeča. */
+  :where(.mini-grid .mcell.hl-source, .mini-grid .mcell.hl-elimonly) .mcand{ color: var(--kand-ink); }
   .mcand-empty{ visibility:hidden; }
   /* XY-veriga (O4, docs/xy-veriga-nacrt.md): zaporedna številka celice verige na praznem mestu
      kandidata - majhna polna jantarna oznaka v polju kandidata, zato ne sega iz celice in ne
@@ -481,12 +486,12 @@
   .mini-legend span{ display:inline-flex; align-items:center; gap:5px; }
   .mini-legend .sw{ width:11px; height:11px; border-radius:3px; border:1px solid rgba(0,0,0,0.15); }
   /* vzorčki legende kot celice male mreže (hl-source, mcand-elim na hl-elimonly, willset) */
-  .mini-legend .sw-vzorec{ background:var(--amber-bg); border-color:var(--amber); }
+  .mini-legend .sw-vzorec{ background:var(--k-vzorec-bg); border-color:var(--amber); }
   .mini-legend .sw-stevka{
     justify-content:center; min-width:15px; height:15px; border-radius:3px;
     font-family:'JetBrains Mono', monospace; font-weight:700; font-size:11px;
   }
-  .mini-legend .sw-izbris{ background:var(--red-bg); color:var(--red); text-decoration:line-through; }
+  .mini-legend .sw-izbris{ background:var(--k-izbris-bg); color:var(--red); text-decoration:line-through; }
   .mini-legend .sw-vpis{ background:var(--green-bg); color:var(--green); }
   .mini-legend .sw-veriga{ background:var(--amber-ink); color:#fff; }
   .mini-container .mini-povecava{ text-align:center; margin:4px 0 0; }

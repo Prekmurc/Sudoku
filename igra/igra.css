@@ -95,8 +95,8 @@ header.top, footer.note{ max-width: 960px; }
 }
 .pomoc-legenda > span{ display:inline-flex; align-items:center; gap:5px; }
 .pomoc-legenda .sw{ width:12px; height:12px; border-radius:3px; border:1px solid; }
-.pomoc-legenda .sw-vzorec{ background: var(--amber-bg); border-color: var(--amber); }
-.pomoc-legenda .sw-izbris{ background: var(--red-bg); border-color: var(--red); }
+.pomoc-legenda .sw-vzorec{ background: var(--k-vzorec-bg); border-color: var(--amber); }
+.pomoc-legenda .sw-izbris{ background: var(--k-izbris-bg); border-color: var(--red); }
 .pomoc-legenda .sw-vpis{ background: var(--green); border-color: var(--green); }
 /* tretja stopnja koraka: seznam dejanj, izvedena zeleno prečrtana s kljukico */
 .pomoc-dejanja{

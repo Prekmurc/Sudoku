@@ -1,8 +1,9 @@
 /* shared/mreza.css — igralna mreža 9 × 9 in seznami manjkajočih števk
    (shared/mreza.js), skupno igri (igra/) in treningu. Naloži se PRED slogi
    aplikacije, da ima aplikacija zadnjo besedo (velikost celice --gcs, postavitev).
-   Barve palete (--line, --ink, --blue, --card, --amber-bg, --red, --red-bg,
-   --green, --green-bg) so iz shared/base.css; tu so samo barve in mere mreže.
+   Barve palete (--line, --ink, --blue, --card, --red, --green, --green-bg, podlagi
+   celic koraka --k-vzorec-bg in --k-izbris-bg, kandidat --kand-ink) so iz shared/base.css;
+   tu so samo barve in mere mreže.
    Barve poudarka lahko igralec spremeni v igri (inline slog na <html>). */
 
 :root{
@@ -21,7 +22,6 @@
   --poud4-ink:#1D4F9C;
   /* mreža je bela; sivo so obarvane samo vrstica, stolpec in blok izbrane celice */
   --peer-bg:#ECEFF3;
-  --kand-ink:#4A5561;
   /* velikost celice mreže; nizi gumbov pod/nad mrežo imajo iste stolpce */
   --gcs: min(calc((100vw - 36px) / 9), 56px);
   /* razmik med mrežo in seznami manjkajočih števk; velikost polja male mreže blokov */
@@ -38,10 +38,6 @@
      (pogled.zaznamovane - temno vijolična: te barve nima nobena druga oznaka; docs/oznake-nacrt.md) */
   --obmocje:#1565C0;
   --zaznamek:#5E2B97;
-  /* podlagi celic prikazanega koraka (vzorec, izbris); trening ju nastavi močnejši
-     (trening/trening.css, docs/oznake-nacrt.md O2), igra ima te */
-  --k-vzorec-bg: var(--amber-bg);
-  --k-izbris-bg: var(--red-bg);
 }
 
 /* ---------- mreža ---------- */

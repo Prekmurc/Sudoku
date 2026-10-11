@@ -1,7 +1,7 @@
 # Podlage, legenda, Escape (naloga 6) – načrt
 
 Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6, in tri postavke iz »Kasneje«).
-**Stanje: čaka potrditev** – odločitve O1–O7 v razdelku 7.
+**Stanje: potrjen** (2026-10-11, commit načrta `b86ed36`) – odločitve O1–O7 in dodatka D1, D2 v razdelku 7.
 
 Izhodišče: commit `e24738b` (zaključek naloge 4c).
 
@@ -30,7 +30,8 @@ in sestavljanje slik sta v začasni mapi (nista v repozitoriju).
 - **Legenda** (O5): postavka »tvoje oznake« (vijoličen črtkan kvadratek) pod »Pravilno!«, samo kadar so na mreži oznake.
 - **Escape** (O6, O7): zapre povečan prikaz; če je odprto še okno pod njim (s tipkovnico ali skripto), najprej zgornjo
   plast. Pomoč reševalca pove, kako se povečava zapre.
-- **Koraki:** 1 – podlagi, 2 – legenda, 3 – Escape, 4 – zaključek. Vsak v svojem pogovoru, s testom pred spremembo.
+- **Koraki:** 1 – podlagi, 2 – legenda, 3 – Escape, 4 – zaključek. Koraki 1–3 vsak v svojem pogovoru, zaključek
+  (korak 4) v pogovoru koraka 3 (D1); vsak s testom pred spremembo.
   Logika tehnik, vaj, igre in zbirke se ne spremeni.
 
 ## 1. Kako je zdaj
@@ -198,7 +199,7 @@ argument poda samo »Vadi v uganki« ob »Pravilno!« (`plosca.zaznamovane.lengt
 
 ## 5. Koraki
 
-Vsak korak v svojem pogovoru: najprej test, ki na stari kodi pade, nato sprememba; sprotno hitri testi, pred commitom
+Koraki 1–3 vsak v svojem pogovoru, korak 4 v pogovoru koraka 3 (D1): najprej test, ki na stari kodi pade, nato sprememba; sprotno hitri testi, pred commitom
 vsi; nov scenarij `tools/preveri-naloga6-brskalnik.js` (raste po korakih – `--korak N`); commit in push.
 
 1. **Podlagi** (O1–O4). Test: `tests/css-paleta.test.js` – `--k-vzorec-bg`, `--k-izbris-bg` (pri O2 A še `--kand-ink`)
@@ -257,3 +258,33 @@ Escape ni na seznamu: scenarij ga preveri s pravimi tipkami v brskalniku (korak 
 | **O7** | Napis in Pomoč reševalca | **A** – napis ostane, ena poved v Pomoči |
 
 Ročni pregled je en sam, po koraku 4, največ 5 točk (zdaj 3), pri vsaki zakaj ni avtomatsko; po korakih 1–3 ga ni.
+
+**Odločitve (Darko, 2026-10-11):** O1–O7 povsod **A**, po priporočilu.
+
+**Dodatka:**
+
+- **D1** – zaključek (korak 4) se naredi v pogovoru koraka 3, ne v svojem; koraki so torej trije pogovori.
+- **D2** – če test ali primerjava z izhodiščem pokaže kaj nepričakovanega, se ustavim in poročam.
+
+## 8. Izvedba
+
+- **Korak 1 – podlagi (O1–O4), 2026-10-11.**
+  - *Test pred spremembo:* `tests/css-paleta.test.js` – trije novi testi (`--k-vzorec-bg`, `--k-izbris-bg`,
+    `--kand-ink` z vrednostmi v paleti `shared/base.css`; pravila celic, vzorčkov legend, čipov in sheme jih
+    uporabljajo; kandidati v obarvanih celicah reševalca `--kand-ink`, drugi `--pencil`, pravilo pred
+    `.mcand-veriga`/`.mcand-elim`). Na stari kodi padejo vsi trije, stari test »barve palete niso definirane
+    nikjer drugje« zdaj pokrije tudi nova imena.
+  - *Sprememba (samo CSS):* `shared/base.css` (tri spremenljivke v paleti), `shared/mreza.css` in
+    `trening/trening.css` (ne določata jih več), `shared/pomoc.css` (čipa – O3: podlagi celic, »jantarne«
+    `--ink`; `--shema-vzorec-bg`/`--shema-izbris-bg` = `var(--k-…)`), `igra/igra.css` (vzorčka legende),
+    `app/app.css` (mala mreža in povečava, vzorčka legende, kandidati v obarvanih celicah
+    `:where(…) .mcand{ color: var(--kand-ink) }` – O2). O4: poudarek ostane (kontrast podlag 1,20, izpiše
+    scenarij).
+  - *Scenarij:* nov `tools/preveri-naloga6-brskalnik.js` (`--korak 1`) pri 375 (telefon) in 1280 px – igra
+    (tretja stopnja »Naslednjega koraka« s pravimi kliki, legenda, poudarek, čipa in shema v Pomoči), reševalec
+    (korak 11, mala mreža, povečava, legenda, shema v Pomoči), trening (spremenljivke): vse drži, kontrasti
+    5,43 / 4,28 / 3,34 / 9,58 kot v tabeli 2.1. `tools/preveri-vadi-brskalnik.js`: pričakovanje `oznakeIgra`
+    obrnjeno (igra ima podlagi treninga).
+  - *Preverjanje:* vsi testi (961) zeleni; `preveri-vadi-brskalnik.js` vse drži (»Spoznaj« vseh tehnik enak
+    izhodišču `4c47cc0` – trening nespremenjen), `preveri-videz-`, `preveri-sheme-`, `preveri-veriga-brskalnik.js`
+    vse drži; posnetek igre (`igra-po-xy-veriga.json`) enak v vseh 99 posnetkih. Nič nepričakovanega (D2).

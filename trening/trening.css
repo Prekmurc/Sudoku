@@ -14,12 +14,9 @@
      --cs zanje ni dovolj majhen in mreža pri ožjem oknu uide iz kartice.
      Odštetih 104px = 22 + 32 + 32 + rezerva za drsnik. */
   --gs:min(46px,(min(560px,100vw) - 104px)/9);
-  /* Podlagi celic vzorca in izbrisa v vsem treningu: mreže iz shared/mreza.js (»Vadi v
-     uganki«, »Spoznaj« E1, E2, 1 in 2), mreže vaj 3-12 v »Spoznaj« (.gc, .xw-cell spodaj) in
-     kvadratek legende - močnejši od igre, ker se bledi odtenki na nekaterih zaslonih slabo vidijo
-     (docs/oznake-nacrt.md, O2); vzorec in izbris loči tudi svetlost. */
-  --k-vzorec-bg:#EFD8A0;
-  --k-izbris-bg:#F0B4AA;
+  /* Podlagi celic vzorca in izbrisa (--k-vzorec-bg, --k-izbris-bg) za mreže iz shared/mreza.js,
+     mreže vaj 3-12 v »Spoznaj« (.gc, .xw-cell spodaj) in kvadratek legende so v paleti
+     shared/base.css - enake v igri in reševalcu (naloga 6, O1). */
   /* okvir celice vzorca (in spregledane celice ob »Rešitvi«) ter napačno izbrane celice ob
      »Rešitvi« v »Spoznaj« 3-12 - isti barvi ima vzorček legende (docs/izbira-spoznaj-nacrt.md) */
   --okvir-vzorec:#C8A020;
@@ -258,9 +255,9 @@ button.peek-btn:active{background:#F0F2F5}
 .peek-overlay.visible{display:block}
 .peek-overlay b{color:#3A3008}
 /* "Rešitev" pri 3-12: celice vzorca in izbrisa v podlagah oznak koraka (--k-vzorec-bg,
-   --k-izbris-bg zgoraj), kot v "Vadi v uganki" - tudi pri X-krilu in mečarici, kjer je bil vzorec
+   --k-izbris-bg iz shared/base.css), kot v "Vadi v uganki" - tudi pri X-krilu in mečarici, kjer je bil vzorec
    zelen (docs/oznake-nacrt.md, O2). Sivi kandidati (--pencil) bi imeli na močnejši podlagi
-   premajhen kontrast, zato so v teh celicah temnejši (--kand-ink iz shared/mreza.css); :where()
+   premajhen kontrast, zato so v teh celicah temnejši (--kand-ink iz shared/base.css); :where()
    ne prepiše obarvanih (.cd.hl-*) in izbrisanih (.cd.elim). */
 .gc.peek-hl{box-shadow:inset 0 0 0 2.5px var(--okvir-vzorec)!important;background:var(--k-vzorec-bg)!important}
 .xw-cell.peek-hl{box-shadow:inset 0 0 0 2.5px var(--okvir-vzorec)!important;background:var(--k-vzorec-bg)!important}

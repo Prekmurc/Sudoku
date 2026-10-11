@@ -697,15 +697,16 @@ async function oznakeSpoznajRazredi(b) {
   }
 }
 
-// Igra: podlagi vzorca in izbrisa ostaneta (--amber-bg, --red-bg), male števke brez plasti.
+// Igra: podlagi vzorca in izbrisa kot v treningu (naloga 6, korak 1 - prej --amber-bg, --red-bg),
+// male števke brez plasti.
 async function oznakeIgra(b) {
-  console.log('igra: podlagi oznak koraka nespremenjeni');
+  console.log('igra: podlagi oznak koraka kot v treningu');
   await b.odpri('igra/index.html', { sirina: 1280, visina: 900 });
   const p = await b.izvedi(`(() => { const o = document.createElement('div'); o.className = 'mreza';
     o.innerHTML = '<div class="celica k-vzorec"><div class="kandidati"></div></div><div class="celica k-izbris"></div>'; document.body.appendChild(o);
     const c = [...o.querySelectorAll('.celica')], m = getComputedStyle(o.querySelector('.kandidati'));
     const r = { podlagi: c.map(e => getComputedStyle(e).backgroundColor).join(' / '), stevke: m.position + ' ' + m.zIndex }; o.remove(); return r; })()`);
-  preveri('igra: podlagi #F1E5C9 / #F3DEDA, male števke brez z-index', p.podlagi === 'rgb(241, 229, 201) / rgb(243, 222, 218)' && p.stevke === 'static auto', p);
+  preveri('igra: podlagi #EFD8A0 / #F0B4AA (kot trening), male števke brez z-index', p.podlagi === 'rgb(239, 216, 160) / rgb(240, 180, 170)' && p.stevke === 'static auto', p);
 }
 
 // "Več celic" pri 1-12 privzeto vklopljen (popravek po ročnem pregledu faze 6; prej po tehniki -

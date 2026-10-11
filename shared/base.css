@@ -46,6 +46,16 @@
      uganka« v igri) - povsod enako (odločitev A2): modrikasta podlaga in 3 px modra obroba. */
   --izbira: #4A86D8;
   --izbira-bg: var(--blue-bg);
+  /* Podlagi celic vzorca in izbrisa prikazanega koraka - povsod enaki (naloga 6, O1,
+     docs/naloga6-nacrt.md): mreža igre in treninga (shared/mreza.css), mreže »Spoznaj« 3-13,
+     mala mreža in povečava v reševalcu, legende, čipa v Pomoči igre in shema v Pomoči. Močnejši od
+     --amber-bg / --red-bg, ker se bledi odtenki na nekaterih zaslonih slabo vidijo
+     (docs/oznake-nacrt.md, O2); vzorec in izbris loči tudi svetlost. */
+  --k-vzorec-bg: #EFD8A0;
+  --k-izbris-bg: #F0B4AA;
+  /* Kandidat v mreži igre in treninga ter v celicah vzorca in izbrisa v reševalcu (O2) - temnejši
+     od --pencil, da je na podlagah zgoraj kontrast vsaj 4,28 : 1. */
+  --kand-ink: #4A5561;
 }
 
 /* Atribut hidden mora skriti element vedno: pravilo z display (npr. display:flex
