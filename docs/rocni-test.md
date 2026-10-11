@@ -382,6 +382,20 @@ na telefonu, različica 2026-10-11 11:42, popravkov ni – **naloga 4c je zaklju
 | 5 | vse tri, telefon | Popravek A: okno Pomoč → »Tehnike« → dotik oznake (npr. 9); v glavi dotik »↑ Tehnike«, nato »↑ Na vrh«. Drsi s prstom gor in dol čez vrstico oznak. | Pod vrstico oznak gumb kaže »↑ Tehnike« in vrne k vrstici oznak (pod glavo); nad njo »↑ Na vrh«. Ob menjavi napisa se glava ne premakne (gumb je enako širok). (potrjeno 11. 10. 2026) | Presoja, ali je menjava napisa med drsenjem razumljiva in ne moti; inercijsko drsenje na pravem telefonu (scenarij meri mejo in širino gumba pri 320, 375, 1280 px). |
 | 6 | trening, telefon (tudi 320 px, če ga imaš) | Popravek B: »Spoznaj« 9 · Veriga ene števke, »Vadi v uganki« 4 · Skriti par in »Končano!«: podrsaj do dna, dotik »↑ Na vrh«. | Na dnu sta v eni vrstici »← Nazaj na izbiro« (levo) in »↑ Na vrh« (desno), enakega videza; dotik »↑ Na vrh« pomakne stran na vrh, vaja ostane. Okrogel plavajoč »↑« je samo v meniju. (potrjeno 11. 10. 2026) | Presoja, ali sta gumba na dnu dovolj ločena za pravi prst (scenarij izmeri eno vrstico, razmik in preliv pri 320, 375, 1280 px). |
 
+## Naloga 6 – podlage in Escape (igra, reševalec)
+
+Načrt `docs/naloga6-nacrt.md` (razdelek 6). Podlagi vzorca in izbrisa sta v igri in reševalcu zdaj kot v treningu
+(#EFD8A0 / #F0B4AA, korak 1), Escape zapre povečan prikaz v reševalcu (korak 3). Legenda »tvoje oznake« (korak 2) ni
+narejena, zato točke o njej ni. Avtomatsko preverjeno: `tests/css-paleta.test.js`, `tests/app-zbirka.test.js`
+(Escape), `tools/preveri-naloga6-brskalnik.js` (izračunane podlage, kontrasti, pravi Escape pri 375 in 1280 px –
+povečava rešitve in koraka, povečava z oknom pod njo, fokus v polju Niz), `preveri-vadi-`, `-videz-`, `-sheme-`,
+`-veriga-`, `-pomoc-brskalnik.js`, posnetek igre. Escape zato ni na seznamu – scenarij ga preveri s pravimi tipkami.
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | igra, telefon in monitor | Odpri uganko, »Naslednji korak« trikrat pri koraku z izbrisom (npr. 1 · Izločitev izven bloka); nato poudari števko vzorca. V Pomoči (»Pomoč pri reševanju«) poglej čipa »jantarne« in »rdeče prečrtani«. | Jantarne in rožnate celice jasno vidne, kandidati v njih berljivi, rdeče prečrtana števka vidna; rumen kvadrat poudarka še ločiš od jantarne celice; čipa sta enaka celicam. (nepotrjeno) | Presoja barv na pravem zaslonu (svetlost, barvni profil, zunanja svetloba) – kontrast je samo številka (poudarek ob jantarni celici 1,20). |
+| 2 | reševalec, telefon | »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male mreže; povečavo zapri z dotikom. | Barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px), povečava se z dotikom zapre. (nepotrjeno) | Isto kot 1 – berljivost drobnih kandidatov na pravem zaslonu. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

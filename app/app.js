@@ -97,6 +97,13 @@ document.getElementById('lightboxScroll').addEventListener('click', (e) => {
   if (e.target.id === 'lightboxScroll') closeLightbox();
 });
 lightboxInner.addEventListener('click', closeLightbox);
+// Escape zapre povečavo (naloga 6, O6). Povečava je nad oknoma zbirke in Pomoč, zato poslušalec
+// v fazi zajema na window (pred njunima) zapre samo njo in dogodek ustavi - naslednji Escape zapre okno pod njo.
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || lightbox.style.display !== 'block') return;
+  closeLightbox();
+  e.stopImmediatePropagation();
+}, true);
 
 // Ena skupna funkcija za izris mreže (uporabljena tudi za majhen prikaz v
 // koraku, tudi za povečan prikaz v lightboxu, tudi za sam solvedGrid) -

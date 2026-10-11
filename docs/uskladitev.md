@@ -1286,7 +1286,7 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 | 4b | trening | **Spoznaj: druga faza – izbris** (dodano 2026-10-09 ob ročnem pregledu naloge 4a; **zaključeno 2026-10-10**) | v »Spoznaj« po pravilni izbiri vzorca uporabnik označi še kandidate, ki se zaradi vzorca izbrišejo; velja za tehnike 1–13; načrt `docs/izbris-nacrt.md` (2026-10-09, **potrjen 2026-10-09** – O1–O13 po predlogu: vnos s celico in števko kot v »Vadi v uganki«, označi in nato preveri – napačen odgovor pobriše vse oznake, pri 4 in 6 izbris namesto izbire števk, E1 in E2 brez 2. faze, rešena vaja = obe fazi, napaka v 2. fazi šteje, nepopoln odgovor ne, napačna oznaka ob »Rešitvi« brez črte s temno rdečim obročem; dodatki D1–D4; **korak 1 – priprava testov narejen** 2026-10-09; **korak 2 – osnova 2. faze in 3–6 narejen** 2026-10-09, brez razdelitve na 2a in 2b, posnetka D2 v `docs/slike/izbris/`; **korak 3 – 7–13 narejen** 2026-10-09, s popravkom: pri 3–6 z enoto blok razdelek »Shema« nad oznakami celic; posnetka D5 v `docs/slike/izbris/`; **korak 4 – 1 in 2 ter Pomoč narejen** 2026-10-10, s popravkom: okvir izbrane zelene celice vzorca 2,5 px (pri 7 in 8 2 px) kot navadna izbira; posnetka D6 v `docs/slike/izbris/`; opis vaj 1 in 2 z izrecnim pozivom k izbrisu (odločitev 2026-10-10); ročni pregled v `docs/rocni-test.md`, razdelek »Spoznaj – izbris« – **točke 1–5 potrjene 2026-10-10**; popravka po pregledu narejena 2026-10-10 – A: pri 1 in 2 števka vaje v 2. fazi poudarjena, B: kljukica »več celic« v nizu »Izbriši kandidata« – točki 6 in 7 potrjeni 2026-10-10; popravek C po pregledu narejen 2026-10-10 – pri 1 in 2 števka vaje poudarjena v vseh stanjih, točka 8 potrjena 2026-10-10, popravkov ni) – **naloga 4b je zaključena 2026-10-10**; **naslednja je naloga 4c** |
 | 4c | trening, vse | **Navigacija po straneh** (dodano 2026-10-09; **zaključeno 2026-10-11**) | kazalo in gumb »Na vrh« v oknu Pomoč (vse tri aplikacije); kratko kazalo tehnik in gumb »Na vrh« v meniju treninga; »Nazaj na izbiro« tudi na dnu vaje (»Spoznaj« in »Vadi v uganki«); navigacija med aplikacijami (4.3, prestavljeno iz naloge 9); načrt pred začetkom – `docs/navigacija-nacrt.md` (2026-10-10: meritve, O1–O15, posnetki prototipa v `docs/slike/navigacija/`, pet korakov; **potrjen 2026-10-10** – O1–O15 po priporočilu, O8 zavihki v svoji vrstici, O11 in O12 vprašanje, O5 okrogel »↑«, O14 preusmeritev korena na igro; dodatki D1–D4; **korak 1 – »Nazaj na izbiro« na dnu vaje narejen** 2026-10-10; **korak 2 – kazalo tehnik in »↑« v meniju treninga narejen** 2026-10-10; **korak 3 – okno Pomoč (kazalo razdelkov, kazalo tehnik, lepljiva glava) narejen** 2026-10-11; **korak 4 – zavihki Igra · Reševalec · Trening, vprašanje pred odhodom, »Nazaj«, koren narejen** 2026-10-11; ročni pregled točk 1–4 na telefonu (različica 2026-10-11 09:58) **potrjen 2026-10-11** – okno Pomoč se odpre tam, kjer je bilo zaprto (ostane), niz »Izbriši kandidata« v igri v redu; popravka po pregledu narejena 2026-10-11 – A: v oknu Pomoč pod vrstico oznak tehnik gumb v glavi »↑ Tehnike«, B: »↑ Na vrh« na dnu vaje desno od »Nazaj na izbiro«; **korak 5 – zaključek narejen** 2026-10-11; točki 5 in 6 (popravka A in B) v `docs/rocni-test.md`, razdelek »Navigacija«, **potrjeni 2026-10-11** na telefonu, različica 2026-10-11 11:42, popravkov ni) – **naloga 4c je zaključena 2026-10-11**; **naslednja je naloga 6** |
 | 5 | nove tehnike | ~~**BUG+1**~~ – **premaknjeno v »Kasneje«** 2026-10-09 (z XY-verigo ni potrebna; XY-veriga ostane tehnika 13); **se ne dela** (odločitev 2026-10-09 – uganke z BUG+1 se rešijo z drugimi tehnikami) | |
-| 6 | videz | **Podlage, legenda, Escape** (**naslednja naloga** – 4c je zaključena 2026-10-11) | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; postavka »tvoje oznake« v legendi »Vadi v uganki«; Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«); načrt `docs/naloga6-nacrt.md` (2026-10-11: meritve in kontrasti, slika prej in potem v `docs/slike/naloga6/`, O1–O7, štirje koraki; **čaka potrditev**) |
+| 6 | videz | **Podlage, legenda, Escape** (**trenutna naloga** – 4c je zaključena 2026-10-11) | podlagi vzorca in izbrisa v igri in reševalcu kot v treningu; ~~postavka »tvoje oznake« v legendi »Vadi v uganki«~~ (**ne bo narejeno** – odločitev 2026-10-11: oznake postavi uporabnik sam tik pred tem, vijoličen okvir pa že razložita Pomoč treninga – razdelek »Označi izbrane« – in namig ob gumbu); Escape zapre povečano mrežo v reševalcu (vse tri prej v »Kasneje«); načrt `docs/naloga6-nacrt.md` (2026-10-11: meritve in kontrasti, slika prej in potem v `docs/slike/naloga6/`, O1–O7, štirje koraki; **potrjen 2026-10-11** – O1–O7 po priporočilu, dodatka D1, D2; **korak 1 – podlagi narejen** 2026-10-11 `c78b841`; korak 2 – legenda – ne bo narejen; **korak 3 – Escape in zaključek (korak 4) narejena** 2026-10-11; **čaka ročni pregled** – `docs/rocni-test.md`, razdelek »Naloga 6«) |
 | 7 | igra | **Označevanje celic** | zaznamki celic v igri (v treningu že so – »Označi izbrane (O)«, `shared/plosca.js`); **želja potrjena 2026-10-09** – »Označi izbrane (O)« kot v treningu |
 | 8 | igra | **Brez kandidatov** | ročni zapiski, senčenje, opozorilo pri uganki s tehniko 3 ali višjo (vse tri prej v »Kasneje«) |
 | 9 | povezave | ~~**Nadaljevanje v igri in skupni vnos**~~ – **premaknjeno v »Samo če bo potreba«** 2026-10-09 (Darko: ni nujna) | nadaljevanje v igri iz treninga, skupna vnosna mreža (6.4 – prej v fazi 7); navigacija med aplikacijami (4.3) je 2026-10-09 prestavljena v nalogo 4c |
@@ -1334,7 +1334,11 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
 - **Scenarija `preveri-pregled6-` in `preveri-faza7-brskalnik.js` sta zastarela** (zapisano 2026-10-11 ob koraku 3
   naloge 4c): na kodi pred korakom 3 (`5f59f09`) dajeta 4 oziroma 15 neujemanj – pregled6 pričakuje 4 stopnje in 14
   tehnik (zdaj 5 in 15, XY-veriga), faza7 primerja z izhodišči, ki imajo drugačni `--purple-dark` (XY-veriga, korak 2)
-  in `--obmocje` (popravek 6 naloge 4a). Popraviti pričakovanja v scenarijih (ne kode aplikacije).
+  in `--obmocje` (popravek 6 naloge 4a). Popraviti pričakovanja v scenarijih (ne kode aplikacije). Dopolnjeno
+  2026-10-11 ob nalogi 6, korak 3: `preveri-faza7-brskalnik.js --korak 4` da na `c78b841` 9 neujemanj (slogi
+  `--purple-dark`, posnetek in slogi izhodišča pri 320, 375, 1280 px), po koraku 3 15 – novih 6 je namerna sprememba
+  O6: »Escape (povečava in zbirka)« zdaj zapre povečavo, zbirka ostane (pričakovanje v scenariju in primerjava z
+  izhodiščem `2fdb542` pri vsaki širini). Novo obnašanje preverja `tools/preveri-naloga6-brskalnik.js --korak 3`.
 - **Navigacija med aplikacijami (4.3)** (→ naloga 4c, prej 9 – prestavljeno 2026-10-09; **narejeno 2026-10-11**, korak 4) –
   povezave »Igra · Reševalec · Trening« v skupni glavi; nova funkcija.
 - **Lastno okno za vprašanja v barvah aplikacije** (zapisano 2026-10-11 ob ročnem pregledu naloge 4c): vprašanja
@@ -1345,7 +1349,8 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   4c): na kartici tehnike v meniju treninga oznaka, kdaj je bila tehnika nazadnje vadena (trening zdaj ničesar ne
   shranjuje – nova shramba).
 - **Povečan prikaz v reševalcu se z Escape ne zapre** (→ naloga 6; zapisano 2026-10-03 ob ročnem pregledu
-  faze 5; ni popravljeno). Okno »Zbirka ugank« se z Escape zapre (`app/zbirka.js`, poslušalec
+  faze 5; **narejeno 2026-10-11** – naloga 6, korak 3: Escape zapre povečavo, ob oknu pod njo najprej povečavo;
+  poved v Pomoči reševalca). Okno »Zbirka ugank« se z Escape zapre (`app/zbirka.js`, poslušalec
   `keydown`), povečan prikaz mreže (`#lightbox`, `openLightbox()`/`closeLightbox()` v
   `app/app.js`) pa samo s klikom na mrežo, ozadje ali gumb ✕ – poslušalca za Escape nima.
 - **Reševalec na širokem zaslonu v dveh stolpcih** (samo če bo potreba; vnos levo, rešitev in
@@ -1360,7 +1365,8 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   2026-10-03 ob nalogi 5a): brez kandidatov gredo E1, E2, 1 in 2; pri težji uganki bi igra
   ob izklopu (ali ob odprtju uganke pri izklopu) povedala, da bo brez kandidatov težko.
 - **Uskladitev podlag vzorca in izbrisa v igri in reševalcu s treningom** (→ naloga 6; zapisano
-  2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`, O2): trening ima v vseh mrežah
+  2026-10-03 ob nalogi »oznake«, `docs/oznake-nacrt.md`, O2; **narejeno 2026-10-11** – naloga 6, korak 1:
+  spremenljivki v paleti `shared/base.css`, v reševalcu temnejši kandidati v obarvanih celicah): trening ima v vseh mrežah
   močnejši podlagi celic vzorca (#EFD8A0) in izbrisa (#F0B4AA) – spremenljivki
   `--k-vzorec-bg` in `--k-izbris-bg` v `shared/mreza.css`, ki ju nastavi
   `trening/trening.css`. Igra (»Naslednji korak«, legenda v Pomoči `igra/igra.css`) in
@@ -1378,7 +1384,8 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
 - **Postavka »tvoje oznake« v legendi pod »Pravilno!«** (→ naloga 6; zapisano 2026-10-03 ob nalogi
   »oznake«, `docs/oznake-nacrt.md`, O4): v legendi po pravilnem odgovoru v »Vadi v uganki«
   (`legendaKoraka()` v `trening/v-uganki.js`) še črtkan vijoličen kvadratek »tvoje oznake«.
-  Ni samo slog.
+  Ni samo slog. **Ne bo narejeno** (odločitev 2026-10-11, naloga 6, korak 2): oznake postavi uporabnik sam
+  tik pred tem, vijoličen okvir pa že razložita Pomoč treninga (razdelek »Označi izbrane«) in namig ob gumbu.
 - **Oznaka različice pri nalaganju skript in slogov** (→ naloga 1; zapisano 2026-10-04 ob zaprtju naloge
   »prečrtanje«), da brskalnik po spremembi ne kaže stare različice iz predpomnilnika.
 

@@ -117,22 +117,82 @@ test('reševalec: okno zbirke se odpre z gumbom in zapre s ✕, klikom ob panelu
   assert.equal(dom.el('libStatus').textContent, '', 'ob odprtju je vrstica statusa prazna');
 });
 
-test('reševalec: Escape zapre okno zbirke, ne povečanega prikaza in ne Pomoči', () => {
+// Povečan prikaz (lightbox) v reševalcu: Escape ga zapre (naloga 6, korak 3, O6 A). Povečava je
+// nad okni (z-index), zato pri odprtem oknu pod njo prvi Escape zapre povečavo, drugi okno.
+const povecavaOdprta = dom => dom.el('lightbox').style.display === 'block';
+const pomocOdprta = dom => dom.el('pomocDialog').classList.contains('odprt');
+
+// "Reši" teče v setTimeout - počakaj, da status ni več "Rešujem …".
+async function resi(dom, run, d) {
+  run(`inputs.forEach((inp, i) => { inp.value = ${JSON.stringify(d)}[i] === '0' ? '' : ${JSON.stringify(d)}[i]; })`);
+  dom.klikni('solveBtn');
+  for (let t = 0; t < 400 && dom.el('status').textContent === 'Rešujem …'; t++) await new Promise(r => setTimeout(r, 25));
+}
+
+test('reševalec: Escape zapre povečan prikaz rešitve in koraka', async () => {
+  const { dom, run } = zaprto();
+  await resi(dom, run, danosti);
+  dom.klikni('solvedGrid');
+  assert.equal(povecavaOdprta(dom), true, 'dotik rešene mreže jo poveča');
+  dom.tipka({ key: 'Enter' });
+  assert.equal(povecavaOdprta(dom), true, 'druga tipka povečave ne zapre');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(povecavaOdprta(dom), false, 'Escape zapre povečavo rešitve');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(povecavaOdprta(dom), false, 'Escape pri zaprti povečavi je ne odpre');
+  assert.equal(oknoOdprto(dom), false);
+  assert.equal(pomocOdprta(dom), false);
+
+  // Povečava koraka (isti openLightbox kot klik male mreže koraka - ta v nadomestnem DOM-u ne
+  // nastane, ker potrebuje querySelector; pravi klik preveri tools/preveri-naloga6-brskalnik.js).
+  run("openLightbox(el => renderGridInto(el, lastSolve.log.find(s => s.snapshotGrid), 'min(52px, var(--mcs-povecave))'))");
+  assert.equal(povecavaOdprta(dom), true);
+  dom.tipka({ key: 'Escape' });
+  assert.equal(povecavaOdprta(dom), false, 'Escape zapre povečavo koraka');
+});
+
+test('reševalec: Escape ob povečavi in oknu pod njo zapre najprej povečavo, nato okno', () => {
   const { dom, run } = zaprto();
   run("openLightbox(() => {})");
-  assert.equal(dom.el('lightbox').style.display, 'block');
+  dom.klikni('libraryBtn');
+  assert.equal(oknoOdprto(dom), true);
+  dom.tipka({ key: 'Escape' });
+  assert.equal(povecavaOdprta(dom), false, 'prvi Escape zapre povečavo (zgornja plast)');
+  assert.equal(oknoOdprto(dom), true, 'zbirka ostane odprta');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(oknoOdprto(dom), false, 'drugi Escape zapre zbirko');
+  assert.equal(pomocOdprta(dom), false, 'Pomoč se ne odpre');
+
+  run("openLightbox(() => {})");
+  dom.klikni('pomocBtn');
+  assert.equal(pomocOdprta(dom), true);
+  dom.tipka({ key: 'Escape' });
+  assert.equal(povecavaOdprta(dom), false, 'prvi Escape zapre povečavo');
+  assert.equal(pomocOdprta(dom), true, 'Pomoč ostane odprta');
+  dom.tipka({ key: 'Escape' });
+  assert.equal(pomocOdprta(dom), false, 'drugi Escape zapre Pomoč');
+  assert.equal(oknoOdprto(dom), false, 'zbirka ostane zaprta');
+});
+
+test('reševalec: Escape brez povečave zapre okno zbirke in Pomoč kot prej', () => {
+  const { dom } = zaprto();
   dom.klikni('libraryBtn');
   dom.tipka({ key: 'Escape' });
   assert.equal(oknoOdprto(dom), false, 'zbirka je zaprta');
-  assert.equal(dom.el('lightbox').style.display, 'block', 'povečan prikaz ostane odprt');
-  assert.equal(dom.el('pomocDialog').classList.contains('odprt'), false, 'Pomoč se ne odpre');
+  assert.equal(pomocOdprta(dom), false, 'Pomoč se ne odpre');
+  assert.equal(povecavaOdprta(dom), false, 'povečava se ne odpre');
 
   // Pomoč se odpira in zapira kot prej (shared/pomoc.js); zbirke ne odpre.
   dom.klikni('pomocBtn');
-  assert.equal(dom.el('pomocDialog').classList.contains('odprt'), true, 'Pomoč je odprta');
+  assert.equal(pomocOdprta(dom), true, 'Pomoč je odprta');
   dom.tipka({ key: 'Escape' });
-  assert.equal(dom.el('pomocDialog').classList.contains('odprt'), false, 'Escape zapre Pomoč');
+  assert.equal(pomocOdprta(dom), false, 'Escape zapre Pomoč');
   assert.equal(oknoOdprto(dom), false, 'zbirka ostane zaprta');
+});
+
+test('reševalec: Pomoč pove, kako se povečava zapre (O7)', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'app', 'index.html'), 'utf8');
+  assert.match(html, /Povečano mrežo zapreš z dotikom, z ✕ ali s tipko <kbd>Esc<\/kbd>\./);
 });
 
 test('reševalec: sprememba v drugem zavihku osveži odprt seznam, zaprtega ne izriše', () => {

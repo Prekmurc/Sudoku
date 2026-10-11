@@ -94,6 +94,12 @@ class Element {
 // pripomočke za test: el(id) da element po id, klikni(el) sproži klik.
 // `shramba` je Map za localStorage: če jo podaš (dom.shramba prejšnjega okolja),
 // nov DOM dobi isto hrambo - tako test simulira ponovno nalaganje strani (F5).
+// Poslušalec na document ali window; z možnostjo capture (true ali { capture: true }) v fazi zajema.
+function dodajPoslusalca(vozlisce, tip, f, moznosti) {
+  (vozlisce.poslusalci[tip] = vozlisce.poslusalci[tip] || []).push(f);
+  if (moznosti === true || (moznosti && moznosti.capture)) vozlisce.zajem.add(f);
+}
+
 function makeDom(shramba = new Map()) {
   const poId = new Map();
   const documentElement = new Element('html');
@@ -113,10 +119,10 @@ function makeDom(shramba = new Map()) {
     createElement(tag) { return new Element(tag); },
     querySelector() { return null; },
     querySelectorAll() { return []; },
-    addEventListener(tip, f) { (this.poslusalci[tip] = this.poslusalci[tip] || []).push(f); },
-    sprozi(tip, dogodek = {}) {
-      for (const f of this.poslusalci[tip] || []) f({ preventDefault() {}, stopPropagation() {}, target: null, ...dogodek });
-    },
+    zajem: new Set(),
+    addEventListener(tip, f, moznosti) { dodajPoslusalca(this, tip, f, moznosti); },
+    // Dogodek gre skozi faze kot v brskalniku (razposlji spodaj).
+    sprozi(tip, dogodek = {}) { razposlji(tip, dogodek); },
   };
 
   // window: poslušalci (dogodek "storage" ob zapisu v drugem zavihku) in položaj strani
@@ -127,9 +133,31 @@ function makeDom(shramba = new Map()) {
     scrollY: 0,
     innerHeight: 667,
     scrollTo(x, y) { this.scrollY = x && typeof x === 'object' ? (x.top === undefined ? this.scrollY : x.top) : y; },
-    addEventListener(tip, f) { (this.poslusalci[tip] = this.poslusalci[tip] || []).push(f); },
+    zajem: new Set(),
+    addEventListener(tip, f, moznosti) { dodajPoslusalca(this, tip, f, moznosti); },
     sprozi(tip, dogodek = {}) { for (const f of this.poslusalci[tip] || []) f(dogodek); },
   };
+
+  // Dogodek na document (tipka - keydown z elementa v strani): kot v brskalniku najprej faza
+  // zajema - poslušalci window, nato document z možnostjo capture -, nato faza mehurčka - document,
+  // nato window. stopImmediatePropagation() ustavi vse naslednje poslušalce, stopPropagation()
+  // poslušalce naslednjih vozlišč (naloga 6, korak 3: Escape najprej zapre povečan prikaz v reševalcu).
+  function razposlji(tip, dogodek) {
+    let ustavi = false, takoj = false;
+    const e = {
+      preventDefault() {}, target: null, ...dogodek,
+      stopPropagation() { ustavi = true; },
+      stopImmediatePropagation() { ustavi = takoj = true; },
+    };
+    for (const [vozlisce, zajem] of [[window, true], [document, true], [document, false], [window, false]]) {
+      for (const f of (vozlisce.poslusalci[tip] || []).slice()) {
+        if (vozlisce.zajem.has(f) !== zajem) continue;
+        f(e);
+        if (takoj) return;
+      }
+      if (ustavi) return;
+    }
+  }
 
   const globals = {
     document,

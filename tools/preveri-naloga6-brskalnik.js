@@ -11,6 +11,13 @@
 // tabele 2.1 načrta, shema v Pomoči v istih barvah; brez vodoravnega preliva in napak JS;
 // posnetki igre in reševalca.
 //
+// Korak 2 (legenda »tvoje oznake«, O5) ni narejen (odločitev 2026-10-11).
+//
+// Korak 3 - Escape v reševalcu (O6, O7) pri 375 px (pravi dotik) in 1280 px (miška), pravi Escape:
+// zapre povečavo rešitve in koraka; ob povečavi in oknu pod njo (zbirka, Pomoč - odprta s
+// tipkovnico) prvi Escape povečavo, drugi okno; ob fokusu v polju Niz zapre povečavo in polje
+// pusti; brez povečave okni kot prej; ✕ in dotik povečavo še zapreta; poved v Pomoči.
+//
 //   node tools/preveri-naloga6-brskalnik.js [--korak N] [--mapa <mapa>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
@@ -24,7 +31,7 @@ const { loadPuzzles } = require('../tests/load-engine.js');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga6'));
-const KORAK = Number(arg('--korak', 1));
+const KORAK = Number(arg('--korak', 3));
 const D = JSON.stringify(loadPuzzles()[0].danosti.replace(/\./g, '0'));
 
 const VZOREC = 'rgb(239, 216, 160)';   // #EFD8A0
@@ -185,6 +192,105 @@ async function trening(b) {
   preveri('trening: spremenljivke nespremenjene (#EFD8A0, #F0B4AA, #4A5561)', JSON.stringify(T) === JSON.stringify(['#EFD8A0', '#F0B4AA', '#4A5561']), T);
 }
 
+// Pravi Enter kot s tipkovnice: keyDown z znakom \r - šele ta sproži gumb s fokusom (tipka('Enter')
+// iz brskalnik.js pošlje rawKeyDown brez znaka, ki gumba ne sproži).
+async function enter(b) {
+  const o = { key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 };
+  await b.cdp.poslji('Input.dispatchKeyEvent', { type: 'keyDown', text: '\r', ...o });
+  await b.cdp.poslji('Input.dispatchKeyEvent', { type: 'keyUp', ...o });
+}
+
+// Korak 3 - Escape v reševalcu (O6 A, O7 A): pravi Escape (Input.dispatchKeyEvent) zapre povečavo
+// rešitve in koraka (odprto s pravim dotikom / klikom), ob povečavi in oknu pod njo (zbirka, Pomoč -
+// odprta s tipkovnico: fokus na gumb in Enter) prvi Escape povečavo, drugi okno; ob fokusu v polju Niz
+// povečavo zapre in polje pusti; brez povečave okni kot prej; ✕ in dotik povečavo še zapreta.
+async function escape(b, sirina) {
+  console.log(`Reševalec - Escape, ${sirina} px`);
+  const mobilno = sirina < 500;
+  const pritisni = izb => (mobilno ? b.tapni(izb) : b.klikni(izb));
+  await b.odpri('app/index.html', { sirina, visina: 1000, mobilno });
+  await b.izvedi('localStorage.clear(); true');
+  await b.odpri('app/index.html', { sirina, visina: 1000, mobilno });
+  await b.izvedi(`naloziDanosti(${D}, ''); true`);
+  await pritisni('#solveBtn');
+  await b.cakaj('!!lastSolve', 20000);
+
+  const stanje = () => b.izvedi(`(() => ({ povecava: getComputedStyle(document.getElementById('lightbox')).display === 'block',
+    zbirka: document.getElementById('library').classList.contains('odprt'),
+    pomoc: document.getElementById('pomocDialog').classList.contains('odprt'),
+    vrh: (() => { const e = document.elementFromPoint(innerWidth / 2, innerHeight / 2); return e && e.closest('#lightbox') ? 'povečava' : e && e.closest('.dialog') ? 'okno' : 'stran'; })() }))()`);
+  const je = (s, povecava, zbirka, pomoc) => s.povecava === povecava && s.zbirka === zbirka && s.pomoc === pomoc;
+
+  // Povečava rešitve.
+  await pritisni('#solvedGrid');
+  await b.cakaj(`getComputedStyle(document.getElementById('lightbox')).display === 'block'`, 3000);
+  await enter(b);
+  preveri('povečava rešitve: Enter je ne zapre', je(await stanje(), true, false, false), await stanje());
+  await b.tipka('Escape');
+  preveri('povečava rešitve: Escape jo zapre', je(await stanje(), false, false, false), await stanje());
+  await b.tipka('Escape');
+  preveri('Escape brez povečave in oken ne odpre ničesar', je(await stanje(), false, false, false), await stanje());
+
+  // Povečava koraka (korak 11, mala mreža s pravim dotikom / klikom).
+  await pritisni('#openStepsBtn');
+  const li = '#steps > li:nth-child(11)';
+  await pritisni(`${li} .mini-toggle`);
+  await pritisni(`${li} .mini-grid`);
+  await b.cakaj(`getComputedStyle(document.getElementById('lightbox')).display === 'block'`, 3000);
+  preveri('povečava koraka je odprta', je(await stanje(), true, false, false), await stanje());
+  await b.tipka('Escape');
+  preveri('povečava koraka: Escape jo zapre', je(await stanje(), false, false, false), await stanje());
+
+  // Povečava in okno pod njo, odprto s tipkovnico (fokus na gumb v glavi, Enter).
+  for (const [gumb, ime] of [['#libraryBtn', 'zbirka'], ['#pomocBtn', 'Pomoč']]) {
+    await pritisni('#solvedGrid');
+    await b.cakaj(`getComputedStyle(document.getElementById('lightbox')).display === 'block'`, 3000);
+    await b.izvedi(`document.querySelector(${JSON.stringify(gumb)}).focus(); true`);
+    await enter(b);
+    const s0 = await stanje();
+    preveri(`povečava in ${ime}: obe odprti, povečava zgoraj`,
+      je(s0, true, ime === 'zbirka', ime === 'Pomoč') && s0.vrh === 'povečava', s0);
+    await b.tipka('Escape');
+    const s1 = await stanje();
+    preveri(`povečava in ${ime}: prvi Escape zapre povečavo, okno ostane`,
+      je(s1, false, ime === 'zbirka', ime === 'Pomoč') && s1.vrh === 'okno', s1);
+    await b.tipka('Escape');
+    preveri(`povečava in ${ime}: drugi Escape zapre okno`, je(await stanje(), false, false, false), await stanje());
+  }
+
+  // Fokus v polju Niz (za povečavo - s tipkovnico ali skripto).
+  await pritisni('#solvedGrid');
+  await b.cakaj(`getComputedStyle(document.getElementById('lightbox')).display === 'block'`, 3000);
+  await b.izvedi(`(() => { const n = document.getElementById('nizDanosti'); n.value = '12'; n.focus(); return true; })()`);
+  await b.tipka('Escape');
+  const N = await b.izvedi(`({ fokus: document.activeElement && document.activeElement.id, vrednost: document.getElementById('nizDanosti').value })`);
+  preveri('fokus v polju Niz: Escape zapre povečavo, polje ostane', je(await stanje(), false, false, false) && N.fokus === 'nizDanosti' && N.vrednost === '12', [await stanje(), N]);
+  await b.izvedi(`document.getElementById('nizDanosti').value = ''; document.activeElement.blur(); true`);
+
+  // Brez povečave: okni kot prej (pravi dotik / klik gumba, Escape).
+  for (const [gumb, ime] of [['#libraryBtn', 'zbirka'], ['#pomocBtn', 'Pomoč']]) {
+    await pritisni(gumb);
+    preveri(`${ime} brez povečave je odprta`, je(await stanje(), false, ime === 'zbirka', ime === 'Pomoč'), await stanje());
+    await b.tipka('Escape');
+    preveri(`${ime} brez povečave: Escape jo zapre`, je(await stanje(), false, false, false), await stanje());
+  }
+
+  // Dotik / klik in ✕ povečavo še zapreta.
+  await pritisni('#solvedGrid');
+  await b.cakaj(`getComputedStyle(document.getElementById('lightbox')).display === 'block'`, 3000);
+  await pritisni('#lightboxClose');
+  preveri('✕ zapre povečavo', je(await stanje(), false, false, false), await stanje());
+  await pritisni('#solvedGrid');
+  await b.cakaj(`getComputedStyle(document.getElementById('lightbox')).display === 'block'`, 3000);
+  await pritisni('#lightboxInner');
+  preveri(`${mobilno ? 'dotik' : 'klik'} mreže zapre povečavo`, je(await stanje(), false, false, false), await stanje());
+
+  // O7: poved v Pomoči reševalca.
+  const P = await b.izvedi(`[...document.querySelectorAll('#pomocDialog p')].map(p => p.textContent).find(t => t.includes('Povečano mrežo')) || ''`);
+  preveri('Pomoč: »Povečano mrežo zapreš z dotikom, z ✕ ali s tipko Esc.«', P === 'Povečano mrežo zapreš z dotikom, z ✕ ali s tipko Esc.', P);
+  preveri('brez vodoravnega preliva', !(await preliv(b)));
+}
+
 async function main() {
   const b = await zazeni();
   try {
@@ -192,6 +298,11 @@ async function main() {
       console.log('— Korak 1: podlagi (O1-O4)');
       for (const sirina of [375, 1280]) { await igra(b, sirina); await resevalec(b, sirina); }
       await trening(b);
+    }
+    // Korak 2 (legenda »tvoje oznake«, O5) ni narejen - odločitev 2026-10-11, docs/naloga6-nacrt.md.
+    if (KORAK >= 3) {
+      console.log('— Korak 3: Escape (O6, O7)');
+      for (const sirina of [375, 1280]) await escape(b, sirina);
     }
   } finally {
     await b.zapri();

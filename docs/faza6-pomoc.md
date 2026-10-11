@@ -155,6 +155,8 @@ Pod rešeno mrežo je povzetek: katere tehnike je reševalec uporabil in kolikok
 
 **Pokaži korake reševanja** našteje korake z razlago. **Pokaži na mreži** pri koraku pokaže malo mrežo z oznakami koraka (pomen barv je pod njo); dotik male mreže jo poveča. S kljukico ob koraku označiš, da si ga že naredil, **Počisti kljukice** jih pobriše.
 
+Povečano mrežo zapreš z dotikom, z ✕ ali s tipko Esc. *(naloga 6, 2026-10-11)*
+
 ### Zbirka ugank
 
 Uganko z natanko eno rešitvijo reševalec po reševanju shrani v zbirko in ji izračuna težavnost; težavnost in opombo lahko spremeniš v kartici **Rešitev**. Zbirka je ista kot v igri – isti seznam in isto število na gumbu **Zbirka**. V oknu **Zbirka ugank** uganko odpreš ali izbrišeš, z **Izvozi** in **Uvozi** zbirko preneseš na drugo napravo. Vgrajeni primeri niso del zbirke.

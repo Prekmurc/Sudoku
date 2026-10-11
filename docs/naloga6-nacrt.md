@@ -2,6 +2,9 @@
 
 Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6, in tri postavke iz »Kasneje«).
 **Stanje: potrjen** (2026-10-11, commit načrta `b86ed36`) – odločitve O1–O7 in dodatka D1, D2 v razdelku 7.
+**Sprememba načrta (Darko, 2026-10-11, po koraku 1):** korak 2 – postavka »tvoje oznake« v legendi (O5) – **ne bo
+narejen**. Razlog: oznake postavi uporabnik sam tik pred tem, vijoličen okvir pa že razložita Pomoč treninga (razdelek
+»Označi izbrane«) in namig ob gumbu. Koraka 1 in 3 ter zaključek so narejeni (razdelek 8); čaka ročni pregled.
 
 Izhodišče: commit `e24738b` (zaključek naloge 4c).
 
@@ -28,6 +31,7 @@ in sestavljanje slik sta v začasni mapi (nista v repozitoriju).
   (kot v igri in treningu), ker bi sivi na rožnati podlagi imeli kontrast 1,73 : 1. Igra in reševalec spremenita samo
   slog – razredi in drevo elementov ostanejo.
 - **Legenda** (O5): postavka »tvoje oznake« (vijoličen črtkan kvadratek) pod »Pravilno!«, samo kadar so na mreži oznake.
+  **Ne bo narejeno** (sprememba načrta 2026-10-11 – glej začetek).
 - **Escape** (O6, O7): zapre povečan prikaz; če je odprto še okno pod njim (s tipkovnico ali skripto), najprej zgornjo
   plast. Pomoč reševalca pove, kako se povečava zapre.
 - **Koraki:** 1 – podlagi, 2 – legenda, 3 – Escape, 4 – zaključek. Koraki 1–3 vsak v svojem pogovoru, zaključek
@@ -210,7 +214,7 @@ vsi; nov scenarij `tools/preveri-naloga6-brskalnik.js` (raste po korakih – `--
    trening enak, brez preliva in napak JS, posnetka. `preveri-vadi-brskalnik.js`: pričakovanje `oznakeIgra` (»igra:
    podlagi nespremenjeni«) se obrne – igra ima zdaj podlagi treninga; scenarij poženem (»Spoznaj« enak izhodišču).
    Še `preveri-videz-brskalnik.js`, `preveri-sheme-brskalnik.js` in posnetek igre.
-2. **Legenda** (O5). Test v `tests/pocasni/trening-uganka-ui.test.js`: z oznakami je »tvoje oznake« zadnja postavka
+2. ~~**Legenda** (O5)~~ – **ne bo narejen** (sprememba načrta 2026-10-11). Test v `tests/pocasni/trening-uganka-ui.test.js`: z oznakami je »tvoje oznake« zadnja postavka
    (vzorček z lastnim razredom), brez oznak je ni, pod »Rešitvijo« je ni; »Spoznaj« 1 in 2 nespremenjena
    (`trening-legenda`, `trening-izbris` ostaneta zelena). Sprememba: `legendaKoraka()` v `trening/v-uganki.js`, slog
    `.legenda-vaje .sw-zaznamek` v `trening/trening.css`, opis v Pomoči treninga (razdelek »Označi izbrane«), če kaj o
@@ -239,11 +243,10 @@ vsi; nov scenarij `tools/preveri-naloga6-brskalnik.js` (raste po korakih – `--
 2. **Reševalec, telefon:** »Reši«, »Pokaži korake reševanja«, »Pokaži na mreži« pri koraku z izbrisom, nato dotik male
    mreže. Pričakovano: barve kot v igri, kandidati v obarvanih celicah berljivi (mala mreža ima celico 31 px), povečava
    se zapre z dotikom. *Zakaj ročno:* isto kot 1 – berljivost drobnih kandidatov na pravem zaslonu.
-3. **Trening, telefon:** »Vadi v uganki« 3 · Očitni par – označi celici vzorca z »Označi izbrane (O)«, izbriši in
-   »Preveri«. Pričakovano: pod »Pravilno!« postavka »tvoje oznake« z vijoličnim črtkanim kvadratkom, ki je videti kot
-   okvir na mreži; v vaji brez oznak postavke ni. *Zakaj ročno:* presoja, ali vzorček spominja na okvir.
+~~3. Trening, legenda »tvoje oznake«~~ – odpade (korak 2 ni narejen).
 
-Escape ni na seznamu: scenarij ga preveri s pravimi tipkami v brskalniku (korak 3).
+Escape ni na seznamu: scenarij ga preveri s pravimi tipkami v brskalniku (korak 3). Ročni pregled je zapisan v
+`docs/rocni-test.md`, razdelek »Naloga 6«.
 
 ## 7. Odločitve, ki jih potrebujem
 
@@ -288,3 +291,35 @@ Ročni pregled je en sam, po koraku 4, največ 5 točk (zdaj 3), pri vsaki zakaj
   - *Preverjanje:* vsi testi (961) zeleni; `preveri-vadi-brskalnik.js` vse drži (»Spoznaj« vseh tehnik enak
     izhodišču `4c47cc0` – trening nespremenjen), `preveri-videz-`, `preveri-sheme-`, `preveri-veriga-brskalnik.js`
     vse drži; posnetek igre (`igra-po-xy-veriga.json`) enak v vseh 99 posnetkih. Nič nepričakovanega (D2).
+- **Korak 2 – legenda (O5): ne bo narejen** (sprememba načrta, Darko, 2026-10-11) – oznake postavi uporabnik sam tik
+  pred tem, vijoličen okvir pa že razložita Pomoč treninga (razdelek »Označi izbrane«) in namig ob gumbu. Zapisano
+  tudi v `docs/uskladitev.md` (naloga 6 in postavka v »Kasneje«).
+- **Korak 3 – Escape (O6 A, O7 A), 2026-10-11.**
+  - *Test pred spremembo:* `tests/app-zbirka.test.js` – Escape zapre povečavo rešitve (po »Reši« klik rešene mreže)
+    in koraka; povečava in zbirka – prvi Escape povečavo, drugi zbirko; povečava in Pomoč enako; brez povečave okni
+    kot prej; poved v Pomoči reševalca. Stari test »Escape zapre okno zbirke, ne povečanega prikaza in ne Pomoči« je
+    zamenjan (O6 A). Nadomestni DOM (`tests/dom-stub.js`): `tipka()` gre skozi fazo zajema (`window`, nato
+    `document` z možnostjo `capture`) in mehurčka (`document`, nato `window`) in upošteva
+    `stopImmediatePropagation()`/`stopPropagation()`. Na stari kodi z novim nadomestnim DOM-om padejo trije novi testi
+    (povečava rešitve in koraka, povečava z oknom pod njo, Pomoč), vsi drugi hitri testi in
+    `pocasni/trening-uganka-ui` ostanejo zeleni (806 od 809).
+  - *Sprememba:* `app/app.js` – poslušalec `keydown` v fazi zajema na `window` zapre samo povečavo in dogodek ustavi
+    (`stopImmediatePropagation()` – Pomoč in zbirka ga ne dobita); `app/index.html` – v Pomoči (»Rešitev in koraki«)
+    »Povečano mrežo zapreš z dotikom, z ✕ ali s tipko <kbd>Esc</kbd>.« (tudi `docs/faza6-pomoc.md`). Napis
+    »tapni za zapiranje« ostane.
+  - *Scenarij:* `tools/preveri-naloga6-brskalnik.js --korak 3` pri 375 (pravi dotik) in 1280 px (miška), pravi Escape:
+    vse drži (povečava rešitve in koraka, povečava z zbirko in s Pomočjo – okno odprto s tipkovnico, povečava zgoraj,
+    prvi Escape povečavo, drugi okno –, fokus v polju Niz, brez povečave okni kot prej, ✕ in dotik, poved v Pomoči,
+    brez preliva in napak JS). Pri prvem zagonu se okni nista odprli: `tipka('Enter')` iz `tools/brskalnik.js` pošlje
+    `rawKeyDown` brez znaka `\r` in gumba s fokusom ne sproži (preverjeno posebej – keyDown z `\r` ga sproži); napaka
+    je bila v scenariju, zato ima scenarij svoj pravi Enter (`enter()`), skupno orodje ostane.
+  - *Primerjava z izhodiščem:* `preveri-faza7-brskalnik.js --korak 4` – na `c78b841` 9 neujemanj (paleta, obstoječa
+    postavka v »Kasneje«), po koraku 15: novih 6 je namerna sprememba »Escape (povečava in zbirka)« pri 320, 375,
+    1280 px (pričakovanje v scenariju in primerjava z izhodiščem `2fdb542`) – zapisano k postavki o zastarelih
+    scenarijih v »Kasneje«.
+  - *Preverjanje:* vsi testi (964; edini neuspeh pred commitom je bila oznaka različice, ki jo osveži hook – po
+    `node tools/oznaci-razlicico.js` zelen); `preveri-naloga6-`, `preveri-videz-`, `preveri-pomoc-`, `preveri-veriga-`,
+    `preveri-vadi-` in `preveri-sheme-brskalnik.js` vse drži; posnetek igre (`igra-po-xy-veriga.json`) enak v vseh 99
+    posnetkih. Nič nepričakovanega v aplikaciji (D2).
+- **Zaključek (korak 4, D1), 2026-10-11.** `CLAUDE.md` (paleta v `shared/base.css`, kandidati v reševalcu, Escape,
+  nadomestni DOM, testi, nov scenarij), `docs/uskladitev.md`, `docs/rocni-test.md` (razdelek »Naloga 6«, dve točki).
