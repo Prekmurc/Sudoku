@@ -2,7 +2,8 @@
 
 Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6a).
 **Stanje: potrjen 2026-10-11** (`23bba6d`) – odločitve O1–O7 povsod A, dodatki D1–D3 (razdelek 8; imajo prednost
-pred razdelki 3–7). **Korak 1 narejen** (razdelek 9); koraka 2 in 3 v drugem pogovoru (D1).
+pred razdelki 3–7). **Korak 1 narejen** (razdelek 9), pregledan in potrjen 2026-10-11; **korak 2 narejen**, dodatka
+D4–D5 (razdelek 8).
 Koda se ne spreminja (ne v tej nalogi ne v načrtu).
 
 Izhodišče: commit `a71e67f` (zapis naloge 6b v vrstni red).
@@ -326,6 +327,12 @@ Posnetek igre in brskalnik brez glave nista potrebna – koda aplikacije se ne s
   po vsakem koraku commit in push, nato se ustavi; ročni pregled je en sam, na koncu naloge; ob nepričakovanem izidu
   testa ali primerjave se ustavi in poročaj. Meja 25.000 znakov ostane.
 
+**Dodatka 2026-10-11** (po potrditvi koraka 1; v `CLAUDE.md`, »Opisi datotek in ta datoteka«, pred testom koraka 2):
+
+- **D4** – opis v `docs/opis/` pove trenutno stanje; zgodovine sprememb ne dopisuj (je v načrtu naloge in v gitu).
+  Ob spremembi datoteke zastarele dele opisa zamenjaj, ne dodajaj.
+- **D5** – `docs/opis/testi.md` in `docs/opis/orodja.md` beri po razdelkih ali poišči ime datoteke; ne beri ju v celoti.
+
 ## 9. Izvedba
 
 ### Korak 1 – prenos in nov `CLAUDE.md` (2026-10-11)
@@ -387,3 +394,22 @@ podvojeno enoto. Točka 5 je že predpregled pogojev (c) in (d) testa iz koraka 
 
 Velikost: prej 246.976 znakov (izmerjeno na `23bba6d`; 246.779 v razdelku 1 je izhodišče `a71e67f`, pred vrstico tega
 načrta), potem 17.129 (6,9 %; ocena v 3.1 je bila 19.500).
+
+### Korak 2 – varovalo (2026-10-11)
+
+Izhodišče: `3ae3157` (korak 1, pregledan in potrjen). Najprej D4 in D5 v `CLAUDE.md` (»Opisi datotek in ta datoteka«).
+
+`tests/claude-md.test.js` (hiter, štirje testi (a)–(d) iz koraka 2 v razdelku 6). Podrobnosti izvedbe:
+
+- (b) gleda samo poti, zapisane kot koda (med krativci), in dovoli šumnike v imenu – prvi zagon je v prozi
+  »(igra/reševalec/trening)« našel »pot« `igra/re`.
+- (c) išče ime datoteke kot samostojno ime (ne del daljšega imena); mapi `posnetki/` sta izpuščeni.
+- (d) išče ime v vrstici mape v »Zemljevidu datotek« in v zamaknjenih vrsticah pod njo.
+
+**Na stari kodi pade:** na `23bba6d` (pred korakom 1, test kopiran v začasno delovno kopijo) padejo vsi štirje,
+ne samo (a) in (c), kot je napovedal razdelek 6: (a) 247.181 znakov; (b) stari `CLAUDE.md` v vrstici tega načrta že
+omenja `docs/opis/`, ki takrat še ni obstajala; (c) mape `docs/opis/` ni; (d) stari `CLAUDE.md` nima razdelka
+»Zemljevid datotek«. Napoved v razdelku 6 je bila nepopolna, test je pravilen.
+
+**Na novi kodi:** pred opisom testa je padel samo (c) – javil je `tests/claude-md.test.js` (nova datoteka še brez
+opisa); po vrstici v `docs/opis/testi.md` (»Splošno in pomožne datoteke«) so vsi štirje zeleni.

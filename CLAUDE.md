@@ -37,6 +37,8 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 **Opisi datotek in ta datoteka**
 - Pred spremembo preberi opis področja v `docs/opis/` (»Kazalo dokumentov«). Dokumentov ne uvažaj z `@` – tako bi se nalagali ob vsakem pogovoru.
 - Ko spremeniš datoteko, posodobi njen opis v `docs/opis/` (ne v `CLAUDE.md`); nova datoteka dobi vrstico v zemljevidu spodaj in opis v `docs/opis/`. Posodobljeni opisi so v povzetku naloge med spremenjenimi datotekami.
+- Opis v `docs/opis/` pove trenutno stanje; zgodovine sprememb ne dopisuj (je v načrtu naloge in v gitu). Ob spremembi datoteke zastarele dele opisa zamenjaj, ne dodajaj.
+- `docs/opis/testi.md` in `docs/opis/orodja.md` beri po razdelkih ali poišči ime datoteke; ne beri ju v celoti.
 - `CLAUDE.md` ima samo pravila, ukaze, zemljevid in kazalo; največ 25.000 znakov.
 
 **Pravila iz opisov** (prvotno besedilo je v `docs/opis/`)
