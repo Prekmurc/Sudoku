@@ -37,7 +37,12 @@
 //     22., 23. … z izvirnimi številkami, števec »22 / 69 opravljeno«; Skrij → Pokaži ohrani filter in kljukice;
 //   - »↑«: en gumb, na vrhu skrit, po enem zaslonu viden (44 × 44 px, 16 px od roba okna), dotik/klik → vrh, spet skrit;
 //     povečava male mreže je nad »↑«, Escape jo zapre; posnetki filter-, na-vrh-<375|1280>.png.
-// --korak N požene korake 1 … N (privzeto 3), --samo N samo korak N.
+//
+// Korak 4 – popravek P2 po ročnem pregledu: okrogel »↑« v meniju treninga (stolpec – kartice menija) in pri koracih
+//   reševalca (stolpec – kartica korakov, P_14) pri 1920, 1280, 900, 560 px (miška) in 375 px (dotik): kadar je ob stolpcu
+//   prostor za gumb in 16 px na obeh straneh, 16 px desno od stolpca, sicer 16 px od desnega roba okna; 16 px od spodnjega
+//   roba, 44 px, brez preliva; pri 1280 px klik → vrh; posnetka na-vrh-p2-trening-, na-vrh-p2-resevalec-1280.png.
+// --korak N požene korake 1 … N (privzeto 4), --samo N samo korak N.
 //
 //   node tools/preveri-naloga6b-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>]
 //
@@ -54,7 +59,7 @@ const KOREN = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga6b'));
-const korak = Number(arg('--korak', '3'));
+const korak = Number(arg('--korak', '4'));
 const izhodisce = arg('--izhodisce', 'e52f994');
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
@@ -412,8 +417,11 @@ async function korak3(b, sirina) {
   await b.izvedi('(document.activeElement.blur(), window.scrollTo(0, innerHeight + 50), true)');
   await pocakaj(b, 150);
   v = await b.izvedi(NA_VRH);
-  preveri(`»↑«: po enem zaslonu drsenja viden, ${Math.round(v.sirina)} × ${Math.round(v.visina)} px, 16 px od desnega in spodnjega roba okna`,
-    !v.skrit && Math.abs(v.sirina - 44) < 0.5 && Math.abs(v.visina - 44) < 0.5 && Math.abs(v.okno[0] - v.desno - 16) < 0.5 && Math.abs(v.okno[1] - v.dno - 16) < 0.5, v);
+  // Desno po popravku P2: 16 px od stolpca (kartica korakov), kadar je ob njem prostor, sicer 16 px od roba okna.
+  const stolpec = await b.izvedi('document.getElementById("stepsCard").getBoundingClientRect().width');
+  const desno = Math.max(16, (v.okno[0] - stolpec) / 2 - 60);
+  preveri(`»↑«: po enem zaslonu drsenja viden, ${Math.round(v.sirina)} × ${Math.round(v.visina)} px, ${desno > 16 ? '16 px desno od stolpca' : '16 px od desnega roba okna'}, 16 px od spodnjega roba`,
+    !v.skrit && Math.abs(v.sirina - 44) < 0.5 && Math.abs(v.visina - 44) < 0.5 && Math.abs(v.okno[0] - v.desno - desno) < 0.5 && Math.abs(v.okno[1] - v.dno - 16) < 0.5, { v, desno });
   meritve3.push(`${sirina} px: »↑« ${Math.round(v.levo)}–${Math.round(v.desno)} × ${Math.round(v.vrh)}–${Math.round(v.dno)} px okna ${v.okno.join(' × ')}`);
   await pritisni(b, 'button.na-vrh', dotik);
   const y = await b.izvedi(MIRUJE);
@@ -436,6 +444,58 @@ async function korak3(b, sirina) {
   await b.tipka('Escape');
   await pocakaj(b, 100);
   preveri('Escape zapre povečavo', await b.izvedi('getComputedStyle(document.getElementById("lightbox")).display === "none"'));
+}
+
+// ---------- Korak 4 – popravek P2: »↑« ob stolpcu z vsebino ----------
+// Okna: monitor 1920, 1280, 900, ozko okno na monitorju 560 (ob stolpcu ni prostora), telefon 375 (dotik).
+const OKNA_P2 = [[1920, 1000, false], [1280, 800, false], [900, 800, false], [560, 800, false], [375, 667, true]];
+const P2 = izbStolpca => `(() => {
+  const b = document.querySelector('button.na-vrh'), r = b.getBoundingClientRect(), s = document.querySelector(${J(izbStolpca)}).getBoundingClientRect();
+  return { skrit: b.hidden, levo: r.left, desno: r.right, dno: r.bottom, sirina: r.width, okno: [document.documentElement.clientWidth, innerHeight],
+    stolpec: [s.left, s.right], preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth };
+})()`;
+const meritve4 = [];
+
+function preveriP2(ime, v) {
+  const [w, h] = v.okno, sirinaStolpca = v.stolpec[1] - v.stolpec[0];
+  const prostor = (w - sirinaStolpca) / 2 >= 76; // gumb 44 px in razmik 16 px na obeh straneh
+  const desno = w - v.desno;
+  preveri(`${ime}, ${w} px: »↑« ${prostor ? `16 px desno od stolpca (stolpec ${Math.round(v.stolpec[0])}–${Math.round(v.stolpec[1])})` : '16 px od desnega roba okna (ob stolpcu ni prostora)'}, 16 px od spodnjega roba, 44 px, brez preliva`,
+    !v.skrit && Math.abs(v.sirina - 44) < 0.5 && Math.abs(h - v.dno - 16) < 0.5 && !v.preliv
+      && (prostor ? Math.abs(v.levo - v.stolpec[1] - 16) < 0.5 : Math.abs(desno - 16) < 0.5), v);
+  meritve4.push(`${ime}, ${w} × ${h}: »↑« ${Math.round(v.levo)}–${Math.round(v.desno)} px, stolpec ${Math.round(v.stolpec[0])}–${Math.round(v.stolpec[1])} px, ${prostor ? `razmik od stolpca ${Math.round(v.levo - v.stolpec[1])}` : `od roba okna ${Math.round(desno)}`} px`);
+}
+
+async function korak4(b) {
+  console.log('\nKorak 4 – popravek P2: okrogel »↑« ob stolpcu z vsebino (meni treninga, koraki reševalca)');
+  for (const [w, h, dotik] of OKNA_P2) {
+    // Meni treninga: kartice menija so stolpec.
+    await b.odpri('trening/index.html', { sirina: w, visina: h, mobilno: dotik });
+    await b.cakaj('document.fonts.status === "loaded"', 15000);
+    await b.izvedi('(window.scrollTo(0, innerHeight + 200), true)');
+    await pocakaj(b, 150);
+    preveriP2('trening, meni', await b.izvedi(P2('#menu .menu-card')));
+    if (w === 1280) {
+      await b.posnetek(path.join(mapa, 'na-vrh-p2-trening-1280.png'), { vsaStran: false });
+      await pritisni(b, 'button.na-vrh', false);
+      preveri('trening, 1280 px: klik »↑« → vrh strani', (await b.izvedi(MIRUJE)) === 0);
+    }
+    // Reševalec: P_14, odprti koraki; kartica korakov je stolpec.
+    await b.odpri('app/index.html', { sirina: w, visina: h, mobilno: dotik });
+    await b.cakaj('document.fonts.status === "loaded"', 15000);
+    await b.izvedi(`(() => { const s = document.getElementById('exampleSelect'); s.value = String(PRIMERI.findIndex(p => p.ime === 'P_14'));
+      s.dispatchEvent(new Event('change')); document.getElementById('solveBtn').click(); return true; })()`);
+    await b.cakaj('/^Rešeno/.test(document.getElementById("status").textContent)', 15000);
+    await b.izvedi('(document.getElementById("openStepsBtn").click(), document.activeElement.blur(), true)');
+    await b.izvedi('(window.scrollTo(0, document.getElementById("stepsCard").getBoundingClientRect().top + scrollY + 400), true)');
+    await pocakaj(b, 150);
+    preveriP2('reševalec, koraki', await b.izvedi(P2('#stepsCard')));
+    if (w === 1280) {
+      await b.posnetek(path.join(mapa, 'na-vrh-p2-resevalec-1280.png'), { vsaStran: false });
+      await pritisni(b, 'button.na-vrh', false);
+      preveri('reševalec, 1280 px: klik »↑« → vrh strani', (await b.izvedi(MIRUJE)) === 0);
+    }
+  }
 }
 
 // Okno Pomoč vseh treh: kazalo tehnik (vrstica oznak) enako izhodišču – drevo, HTML, izračunani slogi in položaji
@@ -526,6 +586,11 @@ async function korak2Pomoc(b) {
       for (const s of [320, 375, 1280]) await korak3(b, s);
       console.log('\nKorak 3 – meritve:');
       for (const v of meritve3) console.log('  ' + v);
+    }
+    if (tece(4)) {
+      await korak4(b);
+      console.log('\nKorak 4 – meritve:');
+      for (const v of meritve4) console.log('  ' + v);
     }
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } catch (e) {

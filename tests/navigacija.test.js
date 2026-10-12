@@ -249,3 +249,51 @@ test('vrnitev z »Nazaj« (pageshow iz predpomnilnika): uganka, vmes izbrisana d
   okno2.sprozi('pageshow', { persisted: true });
   assert.equal(r2.dom.el('libraryBtn').textContent, 'Zbirka (2)');
 });
+
+// Naloga 6b, popravek po ročnem pregledu (P2): okrogel »↑« je na širokem zaslonu 16 px desno od stolpca z vsebino
+// (meni treninga, koraki reševalca), kadar ob stolpcu ni prostora, 16 px od desnega roba okna. Širino stolpca pove
+// aplikacija s spremenljivko --stolpec-vsebine (stolpec = največja širina vsebnika brez odmikov levo in desno), skupno
+// pravilo button.na-vrh v shared/base.css jo uporabi v `right`. Položaj v pravem brskalniku:
+// tools/preveri-naloga6b-brskalnik.js --samo 4.
+function deklaracije(f, izbirnik) {
+  const css = beri(f).replace(/\/\*[\s\S]*?\*\//g, '');
+  const ubeg = izbirnik.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = new RegExp(`(?:^|[}\\s])${ubeg}\\s*\\{([^}]*)\\}`).exec(css);
+  assert.ok(m, `${f}: ni pravila ${izbirnik}`);
+  return Object.fromEntries(m[1].split(';').filter(d => d.includes(':')).map(d => [d.slice(0, d.indexOf(':')).trim(), d.slice(d.indexOf(':') + 1).trim()]));
+}
+const px = v => Number(/^(\d+(?:\.\d+)?)px$/.exec(v)[1]);
+// Vrednost `right` iz shared/base.css pri širini okna `okno` in stolpcu `stolpec` (null = aplikacija ga ne poda).
+function desniOdmik(okno, stolpec) {
+  let izraz = deklaracije('shared/base.css', 'button.na-vrh').right;
+  izraz = izraz.replace(/var\(--stolpec-vsebine(?:,\s*([^)]*))?\)/, (_, privzeto) => (stolpec === null ? privzeto : `${stolpec}px`));
+  izraz = izraz.replace(/100%/g, `${okno}px`).replace(/calc/g, '').replace(/max\(/g, 'Math.max(').replace(/px/g, '');
+  assert.match(izraz.replace(/Math\.max\(/g, '('), /^[\d\s.+\-*/(),]*$/, `nepričakovan izraz: ${izraz}`);
+  return Function(`return ${izraz}`)();
+}
+
+test('»↑« (P2): na širokem zaslonu 16 px desno od stolpca vsebine, sicer 16 px od roba okna; spodaj enako', () => {
+  const stolpci = [
+    ['reševalec', 'app/app.css', 'main', deklaracije('app/app.css', 'main')],
+    ['trening', 'trening/trening.css', '.container', deklaracije('trening/trening.css', '.container')],
+  ].map(([ime, f, , vsebnik]) => {
+    const odmik = px(vsebnik.padding.split(/\s+/)[1]);
+    const stolpec = px(deklaracije(f, 'button.na-vrh')['--stolpec-vsebine']);
+    assert.equal(stolpec, px(vsebnik['max-width']) - 2 * odmik, `${ime}: --stolpec-vsebine = največja širina brez odmikov`);
+    return [ime, stolpec];
+  });
+  assert.deepEqual(stolpci, [['reševalec', 448], ['trening', 528]]);
+  for (const [ime, stolpec] of stolpci) {
+    for (const okno of [1280, 1920, 900]) {
+      const levo = okno - desniOdmik(okno, stolpec) - 44, desnoStolpca = (okno + stolpec) / 2;
+      assert.equal(levo - desnoStolpca, 16, `${ime}, ${okno} px: 16 px desno od stolpca`);
+    }
+    for (const okno of [320, 375, 430, stolpec + 32]) assert.equal(desniOdmik(okno, stolpec), 16, `${ime}, ${okno} px: 16 px od roba okna`);
+    // Meja: od tu naprej je gumb ob stolpcu, prej ob robu okna – brez skoka.
+    assert.equal(desniOdmik(stolpec + 152, stolpec), 16, `${ime}: na meji oboje`);
+  }
+  assert.equal(desniOdmik(1280, null), 16, 'brez --stolpec-vsebine kot prej');
+  const n = deklaracije('shared/base.css', 'button.na-vrh');
+  assert.equal(n.bottom, 'calc(16px + env(safe-area-inset-bottom, 0px))');
+  assert.equal(n.width, '44px');
+});

@@ -265,9 +265,12 @@ footer.note {
 .kazalo-imena { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
 .kazalo-imena .si { font-size: 14px; font-weight: 700; color: var(--ink); }
 .kazalo-imena .en { font-size: 12.5px; font-weight: 400; color: var(--ink2); }
+/* Okrogel »↑«: na širokem zaslonu 16 px desno od stolpca z vsebino (širino stolpca poda aplikacija v
+   --stolpec-vsebine), kadar ob stolpcu ni prostora, 16 px od desnega roba okna (naloga 6b, P2). 100 % je širina
+   okna brez drsnika, v kateri je stolpec na sredini; 60 px = gumb 44 px in razmik 16 px. */
 button.na-vrh {
   position: fixed;
-  right: 16px;
+  right: max(16px, calc((100% - var(--stolpec-vsebine, 100%)) / 2 - 60px));
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 20;
   width: 44px;

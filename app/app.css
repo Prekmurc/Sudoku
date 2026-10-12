@@ -25,6 +25,8 @@
     margin: 0 auto;
     padding: 0 16px;
   }
+  /* širina stolpca kartic (main brez odmikov) - ob njem je okrogel »↑« (shared/base.css) */
+  button.na-vrh{ --stolpec-vsebine: 448px; }
 
   /* ---------- vnosna mreža ---------- */
   #inputGrid{

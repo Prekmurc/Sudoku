@@ -420,20 +420,22 @@ datoteke, zemljevid). Koda aplikacije se ni spremenila, zato posnetka igre in br
 
 ## Naloga 6b – pripomočki za uporabo (trening, reševalec)
 
-**Čaka ročni pregled** (koraki 1–3 narejeni 2026-10-11).
+**Točke 1–4 potrjene 2026-10-12**, en popravek (P2 – okrogel »↑« na širokem zaslonu ob stolpcu z vsebino); **točka 5
+(popravek) čaka pregled.**
 
 Načrt `docs/naloga6b-nacrt.md` (razdelka 8 in 10). Avtomatsko preverjeno: testi v `tests/trening-meni.test.js` (koraka
 1 in 2) in `tests/resevalec-koraki.test.js` (korak 3), scenarij `tools/preveri-naloga6b-brskalnik.js` (vsi trije koraki
 pri 320, 375 in 1280 px, pravi dotik in klik), `tools/preveri-navigacija-brskalnik.js`, `tools/preveri-videz-brskalnik.js`
-in posnetek igre (brez razlik). Pred pregledom osveži stran (oznaka različice na dnu okna Pomoč mora biti različica
-commita koraka 3).
+in posnetek igre (brez razlik); popravek P2 – test v `tests/navigacija.test.js` in scenarij `--samo 4` (1920, 1280,
+900, 560, 375 px). Pred pregledom točke 5 osveži stran (na dnu okna Pomoč različica 2026-10-12 12:42).
 
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
-| 1 | trening, telefon | V vaji dotik »↔ Vadi v uganki«, nato »↔ Spoznaj«, nato »← Nazaj na izbiro«. | Vsakič nov krog iste tehnike v drugem načinu (vaja 1, rezultat 0 / 0), na koncu meni na kartici tehnike. | Presoja, ali je gumb ob »Nazaj na izbiro« prepoznaven in ga pravi prst ne zadene pomotoma. |
-| 2 | trening, telefon in monitor | Po krogu vrnitev iz vaje; nato zapri zavihek in trening odpri znova. | Kartica zadnje tehnike z modrim okvirjem, na monitorju jasno drugačna od turkiznega poudarka pod miško; po ponovnem odprtju obrobljena vrstica v kazalu; kazalo na telefonu v enem stolpcu, na monitorju v dveh, imena berljiva in cela. | Presoja vidnosti barve; pravo zapiranje brskalnika na telefonu. |
-| 3 | reševalec, telefon | Primer P_14, »Reši«, »Pokaži korake reševanja«, v okencu »Pokaži« izberi »Brez enojčkov (12)«. | Izbirnik sistema z vsemi devetimi možnostmi, nato samo koraki 21., 22., 23. …; števec »N / 69 opravljeno«. | Izbirnika sistema brskalnik brez glave ne pokaže. |
-| 4 | reševalec, telefon | Pri »Vsi koraki« odpri nekaj malih mrež in drsi; dotik »↑« spodaj desno. | Gumb ne moti dotika male mreže (pri drsenju lahko prekrije njen spodnji desni kot), vrne na vrh strani. | Presoja s pravim prstom in inercijskim drsenjem. |
+| 1 | trening, telefon | V vaji dotik »↔ Vadi v uganki«, nato »↔ Spoznaj«, nato »← Nazaj na izbiro«. | Vsakič nov krog iste tehnike v drugem načinu (vaja 1, rezultat 0 / 0), na koncu meni na kartici tehnike. (potrjeno 12. 10. 2026) | Presoja, ali je gumb ob »Nazaj na izbiro« prepoznaven in ga pravi prst ne zadene pomotoma. |
+| 2 | trening, telefon in monitor | Po krogu vrnitev iz vaje; nato zapri zavihek in trening odpri znova. | Kartica zadnje tehnike z modrim okvirjem, na monitorju jasno drugačna od turkiznega poudarka pod miško; po ponovnem odprtju obrobljena vrstica v kazalu; kazalo na telefonu v enem stolpcu, na monitorju v dveh, imena berljiva in cela. (potrjeno 12. 10. 2026) | Presoja vidnosti barve; pravo zapiranje brskalnika na telefonu. |
+| 3 | reševalec, telefon | Primer P_14, »Reši«, »Pokaži korake reševanja«, v okencu »Pokaži« izberi »Brez enojčkov (12)«. | Izbirnik sistema z vsemi devetimi možnostmi, nato samo koraki 21., 22., 23. …; števec »N / 69 opravljeno«. (potrjeno 12. 10. 2026 – izbirnik na telefonu je temen, bel napis na črni podlagi: izbirnik sistema, pričakovano) | Izbirnika sistema brskalnik brez glave ne pokaže. |
+| 4 | reševalec, telefon | Pri »Vsi koraki« odpri nekaj malih mrež in drsi; dotik »↑« spodaj desno. | Gumb ne moti dotika male mreže (pri drsenju lahko prekrije njen spodnji desni kot), vrne na vrh strani. (potrjeno 12. 10. 2026) | Presoja s pravim prstom in inercijskim drsenjem. |
+| 5 | monitor – trening in reševalec | Popravek P2. Trening: v meniju drsi navzdol. Reševalec: P_14, »Reši«, »Pokaži korake reševanja«, drsi navzdol. Nato okno brskalnika zoži, da je le malo širše od vsebine. | Okrogel »↑« spodaj, tik desno ob stolpcu s karticami (16 px), ne ob robu okna; v ozkem oknu 16 px od desnega roba okna. Klik vrne na vrh. | Presoja, ali je gumb zdaj opazen; drsnik okna v Edge (brskalnik brez glave ga skrije) in pravo spreminjanje velikosti okna. |
 
 ## Zakaj ročno
 

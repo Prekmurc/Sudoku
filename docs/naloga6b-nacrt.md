@@ -1,6 +1,6 @@
 # Pripomočki za uporabo (naloga 6b) – načrt
 
-Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c potrjen 2026-10-11 (O7, O8, O9, O10, O11 = A) in narejen (korak 3) z zaključkom – čaka ročni pregled.**
+Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c potrjen 2026-10-11 (O7, O8, O9, O10, O11 = A) in narejen (korak 3) z zaključkom; ročni pregled točk 1–4 potrjen 2026-10-12, popravek P2 (»↑« ob stolpcu z vsebino) narejen – čaka pregled točke 5.**
 
 Izhodišče: commit `b673dd3` (pravilo ob nepričakovanem izidu testa v `CLAUDE.md`).
 
@@ -492,3 +492,32 @@ ga pobriše, »Reši« z drugimi danostmi pokliče `skrijKorake()`; `ustvariNaVr
   (`trening.md` je posodobljen v korakih 1 in 2); `docs/rocni-test.md`, razdelek »Naloga 6b«; `docs/uskladitev.md`
   (naloga 6b, »Kasneje«). `CLAUDE.md` ostane – ključ `sudoku.trening.zadnja` je dopisan v koraku 2, scenariji so našteti
   v `docs/opis/orodja.md`.
+
+**Ročni pregled 2026-10-12:** točke 1–4 v redu. Opomba k točki 3: izbirnik na telefonu je temen (bel napis na črni
+podlagi) – izbirnik sistema, pričakovano. Opazka iz povzetka koraka 3 (kartica korakov kaže stare korake, če spremeniš
+celico brez »Reši« ali »Reši« zavrne konflikt) je zapisana v »Kasneje«.
+
+**Popravek P2 – okrogel »↑« ob stolpcu z vsebino (zahteva 2026-10-12).** Na monitorju je bil »↑« ob desnem robu okna,
+daleč od vsebine (pri 1280 px 356 px od kartic), in ga Darko ni opazil. Zahteva: na širokem zaslonu tik ob desnem robu
+stolpca z vsebino, spodaj kot zdaj; kadar ob vsebini ni prostora (telefon, ozko okno), 16 px od desnega roba okna; velja
+za meni treninga in korake reševalca (isti slog), na telefonu brez spremembe.
+
+- **Odločitev:** razmik od stolpca je 16 px (isti kot od roba okna). Gumb je ob stolpcu, kadar je ob njem prostor za
+  gumb in 16 px na obeh straneh (okno vsaj stolpec + 152 px: reševalec 600 px, trening 680 px), sicer 16 px od roba
+  okna; prehod je zvezen (na meji sta obe mesti isti).
+- **Izvedba:** `shared/base.css` – v pravilu `button.na-vrh` `right: max(16px, calc((100% - var(--stolpec-vsebine,
+  100%)) / 2 - 60px))` (100 % je širina okna brez drsnika, v kateri je stolpec na sredini; 60 px = gumb in razmik);
+  širino stolpca poda aplikacija v svojem pravilu `button.na-vrh`: `app/app.css` 448 px (`main` 480 px brez odmikov), `trening/trening.css`
+  528 px (`.container` 560 px brez odmikov). Brez spremenljivke ostane 16 px. Koda JS se ne spremeni.
+- **Preverjeno:** test v `tests/navigacija.test.js` (na kodi pred popravkom pade); scenarij
+  `tools/preveri-naloga6b-brskalnik.js --samo 4` – izmerjeno pri 1280 px reševalec stolpec 416–864, »↑« 880–924 px,
+  trening stolpec 376–904, »↑« 920–964 px; pri 900 in 1920 px prav tako 16 px od stolpca; pri 560 in 375 px 16 px od
+  roba okna (315–359 px pri 375 px – enako kot prej); spodaj 16 px; klik → vrh. Ročni seznam: točka 5 (samo monitor).
+- **Med preverjanjem popravljeno:** spremenljivko sem najprej nastavil na `body`. Primerjava okna Pomoč (korak 2) in okna
+  Zbirka v reševalcu (`preveri-navigacija-brskalnik.js`, korak 3) z izhodiščem je pokazala razliko v izračunanih slogih
+  vseh elementov treninga in reševalca (igra je brez spremenljivke in je držala) – podedovana spremenljivka je med
+  izračunanimi lastnostmi vsakega elementa. Zdaj je spremenljivka samo na gumbu (`button.na-vrh` v CSS aplikacije).
+  Korak 3 tega scenarija in korak 2 `tools/preveri-navigacija-brskalnik.js` (meni treninga) sta pričakovala gumb 16 px od
+  roba okna tudi pri 1280 px – pričakovanje je zdaj po P2. Oba scenarija vse držita (naloga 6b 572 preverjanj,
+  navigacija z `--izhodisce 2741132` vse razen tega, po popravku pričakovanja korak 2 vse drži); videz in posnetek igre
+  brez razlik; vsi testi (999) gredo.

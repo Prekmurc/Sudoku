@@ -336,8 +336,11 @@ async function korak2(b, sirina) {
   await b.izvedi(MIRUJE);
   g = await b.izvedi(NA_VRH);
   preveri(`»↑« po pravem drsenju (${dotik ? 'poteg prsta' : 'kolesce'}) čez en zaslon viden (scrollY ${g.scrollY})`, g.scrollY > g.okno && g.viden, g);
-  preveri(`»↑«: 44 × 44 px, okrogel, 16 px od desnega roba, v oknu (${g.levo}–${g.desno}, ${g.vrh}–${g.dno})`,
-    g.sirina === 44 && g.visina === 44 && g.radij === '50%' && Math.abs(g.oknoSirina - g.desno - 16) <= 0.5 && g.dno <= g.okno && g.vrh >= 0, g);
+  // Desno (naloga 6b, popravek P2): 16 px desno od stolpca menija, kadar je ob njem prostor, sicer 16 px od roba okna.
+  const stolpec = await b.izvedi('document.querySelector("#menu .menu-card").getBoundingClientRect().width');
+  const desno = Math.max(16, (g.oknoSirina - stolpec) / 2 - 60);
+  preveri(`»↑«: 44 × 44 px, okrogel, ${desno > 16 ? '16 px desno od stolpca menija' : '16 px od desnega roba'}, v oknu (${g.levo}–${g.desno}, ${g.vrh}–${g.dno})`,
+    g.sirina === 44 && g.visina === 44 && g.radij === '50%' && Math.abs(g.oknoSirina - g.desno - desno) <= 0.5 && g.dno <= g.okno && g.vrh >= 0, { g, desno });
   if (dotik) await b.posnetek(path.join(mapa, `meni-na-vrh-${sirina}.png`), { vsaStran: false });
 
   // Prekrivanje z gumboma kartic med drsenjem.

@@ -27,6 +27,8 @@
    .card). */
 header.top{max-width:560px}
 .container{max-width:560px;margin:0 auto;padding:0 16px}
+/* širina stolpca menija (.container brez odmikov) - ob njem je okrogel »↑« (shared/base.css) */
+button.na-vrh{--stolpec-vsebine:528px}
 
 /* --- MENI --- */
 /* Številko kartice (data-stevilka na h3) in vrstni red kartic nastavi trening.js iz
