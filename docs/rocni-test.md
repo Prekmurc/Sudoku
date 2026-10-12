@@ -420,8 +420,8 @@ datoteke, zemljevid). Koda aplikacije se ni spremenila, zato posnetka igre in br
 
 ## Naloga 6b – pripomočki za uporabo (trening, reševalec)
 
-**Točke 1–4 potrjene 2026-10-12**, en popravek (P2 – okrogel »↑« na širokem zaslonu ob stolpcu z vsebino); **točka 5
-(popravek) čaka pregled.**
+**Naloga 6b je zaključena 2026-10-12** – točke 1–5 potrjene 2026-10-12 (točka 5 po popravku P2 – okrogel »↑« na
+širokem zaslonu ob stolpcu z vsebino, `b3624dd`).
 
 Načrt `docs/naloga6b-nacrt.md` (razdelka 8 in 10). Avtomatsko preverjeno: testi v `tests/trening-meni.test.js` (koraka
 1 in 2) in `tests/resevalec-koraki.test.js` (korak 3), scenarij `tools/preveri-naloga6b-brskalnik.js` (vsi trije koraki
@@ -435,7 +435,7 @@ in posnetek igre (brez razlik); popravek P2 – test v `tests/navigacija.test.js
 | 2 | trening, telefon in monitor | Po krogu vrnitev iz vaje; nato zapri zavihek in trening odpri znova. | Kartica zadnje tehnike z modrim okvirjem, na monitorju jasno drugačna od turkiznega poudarka pod miško; po ponovnem odprtju obrobljena vrstica v kazalu; kazalo na telefonu v enem stolpcu, na monitorju v dveh, imena berljiva in cela. (potrjeno 12. 10. 2026) | Presoja vidnosti barve; pravo zapiranje brskalnika na telefonu. |
 | 3 | reševalec, telefon | Primer P_14, »Reši«, »Pokaži korake reševanja«, v okencu »Pokaži« izberi »Brez enojčkov (12)«. | Izbirnik sistema z vsemi devetimi možnostmi, nato samo koraki 21., 22., 23. …; števec »N / 69 opravljeno«. (potrjeno 12. 10. 2026 – izbirnik na telefonu je temen, bel napis na črni podlagi: izbirnik sistema, pričakovano) | Izbirnika sistema brskalnik brez glave ne pokaže. |
 | 4 | reševalec, telefon | Pri »Vsi koraki« odpri nekaj malih mrež in drsi; dotik »↑« spodaj desno. | Gumb ne moti dotika male mreže (pri drsenju lahko prekrije njen spodnji desni kot), vrne na vrh strani. (potrjeno 12. 10. 2026) | Presoja s pravim prstom in inercijskim drsenjem. |
-| 5 | monitor – trening in reševalec | Popravek P2. Trening: v meniju drsi navzdol. Reševalec: P_14, »Reši«, »Pokaži korake reševanja«, drsi navzdol. Nato okno brskalnika zoži, da je le malo širše od vsebine. | Okrogel »↑« spodaj, tik desno ob stolpcu s karticami (16 px), ne ob robu okna; v ozkem oknu 16 px od desnega roba okna. Klik vrne na vrh. | Presoja, ali je gumb zdaj opazen; drsnik okna v Edge (brskalnik brez glave ga skrije) in pravo spreminjanje velikosti okna. |
+| 5 | monitor – trening in reševalec | Popravek P2. Trening: v meniju drsi navzdol. Reševalec: P_14, »Reši«, »Pokaži korake reševanja«, drsi navzdol. Nato okno brskalnika zoži, da je le malo širše od vsebine. | Okrogel »↑« spodaj, tik desno ob stolpcu s karticami (16 px), ne ob robu okna; v ozkem oknu 16 px od desnega roba okna. Klik vrne na vrh. (potrjeno 12. 10. 2026 – »↑« na monitorju desno ob stolpcu s karticami) | Presoja, ali je gumb zdaj opazen; drsnik okna v Edge (brskalnik brez glave ga skrije) in pravo spreminjanje velikosti okna. |
 
 ## Zakaj ročno
 

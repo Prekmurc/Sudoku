@@ -32,6 +32,8 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 - Najprej test, ki na stari kodi pade, nato sprememba.
 - Po vsakem koraku commit in push, nato se ustavi.
 - Ročni pregled je en sam, na koncu naloge.
+- Majhen popravek samo v slogu (CSS, brez sprememb JS in HTML): od preverjanj v brskalniku poženi samo scenarij, ki
+  pokriva spremenjeno mesto; pri igri še posnetek igre. Vsi testi pred commitom ostanejo.
 - Ob nepričakovanem izidu testa ali primerjave se ustavi in poročaj, kadar izid kaže na napako v aplikaciji ali vzroka
   ne znaš pojasniti. Če je vzrok dokazano v napovedi načrta ali v pomožni skripti, nadaljuj in to zapiši v poročilo.
 

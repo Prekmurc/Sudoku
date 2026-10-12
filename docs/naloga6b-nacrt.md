@@ -1,6 +1,6 @@
 # Pripomočki za uporabo (naloga 6b) – načrt
 
-Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c potrjen 2026-10-11 (O7, O8, O9, O10, O11 = A) in narejen (korak 3) z zaključkom; ročni pregled točk 1–4 potrjen 2026-10-12, popravek P2 (»↑« ob stolpcu z vsebino) narejen – čaka pregled točke 5.**
+Načrt 2026-10-11 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, naloga 6b). **Stanje: korak a potrjen 2026-10-11 (O1, O2, O3 = A) in narejen (korak 1), popravek pri ozkem zaslonu (P1 = A) narejen; korak b z dopolnitvijo 2.5 potrjen 2026-10-11 (O4 A, O5 A, O6 B, O12 A, O13 A) in narejen (korak 2); korak c potrjen 2026-10-11 (O7, O8, O9, O10, O11 = A) in narejen (korak 3) z zaključkom; ročni pregled točk 1–4 potrjen 2026-10-12, popravek P2 (»↑« ob stolpcu z vsebino) narejen, točka 5 potrjena 2026-10-12. Naloga 6b je zaključena 2026-10-12; naslednja je naloga 7.**
 
 Izhodišče: commit `b673dd3` (pravilo ob nepričakovanem izidu testa v `CLAUDE.md`).
 
