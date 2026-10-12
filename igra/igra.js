@@ -612,9 +612,10 @@ function osveziGumbZbirke() {
 // Kartica uganke v seznamu (skupna z reševalcem: zbirkaKartica v shared/zbirka.js,
 // zbirkaIzrisiKartico v shared/zbirka-ui.js). Napis stanja in gumb Igraj/Nadaljuj/
 // Poglej sta iz istega vira (zbirkaStanjeUganke). `z` je zapis v zbirki (ta dobi še
-// gumb "Izbriši") ali null (vgrajeni primer), `igre` shranjene igre.
-function karticaUganke(danosti, z, igre) {
-  const k = zbirkaKartica(danosti, z, zbirkaPovzetekZapisa(danosti, igre[danosti]));
+// gumb "Izbriši") ali null (vgrajeni primer), `povzetek` povzetek shranjene igre
+// (zbirkaPovzetekZapisa - pri uganki iz zbirke ga je izračunal že filter, O11).
+function karticaUganke(danosti, z, povzetek) {
+  const k = zbirkaKartica(danosti, z, povzetek);
   const gumbi = [{ napis: k.gumb, razred: 'primary', obKliku: () => igrajIzZbirke(danosti) }];
   if (z) gumbi.push({ napis: 'Izbriši', razred: 'danger', obKliku: () => izbrisiUganko(z) });
   const li = zbirkaIzrisiKartico(k, { trenutna: !!igra && igra.danosti === danosti, gumbi });
@@ -635,26 +636,47 @@ function izrisiPrimere(igre) {
     naslov.className = 'zb-skupina';
     naslov.textContent = s.naslov;
     primeriSeznamEl.appendChild(naslov);
-    for (const p of s.primeri) primeriSeznamEl.appendChild(karticaUganke(p.danosti.split('.').join('0'), null, igre));
+    for (const p of s.primeri) {
+      const d = p.danosti.split('.').join('0');
+      primeriSeznamEl.appendChild(karticaUganke(d, null, zbirkaPovzetekZapisa(d, igre[d])));
+    }
   }
 }
 
+// Filtri in razvrščanje nad seznamom »Moje uganke« (naloga 10; shared/zbirka-ui.js). Sprememba okenca
+// znova izriše samo moje uganke (primeri se ne spremenijo).
+const zbirkaFiltri = zbirkaUstvariFiltre(document.getElementById('zbirkaFiltri'), {
+  obSpremembi: () => izrisiMojeUganke(igreBeri().igre),
+});
+
 function izrisiZbirko() {
   uskladiIgranje();
-  const zbirka = zbirkaBeri();
   const igre = igreBeri().igre;
+  izrisiPrimere(igre);
+  izrisiMojeUganke(igre);
+}
+
+function sporociloSeznama(besedilo) {
+  const li = document.createElement('li');
+  li.className = 'prazno';
+  li.textContent = besedilo;
+  zbirkaSeznamEl.appendChild(li);
+}
+
+// Moje uganke: kartice, ki ustrezajo filtrom, v izbranem vrstnem redu.
+function izrisiMojeUganke(igre) {
+  const zbirka = zbirkaBeri();
   mojeNaslovEl.textContent = `Moje uganke (${zbirka.length})`;
   zbirkaVrstice.clear();
-  izrisiPrimere(igre);
   zbirkaSeznamEl.innerHTML = '';
+  const prikazane = zbirkaFiltri.uporabi(zbirka, igre);
   if (!zbirka.length) {
-    const li = document.createElement('li');
-    li.className = 'prazno';
-    li.textContent = 'Zbirka je prazna. Uganko dodaš z gumbom »Nova uganka« ali z reševanjem v reševalcu. Lahko pa zaigraš enega od vgrajenih primerov spodaj.';
-    zbirkaSeznamEl.appendChild(li);
-    return;
+    sporociloSeznama('Zbirka je prazna. Uganko dodaš z gumbom »Nova uganka« ali z reševanjem v reševalcu. Lahko pa zaigraš enega od vgrajenih primerov spodaj.');
+  } else if (!prikazane.length) {
+    sporociloSeznama('Nobena uganka ne ustreza izbranim filtrom.');
   }
-  for (const z of zbirkaZaSeznam(zbirka)) zbirkaSeznamEl.appendChild(karticaUganke(z.danosti, z, igre));
+  for (const l of prikazane) zbirkaSeznamEl.appendChild(karticaUganke(l.z.danosti, l.z, l.povzetek));
+  osveziPripisOcen();
 }
 
 // Razdelek "Vgrajeni primeri" je na dnu okna in privzeto zaprt. Odprt je, kadar je
@@ -710,6 +732,7 @@ function zbirkaStatus(besedilo, napaka) {
 zbirkaBtn.addEventListener('click', () => {
   zbirkaStatus('');
   ocenaPocisti();
+  zbirkaFiltri.odpri();
   izrisiZbirko();
   primeriRazdelekEl.open = primeriOdprti();
   odpriDialog(zbirkaDialog);
@@ -865,6 +888,20 @@ function osveziOcenoGumbe() {
   const sprememb = tece ? 0 : ocenaSprememb();
   ocenaGumbiEl.hidden = tece || !sprememb;
   oceniZapisiBtn.textContent = `Zapiši ocene (${sprememb})`;
+  osveziPripisOcen();
+}
+
+// Pripis v vrstici »Prikazanih N od M«: predlogi ocene (s spremembo) pri ugankah, ki jih filtri skrivajo – »Zapiši
+// ocene« zapiše tudi te (O8). Predlog vidne uganke je pri njeni kartici (izrisiOceno).
+function osveziPripisOcen() {
+  let n = 0;
+  if (ocene.size) {
+    for (const z of zbirkaBeri()) {
+      const o = ocene.get(z.danosti);
+      if (o && !zbirkaVrstice.has(z.danosti) && ocenaSprememba(z, o)) n++;
+    }
+  }
+  zbirkaFiltri.pripis(n ? `skritih predlogov ocene: ${n}` : '');
 }
 
 // Pozabi nepotrjeni predlog (zaprtje okna, preklic, zapis).
@@ -885,6 +922,7 @@ function obdelajOceno(m) {
     ocene.set(m.danosti, { tezavnost: m.tezavnost, resitve: m.resitve, podatki: m.podatki, potOcene: m.potOcene });
     ocenjevanje.i = m.i + 1;
     izrisiOceno(m.danosti, ocenjevanje.zapisi.get(m.danosti));
+    if (!zbirkaVrstice.has(m.danosti)) osveziPripisOcen(); // uganko skrivajo filtri
     izpisiOcenoNapredek();
     return;
   }

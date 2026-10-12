@@ -2,7 +2,7 @@
 
 Načrt 2026-10-12 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, vrstica 10, in »Odločitve 2026-10-12«, c).
 **Stanje: potrjen 2026-10-12 – O1–O12 po priporočilu (O11 = B, ostale A), dodatek D1 (krajši namig v oknu, razdelek
-4.1). Korak 1 – logika – narejen 2026-10-12.**
+4.1). Korak 1 – logika – in korak 2 – igra – narejena 2026-10-12.**
 
 Izhodišče: commit `a98150a` (zapis odločitev 2026-10-12 v `docs/uskladitev.md`).
 
@@ -380,3 +380,33 @@ Vsak korak: najprej test, ki na stari kodi pade, nato sprememba; hitri testi spr
   vhod za `zbirkaMoznostiFiltrov()` in `zbirkaFiltriraj()`) in `zbirkaImaFilter(izbira)` (za »Počisti filtre«);
   skupna pomožna funkcija tehnik je `zbirkaKljuciTehnikZapisa(z)`. Napis možnosti (`napis`, »Težka (4)«) da logika,
   ne izris.
+
+### Korak 2 – igra (2026-10-12)
+
+- `shared/zbirka-ui.js`: `zbirkaUstvariFiltre(vsebnik, { obSpremembi })` → `{ odpri, uporabi, pripis }` po 2.6;
+  vrednost možnosti je `''` (izklopljen) ali `'='` + vrednost (»Ni določena« je `'='`). `shared/zbirka.css`: slogi po
+  2.1 (vklopljeno okence: obroba 2 px in odmik 5 px – okence ostane enako veliko).
+- `igra/index.html`: vsebnik `#zbirkaFiltri` za `#ocenaGumbi`, krajši namig (D1), v Pomoči podnaslov »Filtri in
+  razvrščanje« za »Uganka v seznamu« (besedilo iz 2.5).
+- `igra/igra.js`: `izrisiZbirko()` = `uskladiIgranje()` + `izrisiPrimere()` + nova `izrisiMojeUganke()` (sprememba
+  okenca izriše samo njo); `karticaUganke(danosti, z, povzetek)` (O11 – povzetek iz filtra); gumb »Zbirka« pokliče
+  `odpri()`; `osveziPripisOcen()` (O8 – šteje samo predloge s spremembo, kot »Zapiši ocene (N)«).
+- Nov hitri test `tests/zbirka-filtri-ui.test.js` (9 testov, pribl. 2 s; na kodi pred korakom padejo vsi).
+- Nov scenarij `tools/preveri-naloga10-brskalnik.js --korak 2`. Testna zbirka: seme 2 pri lahki da vgrajeni primer,
+  `lahka-seme-1` iz `docs/uganke.md` je ista kot seme 1 – scenarij taki preskoči in vzame naslednje seme, da je ugank 32.
+- **Meritve** (testna zbirka 32 ugank, izhodišče `9e07401` → zdaj):
+
+  | | 320 × 640 px | 375 × 667 px | 1280 × 800 px |
+  |---|---|---|---|
+  | okence (š × v) | 120 × 35 px | 148 × 35 px | 216 × 35 px |
+  | vsebnik filtrov (mreža 114 + razmik 8 + vrstica 32) | 154 px | 154 px | 154 px |
+  | vrh prve kartice | 397 → 469 px | 378 → 469 px | 292 → 402 px |
+  | cele kartice v oknu | 1 → 0 | 1 → 0 | 3 → 2 |
+
+  Kontrast imen 8,77 : 1, modre obrobe 6,44 : 1 na beli. D1 prihrani na telefonu 94 px (320 px) in 75 px (375 px)
+  glede na predlog brez D1 (563 in 544 px): prva kartica se začne v spodnji tretjini okna in je vidna, cela pa brez
+  drsenja ne.
+- Testi: hitri 837 (prej 828), vsi 1021 (prej 1012). Posnetek igre enak. `preveri-videz`, `preveri-primeri`,
+  `preveri-pomoc` – vse drži. `preveri-navigacija --izhodisce 9e07401` – razliki samo v oknu »Zbirka ugank« igre pri
+  375 in 1280 px (krajši namig, vsebnik filtrov), pričakovano po razdelku 6. `preveri-faza7` pada že na `9e07401`
+  enako (reševalec – Escape pri povečavi, paleta `--purple-dark`, značke; stara izhodišča scenarija) – ni del naloge.

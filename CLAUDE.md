@@ -82,7 +82,7 @@ Ena vrstica na datoteko aplikacije; podroben opis je v `docs/opis/`. Skripte in 
   - `vaje-uganka.js` – vaje »Vadi v uganki« brez DOM-a: `stanjaVUganki()`, `vajaIzStanja()`, `preveriVajo()`, `obmocjeKoraka()`, `izberiIzBanke()`, `preveriEnojcek()`, `namigEnojcka()`
   - `vaje-banka.js` – banka vaj `VAJE_BANKA` (ustvari jo orodje, ne ureja se ročno)
   - `zbirka.js` – zbirka ugank in njena shramba, izvoz/uvoz v Markdown, stanje uganke `zbirkaStanjeUganke()`, kartica `zbirkaKartica()`, `PRIMERI`, `TEZAVNOSTI`, polje Niz `zbirkaNizDanosti()`, brisanje, filtri in razvrščanje seznama (`zbirkaLastnostiZbirke()`, `zbirkaFiltriraj()`)
-  - `zbirka-ui.js`, `zbirka.css` – izris kartice uganke `zbirkaIzrisiKartico()`, značka težavnosti, vezava »Izvozi«/»Uvozi«, odziv na spremembo v drugem zavihku
+  - `zbirka-ui.js`, `zbirka.css` – izris kartice uganke `zbirkaIzrisiKartico()`, značka težavnosti, vezava »Izvozi«/»Uvozi«, odziv na spremembo v drugem zavihku, filtri nad seznamom `zbirkaUstvariFiltre()`
   - `mreza.js`, `mreza.css` – izris mreže `ustvariMrezo()` (kandidati, poudarek, oznake koraka, območje, zaznamki, delna mreža, robovi), `oznakeKoraka()`, seznami manjkajočih števk `ustvariSezname()`
   - `plosca.js`, `plosca.css` – igralna plošča `ustvariPlosco()`: izbira, nizi, poteze, poudarki, senčenje, zaznamki, stikalo kandidatov, tipkovnica `obTipki()`; barve poudarka iz nastavitev igre
   - `pomoc.js`, `pomoc.css` – okno Pomoč `ustvariPomoc()`, razdelek »Tehnike« `izrisiTehnike()`, stopnje; slogi oken `.dialog*` in shem

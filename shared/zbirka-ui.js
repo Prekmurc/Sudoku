@@ -4,7 +4,7 @@
    shared/zbirka.js (brez DOM-a), gumbe pa aplikacija: reševalec Odpri/Izbriši,
    igra Igraj/Nadaljuj/Poglej/Izbriši. Slogi so v shared/zbirka.css.
    Tu je tudi vezava gumbov »Izvozi«/»Uvozi« (zbirkaPoveziIzvozUvoz), poslušalec sprememb zbirke v drugem zavihku (zbirkaObSpremembiDrugje), značka
-   težavnosti (zbirkaZnacka) in naštevanje tehnik (zbirkaIzrisiTehnike).
+   težavnosti (zbirkaZnacka), naštevanje tehnik (zbirkaIzrisiTehnike) in filtri nad seznamom (zbirkaUstvariFiltre).
    Naloži se za shared/zbirka.js. */
 
 // Zbirko (sudoku.zbirka.v1) in shranjene igre (sudoku.igra.v1) si delita reševalec
@@ -56,6 +56,111 @@ function zbirkaPoveziIzvozUvoz({ izvozi, uvozi, datoteka, status, poUvozu }) {
       if (uvoz.spremenjeno) poUvozu();
     }).catch(e => status('Datoteke ni bilo mogoče prebrati: ' + e.message, true));
   });
+}
+
+// Filtri in razvrščanje nad seznamom zbirke (naloga 10; logika v shared/zbirka.js): v `vsebnik` izriše štiri
+// okenca v mreži dva po dva (Težavnost · Stanje / Tehnika · Razvrsti; vsako v svojem <label> z imenom nad
+// okencem) in vrstico »Prikazanih N od M« s »Počisti filtre« (samo pri vklopljenem filtru). Sprememba okenca
+// zapiše izbiro (sudoku.zbirka.filtri) in pokliče `obSpremembi()` - aplikacija znova izriše seznam z uporabi().
+// Vrne { odpri, uporabi, pripis }:
+//   - odpri(): ob odprtju okna prebere izbiro iz shrambe; naslednji uporabi() izprazni vrednosti, ki jih v zbirki
+//     ni (tudi v shrambi). Med odprtim oknom izbrana vrednost ostane, tudi če izgine (»(0)«, O7);
+//   - uporabi(zbirka, igre): lastnosti ugank (zbirkaLastnostiUganke - s povzetkom igre za kartico), ki ustrezajo
+//     izbiri, v izbranem vrstnem redu; osveži možnosti s števili, razred `vklopljen`, vrstico in gumb; pri prazni
+//     zbirki skrije vsebnik;
+//   - pripis(besedilo): dopis v vrstici za » · « (igra: skriti predlogi ocene, O8); '' ga pobriše.
+// Vrednost možnosti: '' = filter izklopljen, sicer '=' + vrednost (prazna težavnost »Ni določena« je '=').
+function zbirkaUstvariFiltre(vsebnik, { obSpremembi }) {
+  const OKENCA = [['tezavnost', 'Težavnost'], ['stanje', 'Stanje'], ['tehnika', 'Tehnika'], ['razvrsti', 'Razvrsti']];
+  let izbira = zbirkaFiltriBeri();
+  let obOdprtju = false;
+  let pripisBesedilo = '';
+  let napis = '';
+
+  const spremeni = (nova) => {
+    izbira = nova;
+    zbirkaFiltriPisi(izbira);
+    obSpremembi();
+  };
+
+  const mreza = document.createElement('div');
+  mreza.className = 'zb-filtri-mreza';
+  const okenca = {};
+  for (const [polje, ime] of OKENCA) {
+    const oznaka = document.createElement('label');
+    oznaka.className = 'zb-filter';
+    const imeEl = document.createElement('span');
+    imeEl.textContent = ime;
+    const sel = document.createElement('select');
+    sel.dataset.filter = polje;
+    sel.addEventListener('change', () => {
+      const v = polje === 'razvrsti' ? sel.value : (sel.value === '' ? null : sel.value.slice(1));
+      spremeni({ ...izbira, [polje]: v });
+    });
+    oznaka.append(imeEl, sel);
+    mreza.appendChild(oznaka);
+    okenca[polje] = sel;
+  }
+
+  const vrstica = document.createElement('div');
+  vrstica.className = 'zb-prikazanih';
+  const prikazanih = document.createElement('span');
+  const pocisti = document.createElement('button');
+  pocisti.type = 'button';
+  pocisti.className = 'majhen';
+  pocisti.textContent = 'Počisti filtre';
+  pocisti.hidden = true;
+  // Izklopi vse tri filtre; Razvrsti ni filter, zato ostane.
+  pocisti.addEventListener('click', () => spremeni({ ...ZBIRKA_BREZ_FILTROV, razvrsti: izbira.razvrsti }));
+  vrstica.append(prikazanih, pocisti);
+  vsebnik.append(mreza, vrstica);
+
+  const izpisi = () => { prikazanih.textContent = napis + (pripisBesedilo ? ` · ${pripisBesedilo}` : ''); };
+
+  const izpolni = (sel, moznosti, vrednost) => {
+    sel.innerHTML = '';
+    for (const m of moznosti) {
+      const o = document.createElement('option');
+      o.value = m.vrednost;
+      o.textContent = m.napis;
+      sel.appendChild(o);
+    }
+    sel.value = vrednost;
+  };
+
+  return {
+    odpri() {
+      izbira = zbirkaFiltriBeri();
+      obOdprtju = true;
+    },
+    uporabi(zbirka, igre) {
+      const lastnosti = zbirkaLastnostiZbirke(zbirka, igre);
+      if (obOdprtju) {
+        obOdprtju = false;
+        const veljavna = zbirkaFiltriVeljavni(izbira, lastnosti);
+        if (JSON.stringify(veljavna) !== JSON.stringify(izbira)) zbirkaFiltriPisi(veljavna);
+        izbira = veljavna;
+      }
+      vsebnik.hidden = !zbirka.length;
+      const moznosti = zbirkaMoznostiFiltrov(lastnosti, izbira);
+      for (const p of ZBIRKA_FILTRI) {
+        const izbrana = izbira[p];
+        izpolni(okenca[p], [{ vrednost: '', napis: '' }, ...moznosti[p].map(m => ({ vrednost: '=' + m.vrednost, napis: m.napis }))],
+          izbrana === null || izbrana === undefined ? '' : '=' + izbrana);
+        okenca[p].classList.toggle('vklopljen', izbrana !== null && izbrana !== undefined);
+      }
+      izpolni(okenca.razvrsti, ZBIRKA_RAZVRSTI.map(r => ({ vrednost: r.kljuc, napis: r.ime })), izbira.razvrsti);
+      const prikazane = zbirkaFiltriraj(lastnosti, izbira);
+      napis = zbirkaNapisPrikazanih(prikazane.length, lastnosti.length);
+      izpisi();
+      pocisti.hidden = !zbirkaImaFilter(izbira);
+      return prikazane;
+    },
+    pripis(besedilo) {
+      pripisBesedilo = besedilo;
+      izpisi();
+    },
+  };
 }
 
 // Stanje kot obarvani del vrstice: "v teku (12/57)", po potrebi še " · napaka".

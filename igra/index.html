@@ -6,12 +6,12 @@
 <title>Sudoku igra</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../shared/base.css?v=2026-10-12.1845">
-<link rel="stylesheet" href="../shared/zbirka.css?v=2026-10-12.1845">
-<link rel="stylesheet" href="../shared/mreza.css?v=2026-10-12.1845">
-<link rel="stylesheet" href="../shared/plosca.css?v=2026-10-12.1845">
-<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-12.1845">
-<link rel="stylesheet" href="igra.css?v=2026-10-12.1845">
+<link rel="stylesheet" href="../shared/base.css?v=2026-10-12.1941">
+<link rel="stylesheet" href="../shared/zbirka.css?v=2026-10-12.1941">
+<link rel="stylesheet" href="../shared/mreza.css?v=2026-10-12.1941">
+<link rel="stylesheet" href="../shared/plosca.css?v=2026-10-12.1941">
+<link rel="stylesheet" href="../shared/pomoc.css?v=2026-10-12.1941">
+<link rel="stylesheet" href="igra.css?v=2026-10-12.1941">
 </head>
 <body>
 
@@ -119,7 +119,7 @@
       <button type="button" class="dialog-zapri" data-zapri aria-label="Zapri">✕</button>
     </div>
     <h3 id="mojeNaslov" class="zbirka-razdelek">Moje uganke</h3>
-    <p class="namig">Zbirka je ista kot v reševalcu. Izvoz zapiše vse uganke v datoteko Markdown, uvoz jih doda obstoječim – pri isti uganki ohrani obstoječi zapis in dopolni le manjkajoče podatke. Tako zbirko preneseš na drugo napravo. Brisanje odstrani uganko skupaj s shranjenim napredkom; pred <b>Izbriši vse</b> zbirko izvozi.</p>
+    <p class="namig">Zbirka je ista kot v reševalcu. Z <b>Izvozi</b> in <b>Uvozi</b> jo preneseš na drugo napravo; pred <b>Izbriši vse</b> jo izvozi. Več v Pomoči.</p>
     <div class="dialog-gumbi zbirka-gumbi">
       <button type="button" id="zbirkaIzvoziBtn">Izvozi</button>
       <button type="button" id="zbirkaUvoziBtn">Uvozi</button>
@@ -133,6 +133,7 @@
       <button type="button" class="primary" id="oceniZapisiBtn">Zapiši ocene</button>
       <button type="button" id="oceniPreklicBtn">Prekliči</button>
     </div>
+    <div id="zbirkaFiltri" class="zbirka-filtri" hidden></div>
     <ul id="zbirkaSeznam" class="zbirka-seznam"></ul>
     <details id="primeriRazdelek" class="primeri-razdelek">
       <summary class="zbirka-razdelek"><h3 id="primeriNaslov">Vgrajeni primeri</h3></summary>
@@ -200,6 +201,9 @@
     <p>Ko uganko začneš, sta v drugi vrstici tvoje <b>zadnje reševanje</b> in <b>stanje</b>: <b>v teku (12/57)</b> (12 tvojih vpisov od 57 praznih celic) ali <b>rešena</b>. Uganka, ki je še nisi igral, te vrstice nima. Kadar so izpolnjene vse prazne celice, a se vsaj ena števka ne ujema z rešitvijo, piše <b>v teku (57/57) · napaka</b> – napako poišči z gumbom <b>Preveri</b>. Uganka, ki si jo samo odprl in v njej še nisi naredil poteze, je še vedno brez stanja (gumb <b>Igraj</b>); že izbrisan kandidat pa je poteza, zato je taka uganka <b>v teku (0/57)</b>. Pri rešeni uganki je v drugi vrstici <b>rešena 21. 9. 2026 ob 17:48</b> – zapis se takrat zamrzne, zato ostane čas prve rešitve. Če jo po <b>Začni znova</b> rešuješ še enkrat, piše <b>rešena 21. 9. 2026 ob 17:48 · znova v teku (12/57)</b>. Vgrajeni primeri kažejo ista stanja, a brez časa. Kdaj je uganko ocenil program in kako daleč je prišel (<b>Ocenjeno</b>, <b>Program rešil</b>), pokaže namig miške nad vrstico; oboje je tudi v izvozu.</p>
     <p>Pri vsaki uganki so naštete tehnike, npr. <b>Tehnike: E1, E2, 1 Izločitev izven bloka, 3 Očitni par in 7 X-krilo</b> – enako v seznamu, v kartici <b>Uganka</b> in pri vgrajenih primerih. Številke so tehnike iz razdelka <b>Tehnike</b> spodaj (iste kot v treningu), E1 in E2 sta enojčka. To so tehnike, ki jih reševalec pri tej uganki potrebuje; pri težki uganki tehnike poti z eno samo napredno tehniko (prvo po vrstnem redu, ki zadošča). <b>in ugibanje</b> na koncu pomeni, da se reševalec ni prebil samo s tehnikami in je moral ugibati (poskus s protislovjem). Pri vgrajenem primeru je glavna tehnika krepko. Pri uganki brez teh podatkov piše »Tehnike: ni podatkov«.</p>
 
+    <h4 class="navodila-podnaslov">Filtri in razvrščanje</h4>
+    <p>Nad seznamom <b>Moje uganke</b> so okenca <b>Težavnost</b>, <b>Stanje</b>, <b>Tehnika</b> in <b>Razvrsti</b>. Prazno okence pomeni, da filter ni vklopljen; ob vsaki možnosti je število ugank, ki jih dobiš, če jo izbereš. Filtri se seštevajo – ostanejo uganke, ki ustrezajo vsem izbranim. <b>Tehnika</b> ponudi samo tehnike, ki so v tvoji zbirki, brez E1 in E2 (ima ju vsaka uganka). <b>Razvrsti</b> uredi seznam: <b>Nazadnje</b> (zadnja reševana ali dodana na vrhu), <b>Težavnost</b> (od lahke), <b>Število danih</b> (od najmanj) ali <b>Datum dodajanja</b> (najnovejša na vrhu). Vrstica nad seznamom pove, koliko ugank je prikazanih, <b>Počisti filtre</b> izklopi vse tri filtre. Izbiro si brskalnik zapomni – v igri in reševalcu enako.</p>
+
     <h4 class="navodila-podnaslov">Nova uganka</h4>
     <p>V oknu <b>Nova uganka</b> ti uganko lahko <b>ustvari</b> program: izbereš stopnjo (<b>lahka</b>, <b>srednja</b>, <b>težka</b>, <b>zelo težka</b>, <b>ekstrem</b>) in počakaš – navadno gre za sekundo ali dve. Stopnjo določa najtežja raven tehnik, brez katere uganke ni mogoče rešiti; šteje se, koliko <i>različnih</i> tehnik potrebuje, ne kolikokrat:</p>
     <ul id="stopnjeOcena" class="navodila-stopnje"></ul>
@@ -254,17 +258,17 @@
 
 <footer class="note">Vse teče v tem brskalniku (nič se ne pošilja nikamor). Igra se shrani samodejno po vsaki potezi, skupaj z zgodovino potez.</footer>
 
-<script src="../shared/engine.js?v=2026-10-12.1845"></script>
-<script src="../shared/stanje.js?v=2026-10-12.1845"></script>
-<script src="../shared/mreza.js?v=2026-10-12.1845"></script>
-<script src="../shared/plosca.js?v=2026-10-12.1845"></script>
-<script src="../shared/zbirka.js?v=2026-10-12.1845"></script>
-<script src="../shared/zbirka-ui.js?v=2026-10-12.1845"></script>
-<script src="../shared/generator.js?v=2026-10-12.1845"></script>
-<script src="../shared/pomoc.js?v=2026-10-12.1845"></script>
-<script src="../shared/sheme.js?v=2026-10-12.1845"></script>
-<script src="../shared/navigacija.js?v=2026-10-12.1845"></script>
-<script src="shramba.js?v=2026-10-12.1845"></script>
-<script src="igra.js?v=2026-10-12.1845"></script>
+<script src="../shared/engine.js?v=2026-10-12.1941"></script>
+<script src="../shared/stanje.js?v=2026-10-12.1941"></script>
+<script src="../shared/mreza.js?v=2026-10-12.1941"></script>
+<script src="../shared/plosca.js?v=2026-10-12.1941"></script>
+<script src="../shared/zbirka.js?v=2026-10-12.1941"></script>
+<script src="../shared/zbirka-ui.js?v=2026-10-12.1941"></script>
+<script src="../shared/generator.js?v=2026-10-12.1941"></script>
+<script src="../shared/pomoc.js?v=2026-10-12.1941"></script>
+<script src="../shared/sheme.js?v=2026-10-12.1941"></script>
+<script src="../shared/navigacija.js?v=2026-10-12.1941"></script>
+<script src="shramba.js?v=2026-10-12.1941"></script>
+<script src="igra.js?v=2026-10-12.1941"></script>
 </body>
 </html>
