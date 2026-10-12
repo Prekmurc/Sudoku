@@ -1,6 +1,6 @@
 /* ==================== ZBIRKA UGANK (UI reševalca) ====================
    Samodejno shranjevanje ugank ob reševanju (vgrajeni primeri se ne shranijo),
-   seznam shranjenih ugank ("Odpri"/"Izbriši") ter gumbi za izvoz/uvoz in
+   seznam shranjenih ugank ("Odpri"/"Izbriši") s filtri in razvrščanjem ter gumbi za izvoz/uvoz in
    "Izbriši vse". Hramba, brisanje in pretvorba v/iz
    Markdowna sta v shared/zbirka.js, kartica uganke v seznamu v
    shared/zbirka-ui.js (enaka kot v igri). */
@@ -92,6 +92,19 @@ function zbirkaStatus(besedilo, napaka) {
   libStatusEl.className = 'lib-status' + (napaka ? ' err' : '');
 }
 
+// Filtri in razvrščanje nad seznamom (naloga 10; shared/zbirka-ui.js, enako kot v igri). Sprememba okenca
+// znova izriše seznam.
+const zbirkaFiltri = zbirkaUstvariFiltre(document.getElementById('libFiltri'), {
+  obSpremembi: () => zbirkaIzrisiSeznam(),
+});
+
+function zbirkaSporociloSeznama(besedilo) {
+  const li = document.createElement('li');
+  li.className = 'prazno';
+  li.textContent = besedilo;
+  libListEl.appendChild(li);
+}
+
 function zbirkaIzrisiSeznam() {
   const zbirka = zbirkaBeri();
   // Stanje uganke (nova / v teku / rešena) je iz shranjene igre, kadar jo igra ima,
@@ -99,18 +112,18 @@ function zbirkaIzrisiSeznam() {
   const igre = igreBeri().igre;
 
   libListEl.innerHTML = '';
+  // Uganke, ki ustrezajo filtrom, v izbranem vrstnem redu; povzetek shranjene igre je izračunal že filter (O11).
+  const prikazane = zbirkaFiltri.uporabi(zbirka, igre);
   if (!zbirka.length) {
-    const li = document.createElement('li');
-    li.className = 'prazno';
-    li.textContent = 'Zbirka je prazna. Uganka se shrani samodejno ob reševanju, če ima natanko eno rešitev.';
-    libListEl.appendChild(li);
+    zbirkaSporociloSeznama('Zbirka je prazna. Uganka se shrani samodejno ob reševanju, če ima natanko eno rešitev.');
     return;
   }
+  if (!prikazane.length) zbirkaSporociloSeznama('Nobena uganka ne ustreza izbranim filtrom.');
 
   // Trenutna je uganka, ki je v vnosni mreži (npr. pravkar odprta iz zbirke).
   const trenutne = currentGivens();
-  for (const z of zbirkaZaSeznam(zbirka)) {
-    const k = zbirkaKartica(z.danosti, z, zbirkaPovzetekZapisa(z.danosti, igre[z.danosti]));
+  for (const { z, povzetek } of prikazane) {
+    const k = zbirkaKartica(z.danosti, z, povzetek);
     const tezavnost = z.tezavnost || 'težavnost ni določena';
     const dodana = zbirkaPrikazDatuma(z.dodano); // za sporočilo ob odpiranju in brisanju
     libListEl.appendChild(zbirkaIzrisiKartico(k, {
@@ -135,6 +148,7 @@ function zbirkaIzrisiSeznam() {
 
 function zbirkaOdpri() {
   zbirkaStatus('');
+  zbirkaFiltri.odpri(); // izbira iz shrambe; vrednosti, ki jih v zbirki ni več, se izpraznijo
   zbirkaIzrisiSeznam();
   libraryEl.classList.add('odprt');
 }

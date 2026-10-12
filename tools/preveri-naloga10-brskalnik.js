@@ -6,26 +6,29 @@
 // zapisi iz zbirkaShraniResitev(), v teku je vsaka tretja, rešena vsaka peta (podatki v zapisu, brez shranjene igre).
 // Sestavi jo scenarij v Node in jo vpiše v localStorage strani.
 //
-// Korak 2 – igra, okno »Zbirka ugank«, pri 320, 375 (posnemanje telefona, pravi dotik) in 1280 px (miška):
+// Korak 2 – igra, korak 3 – reševalec; okno »Zbirka ugank« pri 320, 375 (posnemanje telefona, pravi dotik) in
+// 1280 px (miška), v obeh aplikacijah enako:
 //   - okenca v mreži dva po dva (Težavnost · Stanje / Tehnika · Razvrsti), enako široka, ime nad okencem, vsako v
 //     svojem <label>; vsebnik med vrstico sporočil in prvo kartico; brez preliva strani, okna in plošče; pisava
 //     Inter 14 px, odmik 6 px, text-overflow: ellipsis; kontrast imen na podlagi okna vsaj 4,5 : 1; vrstica
 //     »Prikazanih 32 od 32« vsaj 32 px, brez »Počisti filtre«;
-//   - pravi dotik/klik okenca Težavnost, dvakrat puščica dol in Enter → change: seznam se osveži brez gumba (kartice in
-//     vrstni red enaki logiki zbirkaFiltriraj() v strani), modra obroba 2 px (kontrast na beli vsaj 3 : 1), okence
-//     ostane enako veliko, »Počisti filtre« viden v plošči, izbira v shrambi; tipkovnica (fokus, puščica dol) v
-//     okencih Tehnika in Razvrsti → change, seznam in vrstni red po logiki; višina vsebnika se ne spremeni;
+//   - pravi dotik/klik okenca Težavnost, dvakrat puščica dol in Enter → change: seznam se osveži brez gumba (naslovi
+//     kartic in vrstni red enaki logiki zbirkaFiltriraj() v strani), modra obroba 2 px (kontrast na beli vsaj 3 : 1),
+//     okence ostane enako veliko, »Počisti filtre« viden v plošči, izbira v shrambi; tipkovnica (fokus, puščica dol)
+//     v okencih Tehnika in Razvrsti → change, seznam in vrstni red po logiki; višina vsebnika se ne spremeni;
 //   - Escape s fokusom v okencu zapre okno; ponovno odprtje okna in ponovno odprta stran – ista izbira in seznam;
+//     pri reševalcu še druga aplikacija (igra) z isto shrambo – ista izbira in seznam (skupen ključ);
 //   - »Počisti filtre« s pravim dotikom/klikom: filtri izklopljeni, Razvrsti ostane, gumb skrit;
 //   - prazen izid (»Nobena uganka ne ustreza izbranim filtrom.«);
-//   - vrh prve kartice in število celih kartic v oknu: izhodišče (--izhodisce, privzeto 9e07401 – pred korakom 2)
-//     → zdaj; posnetki filtri-<širina>-brez.png, filtri-<širina>-izbrani.png, filtri-<širina>-prazno.png;
+//   - vrh prve kartice in število celih kartic v oknu: izhodišče (--izhodisce; privzeto pri koraku 2 9e07401, pri
+//     koraku 3 5d98bef – commit pred korakom) → zdaj; posnetki <ime>-<širina>-brez.png, -izbrani.png, -prazno.png
+//     (ime filtri pri igri, filtri-resevalec pri reševalcu);
 //   - brez napak JS (tudi v izhodišču).
-// --korak N požene korake do N (privzeto 2), --samo N samo korak N.
+// --korak N požene korake do N (privzeto 3), --samo N samo korak N.
 //
 //   node tools/preveri-naloga10-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>]
 //
-// Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome); pribl. 1 min.
+// Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome); pribl. 1 min na korak.
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -39,10 +42,15 @@ const KOREN = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga10'));
-const korak = Number(arg('--korak', '2'));
-const izhodisce = arg('--izhodisce', '9e07401');
+const korak = Number(arg('--korak', '3'));
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
+
+// Aplikaciji: stran, gumb »Zbirka«, okno in njegovi deli, izhodišče (commit pred korakom), ime posnetkov.
+const IGRA = { ime: 'igra', korak: 2, stran: 'igra/index.html', gumb: '#zbirkaBtn', okno: 'zbirkaDialog', filtri: 'zbirkaFiltri',
+  seznam: 'zbirkaSeznam', status: 'zbirkaStatus', izhodisce: arg('--izhodisce', '9e07401'), posnetek: 'filtri' };
+const RESEVALEC = { ime: 'reševalec', korak: 3, stran: 'app/index.html', gumb: '#libraryBtn', okno: 'library', filtri: 'libFiltri',
+  seznam: 'libList', status: 'libStatus', izhodisce: arg('--izhodisce', '5d98bef'), posnetek: 'filtri-resevalec' };
 
 let napak = 0;
 function preveri(ime, pogoj, podrobno = '') {
@@ -96,12 +104,12 @@ function testnaZbirka() {
 // ---------- meritve v strani ----------
 const KONTRAST = `const lum = c => { const [r, g, b] = c.match(/[\\d.]+/g).slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
   const kontrast = (a, b) => { const x = lum(a), y = lum(b); return Math.round((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) * 100) / 100; };`;
-const MERI = `(() => {
+const meri = A => `(() => {
   ${KONTRAST}
   const r = e => { if (!e || e.hidden) return null; const q = e.getBoundingClientRect(); return { levo: q.left, desno: q.right, vrh: q.top, dno: q.bottom, sirina: q.width, visina: q.height }; };
-  const panel = document.querySelector('#zbirkaDialog .dialog-panel'), dialog = document.getElementById('zbirkaDialog');
-  const filtri = document.getElementById('zbirkaFiltri');
-  const kartice = [...document.querySelectorAll('#zbirkaSeznam > li')];
+  const dialog = document.getElementById(${J(A.okno)}), panel = dialog.querySelector('.dialog-panel');
+  const filtri = document.getElementById(${J(A.filtri)});
+  const kartice = [...document.querySelectorAll('#${A.seznam} > li')];
   const prva = kartice[0];
   const oznake = filtri ? [...filtri.querySelectorAll('label.zb-filter')] : [];
   const sel = oznake.length ? oznake[0].querySelector('select') : null;
@@ -114,7 +122,7 @@ const MERI = `(() => {
       vLabel: l.querySelector('select').parentElement === l, filter: l.querySelector('select').dataset.filter })),
     vrstica: filtri ? r(filtri.querySelector('.zb-prikazanih')) : null, napis: filtri ? filtri.querySelector('.zb-prikazanih span').textContent : null,
     pocisti: pocisti && !pocisti.hidden ? r(pocisti) : null,
-    status: r(document.getElementById('zbirkaStatus')), ocenaGumbi: r(document.getElementById('ocenaGumbi')),
+    status: r(document.getElementById(${J(A.status)})),
     prva: r(prva), prvaPrazno: prva ? prva.className === 'prazno' : null, prvaBesedilo: prva ? prva.textContent : null,
     kartic: kartice.length, celih: kartice.filter(li => { const q = li.getBoundingClientRect(); return q.top >= 0 && q.bottom <= innerHeight; }).length,
     okno: [innerWidth, innerHeight], panel: r(panel),
@@ -124,54 +132,54 @@ const MERI = `(() => {
     preliv: document.documentElement.scrollWidth > document.documentElement.clientWidth || dialog.scrollWidth > dialog.clientWidth || panel.scrollWidth > panel.clientWidth,
   };
 })()`;
-// Okenca: vrednost, razred, obroba (izračunana), velikost; logika strani za primerjavo seznama.
-const OKENCA = `(() => {
+// Okenca: vrednost, razred, obroba (izračunana), velikost.
+const okenca = A => `(() => {
   ${KONTRAST}
   const v = document.createElement('i'); v.style.color = 'var(--blue)'; document.body.appendChild(v); const modra = getComputedStyle(v).color; v.remove();
-  return [...document.querySelectorAll('#zbirkaFiltri select')].map(s => { const c = getComputedStyle(s), q = s.getBoundingClientRect();
+  return [...document.querySelectorAll('#${A.filtri} select')].map(s => { const c = getComputedStyle(s), q = s.getBoundingClientRect();
     return { filter: s.dataset.filter, vrednost: s.value, napis: s.selectedOptions[0] ? s.selectedOptions[0].textContent : null, vklopljen: s.classList.contains('vklopljen'),
       obroba: c.borderTopWidth, barva: c.borderTopColor, modra, kontrast: kontrast(c.borderTopColor, 'rgb(255, 255, 255)'), sirina: q.width, visina: q.height }; });
 })()`;
-const SEZNAM = `(() => {
+// Seznam: naslovi kartic (različni datumi dodajanja) v vrstnem redu izrisa in po logiki strani.
+const seznam = A => `(() => {
   const izbira = zbirkaFiltriBeri(), lastnosti = zbirkaLastnostiZbirke(zbirkaBeri(), igreBeri().igre), pricakovane = zbirkaFiltriraj(lastnosti, izbira);
-  const li = [...document.querySelectorAll('#zbirkaSeznam > li')];
-  return { izbira, vSeznamu: [...zbirkaVrstice.keys()], pricakovano: pricakovane.map(l => l.z.danosti),
-    enakDom: [...zbirkaVrstice.values()].every((x, i) => x === li[i]), napis: document.querySelector('.zb-prikazanih span').textContent,
-    pricakovanNapis: zbirkaNapisPrikazanih(pricakovane.length, lastnosti.length) };
+  const li = [...document.querySelectorAll('#${A.seznam} > li')].filter(x => x.className !== 'prazno');
+  return { izbira, vSeznamu: li.map(x => x.firstChild.textContent), pricakovano: pricakovane.map(l => zbirkaKartica(l.z.danosti, l.z, l.povzetek).naslov),
+    napis: document.querySelector('#${A.filtri} .zb-prikazanih span').textContent, pricakovanNapis: zbirkaNapisPrikazanih(pricakovane.length, lastnosti.length) };
 })()`;
 
-async function odpriIgro(b, sirina, zbirka) {
-  const dotik = sirina < 500;
-  const okno = { sirina, visina: { 320: 640, 375: 667 }[sirina] || 800, mobilno: dotik };
-  await b.odpri('igra/index.html', okno);
+const oknoZa = (sirina) => ({ sirina, visina: { 320: 640, 375: 667 }[sirina] || 800, mobilno: sirina < 500 });
+async function odpriStran(b, A, sirina, zbirka) {
+  const okno = oknoZa(sirina);
+  await b.odpri(A.stran, okno);
   await b.izvedi(`(localStorage.clear(), localStorage.setItem('sudoku.zbirka.v1', ${J(zbirka)}), true)`);
-  await b.odpri('igra/index.html', okno);
+  await b.odpri(A.stran, okno);
   await b.cakaj('document.fonts.status === "loaded"', 15000);
-  return okno;
 }
-async function odpriZbirko(b, dotik) {
-  await pritisni(b, '#zbirkaBtn', dotik);
+async function odpriZbirko(b, A, dotik) {
+  await pritisni(b, A.gumb, dotik);
   await pocakaj(b, 300);
   await b.izvedi('document.fonts.ready.then(() => true)');
-  await b.izvedi('(document.getElementById("zbirkaDialog").scrollTop = 0, true)');
+  await b.izvedi(`(document.getElementById(${J(A.okno)}).scrollTop = 0, true)`);
 }
 
-// ---------- Korak 2 – igra ----------
-const meritve2 = [];
-const izhodiscne = {};
+// ---------- izhodišče: vrh prve kartice pred korakom ----------
+const meritve = { 2: [], 3: [] };
+const izhodiscne = { 2: {}, 3: {} };
 
-async function izhodisceIgre(zbirka) {
+async function izhodisce(A, zbirka) {
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
-  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce], { cwd: KOREN });
+  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), A.izhodisce], { cwd: KOREN });
   execFileSync('tar', ['-xf', 'izhodisce.tar'], { cwd: star }); // relativno ime: GNU tar bi "C:" bral kot strežnik
   const bStar = await zazeni({ koren: star });
   try {
-    console.log(`\nKorak 2 – izhodišče ${izhodisce}: vrh prve kartice v oknu zbirke igre`);
+    console.log(`\nKorak ${A.korak} – izhodišče ${A.izhodisce}: vrh prve kartice v oknu zbirke (${A.ime})`);
     for (const s of [320, 375, 1280]) {
-      await odpriIgro(bStar, s, zbirka);
-      await odpriZbirko(bStar, s < 500);
-      izhodiscne[s] = await bStar.izvedi(MERI);
-      preveri(`izhodišče ${s} px: 32 kartic, brez filtrov`, izhodiscne[s].kartic === 32 && !izhodiscne[s].filtri, { kartic: izhodiscne[s].kartic });
+      await odpriStran(bStar, A, s, zbirka);
+      await odpriZbirko(bStar, A, s < 500);
+      const m = await bStar.izvedi(meri(A));
+      izhodiscne[A.korak][s] = m;
+      preveri(`izhodišče ${s} px: 32 kartic`, m.kartic === 32, { kartic: m.kartic });
     }
     preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);
   } finally {
@@ -180,12 +188,13 @@ async function izhodisceIgre(zbirka) {
   }
 }
 
-async function korak2(b, sirina, zbirka) {
+// ---------- korak 2 (igra) in 3 (reševalec) ----------
+async function korakFiltri(b, A, sirina, zbirka) {
   const dotik = sirina < 500;
-  console.log(`\nKorak 2 – igra, okno »Zbirka ugank«, ${sirina} px (${dotik ? 'dotik' : 'miška'})`);
-  await odpriIgro(b, sirina, zbirka);
-  await odpriZbirko(b, dotik);
-  const m = await b.izvedi(MERI);
+  console.log(`\nKorak ${A.korak} – ${A.ime}, okno »Zbirka ugank«, ${sirina} px (${dotik ? 'dotik' : 'miška'})`);
+  await odpriStran(b, A, sirina, zbirka);
+  await odpriZbirko(b, A, dotik);
+  const m = await b.izvedi(meri(A));
   const o = m.oznake;
   preveri('štiri okenca v oznakah: Težavnost, Stanje, Tehnika, Razvrsti',
     J(o.map(x => [x.ime, x.filter, x.vLabel])) === J([['Težavnost', 'tezavnost', true], ['Stanje', 'stanje', true], ['Tehnika', 'tehnika', true], ['Razvrsti', 'razvrsti', true]]), o.map(x => x.ime));
@@ -201,67 +210,84 @@ async function korak2(b, sirina, zbirka) {
   preveri(`kontrast imen okenc na podlagi okna ${m.kontrastImen} : 1 (vsaj 4,5)`, m.kontrastImen >= 4.5, m.kontrastImen);
   preveri(`vrstica »${m.napis}« (${m.vrstica && Math.round(m.vrstica.visina)} px, vsaj 32), brez »Počisti filtre«`,
     m.napis === 'Prikazanih 32 od 32' && m.vrstica.visina >= 31.5 && !m.pocisti && m.kartic === 32, m);
-  await b.posnetek(path.join(mapa, `filtri-${sirina}-brez.png`), { vsaStran: false });
+  let sez = await b.izvedi(seznam(A));
+  preveri('seznam brez filtrov: 32 kartic v vrstnem redu »Nazadnje« po logiki', J(sez.vSeznamu) === J(sez.pricakovano) && sez.vSeznamu.length === 32, sez);
+  await b.posnetek(path.join(mapa, `${A.posnetek}-${sirina}-brez.png`), { vsaStran: false });
 
   // Pravi dotik/klik okenca Težavnost, dvakrat puščica dol in Enter → change; seznam se osveži brez gumba.
-  await pritisni(b, '#zbirkaFiltri select[data-filter="tezavnost"]', dotik);
+  await pritisni(b, `#${A.filtri} select[data-filter="tezavnost"]`, dotik);
   await pocakaj(b, 200);
   await b.tipka('ArrowDown');
   await b.tipka('ArrowDown');
   await b.tipka('Enter');
   await pocakaj(b, 200);
-  let ok = await b.izvedi(OKENCA), sez = await b.izvedi(SEZNAM);
+  let ok = await b.izvedi(okenca(A));
+  sez = await b.izvedi(seznam(A));
   const tez = ok[0];
   preveri(`${dotik ? 'dotik' : 'klik'} okenca Težavnost, dvakrat puščica dol, Enter → »${tez.napis}«; seznam (${sez.vSeznamu.length}) in vrstica »${sez.napis}« po logiki`,
-    tez.vrednost !== '' && J(sez.vSeznamu) === J(sez.pricakovano) && sez.enakDom && sez.napis === sez.pricakovanNapis && sez.vSeznamu.length < 32
+    tez.vrednost !== '' && J(sez.vSeznamu) === J(sez.pricakovano) && sez.napis === sez.pricakovanNapis && sez.vSeznamu.length < 32
       && sez.izbira.tezavnost === tez.vrednost.slice(1), { tez, sez });
   preveri(`vklopljeno okence: modra obroba ${tez.obroba} (${tez.barva}, kontrast na beli ${tez.kontrast} : 1, vsaj 3), velikost enaka (${Math.round(tez.sirina)} × ${Math.round(tez.visina)} px)`,
     tez.vklopljen && tez.obroba === '2px' && tez.barva === tez.modra && tez.kontrast >= 3 && !ok[1].vklopljen && ok[1].obroba === '1px'
       && Math.abs(tez.sirina - ok[1].sirina) < 0.5 && Math.abs(tez.visina - ok[1].visina) < 0.5, ok);
-  let m2 = await b.izvedi(MERI);
+  let m2 = await b.izvedi(meri(A));
   preveri('»Počisti filtre« viden v vrstici, v plošči; višina vsebnika enaka',
     m2.pocisti && m2.pocisti.desno <= m2.panel.desno && m2.pocisti.vrh >= m2.vrstica.vrh - 0.5 && m2.pocisti.dno <= m2.vrstica.dno + 0.5
       && Math.abs(m2.filtri.visina - m.filtri.visina) < 0.5 && !m2.preliv, { pocisti: m2.pocisti, vrstica: m2.vrstica, filtri: [m.filtri.visina, m2.filtri.visina] });
 
   // Tipkovnica: fokus in puščica dol v okencih Tehnika in Razvrsti (dvakrat – »Število danih«).
-  await b.fokus('#zbirkaFiltri select[data-filter="tehnika"]');
+  await b.fokus(`#${A.filtri} select[data-filter="tehnika"]`);
   await b.tipka('ArrowDown');
   await pocakaj(b, 150);
-  await b.fokus('#zbirkaFiltri select[data-filter="razvrsti"]');
+  await b.fokus(`#${A.filtri} select[data-filter="razvrsti"]`);
   await b.tipka('ArrowDown');
   await b.tipka('ArrowDown');
   await pocakaj(b, 150);
-  ok = await b.izvedi(OKENCA);
-  sez = await b.izvedi(SEZNAM);
+  ok = await b.izvedi(okenca(A));
+  sez = await b.izvedi(seznam(A));
   preveri(`tipkovnica: Tehnika »${ok[2].napis}«, Razvrsti »${ok[3].napis}«; seznam (${sez.vSeznamu.length}) in vrstni red po logiki, vrstica »${sez.napis}«`,
     ok[2].vrednost !== '' && ok[2].vklopljen && ok[3].vrednost === 'danih' && !ok[3].vklopljen && sez.izbira.tehnika === ok[2].vrednost.slice(1) && sez.izbira.razvrsti === 'danih'
-      && J(sez.vSeznamu) === J(sez.pricakovano) && sez.vSeznamu.length > 1 && sez.enakDom && sez.napis === sez.pricakovanNapis, { ok, sez });
-  await b.izvedi('(document.getElementById("zbirkaDialog").scrollTop = 0, true)');
-  await b.posnetek(path.join(mapa, `filtri-${sirina}-izbrani.png`), { vsaStran: false });
+      && J(sez.vSeznamu) === J(sez.pricakovano) && sez.vSeznamu.length > 1 && sez.napis === sez.pricakovanNapis, { ok, sez });
+  await b.izvedi(`(document.getElementById(${J(A.okno)}).scrollTop = 0, true)`);
+  await b.posnetek(path.join(mapa, `${A.posnetek}-${sirina}-izbrani.png`), { vsaStran: false });
   const izbrane = ok.map(x => x.napis);
+  const izbranSeznam = sez.vSeznamu;
 
   // Escape s fokusom v okencu zapre okno; ponovno odprtje okna in strani – ista izbira.
-  await b.fokus('#zbirkaFiltri select[data-filter="stanje"]');
+  await b.fokus(`#${A.filtri} select[data-filter="stanje"]`);
   await b.tipka('Escape');
   await pocakaj(b, 150);
-  preveri('Escape s fokusom v okencu zapre okno', !(await b.izvedi('document.getElementById("zbirkaDialog").classList.contains("odprt")')));
-  await odpriZbirko(b, dotik);
-  ok = await b.izvedi(OKENCA);
-  sez = await b.izvedi(SEZNAM);
-  preveri('ponovno odprto okno: ista izbira in seznam', J(ok.map(x => x.napis)) === J(izbrane) && J(sez.vSeznamu) === J(sez.pricakovano), ok.map(x => x.napis));
-  await b.odpri('igra/index.html', { sirina, visina: { 320: 640, 375: 667 }[sirina] || 800, mobilno: dotik });
+  preveri('Escape s fokusom v okencu zapre okno', !(await b.izvedi(`document.getElementById(${J(A.okno)}).classList.contains("odprt")`)));
+  await odpriZbirko(b, A, dotik);
+  ok = await b.izvedi(okenca(A));
+  sez = await b.izvedi(seznam(A));
+  preveri('ponovno odprto okno: ista izbira in seznam', J(ok.map(x => x.napis)) === J(izbrane) && J(sez.vSeznamu) === J(izbranSeznam), ok.map(x => x.napis));
+  await b.odpri(A.stran, oknoZa(sirina));
   await b.cakaj('document.fonts.status === "loaded"', 15000);
-  await odpriZbirko(b, dotik);
-  ok = await b.izvedi(OKENCA);
-  sez = await b.izvedi(SEZNAM);
-  preveri('ponovno odprta stran: ista izbira in seznam', J(ok.map(x => x.napis)) === J(izbrane) && J(sez.vSeznamu) === J(sez.pricakovano) && sez.enakDom, ok.map(x => x.napis));
+  await odpriZbirko(b, A, dotik);
+  ok = await b.izvedi(okenca(A));
+  sez = await b.izvedi(seznam(A));
+  preveri('ponovno odprta stran: ista izbira in seznam', J(ok.map(x => x.napis)) === J(izbrane) && J(sez.vSeznamu) === J(izbranSeznam), ok.map(x => x.napis));
+
+  // Reševalec: izbira velja tudi v igri (skupen ključ sudoku.zbirka.filtri, ista zbirka), nato nazaj.
+  if (A === RESEVALEC) {
+    await b.odpri(IGRA.stran, oknoZa(sirina));
+    await b.cakaj('document.fonts.status === "loaded"', 15000);
+    await odpriZbirko(b, IGRA, dotik);
+    const okI = await b.izvedi(okenca(IGRA));
+    const sezI = await b.izvedi(seznam(IGRA));
+    preveri('druga aplikacija (igra): ista izbira in seznam', J(okI.map(x => x.napis)) === J(izbrane) && J(sezI.vSeznamu) === J(izbranSeznam), okI.map(x => x.napis));
+    await b.odpri(A.stran, oknoZa(sirina));
+    await b.cakaj('document.fonts.status === "loaded"', 15000);
+    await odpriZbirko(b, A, dotik);
+  }
 
   // »Počisti filtre« s pravim dotikom/klikom: filtri izklopljeni, Razvrsti ostane.
-  await pritisni(b, '#zbirkaFiltri .zb-prikazanih button', dotik);
+  await pritisni(b, `#${A.filtri} .zb-prikazanih button`, dotik);
   await pocakaj(b, 150);
-  ok = await b.izvedi(OKENCA);
-  sez = await b.izvedi(SEZNAM);
-  m2 = await b.izvedi(MERI);
+  ok = await b.izvedi(okenca(A));
+  sez = await b.izvedi(seznam(A));
+  m2 = await b.izvedi(meri(A));
   preveri(`»Počisti filtre« (${dotik ? 'dotik' : 'klik'}): filtri izklopljeni, Razvrsti »${ok[3].napis}«, gumb skrit, »${sez.napis}«`,
     ok.slice(0, 3).every(x => x.vrednost === '' && !x.vklopljen) && ok[3].vrednost === 'danih' && !m2.pocisti && sez.napis === 'Prikazanih 32 od 32'
       && J(sez.vSeznamu) === J(sez.pricakovano) && sez.vSeznamu.length === 32, { ok, napis: sez.napis });
@@ -271,17 +297,17 @@ async function korak2(b, sirina, zbirka) {
     const l = zbirkaLastnostiZbirke(zbirkaBeri(), igreBeri().igre);
     const t = zbirkaMoznostiFiltrov(l, { ...zbirkaFiltriBeri(), stanje: 'resena' }).tehnika.find(x => x.n === 0);
     if (!t) return null;
-    const nastavi = (f, v) => { const s = document.querySelector('#zbirkaFiltri select[data-filter="' + f + '"]'); s.value = v; s.dispatchEvent(new Event('change')); };
+    const nastavi = (f, v) => { const s = document.querySelector('#${A.filtri} select[data-filter="' + f + '"]'); s.value = v; s.dispatchEvent(new Event('change')); };
     nastavi('stanje', '=resena'); nastavi('tehnika', '=' + t.vrednost);
     return t.napis;
   })()`);
-  m2 = await b.izvedi(MERI);
+  m2 = await b.izvedi(meri(A));
   preveri(`prazen izid (Rešena, ${prazno}): »Nobena uganka ne ustreza izbranim filtrom.«, »Prikazanih 0 od 32«`,
     prazno && m2.kartic === 1 && m2.prvaPrazno && m2.prvaBesedilo === 'Nobena uganka ne ustreza izbranim filtrom.' && m2.napis === 'Prikazanih 0 od 32' && !m2.preliv, m2);
-  await b.posnetek(path.join(mapa, `filtri-${sirina}-prazno.png`), { vsaStran: false });
+  await b.posnetek(path.join(mapa, `${A.posnetek}-${sirina}-prazno.png`), { vsaStran: false });
 
-  const iz = izhodiscne[sirina];
-  meritve2.push(`${sirina} × ${m.okno[1]} px: okence ${Math.round(o[0].sel.sirina)} × ${Math.round(o[0].sel.visina)} px, vsebnik ${Math.round(m.filtri.visina)} px `
+  const iz = izhodiscne[A.korak][sirina];
+  meritve[A.korak].push(`${sirina} × ${m.okno[1]} px: okence ${Math.round(o[0].sel.sirina)} × ${Math.round(o[0].sel.visina)} px, vsebnik ${Math.round(m.filtri.visina)} px `
     + `(mreža ${Math.round(m.mreza.visina)} + vrstica ${Math.round(m.vrstica.visina)}); vrh prve kartice ${iz ? Math.round(iz.prva.vrh) : '?'} → ${Math.round(m.prva.vrh)} px, `
     + `celih kartic ${iz ? iz.celih : '?'} → ${m.celih}; kontrast imen ${m.kontrastImen} : 1, obrobe ${tez.kontrast} : 1`);
 }
@@ -291,13 +317,14 @@ async function korak2(b, sirina, zbirka) {
   const t = Date.now();
   const zbirka = testnaZbirka();
   console.log(`Testna zbirka: ${JSON.parse(zbirka).length} ugank (${Math.round((Date.now() - t) / 1000)} s)`);
-  if (tece(2)) await izhodisceIgre(zbirka);
+  const aplikacije = [IGRA, RESEVALEC].filter(A => tece(A.korak));
+  for (const A of aplikacije) await izhodisce(A, zbirka);
   const b = await zazeni();
   try {
-    if (tece(2)) {
-      for (const s of [320, 375, 1280]) await korak2(b, s, zbirka);
-      console.log('\nKorak 2 – meritve (izhodišče → zdaj):');
-      for (const v of meritve2) console.log('  ' + v);
+    for (const A of aplikacije) {
+      for (const s of [320, 375, 1280]) await korakFiltri(b, A, s, zbirka);
+      console.log(`\nKorak ${A.korak} – ${A.ime}, meritve (izhodišče ${A.izhodisce} → zdaj):`);
+      for (const v of meritve[A.korak]) console.log('  ' + v);
     }
     preveri('brez napak JS', b.napake.length === 0, b.napake);
   } catch (e) {

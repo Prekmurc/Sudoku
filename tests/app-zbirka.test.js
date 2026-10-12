@@ -393,3 +393,127 @@ test('reševalec: »Izbriši vse« pri prazni zbirki počisti sirote, šele nato
   assert.equal(vprasanja.length, 2, 'ne vpraša več');
   assert.equal(dom.el('libStatus').textContent, 'Zbirka je že prazna.');
 });
+
+/* ---------- filtri in razvrščanje nad seznamom (naloga 10, korak 3) ---------- */
+// Izris in vezavo filtrov (zbirkaUstvariFiltre() v shared/zbirka-ui.js) podrobno preverja
+// tests/zbirka-filtri-ui.test.js v igri; tu je vezava v app/zbirka.js. Merilo za seznam je logika
+// (zbirkaFiltriraj() v shared/zbirka.js), kartice se ločijo po naslovu (različni datumi dodajanja).
+const fs = require('node:fs');
+const path = require('node:path');
+const S = v => JSON.stringify(v);
+
+// Pet ugank iz docs/uganke.md (brez vgrajenih primerov) z različnimi težavnostmi – ena brez težavnosti.
+const FILTRI_UGANKE = loadPuzzles().map(p => p.danosti.replace(/\./g, '0'))
+  .filter(d => !loadContext(['shared/engine.js', 'shared/stanje.js', 'shared/zbirka.js']).run(`!!zbirkaPrimerZa(${S(d)})`))
+  .slice(0, 5);
+const FILTRI_TEZAVNOSTI = ['Težka', 'Lahka', 'Težka', 'Srednja', ''];
+
+// Reševalec z odprtim oknom zbirke nad dano hrambo (nova stran) ali nad zbirko FILTRI_UGANKE.
+function sFiltri(shramba) {
+  const dom = makeDom(shramba);
+  if (!shramba) {
+    dom.shramba.set('sudoku.zbirka.v1', S(FILTRI_UGANKE.map((d, i) => (
+      { danosti: d, tezavnost: FILTRI_TEZAVNOSTI[i], izvor: 'rocno', dodano: `2026-09-1${i} 10:00`, opomba: '' }))));
+  }
+  dom.globals.confirm = () => true;
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  dom.klikni('libraryBtn');
+  return { dom, run, J: izraz => JSON.parse(S(run(izraz))) };
+}
+// Vsebnik #libFiltri = [mreža okenc, vrstica »Prikazanih«]; okence je <label> = [ime, <select>].
+const fVsebnik = dom => dom.el('libFiltri');
+const fOkence = (dom, polje) => fVsebnik(dom).children[0].children.map(l => l.children[1]).find(s => s.dataset.filter === polje);
+const fIzbrana = (dom, polje) => { const s = fOkence(dom, polje); return s.children.find(o => o.value === s.value).textContent; };
+function fIzberi(dom, polje, zacetek) {
+  const s = fOkence(dom, polje);
+  const o = s.children.find(x => (zacetek === '' ? x.textContent === '' : x.textContent.startsWith(zacetek)));
+  assert.ok(o, `možnost »${zacetek}« v okencu ${polje}`);
+  s.value = o.value;
+  s.sprozi('change');
+}
+const fPrikazanih = dom => fVsebnik(dom).children[1].children[0].textContent;
+const fPocisti = dom => fVsebnik(dom).children[1].children[1];
+const fNaslovi = dom => dom.el('libList').children.map(li => li.children[0].textContent);
+// Naslovi kartic, ki jih da logika za trenutno zbirko in izbiro.
+const fPricakovano = (J, izbira) => J(`(() => { const igre = igreBeri().igre;
+  return zbirkaFiltriraj(zbirkaLastnostiZbirke(zbirkaBeri(), igre), ${S(izbira)}).map(l => zbirkaKartica(l.z.danosti, l.z, l.povzetek).naslov); })()`);
+const F_BREZ = { tezavnost: null, stanje: null, tehnika: null, razvrsti: 'nazadnje' };
+
+test('reševalec: filtri nad seznamom – okenca, sprememba osveži seznam, Razvrsti, »Počisti filtre«, shramba', () => {
+  const { dom, J } = sFiltri();
+  assert.equal(fVsebnik(dom).hidden, false);
+  assert.deepEqual(fVsebnik(dom).children[0].children.map(l => [l.tagName, l.children[0].textContent]),
+    [['LABEL', 'Težavnost'], ['LABEL', 'Stanje'], ['LABEL', 'Tehnika'], ['LABEL', 'Razvrsti']]);
+  assert.deepEqual(fOkence(dom, 'tezavnost').children.map(o => o.textContent), ['', 'Lahka (1)', 'Srednja (1)', 'Težka (2)', 'Ni določena (1)']);
+  assert.equal(fPrikazanih(dom), 'Prikazanih 5 od 5');
+  assert.equal(fPocisti(dom).hidden, true);
+  assert.deepEqual(fNaslovi(dom), fPricakovano(J, F_BREZ));
+
+  fIzberi(dom, 'tezavnost', 'Težka');
+  assert.deepEqual(fNaslovi(dom), fPricakovano(J, { ...F_BREZ, tezavnost: 'Težka' }));
+  assert.equal(fNaslovi(dom).length, 2);
+  assert.equal(fPrikazanih(dom), 'Prikazani 2 od 5');
+  assert.equal(fOkence(dom, 'tezavnost').classList.contains('vklopljen'), true);
+  assert.equal(fPocisti(dom).hidden, false);
+  assert.deepEqual(JSON.parse(dom.shramba.get('sudoku.zbirka.filtri')), { ...F_BREZ, tezavnost: 'Težka' });
+
+  fIzberi(dom, 'razvrsti', 'Število danih');
+  assert.deepEqual(fNaslovi(dom), fPricakovano(J, { ...F_BREZ, tezavnost: 'Težka', razvrsti: 'danih' }));
+
+  fPocisti(dom).sprozi('click');
+  assert.equal(fIzbrana(dom, 'tezavnost'), '');
+  assert.equal(fIzbrana(dom, 'razvrsti'), 'Število danih', 'Razvrsti ni filter, ostane');
+  assert.deepEqual(fNaslovi(dom), fPricakovano(J, { ...F_BREZ, razvrsti: 'danih' }));
+  assert.equal(fPrikazanih(dom), 'Prikazanih 5 od 5');
+});
+
+test('reševalec: filtri – »Izbriši« zadnje z izbrano vrednostjo (O7, prazen izid), ponovno odprtje, nova stran, prazna zbirka', () => {
+  const { dom, run } = sFiltri();
+  fIzberi(dom, 'tezavnost', 'Srednja');
+  assert.equal(fNaslovi(dom).length, 1);
+  dom.el('libList').children[0].children.find(el => el.className === 'zb-gumbi')
+    .children.find(g => g.textContent === 'Izbriši').sprozi('click');
+  assert.equal(run('zbirkaBeri().length'), 4);
+  assert.equal(dom.el('libStatus').textContent, 'Uganka je izbrisana.');
+  assert.equal(fIzbrana(dom, 'tezavnost'), 'Srednja (0)', 'vrednost ostane do zaprtja okna');
+  assert.equal(dom.el('libList').children.length, 1);
+  assert.equal(dom.el('libList').children[0].className, 'prazno');
+  assert.equal(dom.el('libList').children[0].textContent, 'Nobena uganka ne ustreza izbranim filtrom.');
+  assert.equal(fPrikazanih(dom), 'Prikazanih 0 od 4');
+
+  // Ponovno odprtje: vrednost, ki je ni več, se izprazni (tudi v shrambi).
+  dom.klikni('libClose');
+  dom.klikni('libraryBtn');
+  assert.equal(fIzbrana(dom, 'tezavnost'), '');
+  assert.equal(JSON.parse(dom.shramba.get('sudoku.zbirka.filtri')).tezavnost, null);
+  assert.equal(fNaslovi(dom).length, 4);
+
+  // Nova stran z isto hrambo: izbira ostane.
+  fIzberi(dom, 'tezavnost', 'Lahka');
+  const nova = sFiltri(dom.shramba);
+  assert.equal(fIzbrana(nova.dom, 'tezavnost'), 'Lahka (1)');
+  assert.equal(fNaslovi(nova.dom).length, 1);
+
+  // »Izbriši vse«: prazna zbirka – okenc ni, ostane »Zbirka je prazna …«.
+  nova.dom.klikni('libDeleteAll');
+  assert.equal(fVsebnik(nova.dom).hidden, true);
+  assert.match(nova.dom.el('libList').children[0].textContent, /^Zbirka je prazna/);
+});
+
+test('reševalec: okno zbirke – vsebnik filtrov med sporočili in seznamom, krajši namig (D1), Pomoč', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
+  const okno = html.slice(html.indexOf('<div id="library"'), html.indexOf('<div id="pomocDialog"'));
+  const red = ['id="libStatus"', 'id="libFiltri"', 'id="libList"'].map(s => okno.indexOf(s));
+  assert.ok(red.every((x, i) => x > 0 && (i === 0 || x > red[i - 1])), S(red));
+  const namig = okno.match(/<p class="cand-hint">([\s\S]*?)<\/p>/)[1];
+  assert.equal(namig, 'Zbirka je ista kot v igri. Z <b>Izvozi</b> in <b>Uvozi</b> jo preneseš na drugo napravo; pred <b>Izbriši vse</b> jo izvozi. Vgrajeni primeri niso del zbirke. Več v Pomoči.');
+  const pomoc = html.slice(html.indexOf('<div id="pomocDialog"'));
+  const razdelek = pomoc.slice(pomoc.indexOf('>Zbirka ugank</h3>'), pomoc.indexOf('>Težavnost</h3>'));
+  const odstavki = [...razdelek.matchAll(/<p>([\s\S]*?)<\/p>/g)].map(m => m[1]);
+  assert.equal(odstavki.length, 3, 'razdelek »Zbirka ugank«: obstoječi odstavek, podrobnosti, filtri');
+  // Podrobnosti, ki so odpadle iz namiga (datoteka Markdown, uvoz iste uganke, brisanje z napredkom).
+  assert.ok(/Markdown/.test(odstavki[1]) && /dopolni le manjkajoče podatke/.test(odstavki[1]) && /napredk/.test(odstavki[1]), odstavki[1]);
+  for (const b of ['Zbirka ugank', 'Težavnost', 'Stanje', 'Tehnika', 'Razvrsti', 'Počisti filtre']) {
+    assert.ok(odstavki[2].includes(`<b>${b}</b>`), b);
+  }
+});

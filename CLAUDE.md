@@ -28,10 +28,15 @@ Skupna koda (mreža, kandidati, logika tehnik) je v `shared/`.
 - Po vsakem commitu naredi tudi `git push` (trenutna veja na `origin`). Če push ne uspe (npr. oddaljeni repozitorij ni nastavljen ali zahteva prijavo), mi pokaži napako – ne uporabljaj `--force` in ne spreminjaj nastavitev oddaljenega repozitorija brez vprašanja.
 
 **Postopek naloge**
-- Načrt naloge zapiši v `docs/<naloga>-nacrt.md` z odločitvami in koraki; kode pred potrditvijo načrta ne spreminjaj.
+- Načrt naloge zapiši v `docs/<naloga>-nacrt.md` z odločitvami in koraki; načrt je ločen pogovor in čaka na moj OK –
+  kode pred potrditvijo načrta ne spreminjaj. Načrt brez prototipov in meritev časa, razen če to izrecno zahtevam.
+- Izvedba je **en pogovor**: vse korake naredi zapored, po vsakem koraku commit in push, brez ustavljanja. Ustavi se
+  samo ob nepričakovani težavi (spodaj).
 - Najprej test, ki na stari kodi pade, nato sprememba.
-- Po vsakem koraku commit in push, nato se ustavi.
-- Ročni pregled je en sam, na koncu naloge.
+- Stare scenarije v brskalniku (`tools/preveri-*-brskalnik.js`) poženi samo, če delo spremeni njihovo področje; scenarij
+  naloge vedno.
+- Na koncu eno kratko poročilo (kaj je narejeno, testi, odstopanja) in seznam za en ročni pregled – ročni pregled je
+  en sam, na koncu naloge.
 - Majhen popravek samo v slogu (CSS, brez sprememb JS in HTML): od preverjanj v brskalniku poženi samo scenarij, ki
   pokriva spremenjeno mesto; pri igri še posnetek igre. Vsi testi pred commitom ostanejo.
 - Ob nepričakovanem izidu testa ali primerjave se ustavi in poročaj, kadar izid kaže na napako v aplikaciji ali vzroka

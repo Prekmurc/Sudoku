@@ -156,3 +156,25 @@ test('dogodek "storage": uganka, odprta v igri, izbrisana v reševalcu - mreža 
   // Brez odprte igre ni poteze, ki bi znova zapisala shranjeno igro.
   assert.equal(igra.run(`!!igreBeri().igre[${A}]`), false);
 });
+
+test('filtri: izbira, narejena v igri, velja v reševalcu (skupen ključ sudoku.zbirka.filtri)', () => {
+  const shramba = hramba();
+  const igra = zavihek(IGRA, shramba);
+  igra.dom.klikni('zbirkaBtn');
+  const okence = (dom, id, polje) => dom.el(id).children[0].children.map(l => l.children[1]).find(s => s.dataset.filter === polje);
+  const s = okence(igra.dom, 'zbirkaFiltri', 'tezavnost');
+  s.value = s.children.find(o => o.textContent.startsWith('Lahka')).value;
+  s.sprozi('change');
+  const r = okence(igra.dom, 'zbirkaFiltri', 'razvrsti');
+  r.value = 'dodano';
+  r.sprozi('change');
+  assert.equal(igra.dom.el('zbirkaSeznam').children.length, 1);
+
+  const res = zavihek(RESEVALEC, shramba);
+  res.dom.klikni('libraryBtn');
+  const izbrana = (dom, polje) => { const x = okence(dom, 'libFiltri', polje); return x.children.find(o => o.value === x.value).textContent; };
+  assert.equal(izbrana(res.dom, 'tezavnost'), 'Lahka (1)');
+  assert.equal(izbrana(res.dom, 'razvrsti'), 'Datum dodajanja');
+  const naslovi = el => el.children.map(li => li.children[0].textContent);
+  assert.deepEqual(naslovi(res.dom.el('libList')), naslovi(igra.dom.el('zbirkaSeznam')));
+});

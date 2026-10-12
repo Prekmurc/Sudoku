@@ -2,7 +2,8 @@
 
 Načrt 2026-10-12 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, vrstica 10, in »Odločitve 2026-10-12«, c).
 **Stanje: potrjen 2026-10-12 – O1–O12 po priporočilu (O11 = B, ostale A), dodatek D1 (krajši namig v oknu, razdelek
-4.1). Korak 1 – logika – in korak 2 – igra – narejena 2026-10-12.**
+4.1). Koraki 1 – logika, 2 – igra in 3 – reševalec in zaključek narejeni 2026-10-12; ročni pregled čaka
+(`docs/rocni-test.md`, razdelek »Naloga 10«).**
 
 Izhodišče: commit `a98150a` (zapis odločitev 2026-10-12 v `docs/uskladitev.md`).
 
@@ -410,3 +411,29 @@ Vsak korak: najprej test, ki na stari kodi pade, nato sprememba; hitri testi spr
   `preveri-pomoc` – vse drži. `preveri-navigacija --izhodisce 9e07401` – razliki samo v oknu »Zbirka ugank« igre pri
   375 in 1280 px (krajši namig, vsebnik filtrov), pričakovano po razdelku 6. `preveri-faza7` pada že na `9e07401`
   enako (reševalec – Escape pri povečavi, paleta `--purple-dark`, značke; stara izhodišča scenarija) – ni del naloge.
+
+### Korak 3 – reševalec in zaključek (2026-10-12)
+
+- `app/index.html`: vsebnik `#libFiltri` med `#libStatus` in `#libList`, krajši namig (D1, besedilo iz 4.1), v Pomoči
+  razdelek »Zbirka ugank« z dvema novima odstavkoma – podrobnosti, ki so odpadle iz namiga (datoteka Markdown, uvoz
+  iste uganke, brisanje z napredkom, »Izbriši vse«), in filtri (besedilo iz 2.5).
+- `app/zbirka.js`: `zbirkaFiltri = zbirkaUstvariFiltre(#libFiltri)`; `zbirkaIzrisiSeznam()` izriše kartice iz
+  `uporabi()` (povzetek igre iz filtra, O11), prazen izid; `zbirkaOdpri()` pokliče `odpri()`.
+- Testi: 3 novi v `tests/app-zbirka.test.js` in 1 v `tests/zbirka-skupna.test.js` (izbira iz igre velja v reševalcu);
+  na kodi pred korakom padejo vsi štirje. Hitri 841 (prej 837), vsi 1025 (prej 1021).
+- Scenarij `tools/preveri-naloga10-brskalnik.js --korak 3`: isti preizkus kot pri igri, za reševalec še igra z isto
+  izbiro; seznam primerja po naslovih kartic (tudi pri igri). Vse drži. Meritve (izhodišče `5d98bef` → zdaj):
+
+  | | 320 × 640 px | 375 × 667 px | 1280 × 800 px |
+  |---|---|---|---|
+  | okence (š × v) | 120 × 35 px | 148 × 35 px | 216 × 35 px |
+  | vrh prve kartice | 335 → 421 px | 300 → 386 px | 264 → 368 px |
+  | cele kartice v oknu | 1 → 0 | 2 → 1 | 3 → 2 |
+
+- `preveri-pomoc`, `preveri-videz` – vse drži. `preveri-navigacija --izhodisce 5d98bef` – razliki samo v oknu »Zbirka
+  ugank« reševalca pri 375 in 1280 px (krajši namig, nižja plošča – prazna zbirka, okenc ni), pričakovano po razdelku 6.
+  `preveri-faza7` ni pognan (stara izhodišča, že v »Kasneje« v `docs/uskladitev.md`); posnetek igre ni pognan (igra in
+  `shared/` nespremenjena).
+- Novo pravilo postopka v `CLAUDE.md` (»Postopek naloge«): izvedba v enem pogovoru, stari scenariji samo ob spremembi
+  njihovega področja.
+
