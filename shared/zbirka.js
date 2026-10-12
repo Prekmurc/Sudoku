@@ -195,13 +195,19 @@ function zbirkaTehnikePrimera(p) {
 // dve, npr. »9, 10«), sicer dnevnik reševanja (z.tehnike); poskus
 // s protislovjem je »ugibanje«. Brez podatka (tudi prazen seznam) null.
 function zbirkaTehnikeZapisa(z) {
+  const t = zbirkaKljuciTehnikZapisa(z);
+  return t ? zbirkaDeliTehnik(t.kljuci, { ugibanje: t.ugibanje }) : null;
+}
+
+// Vir za zbirkaTehnikeZapisa() in filter Tehnika (zbirkaTehnikeFiltra()): { kljuci, ugibanje } - ključi
+// tehnik brez poskusa s protislovjem in število poskusov - ali null (brez podatka).
+function zbirkaKljuciTehnikZapisa(z) {
   const pot = z && z.tezavnost === 'Težka' ? zbirkaPotTezke(z) : null;
-  if (pot) return zbirkaDeliTehnik(pot);
-  if (!z || !Array.isArray(z.tehnike)) return null;
-  if (!z.tehnike.length) return null;
+  if (pot) return { kljuci: pot, ugibanje: 0 };
+  if (!z || !Array.isArray(z.tehnike) || !z.tehnike.length) return null;
   const poskus = ([ime]) => /protislovje/.test(ime);
-  return zbirkaDeliTehnik(z.tehnike.filter(t => !poskus(t)).map(([ime]) => ime),
-    { ugibanje: z.tehnike.filter(poskus).reduce((s, [, n]) => s + n, 0) });
+  return { kljuci: z.tehnike.filter(t => !poskus(t)).map(([ime]) => ime),
+    ugibanje: z.tehnike.filter(poskus).reduce((s, [, n]) => s + n, 0) };
 }
 
 // Besedilo naštevanja (brez krepkega): »Tehnike: E1, E2 in 3 Očitni par«.
@@ -321,13 +327,22 @@ function zbirkaKazalecZapisa(zapis) {
 
 /* ---------- stanje uganke (moje reševanje) ---------- */
 
+// Rešitev uganke (solutionOf()), izračunana enkrat na stran (naloga 10, O11): povzetek polne igre jo
+// potrebuje ob vsakem izrisu seznama, s filtri pa ob vsaki spremembi okenca - pri 192 rešenih ugankah bi
+// bilo to vsakič pribl. 280 ms. Rešitev danih števk se ne spremeni; vrnjenega polja klicatelj ne spreminja.
+const ZBIRKA_RESITVE = new Map();
+function zbirkaResitev(danosti) {
+  if (!ZBIRKA_RESITVE.has(danosti)) ZBIRKA_RESITVE.set(danosti, solutionOf(danosti));
+  return ZBIRKA_RESITVE.get(danosti);
+}
+
 // Povzetek igre - edino mesto, kjer se iz potez štejejo vpisi:
 //   { zaceta, vpisanih, praznih, izpolnjeno, polna, napaka }
 // `zaceta` = v zgodovini je vsaj ena poteza (tudi razveljavljena ali pred "Začni
 // znova"; zapis igre nastane že ob odprtju, zato sam ne zadostuje), `vpisanih` =
 // moji vpisi, `praznih` = 81 - danosti, `izpolnjeno` = danosti + vpisi (tako ga
 // hrani zbirka). `napaka` = vsaj en vpis se ne ujema z rešitvijo; brez podane
-// rešitve se ta poišče (solutionOf) samo pri polni mreži, ker jo prikaz potrebuje
+// rešitve se ta poišče (zbirkaResitev) samo pri polni mreži, ker jo prikaz potrebuje
 // samo tam.
 function zbirkaPovzetekIgre(danosti, poteze, kazalec, resitev) {
   const p = Array.isArray(poteze) ? poteze : [];
@@ -340,7 +355,7 @@ function zbirkaPovzetekIgre(danosti, poteze, kazalec, resitev) {
     if (vpisi[c]) vpisanih++;
   }
   const polna = vpisanih === praznih;
-  const res = resitev || (polna ? solutionOf(danosti) : null);
+  const res = resitev || (polna ? zbirkaResitev(danosti) : null);
   const napaka = !!res && vpisi.some((v, c) => v && danosti[c] === '0' && v !== res[c]);
   return { zaceta: p.length > 0, vpisanih, praznih, izpolnjeno: 81 - praznih + vpisanih, polna, napaka };
 }
@@ -1007,4 +1022,150 @@ function zbirkaZaSeznam(zbirka) {
     kljuc(b.z).localeCompare(kljuc(a.z)) ||
     (b.z.dodano || '').localeCompare(a.z.dodano || '') ||
     b.i - a.i).map(x => x.z);
+}
+
+/* ---------- filtri in razvrščanje v seznamu (naloga 10) ---------- */
+
+// Okenca Težavnost, Stanje, Tehnika in Razvrsti nad seznamom »Moje uganke« (igra) in seznamom zbirke
+// (reševalec); izris je v shared/zbirka-ui.js. Izbira je { tezavnost, stanje, tehnika, razvrsti }: null =
+// filter izklopljen, '' pri težavnosti = »Ni določena«, stanje je ključ iz zbirkaStanjeUganke(), tehnika ključ
+// iz ALL_TECHNIQUES. Filtri se seštevajo (IN), ob enakem ključu razvrščanja velja »Nazadnje« (zbirkaZaSeznam).
+// Izbira je skupna igri in reševalcu (en ključ) in se uporabi ob odprtju okna.
+const ZBIRKA_FILTRI_KLJUC = 'sudoku.zbirka.filtri';
+const ZBIRKA_FILTRI = ['tezavnost', 'stanje', 'tehnika'];
+const ZBIRKA_STANJA = [
+  { kljuc: 'nova', ime: 'Nova' },
+  { kljuc: 'v-teku', ime: 'V teku' },
+  { kljuc: 'resena', ime: 'Rešena' },
+];
+const ZBIRKA_RAZVRSTI = [
+  { kljuc: 'nazadnje', ime: 'Nazadnje' },
+  { kljuc: 'tezavnost', ime: 'Težavnost' },
+  { kljuc: 'danih', ime: 'Število danih' },
+  { kljuc: 'dodano', ime: 'Datum dodajanja' },
+];
+const ZBIRKA_BREZ_FILTROV = { tezavnost: null, stanje: null, tehnika: null, razvrsti: 'nazadnje' };
+
+// Tehnike uganke za filter: iste kot na kartici (zbirkaTehnikeZapisa() - pri težki uganki pot ocene, O4),
+// samo tehnike s številko (brez E1, E2 in ugibanja, O5), po vrstnem redu tehnik.
+function zbirkaTehnikeFiltra(z) {
+  const t = zbirkaKljuciTehnikZapisa(z);
+  if (!t) return [];
+  return t.kljuci.filter(k => TRENING_TEHNIKE.some(([, x]) => x === k))
+    .sort((a, b) => redTehnike(a) - redTehnike(b));
+}
+
+// Lastnosti uganke za filtre in razvrščanje. `igre` so shranjene igre (igreBeri().igre); povzetek shranjene
+// igre gre naprej v zbirkaKartica(), da se izračuna enkrat na izris. Stanje je ključ napisa in gumba (rešena
+// uganka, ki jo rešuješ znova, je »v-teku«, O3); prazna težavnost je ''.
+function zbirkaLastnostiUganke(z, igre) {
+  const povzetek = zbirkaPovzetekZapisa(z.danosti, igre && igre[z.danosti]);
+  return {
+    z,
+    povzetek,
+    tezavnost: z.tezavnost || '',
+    stanje: zbirkaStanjeUganke(z.danosti, z, povzetek).kljuc,
+    tehnike: zbirkaTehnikeFiltra(z),
+    danih: z.danosti.split('').filter(ch => ch !== '0').length,
+  };
+}
+
+// Lastnosti vseh ugank v vrstnem redu »Nazadnje«.
+function zbirkaLastnostiZbirke(zbirka, igre) {
+  return zbirkaZaSeznam(zbirka).map(z => zbirkaLastnostiUganke(z, igre));
+}
+
+function zbirkaImaVrednost(l, polje, v) {
+  return polje === 'tehnika' ? l.tehnike.includes(v) : l[polje] === v;
+}
+
+// Ali uganka ustreza izbiri; `razen` = filter, ki se ne upošteva (število ob možnosti tega filtra).
+function zbirkaUstrezaIzbiri(l, izbira, razen) {
+  return ZBIRKA_FILTRI.every(p => p === razen || izbira[p] === null || izbira[p] === undefined
+    || zbirkaImaVrednost(l, p, izbira[p]));
+}
+
+// Vklopljen je vsaj en filter (Razvrsti ni filter).
+function zbirkaImaFilter(izbira) {
+  return ZBIRKA_FILTRI.some(p => izbira[p] !== null && izbira[p] !== undefined);
+}
+
+// Možnosti okenc: { tezavnost, stanje, tehnika } = [{ vrednost, ime, n, napis }] - samo vrednosti, ki so v
+// zbirki, in izbrana (tudi če je ni več, O7), v stalnem vrstnem redu (težavnosti kot TEZAVNOSTI, na koncu
+// »Ni določena«, O6; tehnike po številkah). `n` = koliko ugank bi bilo prikazanih, če izbereš to možnost -
+// ob upoštevanju drugih dveh filtrov (O2); napis »Težka (4)«, »7 X-krilo (5)«.
+function zbirkaMoznostiFiltrov(lastnosti, izbira) {
+  const vrednosti = {
+    tezavnost: [...TEZAVNOSTI, ''],
+    stanje: ZBIRKA_STANJA.map(s => s.kljuc),
+    tehnika: TRENING_TEHNIKE.map(([, t]) => t),
+  };
+  const ime = {
+    tezavnost: v => v || 'Ni določena',
+    stanje: v => ZBIRKA_STANJA.find(s => s.kljuc === v).ime,
+    tehnika: v => zbirkaKratkoImeTehnike(v),
+  };
+  const moznosti = {};
+  for (const p of ZBIRKA_FILTRI) {
+    const izbrana = izbira[p];
+    const seznam = vrednosti[p].includes(izbrana) || izbrana === null || izbrana === undefined
+      ? vrednosti[p] : [...vrednosti[p], izbrana];
+    moznosti[p] = seznam
+      .filter(v => v === izbrana || lastnosti.some(l => zbirkaImaVrednost(l, p, v)))
+      .map(v => {
+        const n = lastnosti.filter(l => zbirkaUstrezaIzbiri(l, izbira, p) && zbirkaImaVrednost(l, p, v)).length;
+        return { vrednost: v, ime: ime[p](v), n, napis: `${ime[p](v)} (${n})` };
+      });
+  }
+  return moznosti;
+}
+
+// Uganke, ki ustrezajo izbiri, razvrščene po izbiri. `lastnosti` so v vrstnem redu »Nazadnje«
+// (zbirkaLastnostiZbirke), razvrščanje je stabilno - ob enakem ključu ostane ta vrstni red.
+function zbirkaFiltriraj(lastnosti, izbira) {
+  const izbrane = lastnosti.filter(l => zbirkaUstrezaIzbiri(l, izbira));
+  const redTez = l => { const i = TEZAVNOSTI.indexOf(l.tezavnost); return i < 0 ? TEZAVNOSTI.length : i; };
+  const primerjaj = {
+    tezavnost: (a, b) => redTez(a) - redTez(b),
+    danih: (a, b) => a.danih - b.danih,
+    dodano: (a, b) => (b.z.dodano || '').localeCompare(a.z.dodano || ''),
+  }[izbira.razvrsti];
+  return primerjaj ? izbrane.sort(primerjaj) : izbrane;
+}
+
+// Izbira iz shrambe; neveljavna vrednost (ali pokvarjen zapis, nedosegljiva shramba) je privzeta.
+function zbirkaFiltriBeri() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(ZBIRKA_FILTRI_KLJUC) || 'null'); } catch (e) { s = null; }
+  const izbira = { ...ZBIRKA_BREZ_FILTROV };
+  if (!s || typeof s !== 'object' || Array.isArray(s)) return izbira;
+  if (typeof s.tezavnost === 'string') izbira.tezavnost = s.tezavnost;
+  if (ZBIRKA_STANJA.some(x => x.kljuc === s.stanje)) izbira.stanje = s.stanje;
+  if (typeof s.tehnika === 'string') izbira.tehnika = s.tehnika;
+  if (ZBIRKA_RAZVRSTI.some(x => x.kljuc === s.razvrsti)) izbira.razvrsti = s.razvrsti;
+  return izbira;
+}
+
+function zbirkaFiltriPisi(izbira) {
+  const { tezavnost, stanje, tehnika, razvrsti } = izbira;
+  try {
+    localStorage.setItem(ZBIRKA_FILTRI_KLJUC, JSON.stringify({ tezavnost, stanje, tehnika, razvrsti }));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Ob odprtju okna: vrednost filtra, ki je ni pri nobeni uganki v zbirki, se izprazni.
+function zbirkaFiltriVeljavni(izbira, lastnosti) {
+  const nova = { ...izbira };
+  for (const p of ZBIRKA_FILTRI) {
+    if (nova[p] !== null && !lastnosti.some(l => zbirkaImaVrednost(l, p, nova[p]))) nova[p] = null;
+  }
+  return nova;
+}
+
+// Vrstica nad seznamom: »Prikazana 1 od 32«, »Prikazani 2 od 32«, »Prikazane 3 od 32«, »Prikazanih 6 od 32«.
+function zbirkaNapisPrikazanih(n, m) {
+  return `${sklanjaj(n, ['Prikazana', 'Prikazani', 'Prikazane', 'Prikazanih'])} ${n} od ${m}`;
 }

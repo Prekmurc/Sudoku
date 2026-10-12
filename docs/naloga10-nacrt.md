@@ -1,7 +1,8 @@
 # Filtri in razvrščanje v zbirki (naloga 10) – načrt
 
 Načrt 2026-10-12 (vir: `docs/uskladitev.md`, »Vrstni red po fazi 6«, vrstica 10, in »Odločitve 2026-10-12«, c).
-**Stanje: čaka potrditev.**
+**Stanje: potrjen 2026-10-12 – O1–O12 po priporočilu (O11 = B, ostale A), dodatek D1 (krajši namig v oknu, razdelek
+4.1). Korak 1 – logika – narejen 2026-10-12.**
 
 Izhodišče: commit `a98150a` (zapis odločitev 2026-10-12 v `docs/uskladitev.md`).
 
@@ -290,6 +291,22 @@ na vrhu) bi pomenila, da seznam ne ustreza filtrom, in bi zmedla števila.
 | **O11** hitrost pri veliki zbirki | **A** povzetek igre enkrat na izris (filter in kartica); **B** kot A in rešitev uganke izračunana enkrat na stran (`zbirkaResitev()`) – pri 192 rešenih ugankah sprememba okenca brez pribl. 280 ms za `solutionOf()` | B |
 | **O12** videz vklopljenega filtra | **A** modra obroba 2 px (`--blue`, 6,44 : 1), kot na slikah; **B** brez – vidi se samo izbrana vrednost | A |
 
+**Potrjeno 2026-10-12:** O1–O12 po priporočilu – O11 = B, vse druge A.
+
+### 4.1 Dodatek D1 – krajši namig v oknu »Zbirka ugank« (2026-10-12)
+
+Uvodno besedilo nad gumbi se skrajša, da je na telefonu prva kartica spet vidna (razdelek 8).
+
+- **Igra** (`igra/index.html`, `p.namig`), korak 2: »Zbirka je ista kot v reševalcu. Z **Izvozi** in **Uvozi** jo
+  preneseš na drugo napravo; pred **Izbriši vse** jo izvozi. Več v Pomoči.«
+- **Reševalec** (`app/index.html`, `p.cand-hint`), korak 3: »Zbirka je ista kot v igri. Z **Izvozi** in **Uvozi** jo
+  preneseš na drugo napravo; pred **Izbriši vse** jo izvozi. Vgrajeni primeri niso del zbirke. Več v Pomoči.«
+- Podrobnosti, ki odpadejo iz namiga (datoteka Markdown, pravilo za isto uganko pri uvozu, brisanje skupaj z
+  napredkom v igri), so v Pomoči igre že; v Pomoč reševalca (razdelek »Zbirka ugank«) pridejo s kratkim odstavkom
+  (korak 3).
+- Scenarij izmeri vrh prve kartice pri 320, 375 in 1280 px (zdaj → s filtri in krajšim namigom); številke so v
+  poročilu koraka 2 (igra) in 3 (reševalec).
+
 ## 5. Koraki
 
 Vsak korak: najprej test, ki na stari kodi pade, nato sprememba; hitri testi sproti, vsi pred commitom; opisi v
@@ -302,14 +319,16 @@ Vsak korak: najprej test, ki na stari kodi pade, nato sprememba; hitri testi spr
    na koncu (O6), shramba (pokvarjen zapis, neznan `razvrsti`, izpraznitev odsotnih vrednosti), napis »Prikazanih« s
    sklanjanjem (1, 2, 3, 5, 101), `zbirkaResitev()` (O11). Ključ `sudoku.zbirka.filtri` v `CLAUDE.md`. Obstoječi testi
    kartice (`zbirka-zapis`) ostanejo zeleni.
-2. **Igra.** `shared/zbirka-ui.js`, `shared/zbirka.css`, `igra/index.html`, `igra/igra.js`, Pomoč igre. Test v
+2. **Igra.** `shared/zbirka-ui.js`, `shared/zbirka.css`, `igra/index.html` (z D1 – krajši namig), `igra/igra.js`,
+   Pomoč igre. Test v
    nadomestnem DOM-u (`tests/igra-ui.test.js` ali nov `tests/zbirka-filtri-ui.test.js`): okenca in imena, možnosti s
    števili, sprememba → seznam, »Počisti filtre« (vidnost, »Razvrsti« ostane), prazen izid, prazna zbirka, pomnjenje
    (nov `makeDom(dom.shramba)`), izpraznitev ob odprtju, O7 po »Izbriši«, »Uvozi«, »Oceni zbirko« s pripisom in
    »Zapiši ocene«, trenutno odprta skrita. Nov scenarij `tools/preveri-naloga10-brskalnik.js --korak 2` (320, 375 z
    dotikom, 1280 z miško). Posnetek igre (`--primerjaj tools/posnetki/igra-po-xy-veriga.json` – zbirke ne odpira, mora
    biti enak).
-3. **Reševalec in zaključek.** `app/index.html`, `app/zbirka.js`, Pomoč reševalca; testi v `tests/app-zbirka.test.js`
+3. **Reševalec in zaključek.** `app/index.html` (z D1 – krajši namig), `app/zbirka.js`, Pomoč reševalca (odstavek o
+   filtrih in odstavek s podrobnostmi, ki odpadejo iz namiga); testi v `tests/app-zbirka.test.js`
    in `tests/zbirka-skupna.test.js` (izbira, narejena v igri, velja v reševalcu – skupen ključ); scenarij
    `--korak 3`; `docs/rocni-test.md` (razdelek »Naloga 10«), `docs/uskladitev.md` (vrstica 10).
 
@@ -341,6 +360,23 @@ Vsak korak: najprej test, ki na stari kodi pade, nato sprememba; hitri testi spr
 ## 8. Opaženo, ni del naloge
 
 - **Na telefonu se kartice v oknu igre začnejo nizko.** Že zdaj je pri 375 px vrh prve kartice na 378 px od 667 px
-  (namig nad gumbi ima 6 vrstic); s filtri je na 544 px in brez drsenja ni vidna nobena cela kartica. Možnost za
-  pozneje: krajši namig v oknu (podrobnosti so v Pomoči) – predlagam postavko v »Kasneje«, če se ob ročnem pregledu
-  izkaže za moteče.
+  (namig nad gumbi ima 6 vrstic); s filtri je na 544 px in brez drsenja ni vidna nobena cela kartica. **Rešeno z D1**
+  (razdelek 4.1): namig se skrajša na dve kratki povedi, podrobnosti so v Pomoči; vrh prve kartice izmeri scenarij.
+
+## 9. Izvedba
+
+### Korak 1 – logika (2026-10-12)
+
+- `shared/zbirka.js`: razdelek »filtri in razvrščanje v seznamu« po 2.6 in `zbirkaResitev()` (O11 B), ki ga
+  `zbirkaPovzetekIgre()` uporabi pri polni mreži. Vidne spremembe ni – funkcij še nihče ne kliče, razen
+  `zbirkaResitev()` (isti izid kot prej, `solutionOf()` enkrat na uganko).
+- Nov hitri test `tests/zbirka-filtri.test.js` (13 testov, pribl. 2 s); na kodi pred korakom padejo vsi (funkcij ni).
+  Testna zbirka: 9 ugank iz `docs/uganke.md` in 2 kopiji z zamenjanimi števkami – 6 težavnosti (tudi prazna), 3
+  stanja (tudi rešena in znova začeta), enaki ključi pri številu danih in datumu dodajanja.
+- Ključ `sudoku.zbirka.filtri` v seznamu ključev v `CLAUDE.md`.
+- Testi: hitri 828 (prej 815), vsi 1012 (prej 999); posnetek igre enak (99 posnetkov).
+- **Odstopanja od 2.6** (samo imena in razdelitev, obnašanje po načrtu): `zbirkaLastnostiUganke(z, igre)` sprejme vse
+  shranjene igre (ne ene); dodani sta `zbirkaLastnostiZbirke(zbirka, igre)` (lastnosti v vrstnem redu »Nazadnje« –
+  vhod za `zbirkaMoznostiFiltrov()` in `zbirkaFiltriraj()`) in `zbirkaImaFilter(izbira)` (za »Počisti filtre«);
+  skupna pomožna funkcija tehnik je `zbirkaKljuciTehnikZapisa(z)`. Napis možnosti (`napis`, »Težka (4)«) da logika,
+  ne izris.
