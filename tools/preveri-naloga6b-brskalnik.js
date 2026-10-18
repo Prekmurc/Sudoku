@@ -27,10 +27,11 @@
 //     ostane modra; »Vadi v uganki« 3 premakne okvir, ključ sudoku.trening.zadnja; ponovno odprta stran (3 in 11) – meni
 //     na vrhu, okvir na kartici in vrstici, mesto vrstice izpiše; neznan ključ – nič;
 //   - okno Pomoč igre, reševalca in treninga (375, 1280 px): kazalo tehnik enako izhodišču (--izhodisce, privzeto
-//     e52f994 – pred korakom 2; drevo, HTML, vsi izračunani slogi, položaji glede na kazalo), pri igri in reševalcu
-//     vse okno (brez oznake različice) enako izhodišču --izhodisce-celo (privzeto b9cc1f4 – naloga 11a, korak 1, ki je
-//     Pomoč namerno spremenila; prej 6fadd53, pred tem jo je spremenila naloga 10 in korak 3, ob nalogi je bilo e52f994
-//     brez odstavka »Z okencem Pokaži …«); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
+//     a459aeb – naloga 11a, korak 2, ki je kazalo namerno spremenila v obliko treninga; prej e52f994 – pred korakom 2;
+//     drevo, HTML, vsi izračunani slogi, položaji glede na kazalo), pri igri in reševalcu vse okno (brez oznake
+//     različice) enako izhodišču --izhodisce-celo (privzeto a459aeb – naloga 11a, korak 2; prej b9cc1f4 – korak 1,
+//     6fadd53, pred tem jo je spremenila naloga 10 in korak 3, ob nalogi je bilo e52f994 brez odstavka »Z okencem
+//     Pokaži …«); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
 //
 // Korak 3 (O7–O11) – reševalec, filter korakov in okrogel »↑«, pri 320, 375 (dotik) in 1280 px (miška), primer P_14:
 //   - okence »Pokaži« v oznaki pod naslovom kartice »Koraki reševanja«, nad števcem, do desnega roba vsebine kartice,
@@ -62,8 +63,8 @@ const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga6b'));
 const korak = Number(arg('--korak', '4'));
-const izhodisce = arg('--izhodisce', 'e52f994');
-const izhodisceCelo = arg('--izhodisce-celo', 'b9cc1f4');
+const izhodisce = arg('--izhodisce', 'a459aeb');
+const izhodisceCelo = arg('--izhodisce-celo', 'a459aeb');
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
 
@@ -560,10 +561,8 @@ Korak 2 – okno Pomoč vseh treh: kazalo tehnik enako izhodišču ${izhodisce},
     const k = `${a.ime} ${s}`, n = nova[k], st = stara[k], sc = celaStara[k];
     const razSlogi = st.slogi.map((x, i) => (x !== n.slogi[i] ? n.drevo[i] : null)).filter(Boolean);
     const razPol = st.polozaji.map((x, i) => (x !== n.polozaji[i] ? `${n.drevo[i]} ${x} → ${n.polozaji[i]}` : null)).filter(Boolean);
-    // Naloga 11a: imeni 9 in 11 v title/aria-label vrstic kazala sta novi - v izhodišču se preslikata.
-    const imena11a = h => h.replace(/Veriga ene števke/g, 'Kratka X-veriga').replace(/XY-Wing, Y-Wing/g, 'XY-Wing');
-    const drevoSt = st.drevo.map(imena11a), htmlSt = imena11a(st.html);
-    preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču ${izhodisce} (z imeni iz 11a)`,
+    const drevoSt = st.drevo, htmlSt = st.html;
+    preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču ${izhodisce}`,
       J(n.drevo) === J(drevoSt) && n.html === htmlSt && razSlogi.length === 0 && razPol.length === 0,
       { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === htmlSt });
     if (!a.celo) continue;
