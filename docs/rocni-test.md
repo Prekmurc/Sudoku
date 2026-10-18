@@ -439,6 +439,8 @@ in posnetek igre (brez razlik); popravek P2 – test v `tests/navigacija.test.js
 
 ## Naloga 10 – filtri in razvrščanje v zbirki (igra, reševalec)
 
+**Naloga 10 je zaključena 2026-10-18** – točke 1–5 potrjene 2026-10-18.
+
 Načrt `docs/naloga10-nacrt.md` (razdelka 7 in 9). Avtomatsko preverjeno: testi `tests/zbirka-filtri.test.js` (logika),
 `tests/zbirka-filtri-ui.test.js` (igra), `tests/app-zbirka.test.js` in `tests/zbirka-skupna.test.js` (reševalec,
 skupna izbira), scenarij `tools/preveri-naloga10-brskalnik.js --korak 3` (igra in reševalec pri 320, 375 in 1280 px,
@@ -446,11 +448,11 @@ pravi dotik, klik in tipkovnica), `preveri-pomoc`, `preveri-videz`, `preveri-nav
 
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
-| 1 | igra, telefon | Odpri »Zbirka«, dotakni se vsakega od štirih okenc in izberi kakšno možnost; nato »Počisti filtre«. | Seznam možnosti ima cela imena s števili; seznam ugank se osveži takoj; v zaprtem okencu je predolgo ime skrajšano s »…« in še prepoznavno po številki. | Seznama možnosti (izbirnik sistema telefona) brskalnik brez glave ne izriše; berljivost presodiš sam. |
-| 2 | reševalec, monitor | Odpri »Zbirka«: izbira iz točke 1 (če je nisi počistil) ali nova izbira v igri mora biti tudi tu; v okencu odpri seznam z miško in pritisni Esc. | Ista izbira kot v igri; Esc zapre samo seznam možnosti, okno ostane (drugi Esc ga zapre). | Skupna izbira na tvoji pravi zbirki in napravi (GitHub Pages ali lokalni strežnik); odprt seznam možnosti z miško je izbirnik sistema. |
-| 3 | igra, monitor | Vklopi filter (npr. Težavnost), poženi »Oceni zbirko«, preglej predloge, nato »Zapiši ocene« ali »Prekliči«. | Vrstica pove, koliko predlogov je skritih; po zapisu se seznam osveži z istimi filtri. Razumljivo, brez presenečenj. | Na tvoji zbirki z resničnimi starimi ocenami; razumljivost presodiš sam. |
-| 4 | igra in reševalec, telefon in monitor | Poglej okno z vklopljenimi in izklopljenimi filtri ter prazen izid. | Jasno je, kateri filtri so vklopljeni (modra obroba), vrstica »Prikazanih …« in »Počisti filtre« sta na pravem mestu; kartice se začnejo dovolj visoko (krajši namig). | Videz in jasnost presodiš sam; scenarij preveri samo mere. |
-| 5 | igra in reševalec, okno Pomoč | Preberi odstavke o filtrih in razvrščanju (igra: »Filtri in razvrščanje«; reševalec: razdelek »Zbirka ugank«, zadnja dva odstavka). | Besedilo je razumljivo in se ujema z oknom; v reševalcu so podrobnosti, ki so odpadle iz namiga. | Razumljivost presodi bralec; testi preverijo samo izraze in ločila. |
+| 1 | igra, telefon | Odpri »Zbirka«, dotakni se vsakega od štirih okenc in izberi kakšno možnost; nato »Počisti filtre«. | Seznam možnosti ima cela imena s števili; seznam ugank se osveži takoj; v zaprtem okencu je predolgo ime skrajšano s »…« in še prepoznavno po številki. (potrjeno 18. 10. 2026) | Seznama možnosti (izbirnik sistema telefona) brskalnik brez glave ne izriše; berljivost presodiš sam. |
+| 2 | reševalec, monitor | Odpri »Zbirka«: izbira iz točke 1 (če je nisi počistil) ali nova izbira v igri mora biti tudi tu; v okencu odpri seznam z miško in pritisni Esc. | Ista izbira kot v igri; Esc zapre samo seznam možnosti, okno ostane (drugi Esc ga zapre). (potrjeno 18. 10. 2026) | Skupna izbira na tvoji pravi zbirki in napravi (GitHub Pages ali lokalni strežnik); odprt seznam možnosti z miško je izbirnik sistema. |
+| 3 | igra, monitor | Vklopi filter (npr. Težavnost), poženi »Oceni zbirko«, preglej predloge, nato »Zapiši ocene« ali »Prekliči«. | Vrstica pove, koliko predlogov je skritih; po zapisu se seznam osveži z istimi filtri. Razumljivo, brez presenečenj. (potrjeno 18. 10. 2026) | Na tvoji zbirki z resničnimi starimi ocenami; razumljivost presodiš sam. |
+| 4 | igra in reševalec, telefon in monitor | Poglej okno z vklopljenimi in izklopljenimi filtri ter prazen izid. | Jasno je, kateri filtri so vklopljeni (modra obroba), vrstica »Prikazanih …« in »Počisti filtre« sta na pravem mestu; kartice se začnejo dovolj visoko (krajši namig). (potrjeno 18. 10. 2026) | Videz in jasnost presodiš sam; scenarij preveri samo mere. |
+| 5 | igra in reševalec, okno Pomoč | Preberi odstavke o filtrih in razvrščanju (igra: »Filtri in razvrščanje«; reševalec: razdelek »Zbirka ugank«, zadnja dva odstavka). | Besedilo je razumljivo in se ujema z oknom; v reševalcu so podrobnosti, ki so odpadle iz namiga. (potrjeno 18. 10. 2026) | Razumljivost presodi bralec; testi preverijo samo izraze in ločila. |
 
 ## Zakaj ročno
 

@@ -18,7 +18,7 @@ lahka-seme-1, lahka-seme-197, srednja-a) in ostanejo testne uganke.
 
 ## Pokritost tehnik
 
-Stanje 2026-09-24 za spodnjih osem ugank, z vrstnim redom tehnik po zahtevnosti znotraj
+Stanje 2026-10-18 za spodnjih deset ugank (vrstni red tehnik iz 2026-09-24), z vrstnim redom tehnik po zahtevnosti znotraj
 ravni (glej `CLAUDE.md`, razdelek Arhitektura, in `docs/tehnike.md`). »Uporabljena« pomeni, da `solve()`
 korak te tehnike v dnevniku dejansko izvede; »samo najdena« pomeni, da funkcija tehnike
 vzorec v kakem vmesnem stanju najde, a ga `solve()` ne izbere, ker prej najde korak
@@ -28,15 +28,15 @@ zbirke bi zaprla katero vrzel.
 
 | Tehnika | Št. ugank | Uporabljena v |
 |---|---|---|
-| Gol enojček, Skriti enojček | 8 | vseh osem |
-| Pointing pair/triple | 7 | vse razen lahka-seme-1 (od 2026-09-24; prej ne v oakever-ekstrem-lv4 in srednja-a) |
-| Box-line reduction | 4 | hard-17-a, example-app, oakever-ekstrem-17-a, srednja-a (od 2026-09-24; prej samo hard-17-a in example-app) |
-| Turbot Fish | 4 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a, oakever-ekstrem-17-b |
-| Hidden pair | 3 | hard-17-a, example-app, oakever-ekstrem-17-b |
+| Gol enojček, Skriti enojček | 10 | vseh deset |
+| Pointing pair/triple | 9 | vse razen lahka-seme-1 (od 2026-09-24; prej ne v oakever-ekstrem-lv4 in srednja-a) |
+| Box-line reduction | 6 | hard-17-a, example-app, oakever-ekstrem-17-a, srednja-a, xy-veriga-17, x-veriga-17 (od 2026-09-24; prej samo hard-17-a in example-app) |
+| Turbot Fish | 5 | hard-17-a, oakever-ekstrem-lv4, oakever-ekstrem-17-a, oakever-ekstrem-17-b, xy-veriga-17 |
+| Hidden pair | 4 | hard-17-a, example-app, oakever-ekstrem-17-b, x-veriga-17 |
 | Naked triple | 3 | hard-17-a, oakever-ekstrem-17-a, srednja-a |
 | **W-Wing** | **2** | oakever-ekstrem-lv4, oakever-ekstrem-17-b (od 2026-09-20 ne več v hard-17-a) |
-| **Naked pair** | **1** | samo oakever-ekstrem-17-a; od 2026-09-24 (preseki pred očitnim parom) ne več v hard-17-a, oakever-ekstrem-lv4, example-app in srednja-a – tam te korake zdaj naredita preseka |
-| **Hidden triple** | **1** | samo srednja-a (blok); od 2026-09-20 ne več v example-app in oakever-ekstrem-17-b – tam je samo najdena |
+| **Naked pair** | **2** | oakever-ekstrem-17-a, xy-veriga-17; od 2026-09-24 (preseki pred očitnim parom) ne več v hard-17-a, oakever-ekstrem-lv4, example-app in srednja-a – tam te korake zdaj naredita preseka |
+| **Hidden triple** | **2** | srednja-a (blok), xy-veriga-17; od 2026-09-20 ne več v example-app in oakever-ekstrem-17-b – tam je samo najdena |
 | **X-Wing** | **1** | samo oakever-ekstrem-lv4 (tam dvakrat) |
 | **Unique Rectangle** | **1** | samo oakever-ekstrem-lv4; od 2026-09-20 ne več v hard-17-a |
 | **Swordfish** | **0** | samo najdena (v vseh); `solve()` je ne izbere, ker X-Wing ali tehnika pred njim najde korak prej (od 2026-09-24 je Swordfish pred Turbot Fish) |
@@ -50,7 +50,7 @@ Vsaka tehnika iz `ALL_TECHNIQUES` je v teh ugankah vsaj *najdena*, zato je vsako
 pokriti z neposrednim testom nad posnetkom stanja (kot pri Turbot Fish, W-Wing in
 XY-Wing), brez novih ugank. Za pokritost prek dnevnika `solve()` manjkata Swordfish in
 XY-Wing (1–2 novi uganki, ena, če bi ena uganka zahtevala obe), na eni sami uganki pa
-slonijo Naked pair, Hidden triple, X-Wing in Unique Rectangle. Teh tehnik iskanje po
+slonita X-Wing in Unique Rectangle (Naked pair in Hidden triple sta od xy-veriga-17 na dveh). Teh tehnik iskanje po
 težavnosti ne zadene zanesljivo – odloča vrstni red v `ALL_TECHNIQUES`: Swordfish pride na
 vrsto šele, ko odpove X-Wing, XY-Wing šele, ko odpovesta tudi Turbot Fish in W-Wing, Naked
 pair pa šele, ko odpovesta oba preseka.
