@@ -28,7 +28,7 @@
      srednja    - najtežja raven so srednje tehnike (1-6)
      težka      - brez napredne tehnike (7-12) ne gre, ena zadošča; srednjih koliko koli
      zelo težka - ena napredna tehnika ne zadošča (nobena posamezna skupaj z lažjimi)
-     ekstrem    - ekspertna tehnika (13, XY-veriga)
+     ekstremna  - ekspertna tehnika (13, XY-veriga)
    Stopnje se izključujejo in pokrijejo vsako uganko, ki jo motor reši brez ugibanja.
    Na 600 naključnih minimalnih ugankah (meritev 2026-10-04) je delež 55,0 / 23,7 / 19,5 / 1,9 %
    ugank brez ugibanja (pred točko 4 okoli 8 % zelo težkih), 21,2 % vseh pa presega tehnike.
@@ -41,7 +41,7 @@
                       (GEN_NAJMANJ_SREDNJIH), da ne stoji na eni sami tehniki nad
                       enojčki, pri težki pa še največ štiri različne tehnike nad enojčki
                       (GEN_TEZKA_NAJVEC), da ustvarjena Težka ostane jasno pod Zelo težko.
-                      Stopnja brez ustrezaIskanju se ne ustvarja (Ekstrem ga ima od
+                      Stopnja brez ustrezaIskanju se ne ustvarja (Ekstremna ga ima od
                       XY-verige, korak 7).
    Vsak ustrezaIskanju je podmnožica svojega ustreza, sicer bi ustvarjena uganka pri
    "Oceni zbirko" dobila drugo težavnost, kot jo ima v zbirki. To preverja
@@ -49,7 +49,7 @@
 
    Iskanje traja v povprečju 0,3 s (lahka), 0,8 s (srednja), 1,0 s (težka) in 4,0 s
    (zelo težka - uganko da pribl. vsako 38. seme), najdlje pribl. 10 s (meritev 2026-10-04,
-   docs/tehnike.md); ekstrem pribl. 1,3 s (uganko da pribl. vsako 12. seme, seme največ 0,5 s -
+   docs/tehnike.md); ekstremna pribl. 1,3 s (uganko da pribl. vsako 12. seme, seme največ 0,5 s -
    meritev 2026-10-08 v Node, docs/xy-veriga-nacrt.md).
 
    Z moznosti.strogoSrednja zahteva srednja stopnja par IN trojico na poti - to je
@@ -81,47 +81,51 @@ const OCENA_BREZ_RESITVE = 'Brez rešitve';
 // TEZAVNOSTI v shared/zbirka.js), da se imeni stopnje in težavnosti ne moreta
 // razdvojiti. `najvecjaPrednost` pove, kdaj se iskanje najboljše uganke lahko
 // ustavi (glej prednost v oceniStopnjo). Stopnja brez `ustrezaIskanju` se ne ustvarja.
+// `anglesko` je angleško ime za značke težavnosti tehnik (napisTezavnosti(); naloga 11a, 1.5);
+// ključ 'ekstrem' ostane ob preimenovanju v »Ekstremna« (shramba sudoku.igra.stopnja, orodja).
+// Ravni »napredna« in »ekspertna« sta samo v kodi - besedila za uporabnika govorijo o tehnikah
+// 7–12 in 13 (odločitev 2026-10-18).
 // Opisa sta edini vir besedila o stopnjah (docs/uskladitev.md 5.2): `opis` je merilo
 // ocene (`ustreza` - »Oceni zbirko«, ročni vnos, uvoz), `opisIskanja` merilo generatorja
 // (`ustrezaIskanju` - okno »Nova uganka«, namig miške na gumbu stopnje). Izpiše ju igra
 // (okno »Nova uganka« in Pomoč), v HTML ju ni.
 const STOPNJE_UGANK = [
   {
-    kljuc: 'lahka', ime: 'Lahka', najvecjaPrednost: 1,
+    kljuc: 'lahka', ime: 'Lahka', anglesko: 'Easy', najvecjaPrednost: 1,
     ustreza: (m) => m.tehNad === 0,
     ustrezaIskanju: (m) => m.tehNad === 0,
     opis: 'se reši samo z enojčki, torej brez zapisanih kandidatov',
     opisIskanja: 'se reši samo z enojčki, torej brez zapisanih kandidatov',
   },
   {
-    kljuc: 'srednja', ime: 'Srednja', najvecjaPrednost: 1,
+    kljuc: 'srednja', ime: 'Srednja', anglesko: 'Medium', najvecjaPrednost: 1,
     ustreza: (m) => m.srednje >= 1 && m.napredne === 0 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 0 && m.ekspertne === 0 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
     opis: 'potrebuje srednje tehnike (1–6 – izločitve izven bloka in v bloku, pari in trojice)',
     opisIskanja: 'potrebuje vsaj dve različni srednji tehniki (1–6 – izločitve izven bloka in v bloku, pari in trojice)',
   },
   {
-    kljuc: 'tezka', ime: 'Težka', najvecjaPrednost: 1,
+    kljuc: 'tezka', ime: 'Težka', anglesko: 'Hard', najvecjaPrednost: 1,
     ustreza: (m) => m.napredne === 1 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne === 1 && m.ekspertne === 0
       && m.srednje >= GEN_NAJMANJ_SREDNJIH && m.tehNad <= GEN_TEZKA_NAJVEC,
-    opis: 'brez napredne tehnike (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča',
-    opisIskanja: 'brez napredne tehnike (7–12 – X-krilo, mečarica, veriga ene števke, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča; poleg nje vsaj dve srednji in skupaj največ štiri tehnike nad enojčki',
+    opis: 'brez tehnike 7–12 (X-krilo, mečarica, kratka X-veriga, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča',
+    opisIskanja: 'brez tehnike 7–12 (X-krilo, mečarica, kratka X-veriga, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča; poleg nje vsaj dve srednji in skupaj največ štiri tehnike nad enojčki',
   },
   {
-    kljuc: 'zelotezka', ime: 'Zelo težka', najvecjaPrednost: 1,
+    kljuc: 'zelotezka', ime: 'Zelo težka', anglesko: 'Very Hard', najvecjaPrednost: 1,
     ustreza: (m) => m.napredne >= 2 && m.ekspertne === 0,
     ustrezaIskanju: (m) => m.napredne >= 2 && m.ekspertne === 0 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
-    opis: 'ena napredna tehnika ne zadošča – potrebuje vsaj dve različni',
-    opisIskanja: 'ena napredna tehnika ne zadošča – potrebuje vsaj dve različni in vsaj dve srednji',
+    opis: 'ena tehnika 7–12 ne zadošča – potrebuje vsaj dve različni',
+    opisIskanja: 'ena tehnika 7–12 ne zadošča – potrebuje vsaj dve različni in vsaj dve srednji',
   },
   {
-    kljuc: 'ekstrem', ime: 'Ekstrem', najvecjaPrednost: 1,
+    kljuc: 'ekstrem', ime: 'Ekstremna', anglesko: 'Extreme', najvecjaPrednost: 1,
     ustreza: (m) => m.ekspertne >= 1,
-    // Generator ponudi Ekstrem od XY-verige, korak 7 (O9 v docs/xy-veriga-nacrt.md).
+    // Generator ponudi Ekstremno od XY-verige, korak 7 (O9 v docs/xy-veriga-nacrt.md).
     ustrezaIskanju: (m) => m.ekspertne >= 1 && m.srednje >= GEN_NAJMANJ_SREDNJIH,
-    opis: 'potrebuje ekspertno tehniko (13 – XY-veriga)',
-    opisIskanja: 'potrebuje ekspertno tehniko (13 – XY-veriga) in vsaj dve srednji',
+    opis: 'potrebuje tehniko 13 (XY-veriga)',
+    opisIskanja: 'potrebuje tehniko 13 (XY-veriga) in vsaj dve srednji',
   },
 ];
 
@@ -137,6 +141,20 @@ const OPIS_STROZJEGA_ISKANJA = 'Generator je strožji od ocene, ker ponudi samo 
 
 function stopnjaUganke(kljuc) {
   return STOPNJE_UGANK.find(s => s.kljuc === kljuc) || null;
+}
+
+// Težavnost tehnike (ključ ALL_TECHNIQUES): najnižja stopnja uganke, ki tehniko potrebuje -
+// stopnja, ki ji ustreza množica samo te tehnike (iz ravni, kot stopnjaTehnike() v
+// shared/vaje-uganka.js). Vnos STOPNJE_UGANK ali null (poskus, neznan ključ). Značke
+// tehnik v treningu in v Pomoči (naloga 11a, 1.5).
+function tezavnostTehnike(kljuc) {
+  if (ravenTehnike(kljuc) === null) return null;
+  return STOPNJE_UGANK.find(s => s.ustreza(genMere(new Set([kljuc])))) || null;
+}
+
+// Napis težavnosti z angleškim imenom v oklepaju: »Težka (Hard)«; značka ga izpiše z velikimi črkami.
+function napisTezavnosti(stopnja) {
+  return `${stopnja.ime} (${stopnja.anglesko})`;
 }
 
 /* ---------- naključnost (ponovljiva) ---------- */

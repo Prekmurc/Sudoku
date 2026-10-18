@@ -5,11 +5,11 @@
 //     mreži zaporedne številke 1–5 v celicah verige, korak 34 veriga šestih celic, povzetek z 13;
 //   - igra, ista uganka: po 30 korakih dnevnika »Naslednji korak« (brez posega v kodo) najde verigo
 //     - oznaka »13 · XY-veriga«, tretja stopnja s številkami;
-//   - trening: kartica 13 (značka EKSPERTNA v turkizni, naslov, številka), »Spoznaj« s pravimi kliki
+//   - trening: kartica 13 (značka EKSTREMNA (EXTREME) v turkizni, naslov, številka), »Spoznaj« s pravimi kliki
 //     (izbira celic verige, »Preveri« → »Pravilno!«, številke ostanejo), »Vadi v uganki« s pravimi
 //     kliki in tipko Shift+števka na QWERTZ (vaja najdena, oznaka, navodilo »Za števko z poišči
 //     XY-verigo …«, izbris koraka → »Pravilno!«);
-//   - Pomoč v vseh treh aplikacijah: Ekstrem v seznamu stopenj (reševalec, igra), »Tehnike« s 15
+//   - Pomoč v vseh treh aplikacijah: Ekstremna v seznamu stopenj (reševalec, igra), »Tehnike« s 15
 //     tehnikami, zadnja »13 · XY-veriga (XY-Chain)« z značko »ekspertna«;
 //   - brez vodoravnega preliva in brez napak JS. Posnetki v mapo (--mapa).
 //
@@ -141,7 +141,7 @@ async function trening(b, sirina) {
       znacka: z.textContent, razred: z.className, barva: s.color, ozadje: s.backgroundColor,
       naslov: h.textContent, stevilka: getComputedStyle(h, '::before').content, povzetek: c.querySelector('p').textContent }; })()`);
   preveri('15 kartic, kartica 13 zadnja', k.kartic === 15 && k.zadnja, k);
-  preveri('značka EKSPERTNA v turkizni', k.znacka === 'EKSPERTNA' && k.razred === 'badge badge-ekspertna' && k.barva === TURQ && k.ozadje === TURQ_BG, k);
+  preveri('značka EKSTREMNA (EXTREME) v turkizni', k.znacka === 'EKSTREMNA (EXTREME)' && k.razred === 'badge badge-ekspertna' && k.barva === TURQ && k.ozadje === TURQ_BG, k);
   preveri('naslov »XY-veriga (XY-Chain)« s številko 13', k.naslov === 'XY-veriga (XY-Chain)' && k.stevilka.includes('13'), [k.naslov, k.stevilka]);
   preveri('brez vodoravnega preliva (meni)', !(await preliv(b)));
 
@@ -200,15 +200,15 @@ async function pomoc(b, sirina, stran, gumb, stopnjeId, tehnikeId) {
   await b.klikni(gumb);
   if (stopnjeId) {
     const s = await b.izvedi(`[...document.querySelectorAll('#${stopnjeId} > li')].map(li => li.textContent)`);
-    preveri(`${stran}: pet stopenj, zadnja Ekstrem`, s.length === 5 && s[4] === 'ekstrem potrebuje ekspertno tehniko (13 – XY-veriga)', s);
+    preveri(`${stran}: pet stopenj, zadnja Ekstremna`, s.length === 5 && s[4] === 'ekstremna potrebuje tehniko 13 (XY-veriga)', s);
   }
   const t = await b.izvedi(`(() => { const el = document.getElementById('${tehnikeId}'); const lis = el.querySelectorAll('ul.tehnike > li');
     const z = lis[lis.length - 1]; const r = z.querySelector('.tehnika-raven'); const s = getComputedStyle(r);
     return { uvod: el.querySelector('p').textContent, n: lis.length, oznaka: z.querySelector('.tehnika-oznaka').textContent, ime: z.querySelector('b').textContent,
       raven: r.textContent, barva: s.color, ozadje: s.backgroundColor, shema: !!z.querySelector('details.tehnika-shema') }; })()`);
-  preveri(`${stran}: uvod »v štirih ravneh … ekspertne (13)«`, t.uvod.startsWith('Tehnike so v štirih ravneh: lahke (E1, E2), srednje (1–6), napredne (7–12) in ekspertne (13)'), t.uvod);
-  preveri(`${stran}: 15 tehnik, zadnja »13 · XY-veriga (XY-Chain)« z značko »ekspertna« v turkizni in shemo`,
-    t.n === 15 && t.oznaka === '13 · ' && t.ime === 'XY-veriga (XY-Chain)' && t.raven === 'ekspertna' && t.barva === TURQ && t.ozadje === TURQ_BG && t.shema, t);
+  preveri(`${stran}: uvod »Značka pove … ekstremna (13)« (naloga 11a)`, t.uvod.startsWith('Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje: lahka (E1–E2), srednja (1–6), težka (7–12) in ekstremna (13)'), t.uvod);
+  preveri(`${stran}: 15 tehnik, zadnja »13 · XY-veriga (XY-Chain)« z značko »EKSTREMNA (EXTREME)« v turkizni in shemo`,
+    t.n === 15 && t.oznaka === '13 · ' && t.ime === 'XY-veriga (XY-Chain)' && t.raven === 'EKSTREMNA (EXTREME)' && t.barva === TURQ && t.ozadje === TURQ_BG && t.shema, t);
   preveri(`${stran}: brez vodoravnega preliva`, !(await preliv(b)));
 }
 

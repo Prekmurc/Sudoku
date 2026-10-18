@@ -2,7 +2,7 @@
 // Zapis uganke v zbirki (shared/zbirka.js):
 //   - težavnosti (TEZAVNOSTI): prvih pet so natanko stopnje, sledijo "Presega tehnike",
 //     "Več rešitev" in "Brez rešitve"; stara imena (Začetnik, Preprosto, Srednje, Težko,
-//     Ekspert) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna -,
+//     Ekspert, Ekstrem) se preslikajo v nova - ob branju zbirke in ob uvozu iz Markdowna -,
 //     neznano ime (tudi nekdanji "Drugo") postane prazno; nova uganka brez težavnosti
 //     (ročni vnos) in uvožena brez znane težavnosti jo dobita z oceniTezavnost();
 //   - izvor (ZBIRKA_IZVORI): ali je uganko ustvaril generator ali je vnesena ročno;
@@ -26,7 +26,7 @@
 //   - tehnike v zapisu (zbirkaPodatkiResevanja) so po vrstnem redu tehnik
 //     (redTehnike), ne po pogostosti; izvoz "Tehnike" ima slovenska imena (vsi
 //     poskusi v eni postavki), uvoz bere nova imena in stare ključe (brez presledkov
-//     na robovih, ne glede na velike/male črke).
+//     na robovih, ne glede na velike/male črke) in stara slovenska imena (Veriga ene števke).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -43,7 +43,7 @@ const E = loadEngine(undefined, {
       removeItem: k => shramba.delete(k),
     },
   },
-  names: ['TEZAVNOSTI', 'STARE_TEZAVNOSTI', 'zbirkaTezavnost', 'oceniTezavnost',
+  names: ['TEZAVNOSTI', 'STARE_TEZAVNOSTI', 'STARA_IMENA_TEHNIK', 'zbirkaTezavnost', 'oceniTezavnost',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown', 'STOPNJE_UGANK', 'ZBIRKA_IZVORI', 'ZBIRKA_POLJA',
     'zbirkaIzvor', 'zbirkaOpisIzvora', 'zbirkaShraniResitev', 'zbirkaBeri', 'zbirkaPisi',
     'zbirkaStanjeUganke', 'zbirkaPovzetekIgre', 'zbirkaPovzetekZapisa', 'zbirkaKazalecZapisa',
@@ -59,7 +59,7 @@ const E = loadEngine(undefined, {
 const danosti = loadPuzzles()[0].danosti.replace(/\./g, '0');
 
 test('TEZAVNOSTI: pet stopenj in tri oznake uganke brez stopnje', () => {
-  assert.deepEqual([...E.TEZAVNOSTI], ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem',
+  assert.deepEqual([...E.TEZAVNOSTI], ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstremna',
     'Presega tehnike', 'Več rešitev', 'Brez rešitve']);
   // Prvih pet so imena stopenj iz shared/generator.js.
   assert.deepEqual([...E.TEZAVNOSTI].slice(0, 5), [...E.STOPNJE_UGANK].map(s => s.ime));
@@ -72,6 +72,7 @@ test('zbirkaTezavnost(): stara imena se preslikajo, nova ostanejo', () => {
     'Srednje': 'Srednja',
     'Težko': 'Težka',
     'Ekspert': 'Zelo težka',
+    'Ekstrem': 'Ekstremna',
   });
   for (const [staro, novo] of Object.entries(E.STARE_TEZAVNOSTI)) {
     assert.equal(E.zbirkaTezavnost(staro), novo, staro);
@@ -105,8 +106,9 @@ test('uvoz iz Markdowna: neznano ime težavnosti postane prazno, znano ostane', 
   assert.equal(E.zbirkaIzMarkdowna(vrstice('Oakever Lv4')).zapisi[0].tezavnost, '');
   assert.equal(E.zbirkaIzMarkdowna(vrstice('Drugo')).zapisi[0].tezavnost, '');
   assert.equal(E.zbirkaIzMarkdowna(vrstice('Zelo težka')).zapisi[0].tezavnost, 'Zelo težka');
-  // Stari "Ekstrem" (prej: ugibanje) se ne preslika - popravi ga "Oceni zbirko".
-  assert.equal(E.zbirkaIzMarkdowna(vrstice('Ekstrem')).zapisi[0].tezavnost, 'Ekstrem');
+  // Stari "Ekstrem" je od 2026-10-18 "Ekstremna" (naloga 11a).
+  assert.equal(E.zbirkaIzMarkdowna(vrstice('Ekstrem')).zapisi[0].tezavnost, 'Ekstremna');
+  assert.equal(E.zbirkaIzMarkdowna(vrstice('Ekstremna')).zapisi[0].tezavnost, 'Ekstremna');
   assert.equal(E.zbirkaIzMarkdowna(vrstice('Več rešitev')).zapisi[0].tezavnost, 'Več rešitev');
 });
 
@@ -164,7 +166,7 @@ test('zbirkaShraniResitev(): izvor se zapiše ob nastanku in se pozneje ne sprem
   assert.equal(nov.tezavnost, 'Lahka');
 
   // Ponovno reševanje (npr. iste uganke v reševalcu) izvora in težavnosti ne povozi.
-  const znova = E.zbirkaShraniResitev(danosti, board, log, { tezavnost: 'Ekstrem', izvor: 'rocno' });
+  const znova = E.zbirkaShraniResitev(danosti, board, log, { tezavnost: 'Ekstremna', izvor: 'rocno' });
   assert.equal(znova.izvor, 'generator', 'izvor ostane');
   assert.equal(znova.tezavnost, 'Lahka', 'težavnost ostane');
   assert.equal(E.zbirkaBeri().length, 1, 'ista uganka se ne podvoji');
@@ -194,7 +196,7 @@ test('zbirkaShraniResitev(): brez težavnosti jo izračuna z oceniTezavnost()', 
 test('izvoz in uvoz: vrstica Izvor gre skozi datoteko', () => {
   const zbirka = [
     { danosti, tezavnost: 'Lahka', izvor: 'generator', dodano: '2026-09-20 10:00', nazadnje: '', opomba: '' },
-    { danosti: danosti.replace('8', '0'), tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 11:00', nazadnje: '', opomba: '' },
+    { danosti: danosti.replace('8', '0'), tezavnost: 'Ekstremna', izvor: 'rocno', dodano: '2026-09-20 11:00', nazadnje: '', opomba: '' },
     { danosti: danosti.replace('7', '0'), tezavnost: 'Težka', izvor: '', dodano: '2026-09-20 12:00', nazadnje: '', opomba: '' },
   ];
   const md = E.zbirkaVMarkdown(zbirka);
@@ -464,7 +466,7 @@ test('izvoz in uvoz: Zadnje reševanje, Stanje ("12/57", "· napaka"), Ocenjeno 
     { danosti, tezavnost: 'Lahka', izvor: 'generator', dodano: '2026-09-21 16:33',
       igrano: cas, izpolnjeno: danih + 12, napaka: false,
       nazadnje: '2026-09-21 16:40', reseno: 81, koraki: 34, ugibanje: 0, tehnike: [], opomba: '' },
-    { danosti: d2, tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-21 17:00',
+    { danosti: d2, tezavnost: 'Ekstremna', izvor: 'rocno', dodano: '2026-09-21 17:00',
       igrano: '2026-09-22 11:00', izpolnjeno: 81, napaka: true, nazadnje: '', opomba: '' },
     { danosti: d3, tezavnost: 'Težka', izvor: '', dodano: '2026-09-21 18:00',
       igrano: '2026-09-22 12:00', izpolnjeno: 81, napaka: false, nazadnje: '', opomba: '' },
@@ -574,6 +576,8 @@ test('zbirkaBeri(): stari zapisi primerov se odstranijo, igra primera ostane', (
     { danosti: danostiPrimera(0), tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 10:30' },
     { danosti, tezavnost: 'Ekstrem', izvor: 'rocno', dodano: '2026-09-20 11:00' },
   ]));
+  // Stari "Ekstrem" v shrambi se ob branju preslika (naloga 11a).
+  assert.equal(E.zbirkaBeri()[0].tezavnost, 'Ekstremna');
   shramba.set(E.IGRA_KLJUC, JSON.stringify({ zadnja: d, igre: { [d]: igra() } }));
 
   const zbirka = [...E.zbirkaBeri()];
@@ -751,7 +755,7 @@ test('primeri: imena P_1 … P_16 po vrsti, skupine po stopnji z naslovi', () =>
   assert.equal(E.PRIMERI.length, 16);
   const s = E.zbirkaSkupinePrimerov();
   assert.deepEqual([...s.map(x => x.naslov)],
-    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstrem · tehnika', 'Presega tehnike']);
+    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstremna · tehnika', 'Presega tehnike']);
   assert.deepEqual([...s.flatMap(x => x.primeri.map(p => p.ime))], [...E.PRIMERI.map(p => p.ime)], 'skupine ohranijo vrstni red');
   assert.equal(E.PRIMERI[E.PRIMERI.length - 1].tezavnost, 'Presega tehnike', 'presega tehnike je zadnji');
 });
@@ -775,7 +779,7 @@ test('zbirkaTehnikeZapisa(): dnevnik reševanja, pot ocene pri težki, poskus ko
   const z = { tezavnost: 'Srednja', tehnike: [['Skriti enojček', 9], ['Gol enojček', 3], ['Naked pair', 1], ['Poskus in protislovje', 2]] };
   assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(z)), 'Tehnike: E1, E2, 3 Očitni par in ugibanje');
   const t = { tezavnost: 'Težka', potOcene: ['Gol enojček', 'Pointing pair/triple', 'Turbot Fish'], tehnike: [['XY-Wing', 1]] };
-  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(t)), 'Tehnike: E1, 1 Izločitev izven bloka in 9 Veriga ene števke');
+  assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa(t)), 'Tehnike: E1, 1 Izločitev izven bloka in 9 Kratka X-veriga');
   assert.equal(E.zbirkaBesediloTehnik(E.zbirkaTehnikeZapisa({ tezavnost: 'Lahka' })), 'Tehnike: ni podatkov');
 });
 
@@ -848,6 +852,10 @@ test('uvoz tehnik: nova imena in stari ključi dajo iste ključe', () => {
   const stara = 'Skriti enojček 30, Gol enojček 27, Naked pair 2, Hidden triple 1, Pointing pair/triple 1, XY-Wing 1, Poskus in protislovje (forcing chain) 1';
   assert.deepEqual(kotPolje(uvoziTehnike(nova)), pricakovano, 'nova imena');
   assert.deepEqual(kotPolje(uvoziTehnike(stara)), pricakovano, 'stari ključi, urejeni po vrstnem redu tehnik');
+  // Staro slovensko ime (pred 2026-10-18) se preslika v ključ (naloga 11a).
+  assert.deepEqual({ ...E.STARA_IMENA_TEHNIK }, { 'Veriga ene števke': 'Turbot Fish' });
+  assert.deepEqual(kotPolje(uvoziTehnike('Očitni par 1, Veriga ene števke 2, veriga ENE števke 1')), [['Naked pair', 1], ['Turbot Fish', 3]]);
+  assert.deepEqual(kotPolje(uvoziTehnike('Kratka X-veriga 2')), [['Turbot Fish', 2]]);
   // Neznano ime ostane (zbirkaKratkoImeTehnike() ga izpiše z imenom).
   assert.deepEqual(kotPolje(uvoziTehnike('Očitni par 2, Stara tehnika 1')), [['Naked pair', 2], ['Stara tehnika', 1]]);
 });

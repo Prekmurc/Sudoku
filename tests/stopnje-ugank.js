@@ -6,7 +6,8 @@
 // zgoščena vrednost dnevnika solve() do prvega poskusa (brez njega ves dnevnik).
 //
 // Danosti so v posnetku, ker se banka in primeri v koraku 6 ustvarijo znova - primerjajo se
-// uganke, ki so bile v njih pred vklopom. Posnetek je narejen na kodi pred korakom 6 (4f4652d);
+// uganke, ki so bile v njih pred vklopom. Posnetek je narejen na kodi pred korakom 6 (4f4652d) in
+// znova v nalogi 11a (novo ime 9 v sporočilih korakov, banka 397 in primeri 16);
 // nov posnetek samo, če je sprememba ocene namerna: node tests/stopnje-ugank.js --shrani
 const crypto = require('node:crypto');
 const fs = require('node:fs');

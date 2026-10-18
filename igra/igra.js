@@ -1061,7 +1061,7 @@ try {
 
 // Opisi stopenj so samo v STOPNJE_UGANK (shared/generator.js, docs/uskladitev.md 5.2), v HTML
 // jih ni: okno "Nova uganka" pove merilo generatorja, Pomoč merilo ocene stopenj, ki jih uganka
-// lahko dobi (stopnjeZaPomoc() - Ekstrem šele, ko motor pozna ekspertno tehniko), in eno poved o
+// lahko dobi (stopnjeZaPomoc() - Ekstremna šele, ko motor pozna ekspertno tehniko), in eno poved o
 // tem, v čem je generator strožji (OPIS_STROZJEGA_ISKANJA - popravek po ročnem pregledu faze 6:
 // en seznam, ne dva). izpisiStopnje() je v shared/pomoc.js.
 izpisiStopnje(document.getElementById('stopnjeNova'), STOPNJE_GENERATORJA, 'opisIskanja');

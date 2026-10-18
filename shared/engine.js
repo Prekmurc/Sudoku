@@ -429,9 +429,9 @@ function turbotFish(b) {
             variant = 'Two-String Kite';
           }
           const patternName = {
-            'Skyscraper': 'vzorec Nebotičnik (Skyscraper, veriga ene števke)',
-            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (2-String Kite, veriga ene števke)',
-            'Turbot Fish': 'verigo ene števke (Turbot Fish)',
+            'Skyscraper': 'vzorec Nebotičnik (Skyscraper, kratka X-veriga)',
+            'Two-String Kite': 'vzorec Zmaj z dvema vrvicama (2-String Kite, kratka X-veriga)',
+            'Turbot Fish': 'kratko X-verigo (Turbot Fish)',
           }[variant];
           // Enota, ki povezuje B in C: prednost ima vrstica/stolpec (UNITS_OF je v
           // vrstnem redu vrstice, stolpci, bloki).
@@ -770,6 +770,8 @@ function oznakaTehnike(kljuc) {
 // - ime: slovensko ime, anglesko: angleško ime (docs/uskladitev.md 1.3) - za prikaz
 //   ju sestavi imeTehnike() ("Skriti par (Hidden Pair)" = naslov kartice v
 //   trening/index.html),
+// - drugaAngleska (neobvezno): dodatna angleška imena - samo v oknu Pomoč pod imenom
+//   tehnike, ne v imeTehnike() (odločitev 2026-10-18, docs/imena-tehnik.md),
 // - povzetek: ena kratka poved - kartica v meniju treninga in besedilo pod nalogo
 //   (trening/index.html ima nadomestek, enak polju; izpolni ga trening.js),
 // - razlaga: kako vzorec prepoznaš,
@@ -816,6 +818,7 @@ const TEHNIKE_OPISI = {
   'pointing': {
     ime: 'Izločitev izven bloka',
     anglesko: 'Pointing Pair/Triple',
+    drugaAngleska: ['Pointing'],
     povzetek: 'Če je števka v bloku mogoča samo v eni vrstici (ali stolpcu), jo izbrišeš iz te vrstice (ali stolpca) zunaj bloka.',
     razlaga: 'Poglej blok in v njem eno števko. Če ležijo vse celice bloka, kjer je ta števka še kandidat, v isti vrstici (ali v istem stolpcu), si našel vzorec – dve ali tri celice. Smer: iz bloka v vrstico.',
     posledica: 'V bloku mora biti števka v eni od teh celic, torej v tej vrstici. Zato v vrstici zunaj bloka ne more biti – tam jo izbrišeš. Pri stolpcu enako.',
@@ -824,6 +827,7 @@ const TEHNIKE_OPISI = {
   'box-line': {
     ime: 'Izločitev v bloku',
     anglesko: 'Box-Line Reduction',
+    drugaAngleska: ['Claiming', 'Box/Line Intersection'],
     povzetek: 'Če je števka v vrstici (ali stolpcu) mogoča samo v enem bloku, jo izbrišeš iz preostanka tega bloka.',
     razlaga: 'Poglej vrstico (ali stolpec) in v njej eno števko. Če ležijo vse celice vrstice, kjer je ta števka še kandidat, v istem bloku, si našel vzorec – dve ali tri celice. Smer: iz vrstice v blok.',
     posledica: 'V vrstici mora biti števka v eni od teh celic, torej v tem bloku. Zato drugje v bloku ne more biti – iz celic bloka zunaj vrstice jo izbrišeš. Pri stolpcu enako.',
@@ -862,8 +866,9 @@ const TEHNIKE_OPISI = {
     navodilo: 'Izberi vse celice vzorca, nato izbriši kandidate, ki zaradi njega odpadejo.',
   },
   'turbot-fish': {
-    ime: 'Veriga ene števke',
+    ime: 'Kratka X-veriga',
     anglesko: 'Turbot Fish',
+    drugaAngleska: ['Skyscraper', '2-String Kite'],
     povzetek: 'Dve povezavi iste števke se z enim koncem vidita – števko izbrišeš iz celic, ki vidijo oba druga konca. (Povezava je vrstica ali stolpec, kjer je števka mogoča samo v dveh celicah; celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku.)',
     razlaga: 'Za eno števko poišči dve povezavi. Povezava je vrstica ali stolpec, v katerem je števka mogoča samo v dveh celicah – to sta konca povezave. Povezavi sta lahko dve vrstici, dva stolpca ali vrstica in stolpec. En konec prve povezave mora videti en konec druge: celici se vidita, kadar sta v isti vrstici, stolpcu ali bloku. Če sta povezavi dve vrstici (ali dva stolpca) in sta konca, ki se vidita, v istem stolpcu (ali vrstici), je to Nebotičnik (Skyscraper). Če sta povezavi vrstica in stolpec in sta konca, ki se vidita, v istem bloku, je to Zmaj z dvema vrvicama (2-String Kite).',
     posledica: 'Konca, ki se vidita, ne moreta imeti števke oba. Če je ni na enem od njiju, je na drugem koncu njegove povezave – zato je števka vsaj na enem od preostalih dveh koncev. Iz celic, ki vidijo oba ta konca, jo izbrišeš.',
@@ -879,7 +884,8 @@ const TEHNIKE_OPISI = {
   },
   'xy-wing': {
     ime: 'XY-krilo',
-    anglesko: 'XY-Wing, Y-Wing',
+    anglesko: 'XY-Wing',
+    drugaAngleska: ['Y-Wing'],
     povzetek: 'Pivot (osrednja celica) {x, y} vidi krili {x, z} in {y, z} – z izbrišeš iz celic, ki vidijo obe krili.',
     razlaga: 'Poišči pivot (osrednjo celico) z natanko dvema kandidatoma {x, y}. Nato poišči dve krili – celici z natanko dvema kandidatoma, ki ju pivot vidi (sta z njim v isti vrstici, stolpcu ali bloku): eno krilo ima {x, z}, drugo {y, z}. Krili si delita števko z, ki je pivot nima.',
     posledica: 'Če je v pivotu x, krilo {x, z} ne more biti x, zato je z. Če je v pivotu y, je z v krilu {y, z}. V enem od kril je torej z – iz vseh celic, ki vidijo obe krili, z izbrišeš.',

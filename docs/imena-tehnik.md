@@ -47,7 +47,7 @@ Dodatna angleška imena so samo v Pomoči, ne na karticah in v kazalu:
 
 ## 3. Značke na karticah treninga
 
-Značka pove, v kateri težavnosti uganke se tehnika pojavi.
+Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje (popravek ob potrditvi načrta 11a – ne »v kateri se pojavi«: tehnika 1 se pojavi tudi v težkih ugankah).
 
 | Tehnike | Prej | Zdaj |
 |---|---|---|

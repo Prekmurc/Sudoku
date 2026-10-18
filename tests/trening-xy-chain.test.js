@@ -66,7 +66,7 @@ test('polja vaje: mode, veriga, solutionVeriga, brez polja digit', () => {
   exercises.forEach((ex, n) => {
     assert.equal(ex.mode, 'xy-chain', `vaja ${n}`);
     assert.equal(ex.solutionVeriga, true, `vaja ${n}`);
-    // Polje digit bi izris cele mreže v trening.js poudaril (kot pri veriga ene števke).
+    // Polje digit bi izris cele mreže v trening.js poudaril (kot pri kratki X-verigi).
     assert.equal(ex.digit, undefined, `vaja ${n}`);
     assert.ok(ex.unitLabel.startsWith('XY-veriga'), `vaja ${n}`);
     // Prazne celice so natanko celice vaje.

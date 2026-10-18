@@ -245,6 +245,10 @@ test('shramba: ključ, privzeta izbira, zapis in branje, pokvarjen zapis', () =>
   assert.equal(run(`zbirkaFiltriPisi(${S(f)})`), true);
   assert.deepEqual(JSON.parse(shramba.get(K)), f);
   assert.deepEqual(J('zbirkaFiltriBeri()'), f);
+  // Staro ime težavnosti se preslika kot v zbirki (STARE_TEZAVNOSTI - naloga 11a), sicer bi
+  // shranjeni filter »Ekstrem« ob odprtju okna izginil.
+  shramba.set(K, JSON.stringify({ ...f, tezavnost: 'Ekstrem' }));
+  assert.deepEqual(J('zbirkaFiltriBeri()'), { ...f, tezavnost: 'Ekstremna' });
   shramba.set(K, '{pokvarjeno');
   assert.deepEqual(J('zbirkaFiltriBeri()'), BREZ);
   shramba.set(K, JSON.stringify({ tezavnost: 5, stanje: 'neznano', tehnika: ['x'], razvrsti: 'abc', drugo: 1 }));

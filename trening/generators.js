@@ -780,7 +780,7 @@ function poskusPolnePoShemi(mode,n){
   };
   if(turbot){
     ex.poShemi.risba={st:n+1,ime:risba.naslov.replace(/ \(.*\)$/,'')};
-    return Object.assign(ex,{digit:stevka.x,variant:k.variant,unitLabel:`Veriga ene števke: ${stevka.x}`});
+    return Object.assign(ex,{digit:stevka.x,variant:k.variant,unitLabel:`Kratka X-veriga za števko ${stevka.x}`});
   }
   if(mode==='w-wing') return Object.assign(ex,{digits:[stevka.x,stevka.y],pair:vzorec,link:vzorec2,unitLabel:'W-krilo: celici para in celici povezave'});
   if(mode==='xy-wing') return Object.assign(ex,{unitLabel:'XY-krilo: pivot in dve krili'});
@@ -1156,7 +1156,7 @@ function genTurbotFish(n){
       boardGrid:board.grid,boardCand:board.cand,
       solutionCells:match.cells,solutionEliminate:match.eliminate,solutionMessage:match.message,
       distractor:dis,
-      unitLabel:`Veriga ene števke: ${d}`,
+      unitLabel:`Kratka X-veriga za števko ${d}`,
     };
   }
   return genTurbotFish(n+2);
@@ -1281,7 +1281,7 @@ function genWWing(n){
      'konca-brez-skupne' - zaporedne celice se vidijo, celica, ki vidi oba konca, ima števko
         prvega konca, a zadnji konec je nima (njegova druga števka je w); generator preveri,
         da bi xyChain() z njo namesto w verigo našel.
-   Polje števke je z, ne digit - tega izris cele mreže v trening.js poudari (veriga ene števke).
+   Polje števke je z, ne digit - tega izris cele mreže v trening.js poudari (kratka X-veriga).
    Vnos v MODES: 'xy-chain' (kartica 13, korak 6). */
 
 // Pot m celic zunaj `used`: zaporedni celici se vidita (razen para (prekinjen, prekinjen+1),

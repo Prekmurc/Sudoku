@@ -66,8 +66,8 @@ async function aplikacija(b, a, sirina) {
   preveri('panel je v oknu (levo in desno)', m.panel[0] >= 0 && m.panel[1] <= m.zaslon[0] + 0.5, m.panel);
   preveri('brez vodoravnega drsnika (stran in okno)', !m.stranPreliv && !m.oknoPreliv, m);
   preveri(`razdelki (${m.razdelkov}) in seznam tehnik (${m.tehnik})`, m.razdelkov >= 4 && m.tehnik === 15, m);
-  preveri('značke ravni: E1, E2 lahka, 1–6 srednja, 7–12 napredna, 13 ekspertna, barve oznak korakov',
-    m.ravni.map(r => r.besedilo).join(',') === ['lahka', 'lahka', ...Array(6).fill('srednja'), ...Array(6).fill('napredna'), 'ekspertna'].join(',')
+  preveri('značke težavnosti (naloga 11a): E1, E2 LAHKA (EASY), 1–6 SREDNJA (MEDIUM), 7–12 TEŽKA (HARD), 13 EKSTREMNA (EXTREME), barve oznak korakov',
+    m.ravni.map(r => r.besedilo).join(',') === ['LAHKA (EASY)', 'LAHKA (EASY)', ...Array(6).fill('SREDNJA (MEDIUM)'), ...Array(6).fill('TEŽKA (HARD)'), 'EKSTREMNA (EXTREME)'].join(',')
       && m.ravni.every(r => r.ok), m.ravni);
   await b.posnetek(path.join(mapa, `${a.ime}-${sirina}-okno.png`), { vsaStran: false });
   await b.izvedi(`document.querySelector(${JSON.stringify(a.okno)} + ' .tehnike').scrollIntoView({ block: 'start' }); true`);

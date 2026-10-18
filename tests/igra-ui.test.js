@@ -746,7 +746,7 @@ test('"Izbriši vse" v igri pri prazni zbirki: počisti sirote, šele nato "Zbir
 test('igra vgrajenega primera v zbirko ne doda', () => {
   const dom = makeDom();
   const { run } = loadContext(DATOTEKE, dom.globals);
-  run(`dodajVZbirko(${JSON.stringify(run('primeriIgre[1].danosti'))}, 'Ekstrem', 'rocno')`);
+  run(`dodajVZbirko(${JSON.stringify(run('primeriIgre[1].danosti'))}, 'Ekstremna', 'rocno')`);
   assert.equal(run('zbirkaBeri().length'), 0);
 });
 
@@ -790,7 +790,7 @@ test('vgrajeni primeri: privzeto zaprti, v naslovu število primerov', () => {
   assert.equal(run("document.getElementById('primeriSeznam').children.filter(li => li.className !== 'zb-skupina').length"), run('PRIMERI.length'), 'kartice primerov so izrisane');
   // Skupine po stopnji: naslov skupine pred njenimi primeri.
   assert.deepEqual([...run("document.getElementById('primeriSeznam').children.filter(li => li.className === 'zb-skupina').map(li => li.textContent)")],
-    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstrem · tehnika', 'Presega tehnike']);
+    ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstremna · tehnika', 'Presega tehnike']);
   assert.equal(run("document.getElementById('primeriSeznam').children[1].children[0].textContent"), 'P_1 · enojčki');
 });
 
@@ -956,10 +956,10 @@ test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih
   const seznam = id => dom.el(id).children.map(li => li.textContent);
   const opisi = (stopnje, polje) => [...run(`${stopnje}.map(s => s.ime.toLowerCase() + ' ' + s.${polje})`)];
   assert.deepEqual(seznam('stopnjeNova'), opisi('STOPNJE_GENERATORJA', 'opisIskanja'));
-  // Ekstrem (ekspertna tehnika) je v seznamu, ker ga motor pozna (XY-veriga, korak 6): pet stopenj.
+  // Ekstremna (tehnika 13) je v seznamu, ker jo motor pozna (XY-veriga, korak 6): pet stopenj.
   assert.deepEqual(seznam('stopnjeOcena'), opisi('STOPNJE_UGANK', 'opis'));
   assert.equal(seznam('stopnjeOcena').length, 5);
-  assert.equal(seznam('stopnjeOcena')[4], 'ekstrem potrebuje ekspertno tehniko (13 – XY-veriga)');
+  assert.equal(seznam('stopnjeOcena')[4], 'ekstremna potrebuje tehniko 13 (XY-veriga)');
   assert.deepEqual([...run('GEN_EKSPERTNE')], ['XY-Chain']);
   assert.equal(dom.el('stopnjeStrozje').textContent, run('OPIS_STROZJEGA_ISKANJA'));
   assert.match(dom.el('stopnjeStrozje').textContent, /^Generator je strožji od ocene/);
@@ -977,7 +977,7 @@ test('opisi stopenj: okno »Nova uganka« in Pomoč iz STOPNJE_UGANK, v HTML jih
 });
 
 // Gumbi stopenj v oknu »Nova uganka« so natanko STOPNJE_GENERATORJA (XY-veriga, korak 7 – O9: od
-// takrat tudi Ekstrem); izbira se zapomni po osvežitvi. Besedila Pomoči, ki stopnje generatorja
+// takrat tudi Ekstremna); izbira se zapomni po osvežitvi. Besedila Pomoči, ki stopnje generatorja
 // naštejejo v HTML, se ujemajo z istim seznamom, poved o strožjem generatorju omeni vsako stopnjo
 // razen lahke.
 test('gumbi stopenj v oknu »Nova uganka« iz STOPNJE_GENERATORJA, Pomoč jih našteje', () => {

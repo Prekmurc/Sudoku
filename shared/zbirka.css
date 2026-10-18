@@ -30,7 +30,7 @@
    seznamom primerov v reševalcu. */
 .znacka-tezavnosti{ font-size:10.5px; padding:2px 7px; vertical-align:1px; }
 /* »Zelo težka« – vijolična kot »Težka« (.tag.t-advanced), a s srednje močno podlago in temno pisavo;
-   »Ekstrem« enako v turkizni (ekspertna raven, .tag.t-expert). */
+   »Ekstremna« enako v turkizni (tehnika 13, .tag.t-expert). */
 .tag.znacka-zelo-tezka{ background: var(--purple-dark); color: var(--purple-dark-ink); }
 .tag.znacka-ekstrem{ background: var(--turq-dark); color: var(--turq-dark-ink); }
 

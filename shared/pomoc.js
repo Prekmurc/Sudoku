@@ -144,8 +144,19 @@ function ustvariPomoc(okno, gumbi) {
   return { odpri, zapri, odprto };
 }
 
-// Razdelek »Tehnike« v okno Pomoč (element el): poved o ravneh in seznam E1, E2, 1-13 z oznako,
-// imenom (angleško ime v oklepaju), značko ravni ter razlago in posledico v dveh odstavkih
+// Razpon oznak tehnik ene ravni (RAVNI_TEHNIK): »E1–E2«, »1–6«, »13« - iz podatkov, brez
+// dobesednih številk (naloga 11a, razdelek 4).
+function razponRavni(raven) {
+  const oznake = [...TRENING_ENOJCKA, ...TRENING_TEHNIKE].filter(([, t]) => RAVNI_TEHNIK[raven].includes(t))
+    .map(([k]) => oznakaTehnike(k));
+  return oznake.length > 1 ? `${oznake[0]}–${oznake[oznake.length - 1]}` : oznake[0];
+}
+
+// Razdelek »Tehnike« v okno Pomoč (element el): uvod o težavnosti tehnik (pomen značke, razponi
+// iz RAVNI_TEHNIK, stavek o Zelo težki - naloga 11a, 1.5) in seznam E1, E2, 1-13 z oznako,
+// imenom (angleško ime v oklepaju), značko težavnosti (kot na kartici v treningu), pri 1, 2, 9
+// in 11 vrstico dodatnih angleških imen (TEHNIKE_OPISI.drugaAngleska - samo tu) ter razlago in
+// posledico v dveh odstavkih
 // (TEHNIKE_OPISI - popravek po ročnem pregledu faze 6) - vse iz shared/engine.js, zato je enako
 // v vseh treh aplikacijah. Pod posledico pri 1-13 zložljivo »Shema«, privzeto zaprto
 // (izrisiShemo() iz shared/sheme.js; faza 3a, korak 4 - 12 odprtih shem bi okno na telefonu
@@ -154,8 +165,12 @@ function ustvariPomoc(okno, gumbi) {
 // kazalo v meniju treninga; naloga 4c, korak 3, O2): klik pomakne do tehnike.
 function izrisiTehnike(el) {
   const uvod = document.createElement('p');
-  uvod.textContent = 'Tehnike so v štirih ravneh: lahke (E1, E2), srednje (1–6), napredne (7–12) in ekspertne (13) – '
-    + 'v treningu jih kažejo značke na karticah. Stopnja uganke je raven njene najtežje tehnike.';
+  const ravni = Object.keys(RAVNI_TEHNIK)
+    .map(r => `${tezavnostTehnike(RAVNI_TEHNIK[r][0]).ime.toLowerCase()} (${razponRavni(r)})`);
+  uvod.textContent = 'Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje: '
+    + `${ravni.slice(0, -1).join(', ')} in ${ravni[ravni.length - 1]}. `
+    + 'Težavnost uganke je težavnost njene najtežje tehnike. '
+    + `Zelo težka je uganka, ki potrebuje vsaj dve različni tehniki ${razponRavni('napredna')}.`;
   const ul = document.createElement('ul');
   ul.className = 'tehnike';
   const poKljucu = {};
@@ -167,16 +182,24 @@ function izrisiTehnike(el) {
     oznaka.textContent = oznakaTehnike(kljuc) + ' · ';
     const ime = document.createElement('b');
     ime.textContent = imeTehnike(tehnika);
-    // Značka ravni (ravenTehnike()) v barvi oznake koraka (.tag.t-* v shared/base.css) - kot
-    // značke na karticah treninga (docs/faza7-nacrt.md, točka 1.1).
+    // Značka težavnosti (tezavnostTehnike() iz shared/generator.js) v barvi oznake koraka
+    // (.tag.t-* v shared/base.css) - kot značke na karticah treninga.
     const raven = document.createElement('span');
     raven.className = `tag ${tagClass(tehnika)} tehnika-raven`;
-    raven.textContent = ravenTehnike(tehnika);
+    raven.textContent = napisTezavnosti(tezavnostTehnike(tehnika)).toUpperCase();
+    const druga = TEHNIKE_OPISI[kljuc].drugaAngleska;
     const razlaga = document.createElement('p');
     razlaga.textContent = TEHNIKE_OPISI[kljuc].razlaga;
     const posledica = document.createElement('p');
     posledica.textContent = TEHNIKE_OPISI[kljuc].posledica;
-    li.append(oznaka, ime, ' ', raven, razlaga, posledica);
+    li.append(oznaka, ime, ' ', raven);
+    if (druga) {
+      const p = document.createElement('p');
+      p.className = 'tehnika-druga';
+      p.textContent = (druga.length > 1 ? 'Druga angleška imena: ' : 'Drugo angleško ime: ') + druga.join(', ');
+      li.appendChild(p);
+    }
+    li.append(razlaga, posledica);
     const shema = typeof izrisiShemo === 'function' ? izrisiShemo(kljuc) : null;
     if (shema) {
       const d = document.createElement('details');
@@ -209,7 +232,7 @@ function izpisiStopnje(el, stopnje, polje) {
   }
 }
 
-// Stopnje, ki jih uganka lahko dobi: Ekstrem (ekspertna tehnika) šele, ko jo motor pozna.
+// Stopnje, ki jih uganka lahko dobi: Ekstremna (ekspertna tehnika) šele, ko jo motor pozna.
 function stopnjeZaPomoc() {
   return STOPNJE_UGANK.filter(s => s.kljuc !== 'ekstrem' || GEN_EKSPERTNE.length);
 }

@@ -88,6 +88,8 @@
 .tehnike .tehnika-raven{ font-size:10px; vertical-align:1px; }
 .tehnike p{ margin:2px 0 0; }
 .tehnike p + p{ margin-top:4px; }
+/* Dodatna angleška imena pod imenom tehnike (1, 2, 9, 11 - naloga 11a, 1.3): pripis, manjše in sivo. */
+.tehnike .tehnika-druga{ margin-top:0; font-size:12.5px; color: var(--ink2); }
 /* Shema vzorca pod posledico (1-12), zložljivo, privzeto zaprto (faza 3a, korak 4). */
 .tehnike .tehnika-shema{ margin-top:4px; }
 .tehnike .tehnika-shema summary{ cursor:pointer; color:var(--blue); font-weight:600; font-size:13px; width:max-content; }

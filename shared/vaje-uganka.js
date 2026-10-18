@@ -268,7 +268,7 @@ function preveriVajo(vaja, stanje, predlog = null) {
 
 /* ---------- stopnja uganke za vajo (docs/vadi-v-uganki-nacrt.md, točka 16) ---------- */
 
-// Stopnje v vrstnem redu izbire: STOPNJE_UGANK (Lahka ... Ekstrem), nato "Presega tehnike".
+// Stopnje v vrstnem redu izbire: STOPNJE_UGANK (Lahka ... Ekstremna), nato "Presega tehnike".
 function stopnjeZaVajo() {
   return [...STOPNJE_UGANK.map(s => s.ime), OCENA_PRESEGA];
 }

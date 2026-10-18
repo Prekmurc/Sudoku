@@ -17,28 +17,29 @@
 
 const ZBIRKA_KLJUC = 'sudoku.zbirka.v1';
 // Težavnosti (opredelitev 2026-09-24, docs/uskladitev.md, razdelek 7): prvih pet so
-// natanko stopnje (STOPNJE_UGANK v shared/generator.js, polje `ime`; Ekstrem =
-// ekspertna tehnika), sledijo oznake uganke brez stopnje iz oceniTezavnost():
+// natanko stopnje (STOPNJE_UGANK v shared/generator.js, polje `ime`; Ekstremna =
+// tehnika 13), sledijo oznake uganke brez stopnje iz oceniTezavnost():
 // "Presega tehnike" (motor bi moral ugibati), "Več rešitev" in "Brez rešitve".
 // Težavnost, ki je ni mogoče določiti (neznana vrednost iz uvoza, nepreverjena
 // enoličnost), je prazna - "težavnost ni določena".
-const TEZAVNOSTI = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem',
+const TEZAVNOSTI = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstremna',
   'Presega tehnike', 'Več rešitev', 'Brez rešitve'];
 // Imena težavnosti iz starejših zapisov (shramba tega brskalnika in stari izvozi).
-// Preslikajo se ob branju zbirke in ob uvozu; v shrambo se novo ime zapiše ob
-// prvem naslednjem shranjevanju.
+// Preslikajo se ob branju zbirke, filtrov okna zbirke in ob uvozu; v shrambo se novo
+// ime zapiše ob prvem naslednjem shranjevanju. "Ekstrem" je od 2026-10-18 "Ekstremna"
+// (naloga 11a); do 2026-09-24 je pomenil ugibanje - tak zapis popravi "Oceni zbirko".
 const STARE_TEZAVNOSTI = {
   'Začetnik': 'Lahka',
   'Preprosto': 'Lahka',
   'Srednje': 'Srednja',
   'Težko': 'Težka',
   'Ekspert': 'Zelo težka',
+  'Ekstrem': 'Ekstremna',
 };
 
 // Težavnost v veljavnem zapisu: novo ime, staro ime preslikano, prazno ostane
 // prazno, karkoli drugega (tudi nekdanja oznaka "Drugo") postane prazno - uvoz tako
-// težavnost izračuna (zbirkaUvozi). Stari "Ekstrem" (prej: ugibanje) ostane; popravi
-// ga gumb "Oceni zbirko" v igri.
+// težavnost izračuna (zbirkaUvozi).
 function zbirkaTezavnost(v) {
   if (zbirkaPrazno(v)) return '';
   if (TEZAVNOSTI.includes(v)) return v;
@@ -80,7 +81,7 @@ function zbirkaOpisIzvora(z) {
 // igranja primera je samo v shranjenih igrah (sudoku.igra.v1). '.' = prazna celica.
 // Seznam ustvari izbor tools/izberi-primere.js (ponovi ga ob novi tehniki ali spremembi
 // motorja / generatorja): en primer za vsako stopnjo in vsako tehniko E1, E2, 1-13 - lahka,
-// srednja za vsako tehniko 1-6, težka za vsako tehniko 7-12, zelo težka, ekstrem za vsako
+// srednja za vsako tehniko 1-6, težka za vsako tehniko 7-12, zelo težka, ekstremna za vsako
 // tehniko 13 in presega tehnike. Urejeni so po stopnji in nato po tehniki. Polja: `tezavnost` (oceniUganko() iz
 // shared/generator.js), `glavna` (tehnike, po katerih je primer izbran; pri lahki in pri
 // presega tehnike prazno), `tehnike` (pot ocene - pri vseh primerih natanko tehnike
@@ -129,7 +130,7 @@ const PRIMERI = [
   { ime: 'P_14', tezavnost: 'Zelo težka', glavna: ['Turbot Fish', 'XY-Wing'], ugibanje: 0,
     tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Naked pair', 'Hidden pair', 'Turbot Fish', 'XY-Wing'],
     danosti: '741.89................3...8..8..7.9....4...759.....6.2.65913....7.........3....5.' }, // generator, seme 59
-  { ime: 'P_15', tezavnost: 'Ekstrem', glavna: ['XY-Chain'], ugibanje: 0,
+  { ime: 'P_15', tezavnost: 'Ekstremna', glavna: ['XY-Chain'], ugibanje: 0,
     tehnike: ['Gol enojček', 'Skriti enojček', 'Pointing pair/triple', 'Box-line reduction', 'Hidden pair', 'XY-Chain'],
     danosti: '23.......1...7..8.......9.5..81...5......7.2...1..9..3....9...1..95.8..4.8..6...7' }, // banka, seme 194
   { ime: 'P_16', tezavnost: 'Presega tehnike', glavna: [], ugibanje: 1,
@@ -215,7 +216,7 @@ function zbirkaBesediloTehnik(deli) {
   return 'Tehnike: ' + (deli ? zbirkaNastej(deli.map(d => d.besedilo)) : 'ni podatkov');
 }
 
-// Vrstica primera v seznamu: »P_8 · 7 X-krilo«, »P_14 · 9 Veriga ene števke in 11 XY-krilo«,
+// Vrstica primera v seznamu: »P_8 · 7 X-krilo«, »P_14 · 9 Kratka X-veriga in 11 XY-krilo«,
 // pri lahki »P_1 · enojčki«, pri presega tehnike »P_15 · z ugibanjem«.
 function zbirkaNaslovPrimera(p) {
   const glavna = p.glavna.length ? zbirkaNastej(p.glavna.map(zbirkaKratkoImeTehnike))
@@ -584,9 +585,10 @@ function zbirkaUrediTehnike(tehnike) {
 const ZBIRKA_POSKUS = POSKUS_KLJUC + ' (forcing chain)';
 
 // Tehnike za izvoz "**Tehnike:**": slovensko ime brez oklepaja (imeTehnike() v
-// shared/engine.js - angleško ime ne gre, ker "XY-Wing, Y-Wing" vsebuje vejico, po
-// kateri uvoz loči tehnike). Vsi ključi poskusa so ena postavka "Poskus in
-// protislovje N", neznan ključ ostane. V shrambi ostanejo ključi.
+// shared/engine.js - angleško ime ne gre: oklepaj ni del imena, ki ga uvoz išče, in
+// angleška imena bi lahko vsebovala vejico, po kateri uvoz loči tehnike). Vsi ključi
+// poskusa so ena postavka "Poskus in protislovje N", neznan ključ ostane. V shrambi
+// ostanejo ključi.
 function zbirkaTehnikeZaIzvoz(tehnike) {
   const skupaj = new Map();
   for (const [t, n] of zbirkaUrediTehnike(tehnike)) {
@@ -596,13 +598,21 @@ function zbirkaTehnikeZaIzvoz(tehnike) {
   return [...skupaj].map(([ime, n]) => `${ime} ${n}`).join(', ');
 }
 
-// Ključ motorja iz imena tehnike v uvozu: novo slovensko ime (izvoz od faze 4) ali
-// stari ključ (starejši izvozi), brez presledkov na robovih in ne glede na velike in
-// male črke. Vsak poskus je ZBIRKA_POSKUS; neznano ime ostane, kot je.
+// Stara slovenska imena tehnik iz izvozov (ime -> ključ motorja): "Veriga ene števke" je
+// od 2026-10-18 "Kratka X-veriga" (naloga 11a).
+const STARA_IMENA_TEHNIK = {
+  'Veriga ene števke': 'Turbot Fish',
+};
+
+// Ključ motorja iz imena tehnike v uvozu: novo slovensko ime (izvoz od faze 4), staro
+// slovensko ime (STARA_IMENA_TEHNIK) ali stari ključ (starejši izvozi), brez presledkov na
+// robovih in ne glede na velike in male črke. Vsak poskus je ZBIRKA_POSKUS; neznano ime
+// ostane, kot je.
 function zbirkaKljucTehnike(ime) {
   const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
   const iskano = norm(ime);
   if (iskano.startsWith(norm(POSKUS_KLJUC))) return ZBIRKA_POSKUS;
+  for (const [staro, k] of Object.entries(STARA_IMENA_TEHNIK)) if (norm(staro) === iskano) return k;
   for (const [k] of ALL_TECHNIQUES) {
     if (norm(k) === iskano || norm(imeTehnike(k, { anglesko: false })) === iskano) return k;
   }
@@ -1139,7 +1149,7 @@ function zbirkaFiltriBeri() {
   try { s = JSON.parse(localStorage.getItem(ZBIRKA_FILTRI_KLJUC) || 'null'); } catch (e) { s = null; }
   const izbira = { ...ZBIRKA_BREZ_FILTROV };
   if (!s || typeof s !== 'object' || Array.isArray(s)) return izbira;
-  if (typeof s.tezavnost === 'string') izbira.tezavnost = s.tezavnost;
+  if (typeof s.tezavnost === 'string') izbira.tezavnost = STARE_TEZAVNOSTI[s.tezavnost] || s.tezavnost;
   if (ZBIRKA_STANJA.some(x => x.kljuc === s.stanje)) izbira.stanje = s.stanje;
   if (typeof s.tehnika === 'string') izbira.tehnika = s.tehnika;
   if (ZBIRKA_RAZVRSTI.some(x => x.kljuc === s.razvrsti)) izbira.razvrsti = s.razvrsti;

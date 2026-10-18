@@ -1,18 +1,18 @@
 'use strict';
-// XY-veriga, korak 7 (generator ponudi Ekstrem - O9 v docs/xy-veriga-nacrt.md) v pravem brskalniku
+// XY-veriga, korak 7 (generator ponudi Ekstremno - O9 v docs/xy-veriga-nacrt.md) v pravem brskalniku
 // pri 375 in 1280 px:
 //   - gumbi stopenj (popravek po ročnem pregledu 2026-10-08): pri 375 in 430 px 3 + 2, pri 320 px 2 + 2 + 1
 //     (kot prej), od 520 px vseh pet v eni vrstici; napisi brez preliva, gumbi enako visoki, v panelu;
-//   - igra, okno »Nova uganka«: pet gumbov stopenj (zadnji »Ekstrem« z namigom merila iskanja), seznam
+//   - igra, okno »Nova uganka«: pet gumbov stopenj (zadnji »Ekstremna« z namigom merila iskanja), seznam
 //     meril generatorja s petimi stopnjami, gumbi v panelu, brez vodoravnega preliva strani in okna;
-//   - pravi klik na »Ekstrem« in »Ustvari uganko«: iskanje v delavcu (generator-worker.js) najde uganko,
-//     okno se zapre, uganka je v zbirki s težavnostjo Ekstrem in izvorom generator, kartica »Uganka«
-//     ima značko »Ekstrem« (t-expert znacka-ekstrem), sporočilo »Ustvarjena uganka stopnje »Ekstrem««;
+//   - pravi klik na »Ekstremna« in »Ustvari uganko«: iskanje v delavcu (generator-worker.js) najde uganko,
+//     okno se zapre, uganka je v zbirki s težavnostjo Ekstremna in izvorom generator, kartica »Uganka«
+//     ima značko »Ekstremna« (t-expert znacka-ekstrem), sporočilo »Ustvarjena uganka stopnje »Ekstremna««;
 //     v strani preverjeno: countSolutions() = 1, solve() jo reši brez ugibanja z XY-verigo,
-//     oceniTezavnost() = Ekstrem; izbrana stopnja ostane po osvežitvi;
+//     oceniTezavnost() = Ekstremna; izbrana stopnja ostane po osvežitvi;
 //   - reševalec (isti izvor, ista zbirka): uganka vpisana s poljem Niz (vtipkana), »Reši« - mreža
 //     rešena (= solutionOf()), dnevnik brez poskusa, z XY-verigo, korak z oznako »13 · XY-veriga«;
-//   - Pomoč igre: stopnje generatorja z »ekstrem« in »Ekstrem«, poved o strožjem generatorju;
+//   - Pomoč igre: stopnje generatorja z »ekstremna« in »Ekstremna«, poved o strožjem generatorju;
 //   - čas iskanja: pri 1280 px še --iskanj (privzeto 10) iskanj s pravimi kliki - čas in število semen
 //     iz sporočila delavca;
 //   - brez napak JS. Posnetki v mapo (--mapa).
@@ -29,8 +29,8 @@ const { zazeni } = require('./brskalnik.js');
 const args = process.argv.slice(2);
 const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.join(os.tmpdir(), 'sudoku-preveri-generator');
 const ISKANJ = args.includes('--iskanj') ? Number(args[args.indexOf('--iskanj') + 1]) : 10;
-const STOPNJE = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem'];
-const OPIS_ISKANJA = 'potrebuje ekspertno tehniko (13 – XY-veriga) in vsaj dve srednji';
+const STOPNJE = ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstremna'];
+const OPIS_ISKANJA = 'potrebuje tehniko 13 (XY-veriga) in vsaj dve srednji';
 
 let napak = 0;
 function preveri(ime, pogoj, podrobno = '') {
@@ -54,7 +54,7 @@ async function klikniEl(b, izraz) {
 }
 const gumbStopnje = ime => `[...document.querySelectorAll('#stopnjeGumbi button')].find(x => x.textContent === '${ime}')`;
 
-// Ena uganka Ekstrem s pravimi kliki: odpre okno, izbere Ekstrem (če treba), »Ustvari uganko«, počaka.
+// Ena uganka Ekstremna s pravimi kliki: odpre okno, izbere Ekstremno (če treba), »Ustvari uganko«, počaka.
 // Vrne sporočilo delavca { danosti, seme, poskusi, ms } in ali je iskal delavec.
 async function ustvariEkstrem(b) {
   await b.izvedi(`window.najdena = null; window.zDelavcem = null;
@@ -62,7 +62,7 @@ async function ustvariEkstrem(b) {
       obdelajIskanje = m => { if (m.tip === 'najdena') { window.zDelavcem = !!(iskanje && iskanje.worker && !iskanje.vGlavniNiti); window.najdena = m; } return o(m); }; }
     true`);
   await klikniEl(b, `document.getElementById('novaBtn')`);
-  if (!(await b.izvedi(`izbranaStopnja === 'ekstrem'`))) await klikniEl(b, gumbStopnje('Ekstrem'));
+  if (!(await b.izvedi(`izbranaStopnja === 'ekstrem'`))) await klikniEl(b, gumbStopnje('Ekstremna'));
   await klikniEl(b, `document.getElementById('ustvariBtn')`);
   await b.cakaj('!!window.najdena', 35000);
   return b.izvedi('({ ...window.najdena, zDelavcem: window.zDelavcem })');
@@ -103,15 +103,15 @@ async function igra(b, sirina) {
       merila: [...document.querySelectorAll('#stopnjeNova > li')].map(li => li.textContent),
       prelivOkna: panel.scrollWidth > panel.clientWidth }; })()`);
   preveri('okno »Nova uganka« odprto', o.odprt);
-  preveri('pet gumbov stopenj, zadnji »Ekstrem«', JSON.stringify(o.imena) === JSON.stringify(STOPNJE), o.imena);
-  preveri('namig miške na »Ekstrem« = merilo iskanja', o.title[4] === OPIS_ISKANJA, o.title[4]);
-  preveri('seznam meril generatorja: pet stopenj, zadnja ekstrem', o.merila.length === 5 && o.merila[4] === 'ekstrem ' + OPIS_ISKANJA, o.merila);
+  preveri('pet gumbov stopenj, zadnji »Ekstremna«', JSON.stringify(o.imena) === JSON.stringify(STOPNJE), o.imena);
+  preveri('namig miške na »Ekstremna« = merilo iskanja', o.title[4] === OPIS_ISKANJA, o.title[4]);
+  preveri('seznam meril generatorja: pet stopenj, zadnja ekstremna', o.merila.length === 5 && o.merila[4] === 'ekstremna ' + OPIS_ISKANJA, o.merila);
   preveri('gumbi stopenj v panelu, okno brez vodoravnega preliva', o.vPanelu && !o.prelivOkna, o);
   preveri('stran brez vodoravnega preliva', !(await preliv(b)));
-  await klikniEl(b, gumbStopnje('Ekstrem'));
-  const izbira = await b.izvedi(`({ izbrana: izbranaStopnja, pritisnjen: ${gumbStopnje('Ekstrem')}.getAttribute('aria-pressed'),
-    razred: ${gumbStopnje('Ekstrem')}.className, shramba: localStorage.getItem('sudoku.igra.stopnja') })`);
-  preveri('klik »Ekstrem« izbere stopnjo in jo zapomni', izbira.izbrana === 'ekstrem' && izbira.pritisnjen === 'true'
+  await klikniEl(b, gumbStopnje('Ekstremna'));
+  const izbira = await b.izvedi(`({ izbrana: izbranaStopnja, pritisnjen: ${gumbStopnje('Ekstremna')}.getAttribute('aria-pressed'),
+    razred: ${gumbStopnje('Ekstremna')}.className, shramba: localStorage.getItem('sudoku.igra.stopnja') })`);
+  preveri('klik »Ekstremna« izbere stopnjo in jo zapomni', izbira.izbrana === 'ekstrem' && izbira.pritisnjen === 'true'
     && izbira.razred.includes('izbrana') && izbira.shramba === 'ekstrem', izbira);
   await b.posnetek(path.join(mapa, `nova-uganka-${sirina}.png`), { vsaStran: false });
   await klikniEl(b, `document.querySelector('#novaDialog [data-zapri], #novaDialog .dialog-zapri')`);
@@ -129,25 +129,25 @@ async function igra(b, sirina) {
       ocena: oceniTezavnost(${D}).tezavnost, status: document.getElementById('status').textContent,
       znacka: zn && zn.textContent, razred: zn && zn.className }; })()`);
   preveri('okno zaprto, uganka odprta v igri', r.zaprto && r.odprta, r);
-  preveri('v zbirki: težavnost Ekstrem, izvor generator', r.tezavnost === 'Ekstrem' && r.izvor === 'generator', r);
+  preveri('v zbirki: težavnost Ekstremna, izvor generator', r.tezavnost === 'Ekstremna' && r.izvor === 'generator', r);
   preveri('natanko ena rešitev (countSolutions)', r.resitev === 1, r.resitev);
   preveri('solve() jo reši brez ugibanja, z XY-verigo', r.resena && !r.poskus && r.veriga, r);
-  preveri('ocena (oceniTezavnost) Ekstrem', r.ocena === 'Ekstrem', r.ocena);
-  preveri('sporočilo »Ustvarjena uganka stopnje »Ekstrem««', r.status.startsWith('Ustvarjena uganka stopnje »Ekstrem«'), r.status);
-  preveri('kartica »Uganka«: značka Ekstrem (t-expert znacka-ekstrem)', r.znacka === 'Ekstrem' && /t-expert/.test(r.razred) && /znacka-ekstrem/.test(r.razred), r);
+  preveri('ocena (oceniTezavnost) Ekstremna', r.ocena === 'Ekstremna', r.ocena);
+  preveri('sporočilo »Ustvarjena uganka stopnje »Ekstremna««', r.status.startsWith('Ustvarjena uganka stopnje »Ekstremna«'), r.status);
+  preveri('kartica »Uganka«: značka Ekstremna (t-expert znacka-ekstrem)', r.znacka === 'Ekstremna' && /t-expert/.test(r.razred) && /znacka-ekstrem/.test(r.razred), r);
   preveri('stran brez vodoravnega preliva (igra)', !(await preliv(b)));
   await b.posnetek(path.join(mapa, `igra-ekstrem-${sirina}.png`), { vsaStran: false });
 
   await odpri();
-  preveri('izbrana stopnja ostane po osvežitvi', await b.izvedi(`izbranaStopnja === 'ekstrem' && ${gumbStopnje('Ekstrem')}.classList.contains('izbrana')`));
+  preveri('izbrana stopnja ostane po osvežitvi', await b.izvedi(`izbranaStopnja === 'ekstrem' && ${gumbStopnje('Ekstremna')}.classList.contains('izbrana')`));
 
   // Pomoč igre.
   await klikniEl(b, `document.getElementById('navodilaBtn')`);
   const p = await b.izvedi(`(() => { const t = document.getElementById('navodilaDialog').innerText;
-    return { izbere: /izbereš stopnjo \\(lahka, srednja, težka, zelo težka, ekstrem\\)/.test(t),
-      zbirka: /svoje stopnje \\(Lahka, Srednja, Težka, Zelo težka ali Ekstrem\\)/.test(t),
+    return { izbere: /izbereš stopnjo \\(lahka, srednja, težka, zelo težka, ekstremna\\)/.test(t),
+      zbirka: /svoje stopnje \\(Lahka, Srednja, Težka, Zelo težka ali Ekstremna\\)/.test(t),
       strozje: document.getElementById('stopnjeStrozje').textContent }; })()`);
-  preveri('Pomoč: »izbereš stopnjo (… zelo težka, ekstrem)« in »(… Zelo težka ali Ekstrem)«', p.izbere && p.zbirka, p);
+  preveri('Pomoč: »izbereš stopnjo (… zelo težka, ekstremna)« in »(… Zelo težka ali Ekstremna)«', p.izbere && p.zbirka, p);
   preveri('Pomoč: poved o strožjem generatorju z ekstremno', p.strozje.includes('pri srednji, težki, zelo težki in ekstremni zahteva vsaj dve različni srednji tehniki'), p.strozje);
   return n.danosti;
 }
@@ -170,7 +170,7 @@ async function resevalec(b, sirina, danosti) {
   const tag = await b.izvedi(`[...document.querySelectorAll('#steps .tag')].map(t => t.textContent).find(t => t.startsWith('13')) || null`);
   preveri('seznam korakov: oznaka »13 · XY-veriga«', tag === '13 · XY-veriga', tag);
   preveri('brez »Poskus« v seznamu korakov', !(await b.izvedi(`/Poskus in protislovje/.test(document.getElementById('steps').innerText)`)));
-  preveri('reševalec: uganka je v zbirki kot Ekstrem', await b.izvedi(`zbirkaBeri().some(z => z.danosti === '${danosti}' && z.tezavnost === 'Ekstrem')`));
+  preveri('reševalec: uganka je v zbirki kot Ekstremna', await b.izvedi(`zbirkaBeri().some(z => z.danosti === '${danosti}' && z.tezavnost === 'Ekstremna')`));
   preveri('brez vodoravnega preliva (reševalec)', !(await preliv(b)));
 }
 
@@ -193,8 +193,8 @@ async function resevalec(b, sirina, danosti) {
     for (let i = 0; i < ISKANJ; i++) {
       const n = await ustvariEkstrem(b);
       casi.push(n.ms); semena.push(n.poskusi);
-      const ok = await b.izvedi(`countSolutions('${n.danosti}') === 1 && oceniTezavnost('${n.danosti}').tezavnost === 'Ekstrem'`);
-      if (!ok || !n.zDelavcem) preveri(`iskanje ${i + 1}: ena rešitev, Ekstrem, delavec`, false, n);
+      const ok = await b.izvedi(`countSolutions('${n.danosti}') === 1 && oceniTezavnost('${n.danosti}').tezavnost === 'Ekstremna'`);
+      if (!ok || !n.zDelavcem) preveri(`iskanje ${i + 1}: ena rešitev, Ekstremna, delavec`, false, n);
     }
     const urejeni = [...casi].sort((a, b) => a - b);
     const povp = casi.reduce((a, b) => a + b, 0) / casi.length;

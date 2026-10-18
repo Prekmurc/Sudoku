@@ -1,11 +1,13 @@
 'use strict';
 // Vklop XY-verige ne spremeni ocene ugank, ki jih motor reši brez ugibanja
 // (docs/xy-veriga-nacrt.md, korak 6 - test pred spremembo, zelen na stari kodi). Posnetek
-// tests/posnetki/stopnje-ugank.json (tests/stopnje-ugank.js) je narejen pred vklopom: vse
-// uganke iz docs/uganke.md, PRIMERI, vsi zapisi banke vaj in 300 minimalnih ugank.
+// tests/posnetki/stopnje-ugank.json (tests/stopnje-ugank.js) je bil narejen pred vklopom in znova
+// v nalogi 11a (novo ime 9 v sporočilih korakov; prej preverjeno, da stari posnetek z novo kodo in
+// starim imenom 9 nima razlik - docs/naloga11a-nacrt.md, O6): vse uganke iz docs/uganke.md,
+// PRIMERI, vsi zapisi banke vaj in 300 minimalnih ugank.
 //   - Uganka, ki ni »Presega tehnike«: ista težavnost, iste tehnike poti ocene, isti dnevnik
 //     solve() (ves).
-//   - Uganka »Presega tehnike«: ostane »Presega tehnike« ali postane »Ekstrem«; dnevnik solve()
+//   - Uganka »Presega tehnike«: ostane »Presega tehnike« ali postane »Ekstremna«; dnevnik solve()
 //     je do prvega poskusa v posnetku enak (veriga pride šele tam, kjer je bil poskus).
 // Traja pribl. 15 s, zato je med počasnimi.
 // Zagon (vsi testi): node --test "tests/**/*.test.js"
@@ -24,9 +26,9 @@ test('posnetek: vse skupine ugank so zajete', () => {
     const s = z.izvor.split(':')[0];
     skupine[s] = (skupine[s] || 0) + 1;
   }
-  assert.equal(skupine.banka, 356);
+  assert.equal(skupine.banka, 397);
   assert.equal(skupine.minimalna, 300);
-  assert.equal(skupine.PRIMERI, 15);
+  assert.equal(skupine.PRIMERI, 16);
   assert.ok(skupine['uganke.md'] >= 9, JSON.stringify(skupine));
 });
 
@@ -43,7 +45,7 @@ test('stopnja ugank, ki niso »Presega tehnike«, se ne spremeni; dnevnik do prv
       }
       continue;
     }
-    if (!['Presega tehnike', 'Ekstrem'].includes(zdaj.tezavnost)) {
+    if (!['Presega tehnike', 'Ekstremna'].includes(zdaj.tezavnost)) {
       razlike.push(`${z.izvor}: Presega tehnike → ${zdaj.tezavnost}`);
     }
     // Dnevnik do mesta prvega poskusa v posnetku.

@@ -1,7 +1,8 @@
 'use strict';
 // Okno Pomoč (shared/pomoc.js, faza 6, korak c) v igri, reševalcu in treningu - v nadomestnem
 // DOM-u: gumb odpre okno, klik ob oknu in Escape ga zapreta, razdelek »Tehnike« ima v vseh treh
-// aplikacijah isto vsebino (poved o ravneh, E1, E2, 1-13 z oznako, imenom, značko ravni ter razlago
+// aplikacijah isto vsebino (uvod o težavnosti tehnik in stavek o Zelo težki, E1, E2, 1-13 z oznako,
+// imenom, značko težavnosti, dodatnimi angleškimi imeni pri 1, 2, 9 in 11 - naloga 11a - ter razlago
 // in posledico, pri 1-13 zložljivo »Shema«, privzeto zaprto - faza 3a, korak 4), reševalec našteje stopnje, ki jih uganka lahko dobi (z Ekstremom), v treningu ob
 // odprtem oknu tipke ne gredo v ploščo. Videz okna (pokrije zaslon, brez vodoravnega drsnika, ✕)
 // preverja tools/preveri-pomoc-brskalnik.js.
@@ -94,6 +95,21 @@ function nalozi(ime, { okno = false } = {}) {
 const RAVNI = { 'E1': 'lahka', 'E2': 'lahka' };
 for (let i = 1; i <= 12; i++) RAVNI[String(i)] = i <= 6 ? 'srednja' : 'napredna';
 RAVNI['13'] = 'ekspertna';
+// Značka pri tehniki je težavnost tehnike z angleškim imenom (naloga 11a, 1.5) - kot na kartici v treningu.
+const ZNACKE = { lahka: 'LAHKA (EASY)', srednja: 'SREDNJA (MEDIUM)', napredna: 'TEŽKA (HARD)', ekspertna: 'EKSTREMNA (EXTREME)' };
+// Dodatna angleška imena (odločitev 2026-10-18) - samo v Pomoči.
+const DRUGA_ANGLESKA = {
+  'pointing': 'Drugo angleško ime: Pointing',
+  'box-line': 'Druga angleška imena: Claiming, Box/Line Intersection',
+  'turbot-fish': 'Druga angleška imena: Skyscraper, 2-String Kite',
+  'xy-wing': 'Drugo angleško ime: Y-Wing',
+};
+// Razpon oznak tehnik ravni (»E1–E2«, »1–6«, »13«) iz podatkov - brez dobesednih številk (11b doda tehniko).
+function razponRavni(run, raven) {
+  const oznake = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]').filter(([, t]) => run('RAVNI_TEHNIK')[raven].includes(t))
+    .map(([k]) => run('oznakaTehnike')(k));
+  return oznake.length > 1 ? `${oznake[0]}–${oznake[oznake.length - 1]}` : oznake[0];
+}
 
 for (const ime of Object.keys(APLIKACIJE)) {
   test(`${ime}: gumb odpre okno Pomoč, klik ob oknu in Escape ga zapreta`, () => {
@@ -111,19 +127,33 @@ for (const ime of Object.keys(APLIKACIJE)) {
     assert.equal(okno.classList.contains('odprt'), false, 'Escape ga zapre');
   });
 
-  test(`${ime}: razdelek »Tehnike« – poved o ravneh, E1, E2, 1-13, značka ravni, razlaga in posledica v svojih odstavkih`, () => {
+  test(`${ime}: razdelek »Tehnike« – uvod o težavnosti, E1, E2, 1-13, značka težavnosti, druga angleška imena, razlaga in posledica`, () => {
     const { dom, run } = nalozi(ime);
     const [uvod, , ul] = dom.el(APLIKACIJE[ime].tehnike).children;
-    assert.match(uvod.textContent, /^Tehnike so v štirih ravneh: lahke \(E1, E2\), srednje \(1–6\), napredne \(7–12\) in ekspertne \(13\)/);
+    const R = raven => razponRavni(run, raven);
+    assert.equal(uvod.textContent, 'Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje: '
+      + `lahka (${R('lahka')}), srednja (${R('srednja')}), težka (${R('napredna')}) in ekstremna (${R('ekspertna')}). `
+      + 'Težavnost uganke je težavnost njene najtežje tehnike. '
+      + `Zelo težka je uganka, ki potrebuje vsaj dve različni tehniki ${R('napredna')}.`);
+    assert.doesNotMatch(uvod.textContent, /raven|ravn|napredn|ekspertn/);
     const vaje = [...run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]')];
     assert.equal(ul.children.length, 15);
     ul.children.forEach((li, i) => {
       const [kljuc, tehnika] = vaje[i];
-      const [oznaka, ime, , raven, razlaga, posledica] = li.children;
+      const druga = DRUGA_ANGLESKA[kljuc];
+      const [oznaka, ime, , raven, ...ostali] = li.children;
+      if (druga) {
+        assert.equal(ostali[0].className, 'tehnika-druga', `${kljuc}: druga angleška imena pod imenom`);
+        assert.equal(ostali[0].textContent, druga);
+        ostali.shift();
+      }
+      assert.ok(!ostali.some(e => e.className === 'tehnika-druga'), `${kljuc}: druga angleška imena samo pri 1, 2, 9, 11`);
+      const [razlaga, posledica] = ostali;
       const o = run('oznakaTehnike')(kljuc);
       assert.equal(oznaka.textContent, `${o} · `);
       assert.equal(ime.textContent, run('imeTehnike')(tehnika));
-      assert.equal(raven.textContent, RAVNI[o], `${o}: raven`);
+      assert.doesNotMatch(ime.textContent, /Y-Wing,|Claiming|Skyscraper/, `${o}: dodatna imena niso v imenu`);
+      assert.equal(raven.textContent, ZNACKE[run('ravenTehnike')(tehnika)], `${o}: značka težavnosti`);
       assert.equal(raven.className, `tag ${run('tagClass')(tehnika)} tehnika-raven`);
       // Posledica je svoj odstavek, ne zlita z razlago (popravek po ročnem pregledu faze 6).
       assert.equal(razlaga.tagName, 'P');
@@ -132,9 +162,10 @@ for (const ime of Object.keys(APLIKACIJE)) {
       assert.equal(posledica.textContent, run('TEHNIKE_OPISI')[kljuc].posledica);
       // Faza 3a, korak 4: pri 1-13 pod posledico zložljivo »Shema«, privzeto zaprto; E1, E2 brez.
       const shema = run('SHEME_TEHNIK')[kljuc];
-      assert.equal(li.children.length, shema ? 7 : 6, `${o}: shema samo pri 1-13`);
+      const zamik = druga ? 1 : 0;
+      assert.equal(li.children.length, (shema ? 7 : 6) + zamik, `${o}: shema samo pri 1-13`);
       if (shema) {
-        const d = li.children[6];
+        const d = li.children[6 + zamik];
         assert.equal(d.tagName, 'DETAILS');
         assert.equal(d.className, 'tehnika-shema');
         assert.equal(!!d.open, false, `${o}: shema privzeto zaprta`);
@@ -147,7 +178,8 @@ for (const ime of Object.keys(APLIKACIJE)) {
           run('shemaRisbe')(kljuc).map((r, n) => run('svgSheme')(kljuc, n)).join(''), `${o}: ista risba kot v treningu`);
       }
     });
-    assert.ok(/^(E1|E2)$/.test(run('oznakaTehnike')(vaje[0][0])) && ul.children.slice(2).every(li => li.children.length === 7), 'sheme pri vseh 1-13');
+    assert.ok(/^(E1|E2)$/.test(run('oznakaTehnike')(vaje[0][0])) && ul.children.slice(2).every(li => li.children.at(-1).className === 'tehnika-shema'), 'sheme pri vseh 1-13');
+    assert.deepEqual(Object.keys(run('TEHNIKE_OPISI')).filter(k => run('TEHNIKE_OPISI')[k].drugaAngleska), Object.keys(DRUGA_ANGLESKA));
   });
 }
 

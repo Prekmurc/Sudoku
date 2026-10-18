@@ -8,7 +8,7 @@
 // --korak 5. Napisan pred spremembo; na stari kodi sta padla samo testa kontrasta pri »Lahka« in »Srednja«
 // (zelena 4,1, jantarna 3,7 - Darko 2026-10-08: temnejša pisava samo v značkah, --green-ink in --amber-ink),
 // zadnji test pa je bil zelen z današnjim pričakovanjem (brez ekspertne ravni, »Zelo težka« polna temna
-// vijolična z belo pisavo, »Ekstrem« rdeča kot »Presega tehnike«).
+// vijolična z belo pisavo, »Ekstrem« - od naloge 11a »Ekstremna« - rdeča kot »Presega tehnike«).
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -122,18 +122,18 @@ test('»Zelo težka« je jasno temnejša od »Težka«', () => {
   assert.ok(r >= 1.5, `razmerje svetlosti podlag ${r.toFixed(2)} (${zt.podlaga} : ${t.podlaga})`);
 });
 
-// Pred spremembo: »Zelo težka« svetla pisava na temni podlagi, »Ekstrem« enak »Presega tehnike«.
+// Pred spremembo: »Zelo težka« svetla pisava na temni podlagi, »Ekstrem« (od naloge 11a »Ekstremna«) enak »Presega tehnike«.
 // Zdaj (razdelek 7): obe srednje močna podlaga s temno pisavo - ne polni in temni (ne videti črni).
-test('»Zelo težka« in »Ekstrem«: srednje močna podlaga, temna pisava, Ekstrem jasno turkizen', () => {
-  const zt = znackaTezavnosti('Zelo težka'), ek = znackaTezavnosti('Ekstrem');
-  for (const [ime, s] of [['Zelo težka', zt], ['Ekstrem', ek]]) {
+test('»Zelo težka« in »Ekstremna«: srednje močna podlaga, temna pisava, Ekstremna jasno turkizna', () => {
+  const zt = znackaTezavnosti('Zelo težka'), ek = znackaTezavnosti('Ekstremna');
+  for (const [ime, s] of [['Zelo težka', zt], ['Ekstremna', ek]]) {
     assert.ok(svetlost(s.pisava) < svetlost(s.podlaga), `${ime}: pisava ${s.pisava} na ${s.podlaga} ni temna`);
     const l = svetlost(s.podlaga);
     assert.ok(l >= 0.25 && l <= 0.6, `${ime}: svetlost podlage ${l.toFixed(2)} (${s.podlaga}) ni srednja`);
   }
   assert.notDeepEqual(ek, znackaTezavnosti('Presega tehnike'));
   const h = odtenek(ek.podlaga);
-  assert.ok(h >= 165 && h <= 195, `odtenek »Ekstrem« ${h} (${ek.podlaga}) ni turkizen`);
+  assert.ok(h >= 165 && h <= 195, `odtenek »Ekstremna« ${h} (${ek.podlaga}) ni turkizen`);
   // Opazno temnejša od svetle oznake ekspertne ravni (.tag.t-expert), v istem odtenku.
   const raven = slog(`tag ${E.RAZRED_RAVNI.ekspertna}`, [BASE]);
   assert.ok(svetlost(ek.podlaga) < svetlost(raven.podlaga));

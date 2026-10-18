@@ -14,7 +14,7 @@ const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/stanje.js', 'shared/vaje-uganka.js', 'shared/vaje-banka.js', 'trening/generators.js', 'shared/zbirka.js'],
   names: ['TRENING_TEHNIKE', 'TRENING_ENOJCKA', 'oznakaTehnike', 'MODES', 'zbirkaBesediloTehnik', 'zbirkaTehnikeZapisa', 'zbirkaPodatkiResevanja',
     'zbirkaIzMarkdowna', 'zbirkaVMarkdown',
-    'TEHNIKE_OPISI', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint',
+    'TEHNIKE_OPISI', 'RAVNI_TEHNIK', 'ravenTehnike', 'tezavnostTehnike', 'napisTezavnosti', 'opisVaje', 'opisTehnike', 'imeTehnike', 'redTehnike', 'stepHint',
     'genMinimalnaUganka', 'stanjaVUganki', 'vajaIzStanja', 'preveriVajo', 'stanjeIgre', 'dodajPotezo', 'Math'],
 });
 // Math.random s stalnim semenom (mulberry32): besedila naključnih vaj so ob vsakem zagonu ista.
@@ -82,16 +82,22 @@ test('številke tehnik 1-13 in isti vrstni red kot v ALL_TECHNIQUES', () => {
   assert.deepEqual([...E.ALL_TECHNIQUES.map(([t]) => t)].filter(t => !ENOJCKA.includes(t)), [...imena]);
 });
 
-// Značka kartice v treningu je raven tehnike (docs/uskladitev.md, 1.1): lahka E1, E2,
-// srednja 1-6, napredna 7-12, ekspertna 13.
-test('značke v treningu: LAHKA za E1-E2, SREDNJA za 1-6, NAPREDNA za 7-12, EKSPERTNA za 13', () => {
+// Značka kartice v treningu je težavnost tehnike - najnižja težavnost uganke, ki tehniko
+// potrebuje - z angleškim imenom v oklepaju (odločitev 2026-10-18, docs/naloga11a-nacrt.md 1.5):
+// izpeljana iz ravni (RAVNI_TEHNIK) s tezavnostTehnike(), razred značke ostane raven.
+const NAPIS_ZNACKE = { lahka: 'LAHKA (EASY)', srednja: 'SREDNJA (MEDIUM)', napredna: 'TEŽKA (HARD)', ekspertna: 'EKSTREMNA (EXTREME)' };
+test('značke v treningu: težavnost tehnike – LAHKA (EASY), SREDNJA (MEDIUM), TEŽKA (HARD), EKSTREMNA (EXTREME)', () => {
+  for (const [raven, tehnike] of Object.entries(E.RAVNI_TEHNIK)) {
+    for (const t of tehnike) assert.equal(E.napisTezavnosti(E.tezavnostTehnike(t)).toUpperCase(), NAPIS_ZNACKE[raven], t);
+  }
+  assert.equal(E.napisTezavnosti(E.tezavnostTehnike('X-Wing')), 'Težka (Hard)');
+  assert.equal(E.tezavnostTehnike('Poskus in protislovje (forcing chain)'), null);
   const znacke = new Map([...treningHtml.matchAll(/data-mode="([^"]+)">\s*<span class="badge badge-(\w+)">([^<]+)<\/span>/g)]
     .map(m => [m[1], [m[2], m[3]]]));
-  for (const [m] of E.TRENING_ENOJCKA) assert.deepEqual(znacke.get(m), ['lahka', 'LAHKA'], m);
-  nacini.forEach((m, i) => {
-    const pricakovano = i < 6 ? ['srednja', 'SREDNJA'] : i < 12 ? ['napredna', 'NAPREDNA'] : ['ekspertna', 'EKSPERTNA'];
-    assert.deepEqual(znacke.get(m), pricakovano, `${i + 1}. ${m}`);
-  });
+  for (const [m, t] of [...E.TRENING_ENOJCKA, ...E.TRENING_TEHNIKE]) {
+    const raven = E.ravenTehnike(t);
+    assert.deepEqual(znacke.get(m), [raven, NAPIS_ZNACKE[raven]], m);
+  }
 });
 
 // Številke niso shranjene nikjer: zbirka in izvoz hranita imena tehnik, številko da
@@ -216,7 +222,8 @@ test('imeTehnike(): dogovorjene oblike (docs/faza4-nacrt.md, del 1)', () => {
   // Privzeto brez številke in brez ločila " · " (naslov kartice v treningu).
   assert.equal(E.imeTehnike('Hidden pair'), 'Skriti par (Hidden Pair)');
   assert.equal(E.imeTehnike('Gol enojček'), 'Očitni enojček (Naked Single)');
-  assert.equal(E.imeTehnike('XY-Wing'), 'XY-krilo (XY-Wing, Y-Wing)');
+  assert.equal(E.imeTehnike('XY-Wing'), 'XY-krilo (XY-Wing)');
+  assert.equal(E.imeTehnike('Turbot Fish'), 'Kratka X-veriga (Turbot Fish)');
   for (const [t] of E.ALL_TECHNIQUES) {
     assert.doesNotMatch(E.imeTehnike(t), /^(E?\d+)|·/, `${t}: privzeto brez številke`);
   }
@@ -230,7 +237,7 @@ test('imeTehnike(): dogovorjene oblike (docs/faza4-nacrt.md, del 1)', () => {
   }
   // Brez oklepaja (oznaka koraka; celo ime je v namigu miške).
   assert.equal(E.imeTehnike('Hidden pair', { stevilka: true, anglesko: false }), '4 · Skriti par');
-  assert.equal(E.imeTehnike('Turbot Fish', { anglesko: false }), 'Veriga ene števke');
+  assert.equal(E.imeTehnike('Turbot Fish', { anglesko: false }), 'Kratka X-veriga');
   // Poskus: brez številke, angleško z veliko začetnico; ključ motorja se ne spremeni.
   const poskus = 'Poskus in protislovje (forcing chain)';
   // Uganka hard-17-a iz docs/uganke.md (example-app, ki je bila tu do XY-verige, se reši brez poskusa).
@@ -262,8 +269,9 @@ test('redTehnike(): vrstni red ALL_TECHNIQUES, nato poskus, nato neznane', () =>
 test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
   for (const kljuc of vsiOpisi) {
     const o = E.TEHNIKE_OPISI[kljuc];
+    // Polje drugaAngleska je seznam (naloga 11a).
     for (const [polje, t] of Object.entries(o)) {
-      assert.doesNotMatch(t, /številk/i, `${kljuc}.${polje}`);
+      assert.doesNotMatch([].concat(t).join(', '), /številk/i, `${kljuc}.${polje}`);
     }
   }
 });
@@ -274,7 +282,7 @@ test('TEHNIKE_OPISI: izraz je povsod "števka", ne "številka"', () => {
 test('angleški imeni po virih: »2-String Kite« in »Trial and Error«', () => {
   for (const kljuc of vsiOpisi) {
     for (const [polje, t] of Object.entries(E.TEHNIKE_OPISI[kljuc])) {
-      assert.doesNotMatch(t, /Two-String|Forcing Chain/i, `${kljuc}.${polje}`);
+      assert.doesNotMatch([].concat(t).join(', '), /Two-String|Forcing Chain/i, `${kljuc}.${polje}`);
     }
   }
   assert.match(E.TEHNIKE_OPISI['turbot-fish'].razlaga, /Zmaj z dvema vrvicama \(2-String Kite\)/);
@@ -286,12 +294,11 @@ test('angleški imeni po virih: »2-String Kite« in »Trial and Error«', () =>
 
 // Besedila, ki jih vidi uporabnik, zunaj TEHNIKE_OPISI (faza 4, del 2): izraz je
 // »števka«, tehnike imajo slovensko ime - angleško ime je lahko samo v oklepaju
-// (»vzorec Nebotičnik (Skyscraper, veriga ene števke)«). Opuščeni angleški imeni (odločitev
+// (»vzorec Nebotičnik (Skyscraper, kratka X-veriga)«). Opuščeni angleški imeni (odločitev
 // 2026-09-25) nista nikjer, tudi v oklepaju ne: »Two-String Kite« (zdaj »2-String Kite«)
 // in »Forcing Chain« (poskus je »Trial and Error«).
 const ANGLESKA = [
-  ...Object.values(E.TEHNIKE_OPISI).flatMap(o => o.anglesko.split(', ')),
-  'Skyscraper', '2-String Kite',
+  ...Object.values(E.TEHNIKE_OPISI).flatMap(o => [o.anglesko, ...(o.drugaAngleska || [])]),
 ];
 const OPUSCENA = /Two-String|Forcing Chain/i;
 function preveriBesedilo(t, kje) {

@@ -70,21 +70,25 @@ test('stopnje: ključi, imena in opisi', () => {
   // (shared/zbirka.js), da se imeni ne moreta razdvojiti. Sledijo oznake uganke brez
   // stopnje; "Drugo" ne obstaja več.
   const imena = [...E.STOPNJE_UGANK].map(s => s.ime);
-  assert.deepEqual(imena, ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstrem']);
+  assert.deepEqual(imena, ['Lahka', 'Srednja', 'Težka', 'Zelo težka', 'Ekstremna']);
+  // Angleško ime za značke težavnosti tehnik (naloga 11a).
+  assert.deepEqual([...E.STOPNJE_UGANK].map(s => s.anglesko), ['Easy', 'Medium', 'Hard', 'Very Hard', 'Extreme']);
   assert.deepEqual([...E.TEZAVNOSTI], [...imena, 'Presega tehnike', 'Več rešitev', 'Brez rešitve']);
   for (const s of E.STOPNJE_UGANK) {
     assert.ok(s.ime && s.opis, `stopnja ${s.kljuc} mora imeti ime in opis`);
     assert.equal(typeof s.ustreza, 'function', `stopnja ${s.kljuc} mora imeti merilo`);
     assert.equal(E.stopnjaUganke(s.kljuc), s);
   }
-  // Generator ponuja vseh pet stopenj (Ekstrem od XY-verige, korak 7 - O9 v docs/xy-veriga-nacrt.md).
+  // Generator ponuja vseh pet stopenj (Ekstremna od XY-verige, korak 7 - O9 v docs/xy-veriga-nacrt.md).
   assert.deepEqual([...E.STOPNJE_GENERATORJA].map(s => s.kljuc), ['lahka', 'srednja', 'tezka', 'zelotezka', 'ekstrem']);
   for (const s of E.STOPNJE_GENERATORJA) {
     assert.equal(typeof s.ustrezaIskanju, 'function', `stopnja ${s.kljuc} mora imeti merilo iskanja`);
     // Opis merila generatorja (okno "Nova uganka", namig na gumbu) - docs/uskladitev.md 5.2.
     assert.ok(s.opisIskanja, `stopnja ${s.kljuc} mora imeti opis merila iskanja`);
   }
-  assert.equal(E.stopnjaUganke('ekstrem').opisIskanja, 'potrebuje ekspertno tehniko (13 – XY-veriga) in vsaj dve srednji');
+  assert.equal(E.stopnjaUganke('ekstrem').opisIskanja, 'potrebuje tehniko 13 (XY-veriga) in vsaj dve srednji');
+  // Ravni »napredna« in »ekspertna« sta samo v kodi (odločitev 2026-10-18).
+  for (const s of E.STOPNJE_UGANK) for (const o of [s.opis, s.opisIskanja]) assert.doesNotMatch(o, /napredn|ekspertn/i, s.kljuc);
   assert.equal(E.stopnjaUganke('ni-take'), null);
 });
 
@@ -258,9 +262,8 @@ test('uganka iz ročnega pregleda: Težka, »tehnike: 1, 2, 10«', () => {
   assert.deepEqual(stevilkeVOznaki(oznaka), [1, 2, 10], oznaka);
 });
 
-// Ekspertne tehnike še ni, zato je Ekstrem preverjen na merah: ekspertna tehnika da
-// Ekstrem ne glede na druge tehnike.
-test('ekspertna tehnika: Ekstrem', () => {
+// Ekstremna je preverjena na merah: ekspertna tehnika da Ekstremno ne glede na druge tehnike.
+test('ekspertna tehnika: Ekstremna', () => {
   const ustreza = (m) => [...E.STOPNJE_UGANK].filter(s => s.ustreza(m)).map(s => s.kljuc);
   assert.deepEqual(ustreza({ srednje: 0, napredne: 0, ekspertne: 1, tehNad: 1 }), ['ekstrem']);
   assert.deepEqual(ustreza({ srednje: 3, napredne: 2, ekspertne: 1, tehNad: 6 }), ['ekstrem']);
@@ -436,7 +439,7 @@ test('oceniTezavnost(): nepreverjena enoličnost da prazno težavnost', () => {
 });
 
 test('oceniUganko(): uganka, ki jo motor reši le z ugibanjem, dobi Presega tehnike', () => {
-  // Uganka hard-17-a iz docs/uganke.md (example-app, ki je bila tu do XY-verige, je zdaj Ekstrem).
+  // Uganka hard-17-a iz docs/uganke.md (example-app, ki je bila tu do XY-verige, je zdaj Ekstremna).
   const danosti = '....15....9..8.....6...3...5.....3.8...2...9.......4.....9..62.8........1........';
   assert.equal(E.genPot(danosti, VSE_TEHNIKE), null, 'motor v stalnem vrstnem redu obtiči');
   const o = E.oceniUganko(danosti);
@@ -497,7 +500,7 @@ test('strogoSrednja zahteva par in trojico na poti', () => {
   assert.ok(pot.some(ime => E.GEN_TROJICE.includes(ime)), 'trojica na poti');
 });
 
-// Stopnje brez generatorja ni več (Ekstrem ga ima od XY-verige, korak 7) - napako vrže neznana.
+// Stopnje brez generatorja ni več (Ekstremna ga ima od XY-verige, korak 7) - napako vrže neznana.
 test('neznana stopnja vrže napako', () => {
   assert.throws(() => E.oceniStopnjo('ni-take', '0'.repeat(81)), /Neznana stopnja/);
   assert.ok(E.STOPNJE_UGANK.every(s => s.ustrezaIskanju), 'vse stopnje imajo generator');
@@ -538,7 +541,7 @@ test('PRIMERI: težavnost in tehnike so enake izračunani oceni, reševalec upor
 test('PRIMERI: vsaka stopnja in vsaka tehnika E1, E2, 1-13 ima vsaj en primer', () => {
   const stopnje = new Set(E.PRIMERI.map(p => p.tezavnost));
   for (const s of E.STOPNJE_GENERATORJA) assert.ok(stopnje.has(s.ime), s.ime);
-  assert.ok(stopnje.has('Ekstrem'));
+  assert.ok(stopnje.has('Ekstremna'));
   assert.ok(stopnje.has('Presega tehnike'));
   for (const t of VSE_TEHNIKE) assert.ok(E.PRIMERI.some(p => p.tehnike.includes(t)), t);
   // Glavna tehnika: lahka primer z obema enojčkoma, vsaka srednja in napredna tehnika glavna pri
@@ -553,7 +556,7 @@ test('PRIMERI: vsaka stopnja in vsaka tehnika E1, E2, 1-13 ima vsaj en primer', 
   const zelo = E.PRIMERI.filter(p => p.tezavnost === 'Zelo težka');
   assert.ok(zelo.length === 1 && zelo[0].glavna.length === 2 && zelo[0].glavna.every(t => E.GEN_NAPREDNE.includes(t)));
   assert.deepEqual([...E.PRIMERI.map(p => p.tezavnost)],
-    ['Lahka', ...E.GEN_SREDNJE.map(() => 'Srednja'), ...E.GEN_NAPREDNE.map(() => 'Težka'), 'Zelo težka', 'Ekstrem', 'Presega tehnike']);
+    ['Lahka', ...E.GEN_SREDNJE.map(() => 'Srednja'), ...E.GEN_NAPREDNE.map(() => 'Težka'), 'Zelo težka', 'Ekstremna', 'Presega tehnike']);
 });
 
 test('PRIMERI: srednji in težki primeri držijo meje izbora', () => {

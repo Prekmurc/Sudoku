@@ -318,7 +318,7 @@ test('izris v nadomestnem DOM-u: risba, legenda, napisi; brez sheme null', () =>
   for (const [n, i] of [[0, 1], [1, 4]]) {
     const s = run(`t.children[${i}].innerHTML`);
     const r = risbe('turbot-fish')[n];
-    assert.match(s, new RegExp(`aria-label="Shema vzorca: Veriga ene števke – ${r.naslov.replace(/[()]/g, '\\$&')}"`));
+    assert.match(s, new RegExp(`aria-label="Shema vzorca: Kratka X-veriga – ${r.naslov.replace(/[()]/g, '\\$&')}"`));
     assert.equal((s.match(/class="sh-povezava"/g) || []).length, r.povezave.length, `risba ${n}: povezave`);
     assert.equal((s.match(/class="sh-vidita"/g) || []).length, r.vidita.length, `risba ${n}: vidita`);
     assert.equal((s.match(/class="sh-vidi"/g) || []).length, r.vidi.length, `risba ${n}: vidi`);
@@ -428,11 +428,11 @@ test('trening: razdelek »Shema« za »Razlaga«, nad vrstico s preslikavo; Spoz
   }
   run('zacniKrog("turbot-fish", "spoznaj")');
   // Ob vaji odprta samo risba vaje, druga oblika na zahtevo (popravek po ročnem pregledu naloge 4a).
-  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-okvir').length, 1, 'veriga ene števke: ena odprta risba');
-  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-druga').length, 1, 'veriga ene števke: druga oblika');
+  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-okvir').length, 1, 'kratka X-veriga: ena odprta risba');
+  assert.equal(shema().children[1].children.filter(c => c.className === 'shema-druga').length, 1, 'kratka X-veriga: druga oblika');
   shema().open = false; shema().sprozi('toggle');
   run('exNum++; renderExercise()');
-  assert.equal(shema().open, false, 'veriga ene števke: zaprt ostane v naslednji vaji');
+  assert.equal(shema().open, false, 'kratka X-veriga: zaprt ostane v naslednji vaji');
 });
 
 test('trojici in sheme 1, 2, 8: celice z dvema in s tremi črkami (celicami), opomba pod napisom o črkah; legenda »celica izbrisa« samo z rožnato celico', () => {

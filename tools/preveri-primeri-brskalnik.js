@@ -20,8 +20,8 @@ const { zazeni } = require('./brskalnik.js');
 const args = process.argv.slice(2);
 const mapa = args.includes('--mapa') ? args[args.indexOf('--mapa') + 1] : path.join(os.tmpdir(), 'sudoku-preveri-primeri');
 
-// Od vklopa XY-verige (2026-10-08) 16 primerov: P_15 Ekstrem, P_16 presega tehnike.
-const SKUPINE = ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstrem · tehnika', 'Presega tehnike'];
+// Od vklopa XY-verige (2026-10-08) 16 primerov: P_15 Ekstremna, P_16 presega tehnike.
+const SKUPINE = ['Lahka · tehnike', 'Srednja · tehnika', 'Težka · tehnika', 'Zelo težka · tehnike', 'Ekstremna · tehnika', 'Presega tehnike'];
 // Barve oznak korakov (shared/base.css): srednja jantarna.
 const JANTARNA = 'rgb(134, 92, 15)'; // --amber-ink #865C0F (pisava značk od XY-verige, korak 2; prej --amber)
 
@@ -66,7 +66,7 @@ async function resevalec(b, sirina) {
 
   await izberi(14);
   const ek = await b.izvedi(`[...document.getElementById('primerOpis').children].map(v => v.textContent)`);
-  preveri('ekstrem: značka in »… in 13 XY-veriga«', /^Ekstrem danih števk: \d+$/.test(ek[0]) && /^Tehnike: E1, E2, .+ in 13 XY-veriga$/.test(ek[1]), ek);
+  preveri('ekstremna: značka in »… in 13 XY-veriga«', /^Ekstremna danih števk: \d+$/.test(ek[0]) && /^Tehnike: E1, E2, .+ in 13 XY-veriga$/.test(ek[1]), ek);
   await izberi(15);
   const pr = await b.izvedi(`[...document.getElementById('primerOpis').children].map(v => v.textContent)`);
   preveri('presega tehnike: »… in ugibanje«, brez »+«', /^Presega tehnike danih števk: \d+$/.test(pr[0]) && /^Tehnike: E1, E2, .+ in ugibanje$/.test(pr[1]) && !/\+/.test(pr[1]), pr);

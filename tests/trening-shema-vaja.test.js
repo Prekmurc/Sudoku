@@ -8,7 +8,7 @@
 //      se spet glasi »Vaja po shemi zgoraj – …« (»po obrnjeni shemi«, »po zrcaljeni shemi«, pri 9 z obliko).
 //   5. Črke shem: najprej x, y, z, a in b šele, ko jih je več (13); pri 10 · W-krilo x in y (prej a, b) v
 //      shemi in v besedilih tehnike.
-//   2. 9 · Veriga ene števke: odprta je samo risba, ki ustreza vaji (Nebotičnik ali Zmaj z dvema
+//   2. 9 · Kratka X-veriga: odprta je samo risba, ki ustreza vaji (Nebotičnik ali Zmaj z dvema
 //      vrvicama), druga oblika je pod njo v zaprtem razdelku »Druga oblika: …«; Pomoč kaže obe.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
@@ -127,7 +127,7 @@ function risbe9(shema) {
   const odprte = fig.children.filter(c => c.className === 'shema-okvir');
   const naslov = fig.children.filter(c => c.className === 'shema-naslov').map(c => c.textContent);
   const druga = fig.children.find(c => c.className === 'shema-druga');
-  const aria = okvir => okvir.innerHTML.match(/aria-label="Shema vzorca: Veriga ene števke – ([^"]*)"/)[1];
+  const aria = okvir => okvir.innerHTML.match(/aria-label="Shema vzorca: Kratka X-veriga – ([^"]*)"/)[1];
   return {
     odprte: odprte.length, naslov, odprta: aria(odprte[0]),
     druga: druga && { tag: druga.tagName, open: !!druga.open, napis: druga.children[0].textContent,
@@ -136,7 +136,7 @@ function risbe9(shema) {
   };
 }
 
-test('9 · Veriga ene števke: »Spoznaj« – odprta risba vaje, druga oblika na zahtevo (vaje 1–4)', () => {
+test('9 · Kratka X-veriga: »Spoznaj« – odprta risba vaje, druga oblika na zahtevo (vaje 1–4)', () => {
   const { run, shema } = trening();
   run("zacniKrog('turbot-fish', 'spoznaj')");
   for (const n of [0, 1, 2, 3]) {
@@ -157,7 +157,7 @@ test('9 · Veriga ene števke: »Spoznaj« – odprta risba vaje, druga oblika n
   assert.match(vsi(run('area')).find(e => e.className === 'po-shemi').textContent, /^Vaja po shemi zgoraj \(Zmaj z dvema vrvicama\) – iste celice, črka x je števka \d\.$/);
 });
 
-test('9 · Veriga ene števke: »Vadi v uganki« – odprta risba koraka vaje, druga oblika na zahtevo', () => {
+test('9 · Kratka X-veriga: »Vadi v uganki« – odprta risba koraka vaje, druga oblika na zahtevo', () => {
   const vrste = new Set();
   for (const seme of [1, 2, 3, 4, 5, 6, 7, 8]) {
     const { run, izprazni, shema } = trening(seme);

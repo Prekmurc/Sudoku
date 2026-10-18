@@ -68,7 +68,7 @@ test('okence »Pokaži«: možnosti za P_14 – vsi, brez enojčkov, tehnike v v
   dom.klikni('openStepsBtn');
   assert.deepEqual(napisi(dom), [
     'Vsi koraki (69)', 'Brez enojčkov (12)', 'E1 · Očitni enojček (25)', 'E2 · Skriti enojček (32)',
-    '1 · Izločitev izven bloka (4)', '3 · Očitni par (4)', '4 · Skriti par (2)', '9 · Veriga ene števke (1)', '11 · XY-krilo (1)',
+    '1 · Izločitev izven bloka (4)', '3 · Očitni par (4)', '4 · Skriti par (2)', '9 · Kratka X-veriga (1)', '11 · XY-krilo (1)',
   ]);
   assert.deepEqual(napisi(dom).slice(2), povzetek(dom), 'štetje in vrstni red enaka povzetku pod rešitvijo');
   assert.equal(okence(dom).value, 'vsi');

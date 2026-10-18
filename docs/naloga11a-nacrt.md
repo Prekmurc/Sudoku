@@ -2,7 +2,7 @@
 
 Načrt 2026-10-18. Vir odločitev: `docs/uskladitev.md`, 1.1 in 1.3 (»Odločitev 2026-10-18«) in vrstica 11a v »Vrstni red
 po fazi 6«; povzetek `docs/imena-tehnik.md` (ob razhajanju velja `docs/uskladitev.md` – razhajanj pri pregledu nisem
-našel). **Stanje: čaka na potrditev.**
+našel). **Stanje: potrjen 2026-10-18** (odločitve O1–O7 in pomen značke v razdelku 7).
 
 Izhodišče: commit `1a1fd5c` (zapis odločitev 2026-10-18).
 
@@ -111,8 +111,8 @@ Odločitev 1.1: izraza »napredna« in »ekspertna« ostaneta samo v kodi. Predl
 |---|---|---|---|
 | `trening/index.html:35–106` | značke kartic (nadomestek) | LAHKA, SREDNJA, NAPREDNA ×6, EKSPERTNA | LAHKA (EASY), SREDNJA (MEDIUM), TEŽKA (HARD), EKSTREMNA (EXTREME) |
 | `trening/trening.js:58–59` | besedilo značke | `raven.toUpperCase()` | iz težavnosti tehnike (spodaj); razred `badge-<raven>` ostane |
-| `trening/index.html:152` | Pomoč treninga | »Značka na kartici pove raven tehnike.« | »Značka na kartici pove težavnost uganke, v kateri se tehnika pojavi.« |
-| `shared/pomoc.js:157` | uvod razdelka »Tehnike« (vse tri aplikacije) | »Tehnike so v štirih ravneh: lahke (E1, E2), srednje (1–6), napredne (7–12) in ekspertne (13) – … Stopnja uganke je raven njene najtežje tehnike.« | »Vsaka tehnika ima težavnost – težavnost uganke, v kateri se pojavi: lahka (E1, E2), srednja (1–6), težka (7–12) in ekstremna (13); v treningu jo kaže značka na kartici. Težavnost uganke je težavnost njene najtežje tehnike. Zelo težka je uganka, ki potrebuje vsaj dve različni tehniki 7–12.« – razponi izpeljani iz `RAVNI_TEHNIK` in `oznakaTehnike()` (11b dobi »13–14« sam) |
+| `trening/index.html:152` | Pomoč treninga | »Značka na kartici pove raven tehnike.« | »Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje.« (odločitev ob potrditvi – ne »… v kateri se pojavi«: tehnika 1 se pojavi tudi v težkih ugankah) |
+| `shared/pomoc.js:157` | uvod razdelka »Tehnike« (vse tri aplikacije) | »Tehnike so v štirih ravneh: lahke (E1, E2), srednje (1–6), napredne (7–12) in ekspertne (13) – … Stopnja uganke je raven njene najtežje tehnike.« | »Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje: lahka (E1–E2), srednja (1–6), težka (7–12) in ekstremna (13). Težavnost uganke je težavnost njene najtežje tehnike. Zelo težka je uganka, ki potrebuje vsaj dve različni tehniki 7–12.« (izvedba: razpon dveh tehnik z – kot pri 13–14 v 11b; brez omembe treninga, ker razdelek vidijo vse tri aplikacije) – razponi izpeljani iz `RAVNI_TEHNIK` in `oznakaTehnike()` (11b dobi »13–14« sam) |
 | `shared/pomoc.js:172–174` | značka pri tehniki | besedilo ravni (»napredna«) | ista značka kot na kartici (»TEŽKA (HARD)«) |
 | `shared/generator.js:108–109` | Težka | »brez napredne tehnike (7–12 – …) ne gre, ena zadošča« | »brez tehnike 7–12 (X-krilo, mečarica, kratka X-veriga, W-krilo, XY-krilo, edinstveni pravokotnik) ne gre, ena zadošča« (`opisIskanja` enako + »; poleg nje vsaj dve srednji …«) |
 | `shared/generator.js:115–116` | Zelo težka | »ena napredna tehnika ne zadošča – potrebuje vsaj dve različni« | »ena tehnika 7–12 ne zadošča – potrebuje vsaj dve različni« (+ »in vsaj dve srednji«) |
@@ -138,7 +138,7 @@ ostaneta.
 | `shared/engine.js` | `SKUPINE_TEHNIK` (razdelek 2), `skupinaTehnike(kljuc)`, `imeSkupine(skupina, { stevilke })` – »Podmnožice (Subsets)«, s številkami »Podmnožice (Subsets) · 3–6«, »Enojčki (Singles) · E1–E2«, »Edinstvenost (Uniqueness) · 12« (razpon iz `oznakaTehnike()` prve in zadnje tehnike) |
 | `shared/navigacija.js` | `kazaloTehnik()` po skupinah; `izrisiKazaloTehnik()` ima eno obliko za trening in Pomoč – za vsako skupino naslov z značko težavnosti, pod njim vrstice (oznaka v barvi ravni, slovensko ime, angleško ime); dva stolpca: levo skupine težavnosti Lahka in Srednja (E1–6), desno Težka in Ekstremna (7–13, po 11b 7–14); možnost `imena` (vrstica samih oznak v Pomoči) odpade |
 | `shared/base.css` | kazalo: dva stolpca, kadar je prostora za dva po 230 px (računalnik, okno Pomoč), sicer en (telefon); skupina ostane cela v svojem stolpcu; naslov skupine; pravila vrstice samih oznak (`.kazalo-tehnik button.tag`) odpadejo |
-| `shared/pomoc.js` | kazalo v razdelku »Tehnike« z `izrisiKazaloTehnik()` v isti obliki; »↑ Tehnike« ostane (pogoj »okno je pod kazalom«), fokus na prvo vrstico kazala (`querySelector`, ne `children[0]` – prvi otrok je zdaj skupina) |
+| `shared/pomoc.js` | kazalo v razdelku »Tehnike« z `izrisiKazaloTehnik()` v isti obliki; »↑ Tehnike« ostane (pogoj »okno je pod kazalom«), fokus na prvo vrstico kazala (`querySelector`, ne `children[0]` – prvi otrok je zdaj skupina); seznam tehnik pod kazalom dobi pred prvo tehniko vsake skupine naslov skupine (enako kot naslovi nad karticami v treningu – O7) |
 | `shared/pomoc.css` | odmiki kazala v oknu (če so potrebni) |
 | `trening/trening.js` | pred prvo kartico skupine naslov skupine (`h2`, »Podmnožice (Subsets) · 3–6«); `oznaciZadnjo()` po vrsticah `[data-kazalo]` (ne `children`); vrh vaje »Spoznaj«: vrstica skupine nad `ex-label` |
 | `trening/v-uganki.js:150` | vrh vaje »Vadi v uganki«: vrstica skupine nad `ex-label` |
@@ -152,7 +152,8 @@ Triple) · Vadi v uganki · Vaja 3 / 9« (v »Spoznaj« brez »· Vadi v uganki�
 Razdelek »Tehnike« (`shared/pomoc.js`, vse tri aplikacije): uvod in stavek o Zelo težki (korak 1), značka težavnosti
 pri tehniki (korak 1), dodatna angleška imena pri 1, 2, 9 in 11 (korak 1), kazalo v obliki treninga (korak 2). Besedila
 v HTML: igra (»Ekstrem« trikrat, »raven« dvakrat, »napredno«/»napredni«), reševalec (»raven«, »napredni«), trening
-(»značka pove raven«) – vse korak 1. Seznam tehnik pod kazalom ostane brez naslovov skupin (O7).
+(»značka pove raven«) – vse korak 1. Seznam tehnik pod kazalom dobi naslove skupin, enake naslovom nad karticami v
+treningu (O7, korak 2).
 
 ## 2. Skupine za prikaz in `TECHNIQUE_GROUPS`
 
@@ -275,7 +276,8 @@ tu ni, gre v poročilo koraka.
   skupinah z naslovom in značko; dva stolpca – levo skupine Lahka in Srednja, desno Težka in Ekstremna; »zadnja«
   označi vrstico tudi v skupinah; slog: skupina se ne deli (`break-inside`), dva stolpca po 230 px.
 - `tests/pomoc.test.js` – kazalo v Pomoči je iste oblike kot v treningu (isti razredi in vrstni red, iste vrstice),
-  klik vrstice pomakne do tehnike, »↑ Tehnike« vrne h kazalu s fokusom na prvo vrstico.
+  klik vrstice pomakne do tehnike, »↑ Tehnike« vrne h kazalu s fokusom na prvo vrstico; seznam tehnik ima pred prvo
+  tehniko vsake skupine naslov skupine z istim besedilom kot naslov nad karticami v treningu (O7).
 - vrh vaje (`tests/trening-meni.test.js` ali `tests/trening-tehnike.test.js`): vrstica skupine nad `ex-label` v
   »Spoznaj« in »Vadi v uganki«, tudi pri E1 in E2.
 
@@ -307,7 +309,8 @@ vrstice v skupinah, slog stolpcev), `navigacija` (če preverja kazalo).
   »Ekstrem«) in uvoz starega izvoza (»Ekstrem«, »Veriga ene števke 2«) pokažeta nova imena;
 - **korak 2:** meni treninga – kazalo pri 1280 v dveh stolpcih (levo E1–6, desno 7–13), pri 375 v enem, nobena skupina
   ni razdeljena; naslov skupine nad prvo kartico vsake skupine; okno Pomoč v vseh treh aplikacijah – kazalo iste
-  oblike kot v treningu (pri 1280 dva stolpca v oknu, pri 375 en), klik vrstice, »↑ Tehnike«; vrh vaje – vrstica
+  oblike kot v treningu (pri 1280 dva stolpca v oknu, pri 375 en), klik vrstice, »↑ Tehnike«, naslovi skupin v seznamu
+  tehnik; vrh vaje – vrstica
   skupine manjša in siva od `ex-label` (izračunan slog) v »Spoznaj« in »Vadi v uganki«; posnetki zaslona v
   `docs/slike/naloga11a/` za poročilo (niso primerjalne slike).
 
@@ -371,6 +374,17 @@ razen ob nepričakovani težavi.
   **Priporočam A** – manj kode, preverjanje dokaže, da se je spremenilo samo besedilo.
 - **O7 – seznam tehnik v Pomoči pod kazalom.** Ostane brez naslovov skupin (skupine so v kazalu, vsaka tehnika ima
   značko). **Priporočam tako.**
+
+**Odločitve ob potrditvi (2026-10-18):**
+- **O1–O6:** po priporočilu.
+- **O7 – drugače:** seznam tehnik v Pomoči pod kazalom dobi naslove skupin, enake naslovom nad karticami v treningu
+  (»Podmnožice (Subsets) · 3–6«). Korak 2 (1.6, 5.3, 5.6).
+- **Pomen značke (1.5):** besedilo je »Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje.«, ne »… v kateri
+  se pojavi« (tehnika 1 se pojavi tudi v težkih ugankah). Velja za Pomoč treninga in uvod razdelka »Tehnike«; povzetek
+  `docs/imena-tehnik.md` (razdelek 3) se popravi v koraku 1.
+- **Scenarij koraka 1:** pri 375 px preveri, da se značka »EKSTREMNA (EXTREME)« na kartici treninga ne prelomi grdo
+  (ostane v eni vrstici) in ne prekrije imena tehnike.
+- Izvedba: samo korak 1, banka vaj v ozadju (5.5); ročnega pregleda po koraku 1 ni.
 
 ## 8. Ročni pregled (na koncu naloge, največ 5 točk)
 

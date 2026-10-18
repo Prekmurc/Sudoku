@@ -475,13 +475,13 @@ test('stopnjaTehnike: osnovna stopnja iz ravni v kodi (tudi za dodano ekspertno 
   const S = B();
   const red = S.stopnjeZaVajo();
   assert.equal(JSON.stringify(red), JSON.stringify([...S.STOPNJE_UGANK.map(s => s.ime), S.OCENA_PRESEGA]));
-  const pricakovano = [[S.GEN_LAHKE, 'Lahka'], [S.GEN_SREDNJE, 'Srednja'], [S.GEN_NAPREDNE, 'Težka'], [S.GEN_EKSPERTNE, 'Ekstrem']];
+  const pricakovano = [[S.GEN_LAHKE, 'Lahka'], [S.GEN_SREDNJE, 'Srednja'], [S.GEN_NAPREDNE, 'Težka'], [S.GEN_EKSPERTNE, 'Ekstremna']];
   for (const [raven, ime] of pricakovano) for (const k of raven) assert.equal(S.stopnjaTehnike(k), ime, k);
   for (const k of TEHNIKE) assert.ok(S.STOPNJE_UGANK.some(s => s.ime === S.stopnjaTehnike(k)), k);
-  // Tehnika, dodana v ekspertno raven (npr. XY-veriga), dobi Ekstrem brez seznama tehnik.
+  // Tehnika, dodana v ekspertno raven (npr. XY-veriga), dobi Ekstremno brez seznama tehnik.
   S.GEN_EKSPERTNE.push('XY-veriga');
-  assert.equal(S.stopnjaTehnike('XY-veriga'), 'Ekstrem');
-  assert.equal(S.rangUganke('Ekstrem', 'XY-veriga'), 0);
+  assert.equal(S.stopnjaTehnike('XY-veriga'), 'Ekstremna');
+  assert.equal(S.rangUganke('Ekstremna', 'XY-veriga'), 0);
   assert.equal(S.rangUganke(S.OCENA_PRESEGA, 'XY-veriga'), 1);
 });
 

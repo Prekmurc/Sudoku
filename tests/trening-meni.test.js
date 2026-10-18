@@ -396,7 +396,7 @@ test('korak 6b-b: zadnja tehnika – ob začetku kroga natanko ena kartica in en
   assert.deepEqual(zadnjeKartice(dom), ['xy-wing']);
   assert.deepEqual(zadnjeVrstice(dom), ['xy-wing']);
   const vrstica = m => dom.el('kazaloTehnik').children.find(v => v.dataset.kazalo === m);
-  assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing, Y-Wing) – nazadnje vadena');
+  assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing) – nazadnje vadena');
   // Drugi način iste tehnike – ostane; druga tehnika (tudi »Vadi v uganki«) – premakne se.
   run('zacniKrog("xy-wing", "spoznaj")');
   dom.klikni('drugiNacin');
@@ -405,7 +405,7 @@ test('korak 6b-b: zadnja tehnika – ob začetku kroga natanko ena kartica in en
   run('zacniKrog("hidden-single", "uganka")');
   assert.deepEqual(zadnjeKartice(dom), ['hidden-single']);
   assert.deepEqual(zadnjeVrstice(dom), ['hidden-single']);
-  assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing, Y-Wing)', 'pripis odstranjen');
+  assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing)', 'pripis odstranjen');
   assert.equal(vrstica('hidden-single').getAttribute('aria-label'), 'E2 · Skriti enojček (Hidden Single) – nazadnje vadena');
   // Klik v kazalu ali premik po meniju oznake ne spremeni (O5 A).
   dom.klikni('backBtn');

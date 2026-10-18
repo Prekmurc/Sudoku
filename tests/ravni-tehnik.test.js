@@ -11,7 +11,7 @@ const { loadEngine, loadPuzzles } = require('./load-engine.js');
 
 const E = loadEngine(undefined, {
   files: ['shared/generator.js', 'shared/zbirka.js', 'shared/zbirka-ui.js'],
-  names: ['tagClass', 'TEZAVNOSTI', 'ZNACKA_TEZAVNOSTI', 'TECHNIQUE_GROUPS', 'TRENING_ENOJCKA', 'TRENING_TEHNIKE', 'RAVNI_TEHNIK', 'ravenTehnike',
+  names: ['tagClass', 'TEZAVNOSTI', 'ZNACKA_TEZAVNOSTI', 'TECHNIQUE_GROUPS', 'TRENING_ENOJCKA', 'TRENING_TEHNIKE', 'RAVNI_TEHNIK', 'ravenTehnike', 'tezavnostTehnike', 'napisTezavnosti',
     'GEN_LAHKE', 'GEN_PRESEKI', 'GEN_PARI', 'GEN_TROJICE', 'GEN_SREDNJE', 'GEN_NAPREDNE', 'GEN_EKSPERTNE'],
 });
 
@@ -68,17 +68,17 @@ test('TECHNIQUE_GROUPS: vsaka skupina je v eni ravni, skupine so zaporedni odsek
 });
 
 // XY-veriga, korak 2 (docs/xy-veriga-nacrt.md, razdelek 7, O5): ekspertna raven dobi svojo barvo
-// (turkizna, .tag.t-expert), značka težavnosti »Ekstrem« ni več rdeča kot »Presega tehnike«. Do vklopa
+// (turkizna, .tag.t-expert), značka težavnosti »Ekstrem« (od naloge 11a »Ekstremna«) ni več rdeča kot »Presega tehnike«. Do vklopa
 // XY-verige (korak 6) je test tehniko v ekspertno raven dodal sam; od koraka 6 je tam.
 test('razred ravni: tehnika v ekspertni ravni dobi t-expert', () => {
   assert.equal(E.ravenTehnike('XY-Chain'), 'ekspertna');
   assert.equal(E.tagClass('XY-Chain'), 't-expert');
 });
 
-test('značka težavnosti: »Ekstrem« ni »Presega tehnike«, vsaka stopnja ima razred svoje ravni', () => {
+test('značka težavnosti: »Ekstremna« ni »Presega tehnike«, vsaka stopnja ima razred svoje ravni', () => {
   const razred = t => E.ZNACKA_TEZAVNOSTI[t] || 't-chain';
-  assert.notEqual(razred('Ekstrem'), razred('Presega tehnike'));
-  assert.equal(razred('Ekstrem'), 't-expert znacka-ekstrem');
+  assert.notEqual(razred('Ekstremna'), razred('Presega tehnike'));
+  assert.equal(razred('Ekstremna'), 't-expert znacka-ekstrem');
   for (const t of ['Presega tehnike', 'Več rešitev', 'Brez rešitve']) assert.equal(razred(t), 't-chain', t);
   assert.equal(razred('Lahka'), 't-single');
   assert.equal(razred('Srednja'), 't-pair');
@@ -107,10 +107,11 @@ test('RAVNI_TEHNIK in ravenTehnike(): ravni v vrstnem redu tehnik, GEN_* so iste
   }
 });
 
-// Značka kartice v trening/index.html je nadomestek - trening.js jo izpolni iz ravenTehnike();
-// v HTML mora biti enaka (nadomestni DOM nima querySelector, izpolnitev v pravem brskalniku
-// preverja tools/preveri-faza7-brskalnik.js --korak 5).
-test('značke v trening/index.html so enake ravenTehnike()', () => {
+// Značka kartice v trening/index.html je nadomestek - trening.js jo izpolni: razred iz ravenTehnike(),
+// besedilo je težavnost tehnike (tezavnostTehnike(), naloga 11a); v HTML mora biti enaka (nadomestni
+// DOM nima querySelector, izpolnitev v pravem brskalniku preverja tools/preveri-faza7-brskalnik.js
+// --korak 5).
+test('značke v trening/index.html: razred ravenTehnike(), napis težavnosti tehnike', () => {
   const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
   const znacke = new Map([...html.matchAll(/data-mode="([^"]+)">\s*<span class="badge badge-(\w+)">([^<]+)<\/span>/g)]
     .map(m => [m[1], [m[2], m[3]]]));
@@ -118,6 +119,6 @@ test('značke v trening/index.html so enake ravenTehnike()', () => {
   assert.equal(znacke.size, vaje.length);
   for (const [m, t] of vaje) {
     const r = E.ravenTehnike(t);
-    assert.deepEqual(znacke.get(m), [r, r.toUpperCase()], m);
+    assert.deepEqual(znacke.get(m), [r, E.napisTezavnosti(E.tezavnostTehnike(t)).toUpperCase()], m);
   }
 });

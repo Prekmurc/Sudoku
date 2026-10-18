@@ -20,12 +20,19 @@ const PRAVILA = [
   ['razvijalska podrobnost (lokalni strežnik)', s => /lokaln\w* strežnik/i.test(s)],
   ['razvijalska podrobnost (neposredno iz datotek)', s => /neposredno iz datotek/i.test(s)],
   ['razvijalska podrobnost (ločena nit)', s => /ločen\w* nit/i.test(s)],
+  // Naloga 11a (odločitve 2026-10-18, docs/naloga11a-nacrt.md 1.1, 1.4, 1.5).
+  ['»kratka X-veriga«, ne »veriga ene števke«', s => /verig\w* ene števk/i.test(s)],
+  ['»Ekstremna«, ne »Ekstrem«', s => /(^|[^\wčšž])ekstrem(?![\wčšž])/i.test(s)],
+  ['težavnost, ne raven »napredna« ali »ekspertna«', s => /napredn|ekspertn/i.test(s)],
+  ['težavnost, ne »raven« tehnik', s => /(^|[^\wčšž-])ravn?(en|i|eh|ema|em|e|o|ijo)?(?![\wčšž])/i.test(s)],
 ];
 
 // Izjeme: [datoteka, začetek niza, razlog].
 const IZJEME = [
   ['shared/zbirka.js', '- **Danosti:**', 'ključ v izvoženi datoteki Markdown (oblika docs/uganke.md, uvoz ga bere)'],
   ['shared/zbirka.js', 'V datoteki ni nobene uganke', 'sporočilo uvoza navede ključ datoteke »- **Danosti:**«'],
+  ['shared/zbirka-ui.js', 't-expert znacka-ekstrem', 'imeni razredov značke (shared/zbirka.css)'],
+  ['shared/zbirka.js', 'Veriga ene števke', 'staro ime tehnike za uvoz starih izvozov (STARA_IMENA_TEHNIK)'],
 ];
 
 function preveri(f, vrstica, s, najdbe) {
@@ -67,5 +74,6 @@ test('izrazi: pravila najdejo prepovedane izraze', () => {
   assert.equal(najdbe.length, 6, najdbe.join('\n'));
   const dovoljeno = [];
   preveri('x.js', 1, 'Vtipkaj dane števke v mrežo. S kljukico skriješ kandidate.', dovoljeno);
+  preveri('x.js', 1, 'Kratka X-veriga v ekstremni uganki stopnje Ekstremna.', dovoljeno);
   assert.deepEqual(dovoljeno, []);
 });

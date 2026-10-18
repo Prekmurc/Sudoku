@@ -128,7 +128,7 @@ function legendaKoraka(korak,odstranjeni){
 // Ime tehnike v tožilniku za navodilo ("poišči skriti par").
 const VADI_TOZILNIK={'Pointing pair/triple':'izločitev izven bloka','Box-line reduction':'izločitev v bloku',
   'Naked pair':'očitni par','Hidden pair':'skriti par','Naked triple':'očitno trojico','Hidden triple':'skrito trojico',
-  'X-Wing':'X-krilo','Swordfish':'mečarico','Turbot Fish':'verigo ene števke','W-Wing':'W-krilo','XY-Wing':'XY-krilo',
+  'X-Wing':'X-krilo','Swordfish':'mečarico','Turbot Fish':'kratko X-verigo','W-Wing':'W-krilo','XY-Wing':'XY-krilo',
   'Unique Rectangle':'edinstveni pravokotnik','XY-Chain':'XY-verigo'};
 // Tehnike ženskega spola ("izbriši kandidate, ki zaradi nje odpadejo"), druge "zaradi njega".
 const VADI_ZENSKI=new Set(['Pointing pair/triple','Box-line reduction','Naked triple','Hidden triple','Swordfish','Turbot Fish','XY-Chain']);

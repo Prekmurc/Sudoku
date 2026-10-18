@@ -14,7 +14,7 @@ Tabela vseh tehnik iz `ALL_TECHNIQUES` v [shared/engine.js](../shared/engine.js)
 | `hiddenTriples` | Skrita trojica | Poišče tri števke, ki so v enoti možne samo v istih treh celicah, in izbriše vse druge kandidate iz teh celic. | da |
 | `xWing` | X-krilo | Poišče kandidata, ki je v dveh vrsticah (ali stolpcih) možen na istih dveh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
 | `swordfish` | Mečarica | Poišče kandidata, ki je v treh vrsticah (ali stolpcih) možen na istih treh mestih, in ga izbriše iz preostanka pripadajočih stolpcev (ali vrstic). | da |
-| `turbotFish` | Veriga ene števke | Poišče dve močni povezavi za isto števko (vrstica ali stolpec, kjer je števka mogoča v natanko dveh celicah), katerih konca se vidita. Vsaj eden od drugih dveh koncev je potem ta števka, zato jo izbriše iz celic, ki vidijo oba. Podtipa: Nebotičnik (Skyscraper; vzporedni povezavi) in Zmaj z dvema vrvicama (2-String Kite; vrstica + stolpec, konca v istem bloku); podtip je naveden v sporočilu. Močne povezave v bloku niso vključene. | da |
+| `turbotFish` | Kratka X-veriga | Poišče dve močni povezavi za isto števko (vrstica ali stolpec, kjer je števka mogoča v natanko dveh celicah), katerih konca se vidita. Vsaj eden od drugih dveh koncev je potem ta števka, zato jo izbriše iz celic, ki vidijo oba. Podtipa: Nebotičnik (Skyscraper; vzporedni povezavi) in Zmaj z dvema vrvicama (2-String Kite; vrstica + stolpec, konca v istem bloku); podtip je naveden v sporočilu. Močne povezave v bloku niso vključene. | da |
 | `wWing` | W-krilo | Poišče dve celici z natanko istim parom kandidatov {a,b}, ki se med sabo ne vidita, in enoto, kjer je b mogoč samo v dveh celicah (močna povezava), od katerih ena vidi prvo, druga pa drugo celico para. Vsaj ena celica para je potem a, zato a izbriše iz celic, ki vidijo obe. V aplikaciji Oakever se tehnika imenuje »Krilo W«. | da |
 | `xyWing` | XY-krilo | Poišče pivota z dvema kandidatoma in dve krili, ki si delita skupnega kandidata, ter ga izbriše iz celic, ki vidijo obe krili. | da |
 | `uniqueRectangle` | Edinstveni pravokotnik | Prepreči smrtonosni vzorec (situacijo z dvema možnima rešitvama) tako, da iz četrte celice pravokotnika izbriše kandidata, ki bi dvoumnost povzročil. | da |
@@ -47,14 +47,20 @@ ne izpisujejo (»tehnike: 1, 3, 7«), ker jih potrebuje vsaka uganka.
 | 6 | srednje | Skrita trojica (Hidden Triple) | Hidden triple | – |
 | 7 | napredne | X-krilo (X-Wing) | X-Wing | – |
 | 8 | napredne | Mečarica (Swordfish) | Swordfish | tehnika mečarice |
-| 9 | napredne | Veriga ene števke (Turbot Fish) | Turbot Fish | podtipa Nebotičnik (Skyscraper) in Zmaj z dvema vrvicama (2-String Kite) |
+| 9 | napredne | Kratka X-veriga (Turbot Fish) | Turbot Fish | podtipa Nebotičnik (Skyscraper) in Zmaj z dvema vrvicama (2-String Kite); do 2026-10-18 »Veriga ene števke« |
 | 10 | napredne | W-krilo (W-Wing) | W-Wing | Krilo W (aplikacija Oakever) |
-| 11 | napredne | XY-krilo (XY-Wing, Y-Wing) | XY-Wing | – |
+| 11 | napredne | XY-krilo (XY-Wing) | XY-Wing | Y-Wing; do 2026-10-18 »XY-krilo (XY-Wing, Y-Wing)« |
 | 12 | napredne | Edinstveni pravokotnik (Unique Rectangle) | Unique Rectangle | Unique Rectangle Type 1 (motor pozna samo ta tip); nadpojem: smrtonosni vzorec (Deadly Pattern) |
 | 13 | ekspertne | XY-veriga (XY-Chain) | XY-Chain | 4–8 celic; veriga treh celic je XY-krilo (11); oddaljeni par je posebna oblika |
 | – | – | Poskus in protislovje (Trial and Error) | (sestopanje, `tryBifurcation`) | ugibanje; ni tehnika s številko, ime ostane |
 
 »Presek« je skupno ime tehnik 1 in 2 v opisih stopenj ugank in komentarjih (`shared/generator.js`, `GEN_PRESEKI`).
+
+**Dodatna angleška imena** (odločitev 2026-10-18, [imena-tehnik.md](imena-tehnik.md)) so samo v oknu Pomoč pod imenom
+tehnike (`TEHNIKE_OPISI.drugaAngleska` v [shared/engine.js](../shared/engine.js)), ne na karticah, v kazalu, v oznaki
+koraka ali v izvozu: 1 – Pointing; 2 – Claiming, Box/Line Intersection; 9 – Skyscraper, 2-String Kite; 11 – Y-Wing.
+Ravni »napredne« in »ekspertne« v tej tabeli so imena v kodi (`RAVNI_TEHNIK`); uporabnik vidi težavnost tehnike –
+Lahka, Srednja, Težka, Ekstremna (značka »TEŽKA (HARD)«).
 
 Angleške sopomenke pri enojčku in presekih so preverjene 2026-09-23 v uveljavljenih virih:
 »Sole Candidate« je v Sudopedii (stran Naked Single: »Alternative terms are Forced Digit and
@@ -113,7 +119,7 @@ korak« v igri), številke v treningu in pri ugankah (`TRENING_TEHNIKE`, ki mora
 | 6 | Skrita trojica (Hidden Triple) | 4,0 | 100 |
 | 7 | X-krilo (X-Wing) | 3,2 | 140 |
 | 8 | Mečarica (Swordfish) | 3,8 | 150 |
-| 9 | Veriga ene števke (Turbot Fish): Skyscraper / 2-String Kite | – | 130 / 150 |
+| 9 | Kratka X-veriga (Turbot Fish): Skyscraper / 2-String Kite | – | 130 / 150 |
 | 10 | W-krilo (W-Wing) | – | 150 |
 | 11 | XY-krilo (XY-Wing) | 4,2 | 160 |
 | 12 | Edinstveni pravokotnik (Unique Rectangle) | 4,5–5,0 | 100 (Type 1) |
@@ -172,8 +178,8 @@ največ 5,8 s.
 **Opredelitev stopenj od 2026-09-24** ([uskladitev.md](uskladitev.md), razdelek 7): stopnja je
 raven najtežje tehnike, ki jo uporabi motor v stalnem vrstnem redu (`genPot()` z vsemi
 tehnikami), šteje se množica različnih tehnik. Lahka = samo enojčki, Srednja = najtežje so
-srednje (1–6), Težka = natanko ena napredna (7–12), Zelo težka = vsaj dve napredni, Ekstrem =
-ekspertna tehnika (13, XY-veriga – v motorju od 2026-10-08). Uganka, pri kateri motor obtiči, dobi
+srednje (1–6), Težka = natanko ena napredna (7–12), Zelo težka = vsaj dve napredni, Ekstremna
+(do 2026-10-18 »Ekstrem«) = ekspertna tehnika (13, XY-veriga – v motorju od 2026-10-08). Uganka, pri kateri motor obtiči, dobi
 »Presega tehnike«, uganka brez rešitve »Brez rešitve«, uganka z več rešitvami »Več rešitev«. Pravila
 »pet ali več tehnik → Zelo težka« ni več; meja štirih tehnik pri Težki velja samo za
 generator. Pogoji generatorja (spodaj) so ostali enaki. Tabela spodaj je zapis meritve
@@ -183,8 +189,8 @@ srednja 0,81 s, težka 1,00 s, zelo težka 1,92 s (povprečje; največ 9,7 s pri
 
 Številke tehnik so iz `TRENING_TEHNIKE` v [shared/engine.js](../shared/engine.js) (od
 2026-09-24): **1** izločitev izven bloka, **2** izločitev v bloku, **3** očitni par, **4** skriti
-par, **5** očitna trojica, **6** skrita trojica, **7** X-krilo, **8** mečarica, **9** veriga ene
-števke, **10** W-krilo, **11** XY-krilo, **12** edinstveni pravokotnik. Meritev spodaj je iz 2026-09-21 (star vrstni red
+par, **5** očitna trojica, **6** skrita trojica, **7** X-krilo, **8** mečarica, **9** kratka
+X-veriga, **10** W-krilo, **11** XY-krilo, **12** edinstveni pravokotnik. Meritev spodaj je iz 2026-09-21 (star vrstni red
 motorja); obsegi 1–6 in 7–12 so isti. Enojčka (gol in skriti) sta vključena
 pri vseh stopnjah in se ne štejeta. »Srednje« so tehnike 1–6, »napredne« 7–12; šteje se število
 **različnih** tehnik, ki jih uporabi pot iz `genRazvrsti()` v [shared/generator.js](../shared/generator.js).
@@ -201,7 +207,7 @@ več kot eno srednjo. Spodnja meja to odpravi.
 | Težka | 1–6 + ena iz 7–12 | **≥ 2** iz 1–6 + **natanko 1** iz 7–12, skupaj ≤ 4 | 8,0 % | 2,1 s |
 | Zelo težka | 1–12 | **≥ 2** iz 1–6 + **≥ 2** iz 7–12 | 5,9 % | 2,1 s |
 | Presega tehnike (prej Ekstrem) | vse + poskus | motor uganke brez ugibanja ne reši | 21,4 % vseh izkopanih | – |
-| Ekstrem (od 2026-09-24) | ekspertne (13) | vsaj ena ekspertna tehnika; generator (od 2026-10-08) še **≥ 2** iz 1–6 | – | 1,3 s (Node, 2026-10-08) |
+| Ekstremna (od 2026-09-24; do 2026-10-18 »Ekstrem«) | ekspertne (13) | vsaj ena ekspertna tehnika; generator (od 2026-10-08) še **≥ 2** iz 1–6 | – | 1,3 s (Node, 2026-10-08) |
 
 Minimum velja **samo za iskanje v generatorju** (kaj gumb »Ustvari uganko« ustvari), ne za
 razvrščanje že znanih ugank: `oceniUganko()` (gumb »Oceni zbirko« v igri) mora ostati pokrivajoč,

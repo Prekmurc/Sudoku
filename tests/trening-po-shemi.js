@@ -23,7 +23,7 @@
 //     5 je vzorec en sam (kot ga sprejme »Preveri«);
 //   - vsaka celica s kandidati ima vsaj dva, vsaka nevpisana števka je v vsaj dveh celicah;
 //   - »Preveri« (pri 4 in 6 z 2. fazo) → »Pravilno!«, oznaka in vrstica s preslikavo, vaja 3 enaka M.gen(2).
-// Korak 4: 9 · Veriga ene števke (vaja 1 prva risba – Nebotičnik, vaja 2 druga – Zmaj, obe brez obrata, O8),
+// Korak 4: 9 · Kratka X-veriga (vaja 1 prva risba – Nebotičnik, vaja 2 druga – Zmaj, obe brez obrata, O8),
 // 10 · W-krilo, 12 · Edinstveni pravokotnik, 13 · XY-veriga (vaja 2 obrnjena, O16), 11 · XY-krilo (vaja 2
 // zrcaljena levo-desno, O18), na 200 vajah 1 in 200 vajah 2 vsake s semenom:
 //   - prazne celice vaje = celice s črko na risbi (pri vaji 2 obrnjene / zrcaljene), druge sive;

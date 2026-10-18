@@ -44,7 +44,8 @@ document.addEventListener('keydown',e=>{if(oknoPomoc.odprto())return;if(enojcek&
 // 7"), ime da imeTehnike(). Vrstni red kartic v HTML ni pomemben, naslov v HTML je samo
 // nadomestek (tests/trening-tehnike.test.js preveri, da je enak imeTehnike()). Opis na
 // kartici je povzetek tehnike iz TEHNIKE_OPISI (faza 6) - tudi v HTML je nadomestek, prav tako
-// značka ravni iz ravenTehnike() (faza 7, točka 1.1 - nova tehnika potrebuje samo vnos ravni).
+// značka težavnosti iz tezavnostTehnike() (shared/generator.js, iz ravni - nova tehnika potrebuje samo
+// vnos ravni; naloga 11a, 1.5): »TEŽKA (HARD)«, razred ostane raven (badge-napredna).
 // TEHNIKA_VAJE: način vaje (data-mode) -> ključ tehnike v ALL_TECHNIQUES.
 const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
 [...TRENING_ENOJCKA,...TRENING_TEHNIKE].forEach(([m,t])=>{
@@ -56,7 +57,7 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
   const p=card.querySelector('p');
   if(p) p.textContent=TEHNIKE_OPISI[m].povzetek;
   const znacka=card.querySelector('.badge'),raven=ravenTehnike(t);
-  if(znacka){znacka.className=`badge badge-${raven}`;znacka.textContent=raven.toUpperCase();}
+  if(znacka){znacka.className=`badge badge-${raven}`;znacka.textContent=napisTezavnosti(tezavnostTehnike(t)).toUpperCase();}
   menuEl.appendChild(card);
 });
 
@@ -1138,7 +1139,7 @@ function checkPhase1(ex,M,cellEls,checkBtn,nextBtn,fb){
         : M.isXYChain
         ? '<b>To še ni veljavna XY-veriga.</b> Vsaka celica verige mora imeti natanko dva kandidata, zaporedni celici se morata videti (ista vrstica, stolpec ali blok) in imeti skupen kandidat, oba konca pa isto števko z. Izberi vse celice verige – vsaj štiri.'
         : M.isTurbot
-        ? `<b>To še ni veljavna veriga ene števke.</b> Potrebuješ dve povezavi – vrstici, stolpca ali vrstico in stolpec, kjer je ${ex.digit} mogoča samo v dveh celicah; en konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok).`
+        ? `<b>To še ni veljavna kratka X-veriga.</b> Potrebuješ dve povezavi – vrstici, stolpca ali vrstico in stolpec, kjer je ${ex.digit} mogoča samo v dveh celicah; en konec prve in en konec druge povezave se morata videti (ista vrstica, stolpec ali blok).`
         : '<b>To še ni veljaven edinstveni pravokotnik.</b> Potrebuješ štiri vogale pravokotnika v dveh vrsticah in dveh stolpcih, ki ležijo v <b>natanko dveh blokih</b>: trije z natanko istim parom kandidatov, četrti z istim parom in še dodatnimi.';
       selected.forEach(si=>cellEls[si].classList.remove(M.selClass));selected=[];
     }

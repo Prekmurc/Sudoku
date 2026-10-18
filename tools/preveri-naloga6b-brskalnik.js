@@ -297,7 +297,7 @@ async function korak2(b, sirina) {
       o.barva === MODRA && o.sirina === '1px' && o.senca === `${MODRA} 0px 0px 0px 1px` && kontrast(MODRA, o.podlaga) >= 3, o);
   }
   preveri(`kartica 11 v oknu (${Math.round(kk.vrh)}–${Math.round(kk.dno)} od ${kk.okno} px)`, kk.vrh >= 0 && kk.dno <= kk.okno, kk);
-  preveri('vrstica 11: aria-label s pripisom »– nazadnje vadena«', kv.aria === '11 · XY-krilo (XY-Wing, Y-Wing) – nazadnje vadena', kv.aria);
+  preveri('vrstica 11: aria-label s pripisom »– nazadnje vadena«', kv.aria === '11 · XY-krilo (XY-Wing) – nazadnje vadena', kv.aria);
   meritve2.push(`${sirina} px: po »Nazaj« iz 11 kartica na ${Math.round(kk.vrh)}–${Math.round(kk.dno)} px okna; kontrast okvirja ${kontrast(MODRA, kk.podlaga).toFixed(2)} (kartica), ${kontrast(MODRA, kv.podlaga).toFixed(2)} (vrstica)`);
   if (!dotik) {
     // Okvir se loči od poudarka pod miško (turkizen): miška na sosednji kartici, nato na zadnji in na vrstici.
@@ -560,9 +560,12 @@ Korak 2 – okno Pomoč vseh treh: kazalo tehnik enako izhodišču ${izhodisce},
     const k = `${a.ime} ${s}`, n = nova[k], st = stara[k], sc = celaStara[k];
     const razSlogi = st.slogi.map((x, i) => (x !== n.slogi[i] ? n.drevo[i] : null)).filter(Boolean);
     const razPol = st.polozaji.map((x, i) => (x !== n.polozaji[i] ? `${n.drevo[i]} ${x} → ${n.polozaji[i]}` : null)).filter(Boolean);
-    preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču ${izhodisce}`,
-      J(n.drevo) === J(st.drevo) && n.html === st.html && razSlogi.length === 0 && razPol.length === 0,
-      { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === st.html });
+    // Naloga 11a: imeni 9 in 11 v title/aria-label vrstic kazala sta novi - v izhodišču se preslikata.
+    const imena11a = h => h.replace(/Veriga ene števke/g, 'Kratka X-veriga').replace(/XY-Wing, Y-Wing/g, 'XY-Wing');
+    const drevoSt = st.drevo.map(imena11a), htmlSt = imena11a(st.html);
+    preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču ${izhodisce} (z imeni iz 11a)`,
+      J(n.drevo) === J(drevoSt) && n.html === htmlSt && razSlogi.length === 0 && razPol.length === 0,
+      { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === htmlSt });
     if (!a.celo) continue;
     // Razlike v slogih vsega okna po elementih.
     const razCeloKje = sc.celoSlogi.map((x, i) => {

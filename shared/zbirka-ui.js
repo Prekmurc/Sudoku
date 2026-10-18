@@ -177,10 +177,10 @@ function zbirkaOznakaStanja(kljuc, besedilo, napaka) {
 }
 
 // Značka težavnosti v barvi ravni (oznake korakov .tag.t-* iz shared/base.css): lahka zelena,
-// srednja jantarna, težka vijolična, zelo težka srednje močna vijolična (--purple-dark), ekstrem jasno turkizna
+// srednja jantarna, težka vijolična, zelo težka srednje močna vijolična (--purple-dark), ekstremna jasno turkizna
 // (--turq-dark), drugo rdeča. Reševalec (pod seznamom primerov) in igra (kartica »Uganka«, vgrajeni primeri).
 const ZNACKA_TEZAVNOSTI = { 'Lahka': 't-single', 'Srednja': 't-pair', 'Težka': 't-advanced', 'Zelo težka': 't-advanced znacka-zelo-tezka',
-  'Ekstrem': 't-expert znacka-ekstrem' };
+  'Ekstremna': 't-expert znacka-ekstrem' };
 
 function zbirkaZnacka(tezavnost) {
   const el = document.createElement('span');

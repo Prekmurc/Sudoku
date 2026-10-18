@@ -76,7 +76,7 @@ nobene od osmih ugank: tri, pri katerih reševalec ugiba (`hard-17-a`, `example-
 
 Vklop XY-verige 2026-10-08 (tehnika 13, ekspertna raven – `docs/xy-veriga-nacrt.md`, korak 6)
 spremeni samo uganke, pri katerih je reševalec ugibal: `example-app`, `oakever-ekstrem-17-a` in
-`xy-veriga-17` se rešijo brez poskusa (stopnja Ekstrem), korak verige je natanko na mestu
+`xy-veriga-17` se rešijo brez poskusa (stopnja Ekstremna), korak verige je natanko na mestu
 nekdanjega poskusa, dnevnik pred njim je enak. `hard-17-a` ostane »Presega tehnike« (verige do
 osmih celic na mestu poskusa ni). Na vseh devetih ugankah je ugibanje samo še eno (hard-17-a).
 Stopnje drugih ugank in dnevniki so nespremenjeni (`tests/pocasni/stopnje-ugank.test.js`).
@@ -265,7 +265,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Značilnost (od 2026-10-08, XY-veriga):** `solve()` jo reši **brez poskusa** v 79 korakih:
   Skriti enojček (40), Gol enojček (24), Pointing pair/triple (10), Hidden pair (3), Box-line
   reduction (1, na indeksu 12) in XY-veriga (1, na indeksu 52 – šest celic V6S7 – V1S7 – V2S8 –
-  V2S5 – V2S9 – V7S9, izbriše 2 iz V6S9, V7S7 in V8S7); stopnja Ekstrem.
+  V2S5 – V2S9 – V7S9, izbriše 2 iz V6S9, V7S7 in V8S7); stopnja Ekstremna.
 - **Zgodovina (vklop XY-verige 2026-10-08):** prej enako do indeksa 52, tam pa `tryBifurcation`
   (V1S6≠7), stopnja »Presega tehnike«.
 - **Zgodovina (vrstni red 2026-09-24):** korakov enako (79), ugibanje isto na istem
@@ -291,7 +291,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
 - **Značilnost (od 2026-10-08, XY-veriga):** `solve()` jo reši **brez poskusa** v 75 korakih:
   Skriti enojček (40), Gol enojček (24), Pointing pair/triple (5), Turbot Fish (2), Box-line
   reduction (1), Naked pair (1), Naked triple (1) in XY-veriga (1, na indeksu 48 – sedem celic
-  V1S6 – V8S6 – V8S9 – V7S8 – V7S2 – V4S2 – V4S5, izbriše 2 iz V1S5 in V6S6); stopnja Ekstrem.
+  V1S6 – V8S6 – V8S9 – V7S8 – V7S2 – V4S2 – V4S5, izbriše 2 iz V1S5 in V6S6); stopnja Ekstremna.
   Do vklopa XY-verige je bil na indeksu 48 `tryBifurcation` (V1S5≠2), stopnja »Presega
   tehnike«; dnevnik pred njim je enak. Turbot Fish: Zmaj z dvema vrvicama (4) na indeksu 44,
   Skyscraper (7) na indeksu 46. Na mestu ugibanja `turbotFish()` ne najde ničesar.
@@ -431,7 +431,7 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   korakih: Skriti enojček (37), Gol enojček (27), Pointing pair/triple (5), Box-line reduction
   (4), Naked pair (1), Hidden triple (1), Turbot Fish (1) in XY-veriga (2) – na indeksu 30
   zgornja veriga petih celic (izbriše 3 iz V5S3), na indeksu 33 veriga šestih celic V5S2 –
-  V4S2 – V8S2 – V8S4 – V8S9 – V8S5 (izbriše 2 iz V5S5); stopnja Ekstrem. Dnevnik pred indeksom
+  V4S2 – V8S2 – V8S4 – V8S9 – V8S5 (izbriše 2 iz V5S5); stopnja Ekstremna. Dnevnik pred indeksom
   30 je enak kot prej.
 - **Zakaj je tu:** preizkusna uganka XY-verige; stanje pred poskusom je testna pozicija v
   `tests/xy-chain.test.js`.
