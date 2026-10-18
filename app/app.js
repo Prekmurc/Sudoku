@@ -28,10 +28,13 @@ inputs.forEach((inp, i) => {
     inp.value = v;
     checkConflicts();
     izrisiOpisPrimera();
-    // Druga uganka kot zadnja rešena: stara rešitev in koraki se skrijejo (kot ob »Reši« z drugimi danostmi).
-    if (lastSolve && currentGivens() !== lastSolve.givens) {
+    // Druga uganka kot prikazana rešitev: stara rešitev, koraki in stanje rešitve se skrijejo (kot ob »Reši« z
+    // drugimi danostmi). Ko je rešitev že skrita, vrstica stanja ostane (npr. zavrnitev »Reši« zaradi podvojenih).
+    if (lastSolve && resultsEl.style.display === 'block' && currentGivens() !== lastSolve.givens) {
       resultsEl.style.display = 'none';
       skrijKorake();
+      statusEl.textContent = '';
+      statusEl.className = '';
     }
     const cs = document.getElementById('candSection');
     if (cs.style.display === 'block') renderCandidates();

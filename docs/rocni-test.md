@@ -462,8 +462,8 @@ preverjanje s pravimi tipkami v brskalniku brez glave pri 375 in 1280 px. Pred p
 
 | # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
 |---|---|---|---|---|
-| 1 | reševalec, telefon in monitor | Izberi primer in pritisni »Reši«; preberi vrstico nad rešeno mrežo. | Stavek »Temne števke so začetek uganke, modre so rešitev.« se bere kot razlaga, ne kot štetje; »Temne« je temna in krepka kot dane števke, »modre« modra kot izpeljane. **(nepotrjeno)** | Razumljivost in videz besedila presodiš sam. |
-| 2 | reševalec, telefon | Po »Reši« odpri »Pokaži korake reševanja«, nato se dotakni celice vnosne mreže in na zaslonski tipkovnici vpiši ali izbriši števko. | Kartici »Rešitev« in »Koraki reševanja« izgineta takoj; po ponovnem »Reši« se pokaže nova rešitev, koraki so skriti do »Pokaži korake reševanja«. **(nepotrjeno)** | Zaslonske tipkovnice telefona brskalnik brez glave nima. |
+| 1 | reševalec, telefon in monitor | Izberi primer in pritisni »Reši«; preberi vrstico nad rešeno mrežo. | Stavek »Temne števke so začetek uganke, modre so rešitev.« se bere kot razlaga, ne kot štetje; »Temne« je temna in krepka kot dane števke, »modre« modra kot izpeljane. (potrjeno 18. 10. 2026) | Razumljivost in videz besedila presodiš sam. |
+| 2 | reševalec, telefon | Po »Reši« odpri »Pokaži korake reševanja«, nato se dotakni celice vnosne mreže in na zaslonski tipkovnici vpiši ali izbriši števko. | Kartici »Rešitev« in »Koraki reševanja« izgineta takoj; po ponovnem »Reši« se pokaže nova rešitev, koraki so skriti do »Pokaži korake reševanja«. (potrjeno 18. 10. 2026) | Zaslonske tipkovnice telefona brskalnik brez glave nima. |
 
 ## Zakaj ročno
 

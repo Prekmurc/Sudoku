@@ -1376,7 +1376,8 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   kartica »Koraki reševanja« odprta s koraki prejšnje uganke. Naloga 6b (O10) jo skrije samo ob »Reši« z drugimi
   danostmi, ob novi uganki iz primerov, zbirke ali polja Niz in ob »Počisti«. **Narejeno 2026-10-18:** vsak vpis v
   vnosno mrežo, po katerem so danosti drugačne od zadnje rešitve, skrije kartici »Rešitev« in »Koraki reševanja«
-  (`tests/resevalec-resitev.test.js`).
+  (`tests/resevalec-resitev.test.js`); od 2026-10-18 se skupaj z njima izprazni še vrstica stanja (»Rešeno v N
+  korakih.«).
 - **Legenda nad rešitvijo v reševalcu se bere kot štetje** (zapisano 2026-10-11 ob zaključku naloge 6b): »5 dana
   5 izpeljana« nad rešeno mrežo zveni kot »pet danih, pet izpeljanih«. Zamenja naj jo stavek »Temne števke so
   začetek uganke, modre so rešitev.« – beseda »Temne« v barvi danih števk, beseda »modre« v modri barvi izpeljanih.
@@ -1499,6 +1500,8 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   (17 danih števk): reševalec zdaj dvakrat ugiba (»Presega tehnike«). Na zatiku pred prvim ugibanjem: števka 1,
   V2S8=V4S8 – V6S7=V6S5 – V7S5=V8S4 → izbris 1 v V2S4. Z eno X-verigo se uganka reši brez ugibanja (preverjeno v
   kopiji motorja 17. 10. 2026; 18. 10. 2026 še na zdajšnjem motorju: po izbrisu 1 iz V2S4 nadaljuje brez poskusa).
+  **Odločitev 2026-10-18:** X-veriga dobi številko 13, XY-veriga se premakne na 14 (izrecna izjema od pravila »nova
+  tehnika gre na konec«).
 
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 

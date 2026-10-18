@@ -67,26 +67,44 @@ test('legenda nad rešitvijo: stavek, »Temne« v barvi danih, »modre« v barvi
   assert.equal(pravilo('app/app.css', '.legend-grid .vz-izpeljana').color, izpeljana.color);
 });
 
-test('sprememba celice po »Reši« skrije kartici »Rešitev« in »Koraki reševanja«', async () => {
+test('sprememba celice po »Reši« skrije kartici »Rešitev« in »Koraki reševanja« in vrstico stanja', async () => {
   const { dom, run } = await resenPrimer();
+  assert.equal(dom.el('status').textContent, 'Rešeno v 69 korakih.');
   vtipkaj(run, prvaPrazna(run), '5');
   assert.equal(dom.el('results').style.display, 'none', 'stara rešitev se ne pokaže');
   assert.equal(dom.el('stepsCard').style.display, 'none', 'stari koraki se ne pokažejo');
   assert.equal(dom.el('openStepsBtn').textContent, 'Pokaži korake reševanja');
+  assert.equal(dom.el('status').textContent, '', 'stanje stare rešitve se ne pokaže');
+  assert.equal(dom.el('status').className, '');
 });
 
-test('brisanje dane števke po »Reši« skrije obe kartici', async () => {
+test('brisanje dane števke po »Reši« skrije obe kartici in vrstico stanja', async () => {
   const { dom, run } = await resenPrimer();
   vtipkaj(run, prvaPolna(run), '');
   assert.equal(dom.el('results').style.display, 'none');
   assert.equal(dom.el('stepsCard').style.display, 'none');
+  assert.equal(dom.el('status').textContent, '');
 });
 
-test('znak, ki mreže ne spremeni (črka v prazni celici), kartici pusti', async () => {
+test('znak, ki mreže ne spremeni (črka v prazni celici), kartici in vrstico stanja pusti', async () => {
   const { dom, run } = await resenPrimer();
   vtipkaj(run, prvaPrazna(run), 'a');
   assert.equal(dom.el('results').style.display, 'block');
   assert.equal(dom.el('stepsCard').style.display, 'block');
+  assert.equal(dom.el('status').textContent, 'Rešeno v 69 korakih.');
+});
+
+test('sporočilo zavrnjenega »Reši« (podvojene števke) ostane ob naslednjem vpisu', async () => {
+  const { dom, run } = await resenPrimer();
+  // Prvo prazno celico izpolni s števko, ki je že v njeni vrstici - konflikt.
+  run(`(() => { const i = inputs.findIndex(x => !x.value); const r = Math.floor(i / 9);
+    const d = inputs.slice(r * 9, r * 9 + 9).find(x => x.value).value; inputs[i].value = d; inputs[i].sprozi('input'); })()`);
+  await resi(dom);
+  const zavrnitev = dom.el('status').textContent;
+  assert.match(zavrnitev, /^Popravi rdeče označene celice/);
+  // Vpis števke rešitve v drugo prazno celico - mreža se spremeni, sporočilo ostane.
+  run(`(() => { const i = inputs.findIndex(x => !x.value); inputs[i].value = String(lastSolve.grid[i]); inputs[i].sprozi('input'); })()`);
+  assert.equal(dom.el('status').textContent, zavrnitev);
 });
 
 test('po spremembi in znova »Reši« se pokaže nova rešitev, koraki se zgradijo na novo', async () => {
