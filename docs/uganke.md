@@ -435,3 +435,19 @@ vseh naključnih ugank (samo enojčki, 53,5 %) pa ni ustrezalo nobeni stopnji.
   30 je enak kot prej.
 - **Zakaj je tu:** preizkusna uganka XY-verige; stanje pred poskusom je testna pozicija v
   `tests/xy-chain.test.js`.
+
+### x-veriga-17
+
+- **Danosti (17):** `.9.....35....7...........4.7.83.....1.....8.....9......3...2.......8.7..4.......1`
+- **Vir:** posredoval uporabnik (2026-10-18) kot preizkusno uganko za X-verigo (X-Chain – veriga ene
+  števke z vsaj tremi močnimi povezavami; postavka v »Kasneje« v `docs/uskladitev.md`).
+- **Preverjeno:** `countSolutions() === 1` (enolična rešitev); `solve()` jo v celoti reši.
+- **Značilnost (2026-10-18):** `solve()` jo reši v 73 korakih: Skriti enojček (44), Gol enojček (20),
+  Pointing pair/triple (3), Box-line reduction (3), Hidden pair (1) in dvakrat `tryBifurcation`, na
+  indeksih koraka 26 (V1S1≠6) in 29 (V1S7≠6) od 73; stopnja »Presega tehnike«. V stanju pred prvim
+  poskusom je števka 1 v stolpcu 8 samo v V2S8 in V4S8, v vrstici 6 samo v V6S5 in V6S7, v bloku 8
+  samo v V7S5 in V8S4: X-veriga V2S8=V4S8 – V6S7=V6S5 – V7S5=V8S4 izbriše 1 iz V2S4, ki vidi oba
+  konca (rešitev V2S4 = 5). Po tem izbrisu motor nadaljuje brez poskusa (še 45 korakov: Gol enojček
+  34, Skriti enojček 10, Turbot Fish 1).
+- **Zakaj je tu:** preizkusna uganka X-verige, če bo tehnika narejena. Za zdajšnje tehnike ne
+  prispeva nič novega (`node tools/analiziraj-zbirko.js`).

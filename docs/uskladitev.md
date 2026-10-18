@@ -1491,6 +1491,12 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
     na mreži pri 1 in 2 pa je prečrtana števka temno rdeča (`--okvir-napacno`) na rumenem poudarku;
   - rumeni poudarek (`--poud`) je v jantarni celici vzorca podoben podlagi celice.
 
+- **X-veriga (X-Chain)** (zapisano 2026-10-18): veriga ene števke z vsaj tremi močnimi povezavami (9 · Veriga ene
+  števke pozna samo dve). Predlog: nova tehnika, ekspertna raven. Preizkusna uganka `x-veriga-17` v `docs/uganke.md`
+  (17 danih števk): reševalec zdaj dvakrat ugiba (»Presega tehnike«). Na zatiku pred prvim ugibanjem: števka 1,
+  V2S8=V4S8 – V6S7=V6S5 – V7S5=V8S4 → izbris 1 v V2S4. Z eno X-verigo se uganka reši brez ugibanja (preverjeno v
+  kopiji motorja 17. 10. 2026; 18. 10. 2026 še na zdajšnjem motorju: po izbrisu 1 iz V2S4 nadaljuje brez poskusa).
+
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 
 - **Gumb »Izvedi izbris«**.
