@@ -82,7 +82,7 @@ async function igra(b, sirina) {
       stopnjeSeznamov: okno.querySelectorAll('ul.navodila-stopnje').length,
       stopnjeVnos: okno.querySelectorAll('#stopnjeOcena li').length,
       strozje: document.getElementById('stopnjeStrozje').textContent,
-      tehnike: tehnike.length, odstavkov: tehnike.map(li => li.querySelectorAll(':scope > p').length),
+      tehnike: tehnike.length, odstavkov: tehnike.map(li => li.querySelectorAll(':scope > p:not(.tehnika-druga)').length),
       vOknu: [...okno.querySelectorAll('.dialog-panel *')].every(e => { const r = e.getBoundingClientRect(); return r.width === 0 || (r.left >= panel.left - 0.5 && r.right <= panel.right + 0.5); }),
       drsnik: okno.scrollWidth > okno.clientWidth,
       besedilo: okno.textContent };
@@ -94,7 +94,7 @@ async function igra(b, sirina) {
   preveri('podnaslov: krepko, 13,5 px', p.utez === '600' && p.velikost === '13.5px', [p.utez, p.velikost]);
   // seznam stopenj ugank (ul; tri stopnje »Naslednji korak« so ol)
   preveri('en seznam stopenj (5) in ena poved o generatorju', p.stopnjeSeznamov === 1 && p.stopnjeVnos === 5 && /^Generator je strožji od ocene/.test(p.strozje), [p.stopnjeSeznamov, p.stopnjeVnos, p.strozje]);
-  preveri('Tehnike: 15, razlaga in posledica v dveh odstavkih (odstavki zložljive sheme se ne štejejo)', p.tehnike === 15 && p.odstavkov.every(n => n === 2), p.odstavkov);
+  preveri('Tehnike: 15, razlaga in posledica v dveh odstavkih (odstavki zložljive sheme in pripis drugih angleških imen – naloga 11a – se ne štejejo)', p.tehnike === 15 && p.odstavkov.every(n => n === 2), p.odstavkov);
   preveri('brez razvijalskih podrobnosti in »stikal«, »danosti«', !/lokaln\w* strežnik|neposredno iz datotek|ločen\w* nit|stikal|danost/i.test(p.besedilo));
   preveri('okno: vse v panelu, brez vodoravnega drsnika', p.vOknu && !p.drsnik, p);
   await b.posnetek(path.join(mapa, `igra-${sirina}-pomoc.png`), { vsaStran: false });
@@ -120,8 +120,9 @@ async function igra(b, sirina) {
   // Besedilo stopenj v Pomoči.
   const st = await b.izvedi(`(() => { const o = document.getElementById('navodilaDialog');
     return { stopnje: [...o.querySelectorAll('#stopnjeOcena li')].map(li => li.textContent), besedilo: o.textContent }; })()`);
-  preveri('Pomoč: težka »ena zadošča«, zelo težka »ena napredna tehnika ne zadošča«, poved o drugi poti',
-    /^težka brez napredne tehnike .* ne gre, ena zadošča$/.test(st.stopnje[2]) && /^zelo težka ena napredna tehnika ne zadošča/.test(st.stopnje[3])
+  // Od naloge 11a (korak 1, O5) »tehnika 7–12« namesto »napredna tehnika«.
+  preveri('Pomoč: težka »ena zadošča«, zelo težka »ena tehnika 7–12 ne zadošča«, poved o drugi poti',
+    /^težka brez tehnike 7–12 .* ne gre, ena zadošča$/.test(st.stopnje[2]) && /^zelo težka ena tehnika 7–12 ne zadošča/.test(st.stopnje[3])
       && st.besedilo.includes('lahko izbere drugo pot in uporabi druge tehnike'), st.stopnje);
 }
 

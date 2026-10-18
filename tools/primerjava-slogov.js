@@ -54,6 +54,14 @@ const ZNANE_RAZLIKE = [
   ['Celici para ne moreta biti obe y: obe celici povezave bi takrat videli y in v povezavi y ne bi bil mogoč nikjer. Torej je vsaj v eni celici para x. Iz vseh celic, ki vidijo obe celici para, x izbrišeš.',
     'Celici para ne moreta biti obe b: obe celici povezave bi takrat videli b in v povezavi b ne bi bil mogoč nikjer. Torej je vsaj v eni celici para a. Iz vseh celic, ki vidijo obe celici para, a izbrišeš.'],
   ['rgb(21, 101, 192)', 'rgb(29, 63, 107)'],
+  // Naloga 11a, korak 1 (docs/naloga11a-nacrt.md, 1.1 in 1.2): imeni 9 in 11 v vrstici nad vajo in naslov vaje 9.
+  ['9 · Kratka X-veriga (Turbot Fish)', '9 · Veriga ene števke (Turbot Fish)'],
+  ['11 · XY-krilo (XY-Wing) ·', '11 · XY-krilo (XY-Wing, Y-Wing) ·'],
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => [`Kratka X-veriga za števko ${d}<`, `Veriga ene števke: ${d}<`]),
+  ['(Skyscraper, kratka X-veriga)', '(Skyscraper, veriga ene števke)'],
+  ['(2-String Kite, kratka X-veriga)', '(2-String Kite, veriga ene števke)'],
+  ['tvori kratko X-verigo (Turbot Fish)', 'tvori verigo ene števke (Turbot Fish)'],
+  ['To še ni veljavna kratka X-veriga.', 'To še ni veljavna veriga ene števke.'],
 ];
 // Navodila vaj z 2. fazo (naloga 4b, docs/izbris-nacrt.md, O11 in D1): besedilo pod nalogo (.desc) je povzetek in
 // navodilo; povzetek se ne spremeni, zato se preslika cela poved (navodilo 3 in 4 ter 5 in 6 je zdaj enako). Daljše

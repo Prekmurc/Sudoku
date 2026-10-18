@@ -721,6 +721,27 @@ function techniqueGroup(name) {
   return g === undefined ? TECHNIQUE_GROUPS.length : g;
 }
 
+// Skupine tehnik za prikaz uporabniku (naloga 11a, docs/naloga11a-nacrt.md, razdelek 2; odločitev
+// 2026-10-18, docs/uskladitev.md 1.1) - kazalo v treningu in v oknu Pomoč, naslovi skupin nad karticami
+// treninga in v seznamu tehnik v Pomoči, vrh vaje. Ločene od TECHNIQUE_GROUPS (sidranje) - te ostanejo,
+// sicer bi se spremenili dnevniki solve(). Zaporedni odseki ALL_TECHNIQUES, vsaka skupina v eni ravni;
+// težavnosti skupine ni tu - izpelje se iz ravni njenih tehnik (tezavnostTehnike() v shared/generator.js).
+// Edini vir imena skupine (imeSkupine()); nova tehnika gre v natanko eno skupino (tests/skupine-tehnik.test.js).
+const SKUPINE_TEHNIK = [
+  { kljuc: 'enojcki', ime: 'Enojčki', anglesko: 'Singles', tehnike: ['Gol enojček', 'Skriti enojček'] },
+  { kljuc: 'preseki', ime: 'Preseki', anglesko: 'Intersections', tehnike: ['Pointing pair/triple', 'Box-line reduction'] },
+  { kljuc: 'podmnozice', ime: 'Podmnožice', anglesko: 'Subsets', tehnike: ['Naked pair', 'Hidden pair', 'Naked triple', 'Hidden triple'] },
+  { kljuc: 'ribe', ime: 'Ribji vzorci', anglesko: 'Fish', tehnike: ['X-Wing', 'Swordfish'] },
+  { kljuc: 'kratke-verige', ime: 'Kratke verige', anglesko: 'Short Chains', tehnike: ['Turbot Fish', 'W-Wing', 'XY-Wing'] },
+  { kljuc: 'edinstvenost', ime: 'Edinstvenost', anglesko: 'Uniqueness', tehnike: ['Unique Rectangle'] },
+  { kljuc: 'dolge-verige', ime: 'Dolge verige', anglesko: 'Long Chains', tehnike: ['XY-Chain'] },
+];
+// Skupina tehnike (ključ ALL_TECHNIQUES) ali null (poskus s protislovjem, OBSTALO, neznan ključ).
+function skupinaTehnike(kljuc) {
+  return SKUPINE_TEHNIK.find(s => s.tehnike.includes(kljuc)) || null;
+}
+
+
 // Tehnike s številkami: [oznaka kartice v trening/index.html (data-mode), ime v
 // ALL_TECHNIQUES]. Številka tehnike je položaj v tem seznamu (1 = prvi) - trening po
 // njem razvrsti in oštevilči kartice, igra in reševalec pa pri uganki izpišeta »Tehnike: E1,
@@ -928,6 +949,17 @@ function imeTehnike(kljuc, { stevilka = false, anglesko = true } = {}) {
   const o = TEHNIKE_OPISI[par[0]];
   const ime = anglesko ? `${o.ime} (${o.anglesko})` : o.ime;
   return stevilka ? `${oznakaTehnike(par[0])} · ${ime}` : ime;
+}
+
+// Ime skupine za prikaz (SKUPINE_TEHNIK - skupina ali njen ključ): »Podmnožice (Subsets)«, s { stevilke: true }
+// še razpon oznak prve in zadnje tehnike skupine (oznakaTehnike()): »Podmnožice (Subsets) · 3–6«, »Enojčki
+// (Singles) · E1–E2«, ena tehnika »Edinstvenost (Uniqueness) · 12« - brez dobesednih številk.
+function imeSkupine(skupina, { stevilke = false } = {}) {
+  const s = typeof skupina === 'string' ? SKUPINE_TEHNIK.find(x => x.kljuc === skupina) : skupina;
+  const ime = `${s.ime} (${s.anglesko})`;
+  if (!stevilke) return ime;
+  const oznake = s.tehnike.map(t => oznakaTehnike([...TRENING_ENOJCKA, ...TRENING_TEHNIKE].find(([, k]) => k === t)[0]));
+  return `${ime} · ${oznake.length > 1 ? `${oznake[0]}–${oznake[oznake.length - 1]}` : oznake[0]}`;
 }
 
 // Položaj tehnike za urejanje seznamov (povzetek v reševalcu, tehnike v zbirki):

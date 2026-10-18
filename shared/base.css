@@ -210,32 +210,35 @@ footer.note {
 .tag.t-chain { background: var(--red-bg); color: var(--red); }
 .tag.t-basic { background: var(--blue-bg); color: var(--blue); }
 
-/* navigacija po straneh (naloga 4c, shared/navigacija.js): kazalo tehnik – oznake E1 … 13 v barvah
-   ravni (.tag.t-*), cilj za dotik vsaj 32 px (D3 v docs/navigacija-nacrt.md) – in okrogel plavajoč gumb
-   »↑« 44 × 44 px spodaj desno (pri 320 px ne seže nad gumba kartice menija treninga) */
+/* navigacija po straneh (naloga 4c, shared/navigacija.js): kazalo tehnik (meni treninga in okno Pomoč – od
+   naloge 11a ista oblika) in okrogel plavajoč gumb »↑« 44 × 44 px spodaj desno (pri 320 px ne seže nad gumba
+   kartice menija treninga).
+   Kazalo: dva stolpca .kazalo-stolpec (levo skupine Lahka in Srednja, desno Težka in Ekstremna) drug ob drugem,
+   kadar je prostora za dva po 230 px (meni pri 1280 px, okno Pomoč na računalniku), sicer drug pod drugim
+   (telefon); skupina je v svojem stolpcu cela. Naslov skupine: ime krepko in značka težavnosti (.tag v barvi
+   ravni, manjša); izbirnik z .kazalo-tehnik prevlada nad .dialog-navodila p v oknu Pomoč. Vrstica je gumb čez
+   vso širino stolpca (44 px): oznaka v barvi ravni (36 × 32 px – cilj za dotik, D3 v docs/navigacija-nacrt.md),
+   desno slovensko ime krepko in pod njim angleško (naloga 6b). */
 .kazalo-tehnik {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0 12px;
+  align-items: start;
+}
+.kazalo-tehnik .kazalo-skupina { margin: 0 0 6px; }
+.kazalo-tehnik .kazalo-naslov {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-}
-.kazalo-tehnik button.tag {
-  min-width: 36px;
-  min-height: 32px;
-  padding: 0 8px;
+  align-items: center;
+  gap: 2px 8px;
+  margin: 0 0 2px;
+  padding: 4px 8px 0;
   font-size: 13px;
-  line-height: 1;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--ink);
 }
-.kazalo-tehnik button.tag:hover { border-color: currentColor; }
-/* kazalo z imeni (meni treninga, naloga 6b – izrisiKazaloTehnik(…, { imena: true })): seznam v stolpcih vsaj
-   230 px – pri telefonu en, pri 1280 px dva, vrstni red po stolpcih; vrstica je gumb čez vso širino stolpca
-   (44 px): oznaka v barvi ravni (mere kot zgoraj), desno slovensko ime krepko in pod njim angleško */
-.kazalo-tehnik.z-imeni {
-  display: block;
-  columns: 230px;
-  column-gap: 12px;
-}
+.kazalo-tehnik .kazalo-tezavnost { font-size: 10px; padding: 2px 6px; }
 .kazalo-vrstica {
   display: flex;
   align-items: center;
@@ -244,7 +247,6 @@ footer.note {
   min-height: 44px;
   margin: 0 0 4px;
   padding: 5px 8px;
-  break-inside: avoid;
   border: 1px solid transparent;
   background: transparent;
   text-align: left;

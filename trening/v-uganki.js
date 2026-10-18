@@ -146,8 +146,10 @@ function navodiloVadi(kljuc,ob){
   return `${velika(ob.opis)} poišči ${t} in ${izbrisi}`;
 }
 
+// Vrh vaje: vrstica skupine (napisSkupineVaje() v trening.js; naloga 11a, O4) in pod njo ime tehnike.
 function vadiOznaka(kljuc){
-  return vEl('p','ex-label',`${imeTehnike(kljuc,{stevilka:true})} · Vadi v uganki · Vaja ${exNum+1} / ${MAX_EX}`);
+  return [vEl('p','ex-skupina',napisSkupineVaje(kljuc)),
+    vEl('p','ex-label',`${imeTehnike(kljuc,{stevilka:true})} · Vadi v uganki · Vaja ${exNum+1} / ${MAX_EX}`)];
 }
 
 // Nova vaja kroga: izpiše "Iščem vajo …" in poišče vajo.
@@ -157,7 +159,7 @@ function renderVadi(){
   pomocVaje=false;vajaResena=false;vajaPrav=0;vajaVseh=0;
   area.innerHTML='';
   const div=vEl('div','exercise');
-  div.appendChild(vadiOznaka(kljuc));
+  div.append(...vadiOznaka(kljuc));
   div.appendChild(vEl('p','vadi-isce','Iščem vajo …'));
   area.appendChild(div);
   najdiVajo(kljuc,v=>{if(nacin==='uganka'&&exNum===n) izrisiVadi(v);});
@@ -182,7 +184,7 @@ function izrisiVadi(v,ob=izberiObmocje(v)){
   let predlog=null;
   area.innerHTML='';
   const div=vEl('div','exercise');
-  div.appendChild(vadiOznaka(kljuc));
+  div.append(...vadiOznaka(kljuc));
   div.appendChild(vEl('h3',null,navodiloVadi(kljuc,ob)));
   div.appendChild(vEl('p','desc',TEHNIKE_OPISI[mode].povzetek+(!ob?'':ob.celice?' Območje je na mreži uokvirjeno.'
     :ob.stevke.length>1?' Števki sta poudarjeni.':' Števka je poudarjena.')));

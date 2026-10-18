@@ -409,3 +409,29 @@ Vse drugo preverijo testi, posnetek igre in scenarij pri 375 in 1280 px.
 
 - `tests/pocasni/stopnje-ugank.test.js` preverja števila skupin posnetka iz časa pred XY-verigo (banka 356, primeri 15)
   – posnetek je zdaj starejši od banke in primerov; v 11a se uredi z O6.
+
+## 10. Izvedba koraka 2 (2026-10-18) in odstopanja
+
+Narejeno po 1.6, 5.3–5.7. Odstopanja in pojasnila:
+
+- **Stolpca kazala sta elementa** (`div.kazalo-stolpec`, mreža `repeat(auto-fit, minmax(230px, 1fr))`), ne `columns`
+  z `break-inside` (5.3) – tako je razdelitev levo Lahka in Srednja, desno Težka in Ekstremna zagotovljena, skupina pa
+  se ne more razdeliti. Test preverja mrežo namesto `break-inside`.
+- **Naslov skupine v seznamu tehnik v Pomoči** (O7) je `h4.tehnike-skupina` v vrstici `li` prve tehnike skupine, ne
+  samostojna postavka seznama – seznam ima še vedno 15 vrstic (scenariji in testi štejejo `ul.tehnike > li`), pomik iz
+  kazala na prvo tehniko skupine pokaže tudi naslov.
+- `izrisiKazaloTehnik()` vrne gumbe vrstic; `oznaciZadnjo()` gre po njih (namesto `[data-kazalo]` iz 1.6).
+- **Nadomestni DOM** (`tests/dom-stub.js`): `appendChild()` element, ki je že otrok, premakne (kot brskalnik) – trening
+  preuredi kartice menija; brez tega bi bila kartica v testu dvakrat.
+- **Dodatno (opažanje ob izvedbi):** Pomoč treninga – stavek »Oznake so iste kot v igri in reševalcu …« preoblikovan v
+  »Z istimi oznakami so naštete tehnike, ki jih uganka potrebuje – npr. …« (brez omembe drugih aplikacij; nov test v
+  `tests/trening-meni.test.js`).
+- **Stari scenariji** – padci zaradi namernih sprememb, pričakovanja posodobljena: `preveri-navigacija-` (vrstice
+  kazala v skupinah, v Pomoči brez `title`; pri telefonu je kazalo višje od okna – pred dotikom gre na sredino vrstica;
+  izhodišče oken D1 `cb19f46`, ker je korak 1 namerno spremenil »Ekstremna«, ime 9 in opise stopenj), `-naloga6b-`
+  (vrstice kazala; izhodišči okna Pomoč nastavljeni na commit koraka 2), `-pregled6-` (zastarel od koraka 1: pripis
+  drugih angleških imen ni odstavek razlage, besedilo »tehnika 7–12«), `-vadi-`, `-enojcki-`, `-izbris-`, `-presek-`,
+  `-izbira-` (nova vrstica `.ex-skupina` izvzeta kot `.ex-label`; v `tools/primerjava-slogov.js` znane razlike imen 9
+  in 11 ter besedila koraka 9 iz koraka 1 – ti scenariji v koraku 1 niso tekli; v `-izbira-` je `.ex-skupina` dodana še med besedila, skrita pred meritvijo prekrivanja na pikslih – sicer bi necel zamik mreže, 18,25 px, spremenil glajenje robov). `-pomoc-`, `-vklop-`, `-sheme-`, `-po-shemi-` brez spremembe.
+- `tests/trening-po-shemi.js` (vzorec začetka vaje) in `tests/pocasni/trening-uganka-ui.test.js` (vrstica skupine po
+  izrisu vaje) – pričakovanje z novo vrstico `.ex-skupina`.

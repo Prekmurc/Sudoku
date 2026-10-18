@@ -187,7 +187,7 @@ const PRECRTANE_NAVADNE = '#exerciseArea .xw-cell.peek-elim { color: var(--ink);
 // Med meritvijo sta glava strani in besedilo nad mrežo (naslov, opis, razdelek »Razlaga«) skrita v obeh brskalnikih: mreža
 // je tako na istem mestu, sicer drugačna višina besedila (faza 6) premakne mrežo za del piksla in
 // spremeni glajenje robov na posnetku - meritev naj meri okvir in števke, ne besedila.
-const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike, #exerciseArea .shema-razdelek, #exerciseArea .ex-label { display: none !important; }';
+const BESEDILO_SKRITO = 'header.top, #exerciseArea .exercise > h3, #exerciseArea .exercise > .desc, #exerciseArea .razlaga-tehnike, #exerciseArea .shema-razdelek, #exerciseArea .ex-skupina, #exerciseArea .ex-label { display: none !important; }';
 async function prekrivanje(b) {
   await b.izvedi(`document.querySelectorAll('#exerciseArea .peek-izbris').forEach(e => { e.classList.remove('peek-izbris'); e.dataset.pi = 1; }); true`);
   try { return await prekrivanjeMeritev(b); } finally {
@@ -227,12 +227,12 @@ async function prekrivanjeMeritev(b) {
 // pravilnem odgovoru (.cd.elim) in vzorčku legende (.izbris-vzorec).
 const SLOGI = ['background-color', 'box-shadow', 'color', 'border-top-color', 'border-top-width', 'text-decoration-line', 'visibility', 'display'];
 const OCITNI = ['naked-pair', 'naked-triple'];
-// Razdelek »Shema« (faza 3a) v izhodišču ni, vrstica z imenom tehnike (.ex-label) je od popravkov
+// Razdelek »Shema« (faza 3a) v izhodišču ni, vrstica skupine (.ex-skupina – naloga 11a, v izhodišču je ni) in vrstica z imenom tehnike (.ex-label) je od popravkov
 // po koraku 1 faze 3a večja in temna - med meritvijo sta skrita, primerja se vse drugo. Razdelek .phase2
 // (izbira števk pri 4 in 6) je samo v izhodiščih pred nalogo 4b, korak 2 (docs/izbris-nacrt.md, O5) - izvzet izrecno.
-const izris = (b, mode) => b.izvedi(`(() => { ${NAVODILA_NAZAJ} const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-label, #exerciseArea .peek-row, #exerciseArea .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
-  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')), ocitni = ${OCITNI.includes(mode)};
-  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
+const izris = (b, mode) => b.izvedi(`(() => { ${NAVODILA_NAZAJ} const sk = [...document.querySelectorAll('#exerciseArea .shema-razdelek, #exerciseArea .ex-skupina, #exerciseArea .ex-label, #exerciseArea .peek-row, #exerciseArea .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
+  const a = document.getElementById('exerciseArea'), vsi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-skupina, .ex-label, .peek-row, .phase2')), ocitni = ${OCITNI.includes(mode)};
+  const kopija = a.cloneNode(true); kopija.querySelectorAll('.shema-razdelek, .peek-row, .phase2, .ex-skupina').forEach(e => e.remove());
   const dovoljeno = {};
   vsi.forEach((e, i) => {
     if (e.matches('.cd.peek-izbris, .cd.elim, .xw-cell.peek-elim, .xw-cell.xw-elim, .legenda-vaje .izbris-vzorec')) dovoljeno[i] = ['color', 'border-top-color', 'text-decoration-line'];

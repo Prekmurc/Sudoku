@@ -742,14 +742,14 @@ async function izris(b, mode, sirina) {
   await b.cakaj('document.fonts.status === "loaded"', 15000);
   return b.izvedi(`(() => {
     // Razdelek »Shema« (faza 3a) v izhodišču ni - med meritvijo je skrit (višina kartice je
-    // potem kot v izhodišču), primerja se vse drugo. Enako vrstica z imenom tehnike (.ex-label):
+    // potem kot v izhodišču), primerja se vse drugo. Enako vrstica z imenom tehnike (.ex-label) in vrstica skupine nad njo (.ex-skupina – naloga 11a, v izhodišču je ni):
     // od popravkov po koraku 1 faze 3a je večja in temna. Razdelek .phase2 (izbira števk pri 4 in 6) je
     // samo v izhodiščih pred nalogo 4b, korak 2 (docs/izbris-nacrt.md, O5) - izvzet izrecno.
     ${NAVODILA_NAZAJ}
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
-    k.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
-    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
+    k.querySelectorAll('.shema-razdelek, .peek-row, .phase2, .ex-skupina').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-skupina, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-skupina, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => s.getPropertyValue(p)).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     return { html: k.innerHTML, slogi };
   })()`);

@@ -300,6 +300,16 @@ test('korak 6b-a: Pomoč treninga omeni gumb drugega načina', () => {
   assert.ok(html.includes('<p>Krog ima devet vaj. Zgoraj je rezultat, na koncu kroga povzetek; z <b>Nazaj na izbiro</b> izbereš drugo tehniko, z <b>↔ Vadi v uganki</b> oziroma <b>↔ Spoznaj</b> desno ob njem pa začneš nov krog iste tehnike v drugem načinu.</p>'));
 });
 
+// Naloga 11a, korak 2 (opažanje ob izvedbi): Pomoč treninga ne omenja drugih aplikacij (pravilo besedil); primer
+// oznak pri uganki ostane.
+test('naloga 11a-2: Pomoč treninga brez omembe igre in reševalca, primer oznak ostane', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'trening', 'index.html'), 'utf8');
+  const pomoc = html.slice(html.indexOf('<div id="pomocDialog"'), html.indexOf('<script'));
+  assert.doesNotMatch(pomoc.replace(/<[^>]*>/g, ''), /\bigr[aieo]\b|reševal/i);
+  assert.ok(pomoc.includes('<p>Značka pove najnižjo težavnost uganke, ki to tehniko potrebuje. Z istimi oznakami so naštete '
+    + 'tehnike, ki jih uganka potrebuje – npr. <b>Tehnike: E1, E2, 1 Izločitev izven bloka in 3 Očitni par</b>.</p>'));
+});
+
 // Naloga 6b, korak 2 (O4 A, O5 A, O6 B, O12 A, O13 A in razdelek 2.5 v docs/naloga6b-nacrt.md): kazalo tehnik v meniju je
 // seznam – vrstica z oznako v barvi ravni ter slovenskim in angleškim imenom (izrisiKazaloTehnik(…, { imena: true })).
 // Kartica in vrstica tehnike, ki si jo nazadnje vadil, imata razred `zadnja` (moder okvir); postavi ga začetek kroga,
@@ -307,23 +317,30 @@ test('korak 6b-a: Pomoč treninga omeni gumb drugega načina', () => {
 // tools/preveri-naloga6b-brskalnik.js --korak 2. Okno Pomoč kliče brez možnosti – vrstica oznak ostane (pomoc.test.js).
 const ZADNJA_KLJUC = 'sudoku.trening.zadnja';
 const elementi = (el, out = []) => { for (const c of el.children || []) { out.push(c); elementi(c, out); } return out; };
-// Meni s 15 karticami (nadomestni DOM jih sicer nima) – za razred `zadnja` na kartici.
+// Meni s 15 karticami v vrstnem redu iz trening/index.html (nadomestni DOM jih sicer nima) – za razred `zadnja` na
+// kartici in naslove skupin (naloga 11a); kartica ima značko, naslov h3 in opis kot v HTML.
 function domSKarticami(shramba) {
   const dom = makeDom(shramba);
   dom.globals.setTimeout = () => 0;
   const meni = dom.el('menu');
-  for (const m of ['naked-single', 'hidden-single', 'pointing', 'box-line', 'naked-pair', 'hidden-pair', 'naked-triple',
+  for (const m of ['naked-single', 'hidden-single', 'naked-pair', 'hidden-pair', 'pointing', 'box-line', 'naked-triple',
     'hidden-triple', 'x-wing', 'swordfish', 'turbot-fish', 'w-wing', 'xy-wing', 'unique-rectangle', 'xy-chain']) {
     const k = new Element('div');
     k.className = 'menu-card';
     k.dataset.mode = m;
+    const z = new Element('span');
+    z.className = 'badge';
+    k.append(z, new Element('h3'), new Element('p'));
+    omogociIskanje(k);
     meni.appendChild(k);
   }
   omogociIskanje(meni);
   return dom;
 }
 const zadnjeKartice = dom => dom.el('menu').children.filter(k => k.classList.contains('menu-card') && k.classList.contains('zadnja')).map(k => k.dataset.mode);
-const zadnjeVrstice = dom => dom.el('kazaloTehnik').children.filter(v => v.classList.contains('zadnja')).map(v => v.dataset.kazalo);
+// Vrstice kazala (od naloge 11a v skupinah in stolpcih – gumbi .kazalo-vrstica kjer koli v kazalu).
+const vrsticeKazala = el => elementi(el).filter(e => e.classList.contains('kazalo-vrstica'));
+const zadnjeVrstice = dom => vrsticeKazala(dom.el('kazaloTehnik')).filter(v => v.classList.contains('zadnja')).map(v => v.dataset.kazalo);
 
 test('korak 6b-b: kazaloTehnik() ima še slovensko ime (imeTehnike brez angleškega) in angleško (TEHNIKE_OPISI)', () => {
   const { run } = loadContext(DATOTEKE, makeDom().globals);
@@ -338,35 +355,49 @@ test('korak 6b-b: kazaloTehnik() ima še slovensko ime (imeTehnike brez anglešk
   }
 });
 
-test('korak 6b-b: izrisiKazaloTehnik() brez možnosti – vrstica oznak kot prej (okno Pomoč)', () => {
-  const dom = makeDom();
-  const { run } = loadContext(DATOTEKE, dom.globals);
-  const el = new Element('nav');
-  el.className = 'kazalo-tehnik';
-  const klik = [];
-  run('izrisiKazaloTehnik')(el, p => klik.push(p.kljuc));
-  assert.equal(el.className, 'kazalo-tehnik', 'brez razreda z-imeni');
-  assert.deepEqual(el.children.map(b => b.textContent), OZNAKE);
-  el.children.forEach((b, i) => {
-    assert.equal(b.className, `tag ${RAZRED(OZNAKE[i])}`);
-    assert.equal(b.children.length, 0, 'samo oznaka');
-    assert.equal(b.title, b.getAttribute('aria-label'));
-  });
-  el.children[3].sprozi('click');
-  assert.deepEqual(klik, ['box-line']);
-});
-
-test('korak 6b-b: kazalo v meniju – 15 vrstic z oznako, slovenskim in angleškim imenom, aria-label, klik vaje ne začne', () => {
-  const dom = makeDom();
-  dom.globals.setTimeout = () => 0;
-  const { run } = loadContext(DATOTEKE, dom.globals);
-  const kartice = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]');
+// Naloga 11a, korak 2 (docs/naloga11a-nacrt.md, 1.6 in 5.3): kazalo ima eno obliko za meni treninga in okno Pomoč
+// (možnost { imena } odpade) – dva stolpca .kazalo-stolpec (levo skupine težavnosti Lahka in Srednja, desno Težka in
+// Ekstremna), v njih skupine .kazalo-skupina (SKUPINE_TEHNIK v shared/engine.js) z naslovom .kazalo-naslov (ime skupine
+// in značka težavnosti v barvi ravni) in vrsticami .kazalo-vrstica (oznaka, slovensko in angleško ime). Pričakovane
+// skupine so iz tabele odločitve 2026-10-18 (docs/uskladitev.md 1.1), dolge verige do zadnje tehnike (11b doda tehniko).
+const SKUPINE_KAZALA = [
+  ['enojcki', ['E1', 'E2'], 'LAHKA (EASY)'],
+  ['preseki', ['1', '2'], 'SREDNJA (MEDIUM)'],
+  ['podmnozice', ['3', '4', '5', '6'], 'SREDNJA (MEDIUM)'],
+  ['ribe', ['7', '8'], 'TEŽKA (HARD)'],
+  ['kratke-verige', ['9', '10', '11'], 'TEŽKA (HARD)'],
+  ['edinstvenost', ['12'], 'TEŽKA (HARD)'],
+  ['dolge-verige', OZNAKE.slice(OZNAKE.indexOf('12') + 1), 'EKSTREMNA (EXTREME)'],
+];
+const STOLPCA_KAZALA = [['enojcki', 'preseki', 'podmnozice'], ['ribe', 'kratke-verige', 'edinstvenost', 'dolge-verige']];
+// Zgradba kazala brez poslušalcev (za primerjavo kazala v meniju in v Pomoči).
+const zgradba = e => [e.tagName, e.className, e.children && e.children.length ? e.children.map(zgradba) : e.textContent,
+  e.dataset ? e.dataset.kazalo || e.dataset.skupina || '' : '', e.getAttribute ? e.getAttribute('aria-label') : ''];
+function preveriKazalo(run, el) {
   const opisi = run('TEHNIKE_OPISI');
-  const nav = dom.el('kazaloTehnik');
-  assert.ok(nav.classList.contains('z-imeni'), 'nav ima razred z-imeni');
-  assert.equal(nav.children.length, 15);
-  nav.children.forEach((v, i) => {
-    const o = OZNAKE[i], [m, t] = kartice[i];
+  const vaje = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]');
+  assert.ok(!el.classList.contains('z-imeni'), 'brez razreda z-imeni – ena oblika');
+  assert.deepEqual(el.children.map(c => [c.tagName, c.className]), [['DIV', 'kazalo-stolpec'], ['DIV', 'kazalo-stolpec']]);
+  assert.deepEqual(el.children.map(st => st.children.map(g => g.dataset.skupina)), STOLPCA_KAZALA, 'levo Lahka in Srednja, desno Težka in Ekstremna');
+  const skupine = el.children.flatMap(st => st.children);
+  skupine.forEach((g, i) => {
+    const [kljuc, oznake, znacka] = SKUPINE_KAZALA[i];
+    const s = run('SKUPINE_TEHNIK')[i];
+    assert.equal(g.tagName, 'DIV');
+    assert.equal(g.className, 'kazalo-skupina', kljuc);
+    assert.equal(g.getAttribute('role'), 'group');
+    assert.equal(g.getAttribute('aria-label'), `${s.ime} (${s.anglesko})`, kljuc);
+    const [naslov, ...vrstice] = g.children;
+    assert.equal(naslov.className, 'kazalo-naslov', `${kljuc}: naslov nad vrsticami`);
+    assert.deepEqual(naslov.children.map(e => [e.tagName, e.className, e.textContent]), [
+      ['SPAN', 'kazalo-skupina-ime', `${s.ime} (${s.anglesko})`],
+      ['SPAN', `tag ${RAZRED(oznake[0])} kazalo-tezavnost`, znacka]], `${kljuc}: ime in značka težavnosti`);
+    assert.deepEqual(vrstice.map(v => v.children[0].textContent), oznake, `${kljuc}: vrstice skupine`);
+  });
+  const vrstice = vrsticeKazala(el);
+  assert.equal(vrstice.length, 15);
+  vrstice.forEach((v, i) => {
+    const o = OZNAKE[i], [m, t] = vaje[i];
     assert.equal(v.tagName, 'BUTTON', o);
     assert.equal(v.type, 'button', o);
     assert.equal(v.className, 'kazalo-vrstica', o);
@@ -379,11 +410,113 @@ test('korak 6b-b: kazalo v meniju – 15 vrstic z oznako, slovenskim in anglešk
     assert.deepEqual(imena.children.map(e => [e.tagName, e.className, e.textContent]),
       [['SPAN', 'si', run('imeTehnike')(t, { anglesko: false })], ['SPAN', 'en', opisi[m].anglesko]], o);
     assert.equal(v.title, '', `${o}: imeni sta vidni – brez title`);
-    assert.equal(v.getAttribute('aria-label'), run('imeTehnike')(t, { stevilka: true }), o);
   });
-  nav.children[12].sprozi('click');
+  return vrstice;
+}
+
+test('naloga 11a-2: izrisiKazaloTehnik() – dva stolpca, skupine z naslovom in značko težavnosti, vrstice z imeni; vrne vrstice', () => {
+  const dom = makeDom();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const el = new Element('nav');
+  el.className = 'kazalo-tehnik';
+  const klik = [];
+  const vrnjene = run('izrisiKazaloTehnik')(el, p => klik.push(p.kljuc));
+  const vrstice = preveriKazalo(run, el);
+  assert.equal(vrnjene.length, 15);
+  vrnjene.forEach((v, i) => assert.equal(v, vrstice[i], 'vrne gumbe vrstic v vrstnem redu'));
+  vrstice.forEach(v => assert.equal(v.getAttribute('aria-label'), run('imeTehnike')(run('TEHNIKA_VAJE')[v.dataset.kazalo], { stevilka: true })));
+  vrstice[3].sprozi('click');
+  assert.deepEqual(klik, ['box-line']);
+  // Ponoven izris zamenja vsebino.
+  run('izrisiKazaloTehnik')(el, () => {});
+  assert.equal(vrsticeKazala(el).length, 15);
+  // kazaloTehnik(): postavka ima še ključ skupine.
+  assert.deepEqual(Array.from(run('kazaloTehnik()'), p => p.skupina),
+    SKUPINE_KAZALA.flatMap(([k, oznake]) => oznake.map(() => k)));
+});
+
+test('naloga 11a-2: kazalo v meniju – oblika iz izrisiKazaloTehnik(), aria-label, klik vaje ne začne', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0;
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const vaje = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]');
+  const vrstice = preveriKazalo(run, dom.el('kazaloTehnik'));
+  vrstice.forEach((v, i) => assert.equal(v.getAttribute('aria-label'), run('imeTehnike')(vaje[i][1], { stevilka: true }), OZNAKE[i]));
+  vrstice[12].sprozi('click');
   assert.equal(run('mode'), null, 'klik vaje ne začne');
   assert.equal(dom.el('trainer').style.display, undefined);
+});
+
+test('naloga 11a-2: kazalo v Pomoči treninga je iste oblike kot v meniju (isti razredi, vrstni red, vrstice)', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0;
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const [, nav] = dom.el('pomocTehnike').children;
+  assert.equal(nav.tagName, 'NAV');
+  assert.equal(nav.getAttribute('aria-label'), 'Kazalo tehnik');
+  preveriKazalo(run, nav);
+  assert.equal(nav.className, 'kazalo-tehnik');
+  assert.deepEqual(zgradba(nav)[2], zgradba(dom.el('kazaloTehnik'))[2], 'ista zgradba kot kazalo v meniju');
+});
+
+test('naloga 11a-2: naslov skupine (h2 »Podmnožice (Subsets) · 3–6«) tik pred prvo kartico vsake skupine – sedem v vrstnem redu', () => {
+  const dom = domSKarticami();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const meni = dom.el('menu').children;
+  const nasloviMenija = meni.filter(e => e.tagName === 'H2');
+  assert.equal(nasloviMenija.length, 7);
+  assert.ok(nasloviMenija.every(h => h.className === 'skupina-naslov'));
+  const skupine = run('SKUPINE_TEHNIK');
+  assert.deepEqual(nasloviMenija.map(h => h.textContent), Array.from(skupine, s => run('imeSkupine')(s, { stevilke: true })));
+  assert.equal(nasloviMenija[2].textContent, 'Podmnožice (Subsets) · 3–6');
+  assert.equal(nasloviMenija[0].textContent, 'Enojčki (Singles) · E1–E2');
+  // Za vsakim naslovom kartice njegove skupine v vrstnem redu, do naslednjega naslova.
+  const poSkupinah = [];
+  for (const e of meni) {
+    if (e.tagName === 'H2') poSkupinah.push([]);
+    else if (e.classList.contains('menu-card')) poSkupinah[poSkupinah.length - 1].push(e.querySelector('h3').dataset.stevilka);
+  }
+  assert.deepEqual(poSkupinah, SKUPINE_KAZALA.map(([, oznake]) => oznake));
+  assert.equal(meni.filter(e => e.classList.contains('menu-card')).length, 15, 'vsaka kartica enkrat');
+});
+
+test('naloga 11a-2, O7: seznam tehnik v Pomoči ima pred prvo tehniko vsake skupine naslov z istim besedilom kot nad karticami', () => {
+  const dom = domSKarticami();
+  loadContext(DATOTEKE, dom.globals);
+  const nasloviMenija = dom.el('menu').children.filter(e => e.tagName === 'H2').map(h => h.textContent);
+  const [, , ul] = dom.el('pomocTehnike').children;
+  assert.equal(ul.children.length, 15, 'vrstic seznama je še vedno 15 (naslov je v prvi tehniki skupine)');
+  const prve = [];
+  ul.children.forEach((li, i) => {
+    const h = li.children[0];
+    if (h.tagName === 'H4') {
+      assert.equal(h.className, 'tehnike-skupina');
+      prve.push([OZNAKE[i], h.textContent]);
+    }
+    assert.equal(li.children.filter(e => e.tagName === 'H4').length, h.tagName === 'H4' ? 1 : 0, `${OZNAKE[i]}: največ en naslov, na začetku`);
+  });
+  assert.deepEqual(prve.map(p => p[1]), nasloviMenija, 'isto besedilo kot naslovi nad karticami');
+  assert.deepEqual(prve.map(p => p[0]), SKUPINE_KAZALA.map(([, oznake]) => oznake[0]), 'pred prvo tehniko skupine');
+});
+
+test('naloga 11a-2: vrh vaje – vrstica skupine nad ex-label v »Spoznaj« in »Vadi v uganki« (tudi E1, E2)', () => {
+  const dom = makeDom();
+  dom.globals.setTimeout = () => 0; // iskanje vaje »Vadi v uganki« ostane v teku
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const vaja = () => dom.el('exerciseArea').children[0];
+  for (const [m, skupina, ime] of [['hidden-triple', 'Podmnožice (Subsets)', '6 · Skrita trojica (Hidden Triple)'],
+    ['naked-single', 'Enojčki (Singles)', 'E1 · Očitni enojček (Naked Single)'],
+    ['hidden-single', 'Enojčki (Singles)', 'E2 · Skriti enojček (Hidden Single)'],
+    ['turbot-fish', 'Kratke verige (Short Chains)', '9 · Kratka X-veriga (Turbot Fish)']]) {
+    run(`zacniKrog("${m}", "spoznaj")`);
+    run('exNum = 2; renderExercise()'); // vaja 3 – ne po shemi
+    assert.ok(vaja().innerHTML.startsWith(`<p class="ex-skupina">${skupina}</p><p class="ex-label">${ime} · Vaja 3 / 9</p>`),
+      `Spoznaj ${m}: ${vaja().innerHTML.slice(0, 120)}`);
+    run(`zacniKrog("${m}", "uganka")`);
+    const [s, l] = vaja().children;
+    assert.deepEqual([s.tagName, s.className, s.textContent], ['P', 'ex-skupina', skupina], `Vadi v uganki ${m}`);
+    assert.deepEqual([l.className, l.textContent], ['ex-label', `${ime} · Vadi v uganki · Vaja 1 / 9`]);
+  }
 });
 
 test('korak 6b-b: zadnja tehnika – ob začetku kroga natanko ena kartica in ena vrstica kazala z `zadnja`, nova tehnika ga premakne', () => {
@@ -395,7 +528,7 @@ test('korak 6b-b: zadnja tehnika – ob začetku kroga natanko ena kartica in en
   dom.klikni('backBtn');
   assert.deepEqual(zadnjeKartice(dom), ['xy-wing']);
   assert.deepEqual(zadnjeVrstice(dom), ['xy-wing']);
-  const vrstica = m => dom.el('kazaloTehnik').children.find(v => v.dataset.kazalo === m);
+  const vrstica = m => vrsticeKazala(dom.el('kazaloTehnik')).find(v => v.dataset.kazalo === m);
   assert.equal(vrstica('xy-wing').getAttribute('aria-label'), '11 · XY-krilo (XY-Wing) – nazadnje vadena');
   // Drugi način iste tehnike – ostane; druga tehnika (tudi »Vadi v uganki«) – premakne se.
   run('zacniKrog("xy-wing", "spoznaj")');
@@ -447,14 +580,23 @@ test('korak 6b-b: nedosegljiva shramba (getItem in setItem vržeta napako) – s
   assert.deepEqual(zadnjeVrstice(dom), ['swordfish']);
 });
 
-test('korak 6b-b: slog – en okvir `zadnja` za kartico in vrstico (--izbira), stolpci kazala z imeni; Pomoč treninga', () => {
+test('korak 6b-b, naloga 11a-2: slog – en okvir `zadnja` za kartico in vrstico (--izbira), dva stolpca kazala po 230 px; Pomoč treninga', () => {
   const fs = require('node:fs'), path = require('node:path');
   const css = fs.readFileSync(path.join(__dirname, '..', 'trening', 'trening.css'), 'utf8');
   assert.match(css, /\.menu-card\.zadnja,\.kazalo-vrstica\.zadnja\{border-color:var\(--izbira\);box-shadow:0 0 0 1px var\(--izbira\)\}/);
   assert.ok(css.indexOf('.menu-card.zadnja') > css.indexOf('.menu-card:hover'), 'za poudarkom pod miško – okvir ostane moder');
   const base = fs.readFileSync(path.join(__dirname, '..', 'shared', 'base.css'), 'utf8');
-  assert.match(base, /\.kazalo-tehnik\.z-imeni \{[^}]*columns: 230px;/);
-  assert.match(base, /\.kazalo-tehnik button\.tag \{/, 'pravilo oznak okna Pomoč ostane');
+  // Naloga 11a, korak 2: ena oblika kazala – stolpca sta elementa (skupina se ne razdeli), dva, kadar je prostora za
+  // dva po 230 px (meni pri 1280 px, okno Pomoč na računalniku), sicer en; pravila vrstice samih oznak odpadejo.
+  assert.match(base, /\.kazalo-tehnik \{[^}]*display: grid;[^}]*grid-template-columns: repeat\(auto-fit, minmax\(230px, 1fr\)\);/);
+  assert.doesNotMatch(base, /\.kazalo-tehnik button\.tag|z-imeni/, 'vrstica samih oznak odpade');
+  assert.match(base, /\.kazalo-tehnik \.kazalo-naslov \{/, 'naslov skupine (izbirnik prevlada nad .dialog-navodila p)');
+  // Vrh vaje: vrstica skupine manjša od imena tehnike (15 px) in siva; naslov skupine nad karticami.
+  const ex = /\.ex-skupina\{([^}]*)\}/.exec(css);
+  assert.ok(ex, '.ex-skupina v trening.css');
+  assert.match(ex[1], /color:var\(--pencil\)/);
+  assert.ok(parseFloat(/font-size:([\d.]+)px/.exec(ex[1])[1]) < 15, 'manjša od .ex-label');
+  assert.match(css, /\.skupina-naslov\{/);
   const html = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
   assert.ok(html.includes('<p>Kartica tehnike, ki si jo nazadnje vadil, in njena vrstica v kazalu tehnik imata moder okvir – tudi ko stran znova odpreš.</p>'));
 });

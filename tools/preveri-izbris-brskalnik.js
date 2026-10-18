@@ -129,10 +129,10 @@ async function izris(b, brezPoudarka = false) {
     const razrediPoud = pc.map(e => e.className);
     pc.forEach(e => e.classList.remove('poud', 'b0'));
     const a = document.getElementById('exerciseArea'), k = a.cloneNode(true);
-    k.querySelectorAll('.shema-razdelek, .peek-row, .phase2').forEach(e => e.remove());
-    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
+    k.querySelectorAll('.shema-razdelek, .peek-row, .phase2, .ex-skupina').forEach(e => e.remove());
+    const sk = [...a.querySelectorAll('.shema-razdelek, .ex-skupina, .ex-label, .peek-row, .phase2')]; sk.forEach(e => { e.style.display = 'none'; });
     const precrtana = e => e.matches(PRECRTANI_IZBIRNIK), barvi = ${JSON.stringify(['color', 'border-top-color'])};
-    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => (precrtana(e) && barvi.includes(p) ? 'prečrtana' : s.getPropertyValue(p))).join('|'); });
+    const slogi = [...a.querySelectorAll('*')].filter(e => !e.closest('.shema-razdelek, .ex-skupina, .ex-label, .peek-row, .phase2')).map(e => { const s = getComputedStyle(e); return ${JSON.stringify(SLOGI)}.map(p => (precrtana(e) && barvi.includes(p) ? 'prečrtana' : s.getPropertyValue(p))).join('|'); });
     sk.forEach(e => { e.style.display = ''; });
     pc.forEach((e, i) => { e.className = razrediPoud[i]; });
     return { html: k.innerHTML, slogi, poudarjeni };

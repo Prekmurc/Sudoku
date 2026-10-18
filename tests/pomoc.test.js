@@ -7,9 +7,10 @@
 // odprtem oknu tipke ne gredo v ploščo. Videz okna (pokrije zaslon, brez vodoravnega drsnika, ✕)
 // preverja tools/preveri-pomoc-brskalnik.js.
 // Naloga 4c, korak 3 (docs/navigacija-nacrt.md, O1–O3): kazalo razdelkov pod glavo okna (iz naslovov
-// h3.navodila-razdelek – okno zgradi test iz index.html), vrstica 15 oznak tehnik v razdelku »Tehnike«
-// (ista sestavina kot kazalo v meniju treninga), v glavi »↑ Na vrh« (po 400 px) in ✕; lepljiva glava samo
-// v oknu Pomoč (D1). Razporeditev, drsenje in primerjavo drugih oken preverja
+// h3.navodila-razdelek – okno zgradi test iz index.html), kazalo tehnik v razdelku »Tehnike« (ista sestavina kot
+// kazalo v meniju treninga – od naloge 11a, korak 2, v isti obliki: skupine z naslovom in značko težavnosti, vrstice z
+// imeni), v glavi »↑ Na vrh« (po 400 px) in ✕; lepljiva glava samo v oknu Pomoč (D1). Seznam tehnik ima pred prvo
+// tehniko vsake skupine naslov skupine (naloga 11a, O7). Razporeditev, drsenje in primerjavo drugih oken preverja
 // tools/preveri-navigacija-brskalnik.js --korak 3.
 // Zagon: node --test "tests/*.test.js"
 const test = require('node:test');
@@ -104,6 +105,8 @@ const DRUGA_ANGLESKA = {
   'turbot-fish': 'Druga angleška imena: Skyscraper, 2-String Kite',
   'xy-wing': 'Drugo angleško ime: Y-Wing',
 };
+const elementi = (el, out = []) => { for (const c of el.children || []) { out.push(c); elementi(c, out); } return out; };
+const vrsticeKazala = el => elementi(el).filter(e => e.classList.contains('kazalo-vrstica'));
 // Razpon oznak tehnik ravni (»E1–E2«, »1–6«, »13«) iz podatkov - brez dobesednih številk (11b doda tehniko).
 function razponRavni(run, raven) {
   const oznake = run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]').filter(([, t]) => run('RAVNI_TEHNIK')[raven].includes(t))
@@ -138,10 +141,22 @@ for (const ime of Object.keys(APLIKACIJE)) {
     assert.doesNotMatch(uvod.textContent, /raven|ravn|napredn|ekspertn/);
     const vaje = [...run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]')];
     assert.equal(ul.children.length, 15);
+    const skupine = [];
     ul.children.forEach((li, i) => {
       const [kljuc, tehnika] = vaje[i];
       const druga = DRUGA_ANGLESKA[kljuc];
-      const [oznaka, ime, , raven, ...ostali] = li.children;
+      // Naloga 11a, O7: pred prvo tehniko skupine naslov skupine s številkami (kot nad karticami v treningu).
+      const s = run('skupinaTehnike')(tehnika);
+      const prva = s.tehnike[0] === tehnika;
+      const naslov = prva ? 1 : 0;
+      if (prva) {
+        assert.deepEqual([li.children[0].tagName, li.children[0].className, li.children[0].textContent],
+          ['H4', 'tehnike-skupina', run('imeSkupine')(s, { stevilke: true })], `${kljuc}: naslov skupine`);
+        skupine.push(s.kljuc);
+      }
+      const otroci = li.children.slice(naslov);
+      assert.ok(!otroci.some(e => e.tagName === 'H4'), `${kljuc}: naslov samo pri prvi tehniki skupine`);
+      const [oznaka, ime, , raven, ...ostali] = otroci;
       if (druga) {
         assert.equal(ostali[0].className, 'tehnika-druga', `${kljuc}: druga angleška imena pod imenom`);
         assert.equal(ostali[0].textContent, druga);
@@ -163,9 +178,9 @@ for (const ime of Object.keys(APLIKACIJE)) {
       // Faza 3a, korak 4: pri 1-13 pod posledico zložljivo »Shema«, privzeto zaprto; E1, E2 brez.
       const shema = run('SHEME_TEHNIK')[kljuc];
       const zamik = druga ? 1 : 0;
-      assert.equal(li.children.length, (shema ? 7 : 6) + zamik, `${o}: shema samo pri 1-13`);
+      assert.equal(otroci.length, (shema ? 7 : 6) + zamik, `${o}: shema samo pri 1-13`);
       if (shema) {
-        const d = li.children[6 + zamik];
+        const d = otroci[6 + zamik];
         assert.equal(d.tagName, 'DETAILS');
         assert.equal(d.className, 'tehnika-shema');
         assert.equal(!!d.open, false, `${o}: shema privzeto zaprta`);
@@ -180,6 +195,7 @@ for (const ime of Object.keys(APLIKACIJE)) {
     });
     assert.ok(/^(E1|E2)$/.test(run('oznakaTehnike')(vaje[0][0])) && ul.children.slice(2).every(li => li.children.at(-1).className === 'tehnika-shema'), 'sheme pri vseh 1-13');
     assert.deepEqual(Object.keys(run('TEHNIKE_OPISI')).filter(k => run('TEHNIKE_OPISI')[k].drugaAngleska), Object.keys(DRUGA_ANGLESKA));
+    assert.deepEqual(skupine, Array.from(run('SKUPINE_TEHNIK'), g => g.kljuc), 'naslov vsake skupine natanko enkrat, v vrstnem redu');
   });
 }
 
@@ -242,22 +258,27 @@ for (const ime of Object.keys(APLIKACIJE)) {
     assert.equal(gor.hidden, true, 'ob ponovnem odprtju skrit');
   });
 
-  test(`${ime}: razdelek »Tehnike« – vrstica 15 oznak E1 … 13 v barvah ravni, klik pomakne do tehnike (O2)`, () => {
+  test(`${ime}: razdelek »Tehnike« – kazalo v obliki treninga (skupine, 15 vrstic E1 … 13 v barvah ravni), klik pomakne do tehnike (O2)`, () => {
     const { dom, run } = nalozi(ime);
     const [, nav, ul] = dom.el(APLIKACIJE[ime].tehnike).children;
     assert.equal(nav.tagName, 'NAV');
     assert.equal(nav.className, 'kazalo-tehnik');
     assert.equal(nav.getAttribute('aria-label'), 'Kazalo tehnik');
+    // Naloga 11a, korak 2: ista oblika kot v meniju treninga (zgradbo podrobno preverja tests/trening-meni.test.js) –
+    // dva stolpca, v njih skupine SKUPINE_TEHNIK z naslovom in značko težavnosti, vrstice z oznako in imeni.
+    assert.deepEqual(nav.children.map(c => c.className), ['kazalo-stolpec', 'kazalo-stolpec']);
+    assert.deepEqual(nav.children.flatMap(c => c.children).map(g => g.dataset.skupina), Array.from(run('SKUPINE_TEHNIK'), g => g.kljuc));
     const vaje = [...run('[...TRENING_ENOJCKA, ...TRENING_TEHNIKE]')];
-    assert.deepEqual(nav.children.map(b => b.textContent), ['E1', 'E2', ...Array.from({ length: 13 }, (_, i) => String(i + 1))]);
-    nav.children.forEach((b, i) => {
+    const vrstice = vrsticeKazala(nav);
+    assert.deepEqual(vrstice.map(b => b.children[0].textContent), ['E1', 'E2', ...Array.from({ length: 13 }, (_, i) => String(i + 1))]);
+    vrstice.forEach((b, i) => {
       const [kljuc, tehnika] = vaje[i];
-      const o = b.textContent;
-      // Ista sestavina kot kazalo v meniju treninga: .tag v barvi ravni, ime v title in aria-label.
-      assert.equal(b.className, `tag ${run('tagClass')(tehnika)}`, `${o}: barva ravni`);
-      assert.equal(b.className.split(' ')[1], { lahka: 't-single', srednja: 't-pair', napredna: 't-advanced', ekspertna: 't-expert' }[RAVNI[o]]);
-      assert.equal(b.title, run('imeTehnike')(tehnika, { stevilka: true }));
-      assert.equal(b.getAttribute('aria-label'), b.title);
+      const o = b.children[0].textContent;
+      // Ista sestavina kot kazalo v meniju treninga: oznaka .tag v barvi ravni, ime v aria-label, imeni vidni.
+      assert.equal(b.className, 'kazalo-vrstica');
+      assert.equal(b.children[0].className, `tag ${run('tagClass')(tehnika)}`, `${o}: barva ravni`);
+      assert.equal(b.children[0].className.split(' ')[1], { lahka: 't-single', srednja: 't-pair', napredna: 't-advanced', ekspertna: 't-expert' }[RAVNI[o]]);
+      assert.equal(b.getAttribute('aria-label'), run('imeTehnike')(tehnika, { stevilka: true }));
       assert.equal(b.dataset.kazalo, kljuc);
       const li = ul.children[i];
       const klici = [];
@@ -272,16 +293,18 @@ for (const ime of Object.keys(APLIKACIJE)) {
 }
 
 // Popravek A po ročnem pregledu naloge 4c (docs/navigacija-nacrt.md, razdelek 9): ko je okno v razdelku »Tehnike«
-// pod vrstico oznak E1 … 13 (vrstica je vsa nad spodnjim robom lepljive glave), gumb v glavi kaže »↑ Tehnike« in
-// vrne k vrstici oznak (fokus na E1); sicer »↑ Na vrh« kot prej (po 400 px). Gumb ima oba napisa enega nad drugim
+// pod kazalom tehnik (kazalo je vse nad spodnjim robom lepljive glave), gumb v glavi kaže »↑ Tehnike« in vrne h
+// kazalu (fokus na prvo vrstico, E1 – od naloge 11a prvi otrok kazala ni vrstica); sicer »↑ Na vrh« kot prej (po 400 px). Gumb ima oba napisa enega nad drugim
 // (neaktivni je neviden), zato je vedno enako širok – glava se ne spremeni; to in pravi pomik preverja
 // tools/preveri-navigacija-brskalnik.js --korak 5. Položaji so tu nadomestni (getBoundingClientRect v testu).
 for (const ime of Object.keys(APLIKACIJE)) {
   test(`${ime}: popravek A – pod vrstico oznak v »Tehnike« gumb v glavi »↑ Tehnike« vrne k vrstici oznak, sicer »↑ Na vrh«`, () => {
     const { dom, run, o } = nalozi(ime, { okno: true });
     const gor = o.glava.children[1];
-    const kt = dom.el(APLIKACIJE[ime].tehnike).children[1];
+    const kt = omogociIskanje(dom.el(APLIKACIJE[ime].tehnike).children[1]);
     assert.equal(kt.className, 'kazalo-tehnik');
+    const e1 = vrsticeKazala(kt)[0];
+    assert.equal(e1.dataset.kazalo, 'naked-single');
     // Oba napisa v gumbu (en nad drugim – širina gumba je širina daljšega).
     assert.deepEqual(gor.children.map(e => [e.tagName, e.className, e.textContent]),
       [['SPAN', 'napis-vrh', '↑ Na vrh'], ['SPAN', 'napis-tehnike', '↑ Tehnike']]);
@@ -290,7 +313,7 @@ for (const ime of Object.keys(APLIKACIJE)) {
     kt.getBoundingClientRect = () => ({ top: 2900 - o.okno.scrollTop, bottom: 2970 - o.okno.scrollTop, height: 70 });
     const klici = [];
     kt.scrollIntoView = x => klici.push(['scrollIntoView', x]);
-    kt.children[0].focus = x => klici.push(['focus', kt.children[0].textContent, x]);
+    e1.focus = x => klici.push(['focus', e1.children[0].textContent, x]);
     dom.klikni(APLIKACIJE[ime].gumbi[0]);
     for (const [y, napis] of [[0, null], [400, null], [401, 'vrh'], [2900, 'vrh'], [2916, 'vrh'], [2917, 'tehnike'], [6000, 'tehnike'], [1000, 'vrh']]) {
       o.okno.scrollTop = y;

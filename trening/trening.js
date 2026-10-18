@@ -47,9 +47,13 @@ document.addEventListener('keydown',e=>{if(oknoPomoc.odprto())return;if(enojcek&
 // značka težavnosti iz tezavnostTehnike() (shared/generator.js, iz ravni - nova tehnika potrebuje samo
 // vnos ravni; naloga 11a, 1.5): »TEŽKA (HARD)«, razred ostane raven (badge-napredna).
 // TEHNIKA_VAJE: način vaje (data-mode) -> ključ tehnike v ALL_TECHNIQUES.
+// Pred prvo kartico vsake skupine (SKUPINE_TEHNIK) naslov skupine h2.skupina-naslov »Podmnožice (Subsets) · 3–6«
+// (imeSkupine(); naloga 11a, korak 2) - isto besedilo ima seznam tehnik v oknu Pomoč (O7).
 const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
+const karticeMenija=new Map([...menuEl.querySelectorAll('.menu-card')].map(k=>[k.dataset.mode,k]));
+let skupinaMenija=null;
 [...TRENING_ENOJCKA,...TRENING_TEHNIKE].forEach(([m,t])=>{
-  const card=menuEl.querySelector(`.menu-card[data-mode="${m}"]`);
+  const card=karticeMenija.get(m);
   if(!card)return;
   const h3=card.querySelector('h3');
   h3.textContent=imeTehnike(t);
@@ -58,8 +62,17 @@ const TEHNIKA_VAJE=Object.fromEntries([...TRENING_ENOJCKA,...TRENING_TEHNIKE]);
   if(p) p.textContent=TEHNIKE_OPISI[m].povzetek;
   const znacka=card.querySelector('.badge'),raven=ravenTehnike(t);
   if(znacka){znacka.className=`badge badge-${raven}`;znacka.textContent=napisTezavnosti(tezavnostTehnike(t)).toUpperCase();}
+  const skupina=skupinaTehnike(t);
+  if(skupina!==skupinaMenija){
+    skupinaMenija=skupina;
+    const h=document.createElement('h2');h.className='skupina-naslov';h.textContent=imeSkupine(skupina,{stevilke:true});
+    menuEl.appendChild(h);
+  }
   menuEl.appendChild(card);
 });
+// Vrstica skupine nad imenom tehnike na vrhu vaje (»Spoznaj« in »Vadi v uganki«; naloga 11a, O4): ime skupine
+// brez številk, manjše in sivo (trening.css).
+function napisSkupineVaje(t){return imeSkupine(skupinaTehnike(t));}
 
 // Razdelek "Razlaga" pod nalogo (»Spoznaj« in »Vadi v uganki«, faza 6): razlaga in posledica
 // tehnike. Privzeto zaprt; odprt ali zaprt ostane med vajami kroga (razlagaKrog). Ogled ne
@@ -130,15 +143,16 @@ document.querySelectorAll('.menu-card').forEach(card=>{
 // Kazalo tehnik nad prvo kartico (naloga 4c, O4 v docs/navigacija-nacrt.md; shared/navigacija.js): klik
 // pomakne do kartice (12 px pod vrh okna; kartica blizu dna – stran do konca), vaje ne začne; fokus gre na
 // »Spoznaj« te kartice. Od naloge 6b (2.5 v docs/naloga6b-nacrt.md) seznam z imeni – vrstica z oznako ter
-// slovenskim in angleškim imenom. Gumb »↑« (O5): samo v meniju, po enem zaslonu drsenja; klik na vrh, fokus na kazalo.
+// slovenskim in angleškim imenom, od naloge 11a po skupinah v dveh stolpcih (ista oblika kot v oknu Pomoč).
+// Gumb »↑« (O5): samo v meniju, po enem zaslonu drsenja; klik na vrh, fokus na kazalo.
 const kazaloEl=document.getElementById('kazaloTehnik');
-izrisiKazaloTehnik(kazaloEl,p=>{
+const vrsticeKazala=izrisiKazaloTehnik(kazaloEl,p=>{
   const card=menuEl.querySelector(`.menu-card[data-mode="${p.kljuc}"]`);
   if(!card)return;
   window.scrollTo({top:Math.max(0,card.getBoundingClientRect().top+window.scrollY-12),behavior:nacinPomika()});
   const b=card.querySelector('.nacin-btn');
   if(b)b.focus({preventScroll:true});
-},{imena:true});
+});
 // Zadnja tehnika (naloga 6b, korak 2, O4–O6): kartica in vrstica kazala tehnike, ki si jo nazadnje vadil, imata
 // razred zadnja (moder okvir, trening.css), vrstica še pripis v aria-label. Postavi ga začetek kroga (zacniKrog()),
 // ostane, dokler ne začneš druge tehnike; zapomni si ga ključ sudoku.trening.zadnja (način vaje, npr. xy-wing), ki ga
@@ -146,7 +160,7 @@ izrisiKazaloTehnik(kazaloEl,p=>{
 const ZADNJA_KLJUC='sudoku.trening.zadnja';
 function oznaciZadnjo(m){
   for(const card of menuEl.querySelectorAll('.menu-card'))card.classList.toggle('zadnja',card.dataset.mode===m);
-  for(const v of kazaloEl.children){
+  for(const v of vrsticeKazala){
     const z=v.dataset.kazalo===m;
     v.classList.toggle('zadnja',z);
     v.setAttribute('aria-label',imeTehnike(TEHNIKA_VAJE[v.dataset.kazalo],{stevilka:true})+(z?' – nazadnje vadena':''));
@@ -704,7 +718,7 @@ function renderExercise(){
   // Pod nalogo povzetek tehnike in navodilo (M.desc = opisVaje()) ali povzetek in lasten opis
   // naloge (ex.desc: 1, 2, 7, 8 in E1/E2 v vajah 1-6); razlaga je v razdelku "Razlaga".
   const opis=ex.desc?`${TEHNIKE_OPISI[mode].povzetek} ${ex.desc}`:M.desc;
-  div.innerHTML=`<p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}${ex.poShemi?pripisPoShemi(ex.poShemi):''}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
+  div.innerHTML=`<p class="ex-skupina">${napisSkupineVaje(TEHNIKA_VAJE[mode])}</p><p class="ex-label">${imeTehnike(TEHNIKA_VAJE[mode],{stevilka:true})} · Vaja ${exNum+1} / ${MAX_EX}${ex.poShemi?pripisPoShemi(ex.poShemi):''}</p><h3>${ex.unitLabel}</h3><p class="desc">${opis}</p>`;
   div.appendChild(razdelekRazlaga(mode));
   // Razdelek »Shema« in pod njim vrstica s preslikavo se vstavita tik nad mrežo vaje, ko je postavitev
   // zgrajena (spodaj).

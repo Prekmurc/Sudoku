@@ -58,7 +58,13 @@ class Element {
   set textContent(v) { this.lastna = String(v); this.children = []; }
   get innerHTML() { return this.html; }
   set innerHTML(v) { this.html = String(v); this.children = []; this.lastna = ''; }
-  appendChild(el) { this.children.push(el); return el; }
+  // Element, ki je že otrok, se premakne na konec (kot v brskalniku – trening preuredi kartice menija).
+  appendChild(el) {
+    const i = this.children.indexOf(el);
+    if (i >= 0) this.children.splice(i, 1);
+    this.children.push(el);
+    return el;
+  }
   append(...kosi) { for (const k of kosi) this.children.push(k instanceof Element ? k : new Besedilo(k)); }
   prepend(el) { this.children.unshift(el); }
   insertBefore(el, ref) {

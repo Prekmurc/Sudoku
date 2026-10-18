@@ -68,6 +68,10 @@ test('iskanje: "Iščem vajo …", nato vaja; ob preseženi meji iz banke', () =
   assert.equal(run('vadi.v.izvor.vrsta'), 'banka');
   assert.ok(run('VAJE_BANKA.some(z => z.seme === vadi.v.izvor.seme && z.tehnike.includes("Hidden pair"))'));
   assert.equal(poRazredu(dom, 'ex-label')[0].textContent, '4 · Skriti par (Hidden Pair) · Vadi v uganki · Vaja 1 / 9');
+  // Naloga 11a, O4: nad imenom tehnike vrstica skupine (tudi po izrisu vaje, ne le med iskanjem).
+  const vaja = poRazredu(dom, 'exercise')[0];
+  assert.deepEqual(vaja.children.slice(0, 2).map(e => [e.className, e.textContent]),
+    [['ex-skupina', 'Podmnožice (Subsets)'], ['ex-label', '4 · Skriti par (Hidden Pair) · Vadi v uganki · Vaja 1 / 9']]);
   // V S0 je naslednji korak motorja izbrana tehnika.
   assert.equal(run('nextStep(vadi.v.S0.deska).technique'), 'Hidden pair');
   // Vaja 1: navodilo pove enoto koraka (območje), pod njim povzetek tehnike in poved, da je

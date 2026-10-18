@@ -465,6 +465,22 @@ preverjanje s pravimi tipkami v brskalniku brez glave pri 375 in 1280 px. Pred p
 | 1 | reševalec, telefon in monitor | Izberi primer in pritisni »Reši«; preberi vrstico nad rešeno mrežo. | Stavek »Temne števke so začetek uganke, modre so rešitev.« se bere kot razlaga, ne kot štetje; »Temne« je temna in krepka kot dane števke, »modre« modra kot izpeljane. (potrjeno 18. 10. 2026) | Razumljivost in videz besedila presodiš sam. |
 | 2 | reševalec, telefon | Po »Reši« odpri »Pokaži korake reševanja«, nato se dotakni celice vnosne mreže in na zaslonski tipkovnici vpiši ali izbriši števko. | Kartici »Rešitev« in »Koraki reševanja« izgineta takoj; po ponovnem »Reši« se pokaže nova rešitev, koraki so skriti do »Pokaži korake reševanja«. (potrjeno 18. 10. 2026) | Zaslonske tipkovnice telefona brskalnik brez glave nima. |
 
+## Naloga 11a – imena, težavnost, skupine tehnik (vse tri aplikacije)
+
+Načrt `docs/naloga11a-nacrt.md` (razdelek 8). Avtomatsko preverjeno: vsi testi (med njimi `tests/skupine-tehnik.test.js`,
+`tests/trening-meni.test.js`, `tests/pomoc.test.js`, `tests/izrazi.test.js`, `tests/zbirka-zapis.test.js`), posnetek
+igre `tools/posnetki/igra-po-naloga11a.json` (enak), scenarij `tools/preveri-naloga11a-brskalnik.js --korak 1` in
+`--korak 2` pri 375 in 1280 px (pravi klik in dotik) in stari scenariji področja. Posnetki zaslona za pregled so v
+`docs/slike/naloga11a/`. Pred pregledom osveži stran.
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | trening, telefon | V meniju preleti kazalo in naslove skupin nad karticami (npr. »Podmnožice (Subsets) · 3–6«), tapni nekaj vrstic kazala. | Skupine so jasno ločene in berljive, značka težavnosti ob imenu skupine ne moti; dotik pripelje do kartice. | Berljivost in občutek dotika na pravem zaslonu presodiš sam; scenarij preveri zgradbo, položaje in pomik. |
+| 2 | trening in igra, monitor, okno Pomoč | Odpri razdelek »Tehnike«: kazalo, nato klikni vrstico (npr. 9) in preleti seznam tehnik. | Kazalo je enako kot v meniju treninga, v dveh poravnanih stolpcih (pri daljših imenih skupin je značka v drugi vrstici); naslovi skupin v seznamu ločijo tehnike; dodatna angleška imena pri 1, 2, 9 in 11 se berejo kot pripis. | Scenarij preveri zgradbo in položaje, ne vtisa enakosti in preglednosti. |
+| 3 | trening, »Spoznaj« in »Vadi v uganki« (npr. 6 · Skrita trojica) | Odpri vajo in poglej vrh kartice. | Vrstica skupine (»Podmnožice (Subsets)«) je opazno podrejena imenu tehnike, a še berljiva. | Estetska presoja sivine in velikosti; scenarij preveri le, da je manjša in siva. |
+| 4 | igra s tvojo pravo zbirko | Odpri »Zbirka ugank«. | Uganke, ki so imele »Ekstrem«, imajo »Ekstremna«; filter Težavnost jih najde, shranjen filter ostane. | Scenarij dela s preskusno shrambo, ne s tvojim brskalnikom. |
+| 5 | vse tri, besedila | Preberi uvod razdelka »Tehnike« (stavek o Zelo težki), opise stopenj v »Nova uganka«, sporočilo koraka 9 v reševalcu in v Pomoči treninga stavek »Z istimi oznakami so naštete tehnike, ki jih uganka potrebuje …«. | Naravna slovenščina, brez »napredna«/»ekspertna« in brez omembe drugih aplikacij. | Jezikovna presoja; testi preverijo samo izraze in ločila. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

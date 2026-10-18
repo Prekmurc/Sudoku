@@ -28,8 +28,8 @@
 // Korak 3 (O1–O3, D1, D3) – okno Pomoč v igri, reševalcu in treningu pri 320, 375 (posnemanje telefona, pravi
 // dotik) in 1280 px (miška):
 //   - glava okna (»Pomoč«, »↑ Na vrh«, ✕) je lepljiva, z neprozorno podlago, v panelu; kazalo razdelkov tik pod
-//     njo (gumbi = naslovi razdelkov v vrstnem redu), kazalo tehnik v »Tehnike« (15 oznak, ime v title in
-//     aria-label, barve = značka ravni), oba v panelu, brez preliva strani in okna, gumbi vsaj 32 px (D3 – mere
+//     njo (gumbi = naslovi razdelkov v vrstnem redu), kazalo tehnik v »Tehnike« (od naloge 11a v obliki treninga –
+//     15 vrstic z oznako in imeni, ime v aria-label, brez title, barve = značka ravni), oba v panelu, brez preliva strani in okna, gumbi vsaj 32 px (D3 – mere
 //     in višine kazal izpiše na koncu);
 //   - pravi dotik/klik vsakega razdelka in vsake oznake (brez predhodnega pomika, element zadet – ni pod glavo):
 //     naslov oz. tehnika pristane pod glavo (ne za njo), v oknu, s fokusom; »Shema« pri 7 se odpre;
@@ -38,8 +38,9 @@
 //     »↑ Na vrh« → vrh, fokus na kazalo; Escape in klik ob panelu zapreta okno; prefers-reduced-motion takoj;
 //     posnetka pomoc-<aplikacija>-<širina>.png in pomoc-<aplikacija>-dno-<širina>.png (320, 375);
 //   - D1: okna »Zbirka ugank« in »Nova uganka« v igri ter okno zbirke v reševalcu (375, 1280 px) so enaka
-//     izhodišču (--izhodisce, privzeto 6fadd53 – stanje 2026-10-18 z namernimi spremembami oken po koraku 2: slogi
-//     glave okna iz nalog 4c in 6, filtri in krajši namig naloge 10; ob nalogi je bilo 5f59f09 – korak 2; izvleček z
+//     izhodišču (--izhodisce, privzeto cb19f46 – naloga 11a, korak 1, ki je namerno spremenila »Ekstrem« v
+//     »Ekstremna«, ime 9 in opise stopenj; prej 6fadd53 – slogi glave okna iz nalog 4c in 6, filtri in krajši namig
+//     naloge 10; ob nalogi je bilo 5f59f09 – korak 2; izvleček z
 //     git archive): drevo, HTML, vse izračunane lastnosti vseh elementov in položaji.
 // Korak 4 (O8–O14, D2, D4) – povezave med aplikacijami:
 //   - glava vseh treh pri 320, 375, 430 in 1280 px: tri zavihke v eni vrstici, prvi otrok glave nad nadnaslovom,
@@ -81,7 +82,7 @@ const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-navigacija'));
 const korak = Number(arg('--korak', '5'));
-const izhodisce = arg('--izhodisce', '6fadd53');
+const izhodisce = arg('--izhodisce', 'cb19f46');
 // --samo N: samo korak N (za sprotno delo).
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
@@ -222,14 +223,15 @@ const MIRUJE = `new Promise(r => { let prej = -1, enako = 0; const t = () => {
   setTimeout(t, 60); }; setTimeout(t, 60); })`;
 
 const KAZALO = `(() => {
-  const nav = document.getElementById('kazaloTehnik'), gumbi = [...nav.querySelectorAll('button')], y = window.scrollY;
+  // Od naloge 11a so vrstice v skupinah in stolpcih (prvi otrok kazala ni gumb).
+  const nav = document.getElementById('kazaloTehnik'), gumbi = [...nav.querySelectorAll('.kazalo-vrstica')], y = window.scrollY;
   const kartice = [...document.querySelectorAll('#menu .menu-card')];
   const meni = document.getElementById('menu').getBoundingClientRect(), r = nav.getBoundingClientRect();
   const pr = g => g.getBoundingClientRect();
   // Od naloge 6b (seznam z imeni) je oznaka .tag v vrstici; brez imen je gumb sam .tag.
   const tag = g => g.querySelector('.tag') || g;
   return {
-    oznake: gumbi.map(g => tag(g).textContent), zImeni: nav.classList.contains('z-imeni'), kljuci: gumbi.map(g => g.dataset.kazalo), kartice: kartice.map(k => k.dataset.mode),
+    oznake: gumbi.map(g => tag(g).textContent), zImeni: !!nav.querySelector('.kazalo-imena'), kljuci: gumbi.map(g => g.dataset.kazalo), kartice: kartice.map(k => k.dataset.mode),
     naslovi: gumbi.map(g => g.title), aria: gumbi.map(g => g.getAttribute('aria-label')), tip: gumbi.map(g => g.type),
     visine: gumbi.map(g => pr(g).height), sirine: gumbi.map(g => pr(g).width),
     navVisina: r.height, navDno: r.bottom + y, prvaVrh: kartice[0].getBoundingClientRect().top + y,
@@ -311,10 +313,10 @@ async function korak2(b, sirina) {
   const odmiki = [];
   for (const [i, o] of OZN.entries()) {
     await b.izvedi('window.scrollTo(0, 0); true');
-    const izb = `#kazaloTehnik button:nth-child(${i + 1})`;
+    const izb = `#kazaloTehnik [data-kazalo="${k.kljuci[i]}"]`;
     if (dotik) await b.tapni(izb); else await b.klikni(izb);
     await b.izvedi(MIRUJE);
-    const s = await b.izvedi(`(() => { const m = document.querySelectorAll('#kazaloTehnik button')[${i}].dataset.kazalo;
+    const s = await b.izvedi(`(() => { const m = document.querySelectorAll('#kazaloTehnik .kazalo-vrstica')[${i}].dataset.kazalo;
       const k = document.querySelector('.menu-card[data-mode="' + m + '"]'), r = k.getBoundingClientRect();
       return { m, vrh: r.top, dno: r.bottom, okno: window.innerHeight, scrollY: window.scrollY,
         maks: document.documentElement.scrollHeight - window.innerHeight, mode, meni: getComputedStyle(document.getElementById('menu')).display,
@@ -437,7 +439,8 @@ const POMOC_STANJE = (okno, cilj = null) => `(() => {
   const vPanelu = e => r(e).left >= notri[0] - 0.5 && r(e).right <= notri[1] + 0.5;
   const gor = g.querySelector('.dialog-na-vrh'), x = g.querySelector('[data-zapri]');
   const k = o.querySelector('.pomoc-kazalo'), kg = [...k.querySelectorAll('button')];
-  const kt = o.querySelector('.kazalo-tehnik'), ktg = [...kt.querySelectorAll('button')];
+  const kt = o.querySelector('.kazalo-tehnik'), ktg = [...kt.querySelectorAll('.kazalo-vrstica')];
+  const tag = e => e.querySelector('.tag');
   const c = ${cilj || 'null'};
   const d = document.documentElement, a = document.activeElement;
   return {
@@ -451,9 +454,9 @@ const POMOC_STANJE = (okno, cilj = null) => `(() => {
     kazalo: { napisi: kg.map(e => e.textContent), naslovi: [...o.querySelectorAll('h3.navodila-razdelek')].map(e => e.textContent),
       vrh: r(k).top, visina: r(k).height, vrstic: new Set(kg.map(e => Math.round(r(e).top))).size, vPanelu: kg.every(vPanelu),
       visine: kg.map(e => r(e).height), prejsnji: k.previousElementSibling === g, naslednji: k.nextElementSibling && k.nextElementSibling.tagName },
-    oznake: { napisi: ktg.map(e => e.textContent), visine: ktg.map(e => r(e).height), sirine: ktg.map(e => r(e).width), visina: r(kt).height,
+    oznake: { napisi: ktg.map(e => tag(e).textContent), kljuci: ktg.map(e => e.dataset.kazalo), visine: ktg.map(e => r(tag(e)).height), sirine: ktg.map(e => r(tag(e)).width), visina: r(kt).height,
       vrstic: new Set(ktg.map(e => Math.round(r(e).top))).size, vPanelu: ktg.every(vPanelu),
-      barve: ktg.map(e => { const s = getComputedStyle(e); const z = o.querySelectorAll('.tehnike li')[ktg.indexOf(e)].querySelector('.tehnika-raven');
+      barve: ktg.map(e => { const s = getComputedStyle(tag(e)); const z = o.querySelectorAll('.tehnike li')[ktg.indexOf(e)].querySelector('.tehnika-raven');
         return s.backgroundColor === getComputedStyle(z).backgroundColor && s.color === getComputedStyle(z).color; }),
       title: ktg.map(e => e.title), aria: ktg.map(e => e.getAttribute('aria-label')) },
     preliv: d.scrollWidth > d.clientWidth, oknoPreliv: o.scrollWidth > o.clientWidth,
@@ -487,8 +490,9 @@ async function korak3(b, sirina) {
       s.kazalo.prejsnji && s.kazalo.naslednji === 'H3' && J(s.kazalo.napisi) === J(s.kazalo.naslovi) && s.kazalo.napisi.length >= 5, s.kazalo);
     preveri('kazalo razdelkov v panelu, brez preliva strani in okna', s.kazalo.vPanelu && !s.preliv && !s.oknoPreliv, s);
     preveri('kazalo razdelkov: gumbi vsaj 32 px visoki', Math.min(...s.kazalo.visine) >= 32, s.kazalo.visine);
-    preveri('kazalo tehnik: 15 oznak E1 … 13, ime v title in aria-label, barve = značka ravni',
-      J(s.oznake.napisi) === J(OZN) && s.oznake.title.every((t, i) => t.startsWith(OZN[i] + ' · ') && s.oznake.aria[i] === t) && s.oznake.barve.every(Boolean), s.oznake);
+    // Naloga 11a: kazalo v obliki treninga – vrstice z vidnimi imeni, ime v aria-label, brez title.
+    preveri('kazalo tehnik: 15 vrstic E1 … 13, ime v aria-label (imeni vidni – brez title), barve = značka ravni',
+      J(s.oznake.napisi) === J(OZN) && s.oznake.aria.every((t, i) => t.startsWith(OZN[i] + ' · ') && s.oznake.title[i] === '') && s.oznake.barve.every(Boolean), s.oznake);
     preveri('kazalo tehnik v panelu', s.oznake.vPanelu, s.oznake);
     const minV = Math.min(...s.oznake.visine), maxV = Math.max(...s.oznake.visine);
     preveri(`kazalo tehnik: oznake vsaj 32 px visoke (D3; ${minV}–${maxV} px)`, minV >= 32, s.oznake.visine);
@@ -515,9 +519,10 @@ async function korak3(b, sirina) {
     // Pravi dotik/klik vsake oznake tehnike: tehnika pod glavo, v oknu, s fokusom.
     const razmikiT = [];
     for (let i = 0; i < OZN.length; i++) {
-      await b.izvedi(`(() => { const o = document.querySelector(${J(a.okno)}); o.querySelector('.kazalo-tehnik').scrollIntoView({ block: 'center' }); return true; })()`);
+      // Od naloge 11a je kazalo na telefonu višje od okna – na sredino gre vrstica, ki jo dotik/klik zadene.
+      await b.izvedi(`(() => { const o = document.querySelector(${J(a.okno)}); o.querySelector('.kazalo-tehnik [data-kazalo="${s.oznake.kljuci[i]}"]').scrollIntoView({ block: 'center' }); return true; })()`);
       await pocakaj(b, 50);
-      const t = await pritisni(b, `${a.okno} .kazalo-tehnik button:nth-child(${i + 1})`, dotik);
+      const t = await pritisni(b, `${a.okno} .kazalo-tehnik [data-kazalo="${s.oznake.kljuci[i]}"]`, dotik);
       await b.izvedi(OKNO_MIRUJE(a.okno));
       const st = await b.izvedi(POMOC_STANJE(a.okno, `o.querySelectorAll('.tehnike > li')[${i}]`));
       razmikiT.push(Math.round(st.cilj.vrh - st.glava.dno));
@@ -1019,7 +1024,7 @@ async function korak5A(b, sirina) {
     // nato »↑ Na vrh« → vrh.
     await b.izvedi(`(() => { document.querySelector(${J(a.okno)}).querySelector('.kazalo-tehnik').scrollIntoView({ block: 'center' }); return true; })()`);
     await pocakaj(b, 50);
-    await pritisni(b, `${a.okno} .kazalo-tehnik button:nth-child(11)`, dotik);
+    await pritisni(b, `${a.okno} .kazalo-tehnik [data-kazalo="turbot-fish"]`, dotik);
     await b.izvedi(OKNO_MIRUJE(a.okno));
     let s = await b.izvedi(GLAVA_A(a.okno));
     preveri('po dotiku/kliku oznake 9: »↑ Tehnike«', s.napis === 'tehnike' && J(s.vidno) === J(['↑ Tehnike']), s);

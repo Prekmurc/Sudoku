@@ -30,7 +30,7 @@ function naVrhPomociViden(scrollTop) {
   return scrollTop > POMOC_NA_VRH_PO;
 }
 // Napis gumba v glavi (popravek A po ročnem pregledu naloge 4c): 'tehnike' – okno je v razdelku »Tehnike« pod
-// vrstico oznak E1 … 13 (»↑ Tehnike« vrne k njej), 'vrh' – pomaknjeno več kot 400 px (»↑ Na vrh«), null – skrit.
+// kazalom tehnik (»↑ Tehnike« vrne k njemu), 'vrh' – pomaknjeno več kot 400 px (»↑ Na vrh«), null – skrit.
 function gumbGlavePomoci(scrollTop, podKazalomTehnik) {
   if (podKazalomTehnik) return 'tehnike';
   return naVrhPomociViden(scrollTop) ? 'vrh' : null;
@@ -72,8 +72,8 @@ function ustvariPomoc(okno, gumbi) {
     naslovi[0].parentNode.insertBefore(kazalo, naslovi[0]);
   }
   // »↑ Na vrh« v glavi pred ✕ (samo okno s kazalom - Pomoč): vrne na vrh, fokus na kazalo. Popravek A po ročnem
-  // pregledu naloge 4c: v razdelku »Tehnike« pod vrstico oznak (vrstica je vsa nad spodnjim robom glave) je napis
-  // »↑ Tehnike« in klik vrne k vrstici oznak (fokus na E1). Gumb ima oba napisa enega nad drugim, neaktivni je
+  // pregledu naloge 4c: v razdelku »Tehnike« pod kazalom tehnik (kazalo je vse nad spodnjim robom glave) je napis
+  // »↑ Tehnike« in klik vrne h kazalu tehnik (fokus na prvo vrstico, E1). Gumb ima oba napisa enega nad drugim, neaktivni je
   // neviden (shared/pomoc.css) – gumb je zato vedno enako širok in glava se ne spremeni.
   const glava = kazalo && okno.querySelector('.dialog-glava');
   const zapriGumb = glava && okno.querySelector('[data-zapri]');
@@ -91,7 +91,7 @@ function ustvariPomoc(okno, gumbi) {
     gor.dataset.napis = 'vrh';
     gor.setAttribute('aria-label', NAPISI_GLAVE_POMOCI.vrh);
     glava.insertBefore(gor, zapriGumb);
-    // Vrstica oznak tehnik (izriše jo izrisiTehnike() - pred tem ali po tem klicu).
+    // Kazalo tehnik (izriše ga izrisiTehnike() - pred tem ali po tem klicu).
     const kazaloTehnik = () => okno.querySelector('.kazalo-tehnik');
     const podKazalomTehnik = () => {
       const kt = kazaloTehnik();
@@ -112,7 +112,8 @@ function ustvariPomoc(okno, gumbi) {
       const kt = gor.dataset.napis === 'tehnike' && kazaloTehnik();
       if (kt) {
         kt.scrollIntoView({ behavior: pomik, block: 'start' });
-        const e1 = kt.children[0];
+        // Prva vrstica kazala (E1) – prvi otrok kazala je stolpec s skupinami (naloga 11a).
+        const e1 = kt.querySelector('.kazalo-vrstica');
         if (e1) e1.focus({ preventScroll: true });
         return;
       }
@@ -161,8 +162,9 @@ function razponRavni(raven) {
 // v vseh treh aplikacijah. Pod posledico pri 1-13 zložljivo »Shema«, privzeto zaprto
 // (izrisiShemo() iz shared/sheme.js; faza 3a, korak 4 - 12 odprtih shem bi okno na telefonu
 // podaljšalo za več zaslonov).
-// Nad seznamom vrstica oznak E1 … 13 (izrisiKazaloTehnik() iz shared/navigacija.js - ista sestavina kot
-// kazalo v meniju treninga; naloga 4c, korak 3, O2): klik pomakne do tehnike.
+// Pred prvo tehniko vsake skupine (SKUPINE_TEHNIK) naslov skupine s številkami, enak naslovu nad karticami v
+// treningu (naloga 11a, O7). Nad seznamom kazalo tehnik (izrisiKazaloTehnik() iz shared/navigacija.js - ista
+// sestavina in od naloge 11a ista oblika kot kazalo v meniju treninga; naloga 4c, korak 3, O2): klik pomakne do tehnike.
 function izrisiTehnike(el) {
   const uvod = document.createElement('p');
   const ravni = Object.keys(RAVNI_TEHNIK)
@@ -192,6 +194,15 @@ function izrisiTehnike(el) {
     razlaga.textContent = TEHNIKE_OPISI[kljuc].razlaga;
     const posledica = document.createElement('p');
     posledica.textContent = TEHNIKE_OPISI[kljuc].posledica;
+    // Pred prvo tehniko skupine naslov skupine – isto besedilo kot nad karticami v treningu (naloga 11a, O7);
+    // naslov je v vrstici prve tehnike, zato ima seznam še vedno eno vrstico na tehniko in pomik k njej ga pokaže.
+    const skupina = skupinaTehnike(tehnika);
+    if (skupina && skupina.tehnike[0] === tehnika) {
+      const h = document.createElement('h4');
+      h.className = 'tehnike-skupina';
+      h.textContent = imeSkupine(skupina, { stevilke: true });
+      li.appendChild(h);
+    }
     li.append(oznaka, ime, ' ', raven);
     if (druga) {
       const p = document.createElement('p');

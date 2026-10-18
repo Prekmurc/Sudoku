@@ -15,7 +15,7 @@
 //   - posnetki vrh-vaje-<širina>-<način>.png (320, 375, 1280; »Spoznaj« in »Vadi v uganki«); brez napak JS.
 //
 // Korak 2 (O4–O6, O12, O13; 2.5) – trening, kazalo tehnik s seznamom in zadnja tehnika, pri 320, 375 (dotik) in 1280 px (miška):
-//   - kazalo: razred z-imeni, 15 vrstic (gumb .kazalo-vrstica) v vrstnem redu kartic; slovensko ime, angleško ime in
+//   - kazalo: 15 vrstic (gumb .kazalo-vrstica, od naloge 11a v skupinah, brez razreda z-imeni) v vrstnem redu kartic; slovensko ime, angleško ime in
 //     aria-label iz virov (imeTehnike(), TEHNIKE_OPISI), brez title; 1, 1 in 2 stolpca – pri dveh levo E1–6, desno 7–13;
 //     nobeno ime odrezano (scrollWidth) ali prelomljeno, vrstice vsaj 44 px, oznake vsaj 36 × 32 px v barvi značke
 //     ravni, slovensko krepko, kontrast angleškega vsaj 4,5 : 1; pod glavo, nad prvo kartico, v širini menija, brez
@@ -195,7 +195,7 @@ function kontrast(a, b) {
   return (x + 0.05) / (y + 0.05);
 }
 const KAZALO = `(() => {
-  const nav = document.getElementById('kazaloTehnik'), vr = [...nav.children], r = e => e.getBoundingClientRect(), y = window.scrollY;
+  const nav = document.getElementById('kazaloTehnik'), vr = [...nav.querySelectorAll('.kazalo-vrstica')], r = e => e.getBoundingClientRect(), y = window.scrollY;
   const kartice = [...document.querySelectorAll('#menu .menu-card')], meni = r(document.getElementById('menu'));
   const levi = [...new Set(vr.map(v => Math.round(r(v).left)))].sort((a, b) => a - b);
   const imena = v => [...v.querySelectorAll('.si, .en')];
@@ -246,8 +246,8 @@ async function korak2(b, sirina) {
   // Seznam: vsebina iz virov, stolpci, vrstni red po stolpcih, imena cela.
   const k = await b.izvedi(KAZALO);
   const stolpcev = sirina < 500 ? 1 : 2;
-  preveri('kazalo: razred z-imeni, 15 vrstic (gumb .kazalo-vrstica) v vrstnem redu kartic, oznake E1 … 13',
-    k.razred === 'kazalo-tehnik z-imeni' && k.tip.every(t => t === 'BUTTON:button:kazalo-vrstica') && J(k.kljuci) === J(k.kartice) && J(k.oznake) === J(OZN), k);
+  preveri('kazalo: 15 vrstic (gumb .kazalo-vrstica) v vrstnem redu kartic, oznake E1 … 13 (od naloge 11a v skupinah, brez razreda z-imeni)',
+    k.razred === 'kazalo-tehnik' && k.tip.every(t => t === 'BUTTON:button:kazalo-vrstica') && J(k.kljuci) === J(k.kartice) && J(k.oznake) === J(OZN), k);
   preveri('kazalo: slovensko ime = imeTehnike(…, { anglesko: false }), angleško = TEHNIKE_OPISI, aria-label = imeTehnike(…, { stevilka: true }), brez title',
     J(k.si) === J(k.imeVir) && J(k.en) === J(k.enVir) && J(k.aria) === J(k.ariaVir) && k.title.every(t => t === ''), k);
   preveri(`kazalo: ${stolpcev} ${stolpcev === 1 ? 'stolpec' : 'stolpca – levo E1–6, desno 7–13'}`,
@@ -269,9 +269,9 @@ async function korak2(b, sirina) {
   const odmiki = [];
   for (const [i, o] of OZN.entries()) {
     await b.izvedi('window.scrollTo(0, 0); true');
-    await pritisni(b, `#kazaloTehnik button:nth-child(${i + 1})`, dotik);
+    await pritisni(b, `#kazaloTehnik [data-kazalo="${k.kljuci[i]}"]`, dotik);
     await b.izvedi(MIRUJE);
-    const s = await b.izvedi(`(() => { const m = document.getElementById('kazaloTehnik').children[${i}].dataset.kazalo;
+    const s = await b.izvedi(`(() => { const m = ${J(k.kljuci[i])};
       const k = document.querySelector('.menu-card[data-mode="' + m + '"]'), r = k.getBoundingClientRect();
       return { m, vrh: r.top, dno: r.bottom, okno: innerHeight, scrollY: window.scrollY, maks: document.documentElement.scrollHeight - innerHeight,
         mode, meni: getComputedStyle(document.getElementById('menu')).display, fokus: document.activeElement === k.querySelector('.nacin-btn') }; })()`);

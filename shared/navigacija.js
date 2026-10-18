@@ -1,17 +1,20 @@
 /* shared/navigacija.js — navigacija po straneh (naloga 4c, docs/navigacija-nacrt.md): kazalo tehnik
-   (meni treninga – O4, od naloge 6b seznam z imeni; okno Pomoč – O2, korak 3, vrstica oznak), okrogel plavajoč gumb »↑« (meni treninga – O5) in
-   vprašanje pred odhodom po povezavah med aplikacijami (O11, O12; korak 4).
+   (meni treninga – O4 in okno Pomoč – O2, korak 3; od naloge 11a v obeh ista oblika – skupine z vrsticami), okrogel
+   plavajoč gumb »↑« (meni treninga – O5) in vprašanje pred odhodom po povezavah med aplikacijami (O11, O12; korak 4).
    Logika (seznam kazala, pravilo vidnosti gumba) je v funkcijah brez DOM-a; razporeditev in drsenje
-   preverja tools/preveri-navigacija-brskalnik.js. Slogi so v shared/base.css. Naloži se za engine.js. */
+   preverja tools/preveri-navigacija-brskalnik.js. Slogi so v shared/base.css. Naloži se za engine.js in
+   generator.js (težavnost skupine v kazalu). */
 
 // Postavke kazala tehnik: E1, E2, 1–13 v vrstnem redu kartic treninga (TRENING_ENOJCKA, TRENING_TEHNIKE).
 // kljuc = način vaje (data-mode kartice), tehnika = ključ ALL_TECHNIQUES, oznaka = »E1« / »4«,
-// ime = »4 · Skriti par (Hidden Pair)« (namig miške in bralnik zaslona), razred = barva ravni (tagClass()),
-// slovensko = »Skriti par«, anglesko = »Hidden Pair« (vidni imeni v kazalu z imeni – naloga 6b, korak 2).
+// ime = »4 · Skriti par (Hidden Pair)« (bralnik zaslona), razred = barva ravni (tagClass()),
+// slovensko = »Skriti par«, anglesko = »Hidden Pair« (vidni imeni v vrstici – naloga 6b, korak 2),
+// skupina = ključ skupine (SKUPINE_TEHNIK – naloga 11a).
 function kazaloTehnik() {
   return [...TRENING_ENOJCKA, ...TRENING_TEHNIKE].map(([kljuc, tehnika]) => ({
     kljuc, tehnika, oznaka: oznakaTehnike(kljuc), ime: imeTehnike(tehnika, { stevilka: true }), razred: tagClass(tehnika),
     slovensko: imeTehnike(tehnika, { anglesko: false }), anglesko: TEHNIKE_OPISI[kljuc].anglesko,
+    skupina: skupinaTehnike(tehnika).kljuc,
   }));
 }
 
@@ -21,40 +24,66 @@ function nacinPomika() {
   return m && m.matches ? 'auto' : 'smooth';
 }
 
-// Kazalo v el (vsebina se zamenja): za vsako postavko gumb z oznako v barvi ravni (.tag.t-*); klik
-// pokliče obKliku(postavka) – kam pomakne, pove aplikacija. Z { imena: true } (meni treninga, naloga 6b,
-// docs/naloga6b-nacrt.md, 2.5) je postavka vrstica .kazalo-vrstica: oznaka in pod seboj slovensko in angleško
-// ime (.kazalo-imena .si, .en), el dobi razred z-imeni (stolpci v shared/base.css); imeni sta vidni, zato brez title.
-function izrisiKazaloTehnik(el, obKliku, { imena = false } = {}) {
+// Kazalo v el (vsebina se zamenja) – ena oblika za meni treninga in okno Pomoč (naloga 11a, korak 2,
+// docs/naloga11a-nacrt.md, 1.6; prej v Pomoči vrstica samih oznak): dva stolpca .kazalo-stolpec – levo skupine
+// težavnosti Lahka in Srednja, desno Težka in Ekstremna (ali sta stolpca drug ob drugem, pove širina –
+// shared/base.css); v njih skupine SKUPINE_TEHNIK (.kazalo-skupina, role group) z naslovom .kazalo-naslov (ime
+// skupine in značka težavnosti v barvi ravni – tezavnostTehnike() iz shared/generator.js) in vrsticami
+// .kazalo-vrstica: oznaka v barvi ravni (.tag.t-*) in pod seboj slovensko in angleško ime (.kazalo-imena .si, .en;
+// naloga 6b, 2.5); imeni sta vidni, zato brez title. Klik vrstice pokliče obKliku(postavka) – kam pomakne, pove
+// aplikacija. Vrne gumbe vrstic v vrstnem redu postavk.
+const RAVNI_LEVEGA_STOLPCA = ['lahka', 'srednja'];
+function izrisiKazaloTehnik(el, obKliku) {
   el.textContent = '';
-  if (imena) el.classList.add('z-imeni');
-  for (const p of kazaloTehnik()) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    if (imena) {
+  const postavke = kazaloTehnik();
+  const stolpca = [0, 1].map(() => {
+    const st = document.createElement('div');
+    st.className = 'kazalo-stolpec';
+    el.appendChild(st);
+    return st;
+  });
+  const vrstice = [];
+  for (const s of SKUPINE_TEHNIK) {
+    const g = document.createElement('div');
+    g.className = 'kazalo-skupina';
+    g.dataset.skupina = s.kljuc;
+    g.setAttribute('role', 'group');
+    g.setAttribute('aria-label', imeSkupine(s));
+    const naslov = document.createElement('p');
+    naslov.className = 'kazalo-naslov';
+    const ime = document.createElement('span');
+    ime.className = 'kazalo-skupina-ime';
+    ime.textContent = imeSkupine(s);
+    const znacka = document.createElement('span');
+    znacka.className = `tag ${tagClass(s.tehnike[0])} kazalo-tezavnost`;
+    znacka.textContent = napisTezavnosti(tezavnostTehnike(s.tehnike[0])).toUpperCase();
+    naslov.append(ime, znacka);
+    g.appendChild(naslov);
+    for (const p of postavke.filter(x => x.skupina === s.kljuc)) {
+      const b = document.createElement('button');
+      b.type = 'button';
       b.className = 'kazalo-vrstica';
       const oznaka = document.createElement('span');
       oznaka.className = `tag ${p.razred}`;
       oznaka.textContent = p.oznaka;
-      const ime = document.createElement('span');
-      ime.className = 'kazalo-imena';
+      const imena = document.createElement('span');
+      imena.className = 'kazalo-imena';
       for (const [razred, besedilo] of [['si', p.slovensko], ['en', p.anglesko]]) {
-        const s = document.createElement('span');
-        s.className = razred;
-        s.textContent = besedilo;
-        ime.appendChild(s);
+        const e = document.createElement('span');
+        e.className = razred;
+        e.textContent = besedilo;
+        imena.appendChild(e);
       }
-      b.append(oznaka, ime);
-    } else {
-      b.className = `tag ${p.razred}`;
-      b.textContent = p.oznaka;
-      b.title = p.ime;
+      b.append(oznaka, imena);
+      b.setAttribute('aria-label', p.ime);
+      b.dataset.kazalo = p.kljuc;
+      b.addEventListener('click', () => obKliku(p));
+      g.appendChild(b);
+      vrstice.push(b);
     }
-    b.setAttribute('aria-label', p.ime);
-    b.dataset.kazalo = p.kljuc;
-    b.addEventListener('click', () => obKliku(p));
-    el.appendChild(b);
+    stolpca[RAVNI_LEVEGA_STOLPCA.includes(ravenTehnike(s.tehnike[0])) ? 0 : 1].appendChild(g);
   }
+  return vrstice;
 }
 
 // Gumb »↑« je viden, ko je stran pomaknjena več kot en zaslon in je aktiven (npr. meni, ne vaja).
