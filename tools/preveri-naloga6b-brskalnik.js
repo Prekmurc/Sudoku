@@ -28,9 +28,9 @@
 //     na vrhu, okvir na kartici in vrstici, mesto vrstice izpiše; neznan ključ – nič;
 //   - okno Pomoč igre, reševalca in treninga (375, 1280 px): kazalo tehnik enako izhodišču (--izhodisce, privzeto
 //     e52f994 – pred korakom 2; drevo, HTML, vsi izračunani slogi, položaji glede na kazalo), pri igri in reševalcu
-//     vse okno (brez oznake različice) enako izhodišču --izhodisce-celo (privzeto 6fadd53 – stanje 2026-10-18; Pomoč
-//     sta pozneje namerno spremenila korak 3 in naloga 10, ob nalogi je bilo e52f994 brez odstavka »Z okencem
-//     Pokaži …«); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
+//     vse okno (brez oznake različice) enako izhodišču --izhodisce-celo (privzeto b9cc1f4 – naloga 11a, korak 1, ki je
+//     Pomoč namerno spremenila; prej 6fadd53, pred tem jo je spremenila naloga 10 in korak 3, ob nalogi je bilo e52f994
+//     brez odstavka »Z okencem Pokaži …«); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
 //
 // Korak 3 (O7–O11) – reševalec, filter korakov in okrogel »↑«, pri 320, 375 (dotik) in 1280 px (miška), primer P_14:
 //   - okence »Pokaži« v oznaki pod naslovom kartice »Koraki reševanja«, nad števcem, do desnega roba vsebine kartice,
@@ -63,7 +63,7 @@ const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1]
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga6b'));
 const korak = Number(arg('--korak', '4'));
 const izhodisce = arg('--izhodisce', 'e52f994');
-const izhodisceCelo = arg('--izhodisce-celo', '6fadd53');
+const izhodisceCelo = arg('--izhodisce-celo', 'b9cc1f4');
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
 
