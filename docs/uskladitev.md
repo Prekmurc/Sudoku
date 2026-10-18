@@ -143,6 +143,38 @@ gumba »Prekini«, izbirnika datotek in `<option>` »Primer« težava ni zadeval
   `ravenTehnike()`. Za uporabnika nič; banka vaj, ustvarjena znova, je enaka razen datuma (ni
   zapisana). Barva ekspertne ravni pride z XY-verigo (naloga 4). Test `tests/ravni-tehnik.test.js`,
   scenarij `tools/preveri-faza7-brskalnik.js --korak 5`.
+- **Odločitev 2026-10-18** (pogovor o imenih; izvedba v nalogi 11a, X-veriga v 11b – »Vrstni red po fazi 6«; koda še
+  ni spremenjena). Imena tehnik so v 1.3, pravilo za jezik prav tam.
+  - **Skupine tehnik** (nove, za prikaz uporabniku); vsaka skupina ima eno težavnost:
+
+    | Tehnike | Skupina | Težavnost skupine |
+    |---|---|---|
+    | E1–E2 | Enojčki (Singles) | Lahka |
+    | 1–2 | Preseki (Intersections) | Srednja |
+    | 3–6 | Podmnožice (Subsets) | Srednja |
+    | 7–8 | Ribji vzorci (Fish) | Težka |
+    | 9–11 | Kratke verige (Short Chains) | Težka |
+    | 12 | Edinstvenost (Uniqueness) | Težka |
+    | 13–14 | Dolge verige (Long Chains) | Ekstremna |
+
+    Do naloge 11b ima skupina »Dolge verige« samo XY-verigo (13); X-veriga (13) in XY-veriga kot 14 prideta v 11b.
+    Ali skupine za prikaz zamenjajo notranje `TECHNIQUE_GROUPS` (sidranje), odloči načrt 11a – sprememba
+    `TECHNIQUE_GROUPS` bi spremenila obnašanje motorja.
+  - **Težavnost ugank:** Lahka (Easy) · Srednja (Medium) · Težka (Hard) · Zelo težka (Very Hard) · **Ekstremna
+    (Extreme)** – prej »Ekstrem« · Presega tehnike (Beyond Known Techniques) · Več rešitev (Multiple Solutions) · Brez
+    rešitve (No Solution). Pravila ocene se ne spremenijo; Ekstremna je uganka, ki potrebuje tehniko 13 ali 14.
+    Preimenovanje »Ekstrem« → »Ekstremna« zadene `TEZAVNOSTI` in `STOPNJE_UGANK` – staro ime naj se ob branju
+    preslika (kot `STARE_TEZAVNOSTI`) v shrambi, uvozu in `docs/uganke.md`.
+  - **Značke na karticah treninga** imajo imena težavnosti namesto ravni: E1–E2 LAHKA, 1–6 SREDNJA, 7–12 **TEŽKA**
+    (prej NAPREDNA), 13–14 **EKSTREMNA** (prej EKSPERTNA). Izraza »napredna« in »ekspertna« ostaneta samo v kodi
+    (`RAVNI_TEHNIK`). V Pomoči en stavek: Zelo težka je uganka, ki potrebuje vsaj dve različni tehniki 7–12.
+  - **Kazalo in kartice:**
+    - kazalo v treningu in kazalo v Pomoči (razdelek »Tehnike«) imata enako obliko – naslov skupine z značko
+      težavnosti, pod njim vrstice (številka, slovensko ime, angleško ime);
+    - na računalniku dva stolpca, na telefonu en; skupina se ne razdeli med stolpca (levo E1–6, desno 7–14);
+    - nad prvo kartico skupine v meniju treninga naslov skupine (npr. »Podmnožice (Subsets) · 3–6«);
+    - kartica obdrži značko težavnosti;
+    - vrh vaje: skupina (manjše, sivo), pod njo »6 · Skrita trojica (Hidden Triple) · Vadi v uganki«.
 - **Obseg:** srednje (engine, generator, trening, CSS obeh aplikacij, testa
   `trening-tehnike.test.js` in `generator.test.js`, dokumentacija).
 
@@ -250,6 +282,24 @@ zapisa. Ročna izbira v reševalcu ostane, brez prikaza »izračunano: …«.
   nova imena in stare ključe (brez presledkov na robovih, ne glede na velike/male črke); v
   shrambi, dnevniku `solve()` in `docs/uganke.md` ostanejo ključi `ALL_TECHNIQUES`. Spol
   »par« (»Očitni par«) je popravljen v besedilih (del 2).
+- **Odločitev 2026-10-18** (pogovor o imenih; izvedba v nalogi 11a, X-veriga v 11b; koda še ni spremenjena).
+  Spremembe imen – ostala imena iz tabele zgoraj ostanejo:
+
+  | Št. | Novo ime | Prej |
+  |---|---|---|
+  | 9 | Kratka X-veriga (Turbot Fish) | Veriga ene števke (Turbot Fish) |
+  | 11 | XY-krilo (XY-Wing) | XY-krilo (XY-Wing, Y-Wing) |
+  | 13 | X-veriga (X-Chain) – **nova** (naloga 11b) | – |
+  | 14 | XY-veriga (XY-Chain) | 13 · XY-veriga (XY-Chain) |
+
+  **Dodatna angleška imena** so samo v Pomoči, ne na karticah in v kazalu: 1 – Pointing; 2 – Claiming, Box/Line
+  Intersection; 9 – Skyscraper, 2-String Kite; 11 – Y-Wing (isto kot XY-Wing).
+
+  **Pravilo za jezik** (dopolnitev odločitve 2026-10-11 zgoraj): ime v izbranem jeziku, angleško v oklepaju – tudi pri
+  značkah težavnosti in skupinah (1.1); pri izbrani angleščini samo angleško.
+
+  Skupine tehnik, značke in kazalo so v 1.1. Pri 9 je treba pregledati besedila z »veriga ene števke« (razlage,
+  namigi, sheme, sporočila korakov), Pomoč in teste.
 
 ### 1.4 »Števka« in »številka«
 
@@ -1296,8 +1346,10 @@ podrobnosti postavk, ki so bile prej v »Kasneje«, so tam (razdelek je spodaj).
 | 7 | igra | ~~**Označevanje celic**~~ – **premaknjeno v »Samo če bo potreba«** 2026-10-12 (Darko: vzorec v igri že lepo pokaže »Naslednji korak«) | zaznamki celic v igri (v treningu že so – »Označi izbrane (O)«, `shared/plosca.js`); **želja potrjena 2026-10-09** – »Označi izbrane (O)« kot v treningu; **dogovorjen obseg 2026-10-11**: gumba »Označi izbrane (O)« in »Počisti oznake« kot v treningu; vedno na voljo, pri vseh težavnostih; oznake pobriše igralec, igra jih pobriše ob novi ali drugi uganki in ob »Začni znova« (v treningu »Začni znova« oznake pusti – razlika za načrt); »Preveri« in »Naslednji korak« jih ne gledata; samodejnega brisanja ni; načrt oceni, ali se oznake shranijo z igro |
 | 8 | igra | ~~**Brez kandidatov**~~ – **premaknjeno v »Samo če bo potreba«** 2026-10-11 (Darko: stikalo »Kandidati v celicah« iz naloge 5a zadošča; brez kandidatov gredo samo E1, E2, 1 in 2) | ročni zapiski, senčenje, opozorilo pri uganki s tehniko 3 ali višjo (vse tri prej v »Kasneje«) |
 | 9 | povezave | ~~**Nadaljevanje v igri in skupni vnos**~~ – **premaknjeno v »Samo če bo potreba«** 2026-10-09 (Darko: ni nujna) | nadaljevanje v igri iz treninga, skupna vnosna mreža (6.4 – prej v fazi 7); navigacija med aplikacijami (4.3) je 2026-10-09 prestavljena v nalogo 4c |
-| 10 | zbirka | **Filtri in razvrščanje v zbirki** (odločitev 2026-10-12; prej »Filtri in katalog«; **zaključeno 2026-10-18**) | filtri (težavnost, stanje, tehnika) in razvrščanje v »Moje uganke« v igri in reševalcu (skupni `shared/zbirka-ui.js`), vgrajeni primeri ostanejo nespremenjeni; ~~katalog ugank s 17 danimi števkami~~ odpade (2026-10-12 – kartica že kaže »danih N«); **načrt najprej** – `docs/naloga10-nacrt.md` (2026-10-12; **potrjen 2026-10-12** – O1–O12 po priporočilu, O11 = B, dodatek D1 – krajši namig v oknu zbirke; **korak 1 – logika**, **korak 2 – igra** in **korak 3 – reševalec in zaključek narejeni** 2026-10-12; ročni pregled v `docs/rocni-test.md`, razdelek »Naloga 10« – točke 1–5 potrjene 2026-10-18) – **naloga 10 je zaključena 2026-10-18**; **naslednja je naloga 11** (SI/EN), pred njo poseben pogovor o imenih |
-| 11 | na koncu | **Preklop jezika SI/EN** (**naslednja naloga** – od 2026-10-18; pred načrtom poseben pogovor o imenih) | zasnova (2026-10-09): besedila ločena od kode, ena datoteka na jezik – tako da se lahko pozneje doda še kak jezik brez spremembe kode; imena tehnik (odločitev 2026-10-11): angleško ime tehnike je vedno prikazano ob imenu v izbranem jeziku, izjema je izbrana angleščina (razdelek 1.3) |
+| 10 | zbirka | **Filtri in razvrščanje v zbirki** (odločitev 2026-10-12; prej »Filtri in katalog«; **zaključeno 2026-10-18**) | filtri (težavnost, stanje, tehnika) in razvrščanje v »Moje uganke« v igri in reševalcu (skupni `shared/zbirka-ui.js`), vgrajeni primeri ostanejo nespremenjeni; ~~katalog ugank s 17 danimi števkami~~ odpade (2026-10-12 – kartica že kaže »danih N«); **načrt najprej** – `docs/naloga10-nacrt.md` (2026-10-12; **potrjen 2026-10-12** – O1–O12 po priporočilu, O11 = B, dodatek D1 – krajši namig v oknu zbirke; **korak 1 – logika**, **korak 2 – igra** in **korak 3 – reševalec in zaključek narejeni** 2026-10-12; ročni pregled v `docs/rocni-test.md`, razdelek »Naloga 10« – točke 1–5 potrjene 2026-10-18) – **naloga 10 je zaključena 2026-10-18**; **naslednja je naloga 11a** (pogovor o imenih je bil 2026-10-18 – odločitve v 1.1 in 1.3) |
+| 11a | imena | **Imena – slovensko preimenovanje** (dodano 2026-10-18 po pogovoru o imenih; **naslednja naloga**) | po odločitvah 2026-10-18 v 1.1 in 1.3: skupine tehnik, imeni 9 in 11, težavnost »Ekstremna«, značke TEŽKA in EKSTREMNA na karticah treninga, stavek o Zelo težki v Pomoči, kazalo v treningu in v Pomoči, naslovi skupin nad karticami, vrh vaje; **načrt najprej**; opozori na besedila pri 9 (»veriga ene števke« v razlagah, namigih, shemah), Pomoč in teste |
+| 11b | nove tehnike | **X-veriga** (dodano 2026-10-18; za 11a) | nova tehnika 13 – motor, vaja, shema, banka vaj; XY-veriga postane 14 (izjema od pravila »nova tehnika gre na konec«, odločitev 2026-10-18 v »Kasneje«); preveri, ali kje hranimo številko tehnike (shramba, `docs/`), ne le ključ; preizkusna uganka `x-veriga-17` v `docs/uganke.md` |
+| 11 | na koncu | **Preklop jezika SI/EN/DE/IT …** (zadnja naloga, za 11a in 11b) | zasnova (2026-10-09): besedila ločena od kode, ena datoteka na jezik – tako da se lahko pozneje doda še kak jezik brez spremembe kode; imena tehnik (odločitev 2026-10-11): angleško ime tehnike je vedno prikazano ob imenu v izbranem jeziku, izjema je izbrana angleščina (razdelek 1.3) |
 
 **Samo če bo potreba** (ni v vrstnem redu – glej »Kasneje«): gumb »Izvedi izbris«, gumb »drži«
 na dnu strani, reševalec v dveh stolpcih, oblika vzorca po označenih celicah, E1 in E2: »Spoznaj« in
@@ -1513,7 +1565,7 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   V2S8=V4S8 – V6S7=V6S5 – V7S5=V8S4 → izbris 1 v V2S4. Z eno X-verigo se uganka reši brez ugibanja (preverjeno v
   kopiji motorja 17. 10. 2026; 18. 10. 2026 še na zdajšnjem motorju: po izbrisu 1 iz V2S4 nadaljuje brez poskusa).
   **Odločitev 2026-10-18:** X-veriga dobi številko 13, XY-veriga se premakne na 14 (izrecna izjema od pravila »nova
-  tehnika gre na konec«).
+  tehnika gre na konec«). Uvrščena kot naloga 11b (»Vrstni red po fazi 6«).
 
 **Samo če bo potreba** (2026-10-04; ni v vrstnem redu – naloga pride, kadar se pokaže potreba):
 
