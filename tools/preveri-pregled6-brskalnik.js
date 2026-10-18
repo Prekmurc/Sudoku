@@ -1,7 +1,8 @@
 'use strict';
 // Popravki po ročnem pregledu faze 6 v pravem brskalniku, pri 375 in 1280 px:
-//   - igra: okno Pomoč s podnaslovi v »Kako igrati« in »Zbirka ugank« (slog), en seznam stopenj s
-//     povedjo o generatorju, posledica tehnike v svojem odstavku; kartica »Uganka« z značko
+//   - igra: okno Pomoč s podnaslovi v »Kako igrati« in »Zbirka ugank« (slog; od naloge 10 še »Filtri in
+//     razvrščanje«), en seznam stopenj (od XY-verige pet) s povedjo o generatorju, pri vsaki od 15 tehnik
+//     posledica v svojem odstavku (odstavki zložljive sheme, details.tehnika-shema, se ne štejejo); kartica »Uganka« z značko
 //     težavnosti (barva kot oznaka koraka), tehnikami v svoji vrstici in stanjem samo enkrat;
 //   - reševalec: legenda pod malo mrežo koraka ima natanko postavke, ki so na mreži (celice
 //     vzorca, izbrisani kandidati, vpis), vzorčki imajo barve celic; en napotek za povečavo;
@@ -81,7 +82,7 @@ async function igra(b, sirina) {
       stopnjeSeznamov: okno.querySelectorAll('ul.navodila-stopnje').length,
       stopnjeVnos: okno.querySelectorAll('#stopnjeOcena li').length,
       strozje: document.getElementById('stopnjeStrozje').textContent,
-      tehnike: tehnike.length, odstavkov: tehnike.map(li => li.querySelectorAll('p').length),
+      tehnike: tehnike.length, odstavkov: tehnike.map(li => li.querySelectorAll(':scope > p').length),
       vOknu: [...okno.querySelectorAll('.dialog-panel *')].every(e => { const r = e.getBoundingClientRect(); return r.width === 0 || (r.left >= panel.left - 0.5 && r.right <= panel.right + 0.5); }),
       drsnik: okno.scrollWidth > okno.clientWidth,
       besedilo: okno.textContent };
@@ -89,11 +90,11 @@ async function igra(b, sirina) {
   preveri('»Kako igrati«: podnaslovi po zaslonu', JSON.stringify(p.razdelki['Kako igrati'])
     === JSON.stringify(['Vpis in izbris', 'Kandidati v celicah', 'Več celic', 'Poudari števko', 'Razveljavi in ponovi', 'Tipkovnica']), p.razdelki['Kako igrati']);
   preveri('»Zbirka ugank«: podnaslovi', JSON.stringify(p.razdelki['Zbirka ugank'])
-    === JSON.stringify(['Moje uganke in vgrajeni primeri', 'Igraj, Nadaljuj, Poglej', 'Uganka v seznamu', 'Nova uganka', 'Izvozi in Uvozi', 'Izbriši in Izbriši vse', 'Oceni zbirko']), p.razdelki['Zbirka ugank']);
+    === JSON.stringify(['Moje uganke in vgrajeni primeri', 'Igraj, Nadaljuj, Poglej', 'Uganka v seznamu', 'Filtri in razvrščanje', 'Nova uganka', 'Izvozi in Uvozi', 'Izbriši in Izbriši vse', 'Oceni zbirko']), p.razdelki['Zbirka ugank']);
   preveri('podnaslov: krepko, 13,5 px', p.utez === '600' && p.velikost === '13.5px', [p.utez, p.velikost]);
   // seznam stopenj ugank (ul; tri stopnje »Naslednji korak« so ol)
-  preveri('en seznam stopenj (4) in ena poved o generatorju', p.stopnjeSeznamov === 1 && p.stopnjeVnos === 4 && /^Generator je strožji od ocene/.test(p.strozje), [p.stopnjeSeznamov, p.stopnjeVnos, p.strozje]);
-  preveri('Tehnike: 14, razlaga in posledica v dveh odstavkih', p.tehnike === 14 && p.odstavkov.every(n => n === 2), p.odstavkov);
+  preveri('en seznam stopenj (5) in ena poved o generatorju', p.stopnjeSeznamov === 1 && p.stopnjeVnos === 5 && /^Generator je strožji od ocene/.test(p.strozje), [p.stopnjeSeznamov, p.stopnjeVnos, p.strozje]);
+  preveri('Tehnike: 15, razlaga in posledica v dveh odstavkih (odstavki zložljive sheme se ne štejejo)', p.tehnike === 15 && p.odstavkov.every(n => n === 2), p.odstavkov);
   preveri('brez razvijalskih podrobnosti in »stikal«, »danosti«', !/lokaln\w* strežnik|neposredno iz datotek|ločen\w* nit|stikal|danost/i.test(p.besedilo));
   preveri('okno: vse v panelu, brez vodoravnega drsnika', p.vOknu && !p.drsnik, p);
   await b.posnetek(path.join(mapa, `igra-${sirina}-pomoc.png`), { vsaStran: false });

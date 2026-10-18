@@ -1370,7 +1370,15 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   Dopolnjeno 2026-10-11 ob nalogi 6b: tudi `preveri-navigacija-brskalnik.js` ima zastarelo privzeto izhodišče
   (`--izhodisce`, privzeto `5f59f09`) – brez možnosti da šest starih razlik (D1: okni »Zbirka ugank« in »Nova uganka«
   v igri in zbirka v reševalcu; slogi glave okna iz poznejših commitov nalog 4c in 6, `docs/naloga6b-nacrt.md`,
-  korak 1); z novejšim izhodiščem (npr. `--izhodisce 884945b`) vse drži.
+  korak 1); z novejšim izhodiščem (npr. `--izhodisce 884945b`) vse drži. **Narejeno 2026-10-18** (vzdrževanje
+  scenarijev; aplikacija nespremenjena): pregledani vsi `tools/preveri-*-brskalnik.js` – 18 jih drži, padali so štirje,
+  vsi zaradi zastarelih pričakovanj, prave napake v aplikaciji ni. `preveri-faza7-`: Escape ob povečavi in zbirki po
+  O6 (najprej povečava, zbirka ostane), okno zbirke proti izhodišču `--izhodisce4` (privzeto `6fadd53` – po fazi 7 so
+  okno namerno spremenili `--purple-dark`, filtri in krajši namig naloge 10), pri značkah dovoljene nove vrednosti
+  `--obmocje`, `--k-vzorec-bg`, `--k-izbris-bg`; `preveri-pregled6-`: nov podnaslov »Filtri in razvrščanje«, pet
+  stopenj, 15 tehnik, odstavki sheme se ne štejejo; `preveri-navigacija-`: privzeto izhodišče D1 `6fadd53`;
+  `preveri-naloga6b-`: kazalo tehnik ostane primerjano z `e52f994`, vse okno Pomoč z `--izhodisce-celo` (privzeto
+  `6fadd53` – Pomoč sta pozneje namerno spremenila korak 3 naloge 6b in naloga 10).
 - **Kartica korakov v reševalcu kaže stare korake po spremembi uganke brez »Reši«** (zapisano 2026-10-12 ob ročnem
   pregledu naloge 6b): če v vnosni mreži spremeniš celico in ne pritisneš »Reši« (ali »Reši« zavrne konflikt), ostane
   kartica »Koraki reševanja« odprta s koraki prejšnje uganke. Naloga 6b (O10) jo skrije samo ob »Reši« z drugimi
@@ -1459,13 +1467,17 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
   popravljeno): pade že pred to nalogo (opaženo v koraku 2 na kodi pred spremembo), pri preverjanju »Tehnike: 14,
   razlaga in posledica v dveh odstavkih« v oknu Pomoč – verjetno zato, ker so od faze 3a pod posledico
   še odstavki zložljive sheme (`details.tehnika-shema`), ki jih scenarij šteje zraven. Popraviti je treba
-  scenarij (štetje odstavkov), ne aplikacije.
+  scenarij (štetje odstavkov), ne aplikacije. **Narejeno 2026-10-18** – vzrok potrjen; scenarij šteje samo odstavka
+  razlage in posledice (`:scope > p`), 15 tehnik in pet stopenj (glej postavko »Scenarija `preveri-pregled6-` in
+  `preveri-faza7-brskalnik.js` sta zastarela« zgoraj).
 
 - **Scenarij `tools/preveri-izbira-brskalnik.js` pade** (zapisano 2026-10-11 ob nalogi 4c, korak 4; ni popravljeno):
   82 neujemanj, vsa pri slogu prečrtane števke – scenarij vzame za vzorec slog prečrtane števke pri vaji 2 (Izločitev
   v bloku), ta pa je od popravka C naloge 4b (2026-10-10) na poudarku temno rdeča `--okvir-napacno` (#8E1B1B), pri
   3–12 pa ostane `--red`. Na izhodišču `bfd2ccc` (pred korakom 4) natanko iste napake. Popraviti je treba scenarij
-  (vzorec sloga iz `.kand.k-izbris` brez poudarka), ne aplikacije.
+  (vzorec sloga iz `.kand.k-izbris` brez poudarka), ne aplikacije. **Narejeno** – odpravljeno že 2026-10-11 v
+  `5c43d8a` (naloga 6, popravek po ročnem pregledu: temno rdeča na poudarku odstranjena, pričakovanja v scenariju
+  posodobljena); 2026-10-18 scenarij drži.
 
 - **»Rešitev (drži)« v treningu kot stikalo** (**narejeno 2026-10-08**, naloga 4a, korak 1 – tudi »Namig«; → naloga 4a, del B; zapisano 2026-10-08 ob ročnem pregledu XY-verige): klik
   pokaže rešitev, ponoven klik jo skrije – pri držanju ni mogoče brati besedila. Velja za vse tehnike

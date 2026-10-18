@@ -38,8 +38,9 @@
 //     »↑ Na vrh« → vrh, fokus na kazalo; Escape in klik ob panelu zapreta okno; prefers-reduced-motion takoj;
 //     posnetka pomoc-<aplikacija>-<širina>.png in pomoc-<aplikacija>-dno-<širina>.png (320, 375);
 //   - D1: okna »Zbirka ugank« in »Nova uganka« v igri ter okno zbirke v reševalcu (375, 1280 px) so enaka
-//     izhodišču (--izhodisce, privzeto 5f59f09 – korak 2; izvleček z git archive): drevo, HTML, vse izračunane
-//     lastnosti vseh elementov in položaji.
+//     izhodišču (--izhodisce, privzeto 6fadd53 – stanje 2026-10-18 z namernimi spremembami oken po koraku 2: slogi
+//     glave okna iz nalog 4c in 6, filtri in krajši namig naloge 10; ob nalogi je bilo 5f59f09 – korak 2; izvleček z
+//     git archive): drevo, HTML, vse izračunane lastnosti vseh elementov in položaji.
 // Korak 4 (O8–O14, D2, D4) – povezave med aplikacijami:
 //   - glava vseh treh pri 320, 375, 430 in 1280 px: tri zavihke v eni vrstici, prvi otrok glave nad nadnaslovom,
 //     28 px, trenutni s podlago kartice in obrobo, druga dva modra (kontrast vsaj 4,5), brez preliva; glava višja
@@ -80,7 +81,7 @@ const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-navigacija'));
 const korak = Number(arg('--korak', '5'));
-const izhodisce = arg('--izhodisce', '5f59f09');
+const izhodisce = arg('--izhodisce', '6fadd53');
 // --samo N: samo korak N (za sprotno delo).
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);

@@ -18,20 +18,23 @@
 //     obnašanje mora biti enako.
 //   korak 4 (6.8) - okno zbirke v reševalcu na skupnih razredih .dialog pri 320, 375 in 1280 px:
 //     odprto okno z dvema ugankama in zelenim statusom (pravi klik na »Zbirka« in »Izvozi«)
-//     primerjano z izhodiščem - izhodišče z dodano odločitvijo O2 (odmik pod glavo 10 px) mora
-//     biti enako v drevesu, izračunanih slogih (vse lastnosti), položajih in do piksla; izhodišče
-//     brez O2 se razlikuje samo v odmiku pod glavo (in višini panela). Obnašanje (✕, klik ob
-//     panelu, Escape - tudi ob povečanem prikazu -, Pomoč) enako izhodišču.
+//     primerjano z izhodiščem --izhodisce4 (privzeto 6fadd53 - stanje 2026-10-18; ob fazi 7 je bilo
+//     2fdb542 z dodano odločitvijo O2, od tedaj so okno namerno spremenili --purple-dark (XY-veriga),
+//     filtri in krajši namig (naloga 10)) - enako v drevesu, izračunanih slogih (vse lastnosti),
+//     položajih in do piksla. Obnašanje (✕, klik ob panelu, Escape - tudi ob povečanem prikazu: od
+//     naloge 6, O6, zapre povečavo, zbirka ostane -, ✕ povečave, Pomoč) po pričakovanju in enako izhodišču.
 //   korak 5 (1.1) - raven kot podatek tehnike pri 375 in 1280 px: značke na karticah treninga
 //     (vrstni red, razred, besedilo, vse lastnosti izračunanega sloga), značke ravni v oknu Pomoč
 //     vseh treh aplikacij (pravi klik na gumb) in oznake korakov v reševalcu po »Reši« na P_14
 //     in P_15 (razred, barva, podlaga) - enake izhodišču. Od XY-verige, korak 2 (docs/xy-veriga-nacrt.md,
-//     razdelek 7) se smeta razlikovati samo barvi pisave lahke in srednje ravni (--green-ink, --amber-ink);
+//     razdelek 7) se smeta razlikovati samo barvi pisave lahke in srednje ravni (--green-ink, --amber-ink)
+//     ter spremenljivke palete, ki jih vsak element podeduje iz :root (--purple-dark, --purple-dark-ink;
+//     --obmocje iz popravka 6 naloge 4a; --k-vzorec-bg, --k-izbris-bg iz naloge 6, korak 1);
 //     značke težavnosti (zbirkaZnacka() za vseh osem, na beli podlagi in na kartici) in ekspertne ravni
 //     (.tag.t-expert, .badge-ekspertna): izračunan slog = barve iz shared/base.css, kontrast vsaj 4,5 : 1,
 //     »Ekstrem« ≠ »Presega tehnike«; posnetek vrstice značk znacke-tezavnosti.png (dvojna ločljivost).
 //
-//   node tools/preveri-faza7-brskalnik.js [--mapa <mapa>] [--korak 2|3|4|5] [--izhodisce <commit>]
+//   node tools/preveri-faza7-brskalnik.js [--mapa <mapa>] [--korak 2|3|4|5] [--izhodisce <commit>] [--izhodisce4 <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
@@ -47,6 +50,8 @@ const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1]
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-faza7'));
 const korak = arg('--korak', null);
 const izhodisce = arg('--izhodisce', '2fdb542');
+// Okno zbirke (korak 4) se primerja z novejšim izhodiščem: po fazi 7 so ga namerno spremenile poznejše naloge.
+const izhodisce4 = arg('--izhodisce4', '6fadd53');
 const KOREN = path.join(__dirname, '..');
 
 let napak = 0;
@@ -290,27 +295,23 @@ async function korak3(b) {
 /* ---------- korak 4: okno zbirke v reševalcu na skupnih razredih .dialog ---------- */
 
 // Izvleček izhodišča (git archive) v začasno mapo; vrne pot.
-function izvleciIzhodisce() {
+function izvleciIzhodisce(commit) {
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
-  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce], { cwd: KOREN });
+  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), commit], { cwd: KOREN });
   execFileSync('tar', ['-xf', 'izhodisce.tar'], { cwd: star }); // relativno ime: GNU tar bi "C:" bral kot strežnik
   return star;
 }
 
 // Visoko okno, da je ves panel na posnetku (okno s fiksnim položajem posnetek vse strani prereže).
 const VISINA4 = 1600;
-// Odločitev O2 na izhodišču: z njo mora biti okno izhodišča enako novemu do piksla.
-const O2 = '.lib-header{ margin-bottom:10px; }';
 
 // Odprto okno zbirke z dvema ugankama in zelenim statusom (pravi klik na »Zbirka« in »Izvozi«):
 // posnetek (base64), drevo, izračunani slogi (vse lastnosti) in položaji vseh elementov okna.
-// `slog` se doda v stran pred odprtjem (O2 na izhodišču).
-async function oknoZbirke(b, sirina, ime, slog = '') {
+async function oknoZbirke(b, sirina, ime) {
   await b.odpri('app/index.html', { sirina, visina: VISINA4, mobilno: sirina < 600 });
   await b.izvedi('localStorage.clear()');
   await b.izvedi(`localStorage.setItem('sudoku.zbirka.v1', ${JSON.stringify(JSON.stringify(IZVOZ))})`);
   await b.odpri('app/index.html', { sirina, visina: VISINA4, mobilno: sirina < 600 });
-  if (slog) await b.izvedi(`(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(slog)}; document.head.appendChild(s); return true; })()`);
   await b.klikni('#libraryBtn');
   await b.prenos('#libExport');
   await b.cakaj(`document.getElementById('libStatus').textContent !== ''`, 5000);
@@ -406,7 +407,7 @@ async function obnasanjeOkna(b, sirina) {
   await b.tipka('Escape'); await zapisi('Escape pri zaprtem oknu');
 
   // Povečan prikaz rešitve odprt, zbirka odprta s klikom v strani (gumb je pod povečavo):
-  // Escape zapre samo zbirko.
+  // Escape zapre povečavo, zbirka ostane (naloga 6, O6); drugi Escape zapre zbirko.
   await b.izvedi(`naloziDanosti(${JSON.stringify(VSE[0])}, ''), true`);
   await b.klikni('#solveBtn');
   await b.cakaj(`document.querySelectorAll('#solvedGrid > *').length > 0`, 10000);
@@ -414,6 +415,8 @@ async function obnasanjeOkna(b, sirina) {
   await b.izvedi(`document.getElementById('libraryBtn').click(), true`);
   await zapisi('povečava in zbirka');
   await b.tipka('Escape'); await zapisi('Escape (povečava in zbirka)');
+  await b.tipka('Escape'); await zapisi('Escape (zbirka nad stranjo)');
+  await b.klikni('#solvedGrid'); await zapisi('povečava');
   await b.klikni('#lightboxClose'); await zapisi('✕ povečave');
 
   // Pomoč: pravi klik, Escape, ✕, klik ob panelu.
@@ -427,11 +430,10 @@ async function obnasanjeOkna(b, sirina) {
 // [zbirka, povečava, Pomoč] odprta (1) ali zaprta (0).
 const PRICAKOVANO4 = {
   'ob zagonu': [0, 0, 0], '»Zbirka«': [1, 0, 0], 'klik v panelu': [1, 0, 0], '✕': [0, 0, 0], 'klik ob panelu': [0, 0, 0],
-  'Escape': [0, 0, 0], 'Escape pri zaprtem oknu': [0, 0, 0], 'povečava in zbirka': [1, 1, 0], 'Escape (povečava in zbirka)': [0, 1, 0],
+  'Escape': [0, 0, 0], 'Escape pri zaprtem oknu': [0, 0, 0], 'povečava in zbirka': [1, 1, 0], 'Escape (povečava in zbirka)': [1, 0, 0],
+  'Escape (zbirka nad stranjo)': [0, 0, 0], 'povečava': [0, 1, 0],
   '✕ povečave': [0, 0, 0], '»Pomoč«': [0, 0, 1], 'Escape (Pomoč)': [0, 0, 0], '✕ Pomoči': [0, 0, 0], 'klik ob panelu Pomoči': [0, 0, 0],
 };
-// Lastnosti, ki sledijo višini panela (2 px nižji zaradi O2).
-const VISINA_PANELA = ['block-size', 'height', 'perspective-origin', 'transform-origin'];
 
 async function korak4(b) {
   const sirine = [320, 375, 1280];
@@ -450,43 +452,24 @@ async function korak4(b) {
   }
   preveri('brez napak JS', b.napake.length === 0, b.napake);
 
-  console.log(`Izhodišče ${izhodisce} – okno zbirke in obnašanje`);
-  const star = izvleciIzhodisce();
+  console.log(`Izhodišče ${izhodisce4} – okno zbirke in obnašanje`);
+  const star = izvleciIzhodisce(izhodisce4);
   const bStar = await zazeni({ koren: star });
   try {
     for (const s of sirine) {
       const n = nova[s];
       const st = await oknoZbirke(bStar, s, '-izhodisce');
-      const stO2 = await oknoZbirke(bStar, s, '-izhodisce-O2', O2);
-      console.log(`Primerjava z izhodiščem ${izhodisce}, ${s} px`);
-      const drevo = d => d.drevo.map((x, i) => (x !== n.drevo[i] ? `${x} → ${n.drevo[i]}` : null)).filter(Boolean);
-      preveri(`drevo elementov okna enako (${n.drevo.length}; lib-panel/lib-header → dialog-panel/dialog-glava)`,
-        n.drevo.length === st.drevo.length && drevo(st).length === 0, drevo(st));
-
-      // 1. Izhodišče z O2 = novo: vse lastnosti vseh elementov, položaji, vsak piksel.
-      const rO2 = razlikeSlogov(stO2, n);
-      preveri(`izhodišče z O2: izračunani slogi enaki (${n.slogi.length} elementov, vse lastnosti)`, rO2.length === 0, rO2.slice(0, 8));
-      const pO2 = stO2.polozaji.map((a, i) => (JSON.stringify(a) !== JSON.stringify(n.polozaji[i]) ? `${n.drevo[i]} ${a} → ${n.polozaji[i]}` : null)).filter(Boolean);
-      preveri('izhodišče z O2: položaji enaki', pO2.length === 0, pO2.slice(0, 8));
-      const vogal = n.polozaji[1].slice(0, 2).map(Math.floor); // panel
-      const pikO2 = await razlicnihPikslov(b, stO2.png, n.png, vogal);
-      preveri(`izhodišče z O2: posnetek enak do piksla${pikO2.razlicnih ? ` (razen ${pikO2.razlicnih} v zaobljenem vogalu panela, največ ${pikO2.najvec} – glajenje niha med zagoni brskalnika)` : ''}`,
-        pikO2.zunaj === 0, pikO2);
-
-      // 2. Izhodišče brez O2: razlika je samo odmik pod glavo in to, kar iz njega sledi.
+      console.log(`Primerjava z izhodiščem ${izhodisce4}, ${s} px`);
+      const drevo = st.drevo.map((x, i) => (x !== n.drevo[i] ? `${x} → ${n.drevo[i]}` : null)).filter(Boolean);
+      preveri(`drevo elementov okna enako (${n.drevo.length})`, n.drevo.length === st.drevo.length && drevo.length === 0, drevo.slice(0, 8));
       const r = razlikeSlogov(st, n);
-      const izGlave = x => /^DIV#\.dialog-glava margin-(bottom|block-end):12px → 10px$/.test(x);
-      const izPanela = x => x.startsWith('DIV#.dialog-panel ') && VISINA_PANELA.includes(x.split(' ')[1].split(':')[0]);
-      preveri('izhodišče: slogi – samo margin-bottom glave 12 → 10 px (in višina panela, ki iz njega sledi)',
-        r.some(izGlave) && r.every(x => izGlave(x) || izPanela(x)), r.filter(x => !izGlave(x) && !izPanela(x)).slice(0, 8));
-      const pol = st.polozaji.map((a, i) => {
-        const bb = n.polozaji[i], dy = st.podGlavo[i] ? -2 : 0, dh = i === 1 ? -2 : 0;
-        const ok = Math.abs(bb[0] - a[0]) < 0.05 && Math.abs(bb[1] - (a[1] + dy)) < 0.05 && Math.abs(bb[2] - a[2]) < 0.05 && Math.abs(bb[3] - (a[3] + dh)) < 0.05;
-        return ok ? null : `${n.drevo[i]} ${a} → ${bb}`;
-      }).filter(Boolean);
-      preveri('izhodišče: položaji nad glavo in glava enaki, pod njo 2 px višje, panel 2 px nižji', pol.length === 0, pol.slice(0, 8));
+      preveri(`izračunani slogi enaki (${n.slogi.length} elementov, vse lastnosti)`, r.length === 0, r.slice(0, 8));
+      const pol = st.polozaji.map((a, i) => (JSON.stringify(a) !== JSON.stringify(n.polozaji[i]) ? `${n.drevo[i]} ${a} → ${n.polozaji[i]}` : null)).filter(Boolean);
+      preveri('položaji enaki', pol.length === 0, pol.slice(0, 8));
+      const vogal = n.polozaji[1].slice(0, 2).map(Math.floor); // panel
       const pik = await razlicnihPikslov(b, st.png, n.png, vogal);
-      console.log(`    (izhodišče brez O2: različnih pikslov ${pik.razlicnih} v ${pik.vrstic} vrsticah, ${pik.od}–${pik.do})`);
+      preveri(`posnetek enak do piksla${pik.razlicnih ? ` (razen ${pik.razlicnih} v zaobljenem vogalu panela, največ ${pik.najvec} – glajenje niha med zagoni brskalnika)` : ''}`,
+        pik.zunaj === 0, pik);
 
       const obStar = await obnasanjeOkna(bStar, s);
       preveri(`obnašanje (zbirka, povečava, Pomoč – ${obStar.length} opažanj) enako izhodišču`,
@@ -650,7 +633,7 @@ async function korak5(b) {
   preveri('brez napak JS', b.napake.length === 0, b.napake);
 
   console.log(`Izhodišče ${izhodisce} – značke in oznake korakov`);
-  const star = izvleciIzhodisce();
+  const star = izvleciIzhodisce(izhodisce);
   const bStar = await zazeni({ koren: star });
   try {
     for (const s of sirine) {
@@ -676,9 +659,13 @@ async function korak5(b) {
       // barv, ki ju vsak element podeduje iz :root.
       const ZELO_TEZKA = { '--purple-dark': ['#53307E', '#B494D1'], '--purple-dark-ink': ['#FFFFFF', '#2A1545'],
         podlaga: ['rgb(83, 48, 126)', 'rgb(180, 148, 209)'], barva: ['rgb(255, 255, 255)', 'rgb(42, 21, 69)'] };
+      // Spremenljivke palete, ki jih je pozneje namerno spremenila druga naloga (vsak element jih podeduje iz :root):
+      // --obmocje (naloga 4a, popravek 6), podlagi vzorca in izbrisa (naloga 6, korak 1).
+      const PALETA = { '--obmocje': ['#1D3F6B', '#1565C0'], '--k-vzorec-bg': ['#F1E5C9', '#EFD8A0'], '--k-izbris-bg': ['#F3DEDA', '#F0B4AA'] };
       const dovoljeno = (x, l, st, nv) => ((l === 'barva' || l.includes('color'))
         && BARVA_RAVNI.some(([re, s, n]) => re.test(x.razred) && st === s && nv === n))
         || (l.startsWith('--') && ZELO_TEZKA[l] && ZELO_TEZKA[l][0] === st && ZELO_TEZKA[l][1] === nv)
+        || (PALETA[l] && PALETA[l][0] === st && PALETA[l][1] === nv)
         || (/znacka-zelo-tezka/.test(x.razred) && ZELO_TEZKA[l] && ZELO_TEZKA[l][0] === st && ZELO_TEZKA[l][1] === nv);
       const razlike = (a, c) => {
         const out = [];

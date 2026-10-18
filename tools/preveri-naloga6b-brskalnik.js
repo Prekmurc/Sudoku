@@ -28,7 +28,9 @@
 //     na vrhu, okvir na kartici in vrstici, mesto vrstice izpiše; neznan ključ – nič;
 //   - okno Pomoč igre, reševalca in treninga (375, 1280 px): kazalo tehnik enako izhodišču (--izhodisce, privzeto
 //     e52f994 – pred korakom 2; drevo, HTML, vsi izračunani slogi, položaji glede na kazalo), pri igri in reševalcu
-//     vse okno (brez oznake različice in brez odstavka »Z okencem Pokaži …«, ki ga v reševalcu doda korak 3); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
+//     vse okno (brez oznake različice) enako izhodišču --izhodisce-celo (privzeto 6fadd53 – stanje 2026-10-18; Pomoč
+//     sta pozneje namerno spremenila korak 3 in naloga 10, ob nalogi je bilo e52f994 brez odstavka »Z okencem
+//     Pokaži …«); posnetki kazalo-, zadnja-, ponovno-<širina>.png; brez napak JS.
 //
 // Korak 3 (O7–O11) – reševalec, filter korakov in okrogel »↑«, pri 320, 375 (dotik) in 1280 px (miška), primer P_14:
 //   - okence »Pokaži« v oznaki pod naslovom kartice »Koraki reševanja«, nad števcem, do desnega roba vsebine kartice,
@@ -44,7 +46,7 @@
 //   roba, 44 px, brez preliva; pri 1280 px klik → vrh; posnetka na-vrh-p2-trening-, na-vrh-p2-resevalec-1280.png.
 // --korak N požene korake 1 … N (privzeto 4), --samo N samo korak N.
 //
-//   node tools/preveri-naloga6b-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>]
+//   node tools/preveri-naloga6b-brskalnik.js [--korak N | --samo N] [--mapa <mapa>] [--izhodisce <commit>] [--izhodisce-celo <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome).
 
@@ -61,6 +63,7 @@ const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1]
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-naloga6b'));
 const korak = Number(arg('--korak', '4'));
 const izhodisce = arg('--izhodisce', 'e52f994');
+const izhodisceCelo = arg('--izhodisce-celo', '6fadd53');
 const samo = args.includes('--samo') ? Number(arg('--samo')) : null;
 const tece = n => (samo === null ? korak >= n : samo === n);
 
@@ -502,7 +505,7 @@ async function korak4(b) {
 // glede na kazalo; igra in reševalec še vse okno (HTML in slogi).
 const POMOC = [
   { ime: 'igra', stran: 'igra/index.html', gumb: '#navodilaBtn', okno: '#navodilaDialog', celo: true },
-  { ime: 'reševalec', stran: 'app/index.html', gumb: '#pomocBtn', okno: '#pomocDialog', celo: true, novi: ['Z okencem Pokaži'] },
+  { ime: 'reševalec', stran: 'app/index.html', gumb: '#pomocBtn', okno: '#pomocDialog', celo: true },
   { ime: 'trening', stran: 'trening/index.html', gumb: '#pomocBtn', okno: '#pomocDialog', celo: false },
 ];
 async function pomocKazalo(b, a, sirina) {
@@ -520,50 +523,56 @@ async function pomocKazalo(b, a, sirina) {
     const slog = e => { const s = getComputedStyle(e); return [...s].filter(p => p !== '-webkit-tap-highlight-color').sort().map(p => p + ':' + s.getPropertyValue(p)).join(';'); };
     const n = nav.getBoundingClientRect();
     const pol = e => { const r = e.getBoundingClientRect(); return [r.left - n.left, r.top - n.top, r.width, r.height].map(v => Math.round(v * 100) / 100).join(','); };
-    const vsi = [nav, ...nav.querySelectorAll('*')], NOVI = ${J(a.novi || [])};
-    // Vse okno brez oznake različice (vsak commit aplikacije jo spremeni) in brez odstavka, ki ga namerno doda korak 3.
-    const novo =p => NOVI.some(z => p.textContent.trim().startsWith(z));
-    const celo = [okno, ...okno.querySelectorAll('*')].filter(e => !(e.closest('p') && novo(e.closest('p'))));
+    const vsi = [nav, ...nav.querySelectorAll('*')];
+    // Vse okno brez oznake različice (vsak commit aplikacije jo spremeni).
+    const celo = [okno, ...okno.querySelectorAll('*')];
     const kopija = okno.cloneNode(true);
-    kopija.querySelectorAll('p').forEach(p => { if (novo(p)) { if (p.previousSibling && !p.previousSibling.textContent.trim()) p.previousSibling.remove(); p.remove(); } });
     kopija.querySelectorAll('.dialog-razlicica').forEach(p => { p.textContent = ''; });
     return { drevo: vsi.map(e => e.tagName + '.' + e.className + '[' + (e.title || '') + ']'), html: nav.outerHTML, slogi: vsi.map(slog), polozaji: vsi.map(pol),
       celoHtml: ${a.celo} ? kopija.outerHTML : '', celoSlogi: ${a.celo} ? celo.map(slog) : [], celoDrevo: ${a.celo} ? celo.map(e => e.tagName + '.' + e.className + (e.id ? '#' + e.id : '')) : [] };
   })()`);
 }
-async function korak2Pomoc(b) {
-  const nova = {};
-  for (const s of [375, 1280]) for (const a of POMOC) nova[`${a.ime} ${s}`] = await pomocKazalo(b, a, s);
-  console.log(`\nKorak 2 – okno Pomoč vseh treh enako izhodišču ${izhodisce} (kazalo tehnik; igra in reševalec vse okno)`);
+// Opažanja okna Pomoč vseh treh na izvlečku commita (git archive).
+async function pomocIzhodisca(commit) {
   const star = fs.mkdtempSync(path.join(os.tmpdir(), 'sudoku-izhodisce-'));
-  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), izhodisce], { cwd: KOREN });
+  execFileSync('git', ['archive', '--format=tar', '-o', path.join(star, 'izhodisce.tar'), commit], { cwd: KOREN });
   execFileSync('tar', ['-xf', 'izhodisce.tar'], { cwd: star }); // relativno ime: GNU tar bi "C:" bral kot strežnik
   const bStar = await zazeni({ koren: star });
   try {
-    for (const s of [375, 1280]) for (const a of POMOC) {
-      const n = nova[`${a.ime} ${s}`], st = await pomocKazalo(bStar, a, s);
-      const razSlogi = st.slogi.map((x, i) => (x !== n.slogi[i] ? n.drevo[i] : null)).filter(Boolean);
-      const razPol = st.polozaji.map((x, i) => (x !== n.polozaji[i] ? `${n.drevo[i]} ${x} → ${n.polozaji[i]}` : null)).filter(Boolean);
-      // Razlike v slogih vsega okna po elementih; pri odstavku koraka 3 (a.novi) je plošča okna višja – dovoljeno samo to.
-      const lastnosti = s => new Map(s.split(';').map(x => [x.slice(0, x.indexOf(':')), x.slice(x.indexOf(':') + 1)]));
-      const VISINA = ['height', 'block-size', 'perspective-origin', 'transform-origin'];
-      const razCeloKje = st.celoSlogi.map((x, i) => {
-        if (x === n.celoSlogi[i]) return null;
-        const p = lastnosti(x), q = lastnosti(n.celoSlogi[i] || '');
-        const kaj = [...p].filter(([k, v]) => q.get(k) !== v);
-        if (a.novi && /^DIV\.dialog-panel/.test(n.celoDrevo[i]) && kaj.every(([k]) => VISINA.includes(k))) return null;
-        return n.celoDrevo[i] + ' ' + kaj.map(([k, v]) => k + ': ' + v + ' → ' + q.get(k)).join(', ');
-      }).filter(Boolean);
-      const razCelo = razCeloKje.length;
-      preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču${a.celo ? '; vse okno enako' : ''}`,
-        J(n.drevo) === J(st.drevo) && n.html === st.html && razSlogi.length === 0 && razPol.length === 0
-          && n.celoHtml === st.celoHtml && st.celoSlogi.length === n.celoSlogi.length && razCelo === 0,
-        { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === st.html, celoHtml: n.celoHtml === st.celoHtml, razCelo, razCeloKje: razCeloKje.slice(0, 5) });
-    }
-    preveri('izhodišče brez napak JS', bStar.napake.length === 0, bStar.napake);
+    const o = {};
+    for (const s of [375, 1280]) for (const a of POMOC) o[`${a.ime} ${s}`] = await pomocKazalo(bStar, a, s);
+    preveri(`izhodišče ${commit} brez napak JS`, bStar.napake.length === 0, bStar.napake);
+    return o;
   } finally {
     await bStar.zapri();
     fs.rmSync(star, { recursive: true, force: true });
+  }
+}
+async function korak2Pomoc(b) {
+  const nova = {};
+  for (const s of [375, 1280]) for (const a of POMOC) nova[`${a.ime} ${s}`] = await pomocKazalo(b, a, s);
+  console.log(`
+Korak 2 – okno Pomoč vseh treh: kazalo tehnik enako izhodišču ${izhodisce}, pri igri in reševalcu vse okno enako izhodišču ${izhodisceCelo}`);
+  const stara = await pomocIzhodisca(izhodisce);
+  const celaStara = await pomocIzhodisca(izhodisceCelo);
+  const lastnosti = s => new Map(s.split(';').map(x => [x.slice(0, x.indexOf(':')), x.slice(x.indexOf(':') + 1)]));
+  for (const s of [375, 1280]) for (const a of POMOC) {
+    const k = `${a.ime} ${s}`, n = nova[k], st = stara[k], sc = celaStara[k];
+    const razSlogi = st.slogi.map((x, i) => (x !== n.slogi[i] ? n.drevo[i] : null)).filter(Boolean);
+    const razPol = st.polozaji.map((x, i) => (x !== n.polozaji[i] ? `${n.drevo[i]} ${x} → ${n.polozaji[i]}` : null)).filter(Boolean);
+    preveri(`${a.ime}, ${s} px: kazalo tehnik v oknu Pomoč (${n.drevo.length} elementov) – drevo, HTML, slogi, položaji enaki izhodišču ${izhodisce}`,
+      J(n.drevo) === J(st.drevo) && n.html === st.html && razSlogi.length === 0 && razPol.length === 0,
+      { razSlogi: razSlogi.slice(0, 5), razPol: razPol.slice(0, 5), html: n.html === st.html });
+    if (!a.celo) continue;
+    // Razlike v slogih vsega okna po elementih.
+    const razCeloKje = sc.celoSlogi.map((x, i) => {
+      if (x === n.celoSlogi[i]) return null;
+      const p = lastnosti(x), q = lastnosti(n.celoSlogi[i] || '');
+      return n.celoDrevo[i] + ' ' + [...p].filter(([kk, v]) => q.get(kk) !== v).map(([kk, v]) => kk + ': ' + v + ' → ' + q.get(kk)).join(', ');
+    }).filter(Boolean);
+    preveri(`${a.ime}, ${s} px: vse okno Pomoč (${n.celoDrevo.length} elementov) – drevo, HTML, slogi enaki izhodišču ${izhodisceCelo}`,
+      J(n.celoDrevo) === J(sc.celoDrevo) && n.celoHtml === sc.celoHtml && razCeloKje.length === 0,
+      { drevo: J(n.celoDrevo) === J(sc.celoDrevo), celoHtml: n.celoHtml === sc.celoHtml, razCelo: razCeloKje.length, razCeloKje: razCeloKje.slice(0, 5) });
   }
 }
 
