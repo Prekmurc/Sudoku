@@ -1374,10 +1374,13 @@ za prve tri v `docs/faza5-nacrt.md`, razdelek 6). **2026-10-04:** večina postav
 - **Kartica korakov v reševalcu kaže stare korake po spremembi uganke brez »Reši«** (zapisano 2026-10-12 ob ročnem
   pregledu naloge 6b): če v vnosni mreži spremeniš celico in ne pritisneš »Reši« (ali »Reši« zavrne konflikt), ostane
   kartica »Koraki reševanja« odprta s koraki prejšnje uganke. Naloga 6b (O10) jo skrije samo ob »Reši« z drugimi
-  danostmi, ob novi uganki iz primerov, zbirke ali polja Niz in ob »Počisti«.
+  danostmi, ob novi uganki iz primerov, zbirke ali polja Niz in ob »Počisti«. **Narejeno 2026-10-18:** vsak vpis v
+  vnosno mrežo, po katerem so danosti drugačne od zadnje rešitve, skrije kartici »Rešitev« in »Koraki reševanja«
+  (`tests/resevalec-resitev.test.js`).
 - **Legenda nad rešitvijo v reševalcu se bere kot štetje** (zapisano 2026-10-11 ob zaključku naloge 6b): »5 dana
   5 izpeljana« nad rešeno mrežo zveni kot »pet danih, pet izpeljanih«. Zamenja naj jo stavek »Temne števke so
   začetek uganke, modre so rešitev.« – beseda »Temne« v barvi danih števk, beseda »modre« v modri barvi izpeljanih.
+  **Narejeno 2026-10-18** (`tests/resevalec-resitev.test.js`, `tools/preveri-videz-brskalnik.js`).
 - **Prečrtana števka v mali mreži in povečavi reševalca je na telefonu slabše razpoznavna** (zapisano 2026-10-11 ob
   ročnem pregledu popravka naloge 6): črta 2 px čez števko velikosti pribl. 8 px (mala mreža pri 375 px ima celico
   31 px). Možnosti: poševna ali tanjša črta (samo v reševalcu). **Odločitev 2026-10-11: zaenkrat ostane**, ker mesto v

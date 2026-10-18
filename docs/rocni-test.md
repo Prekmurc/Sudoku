@@ -454,6 +454,17 @@ pravi dotik, klik in tipkovnica), `preveri-pomoc`, `preveri-videz`, `preveri-nav
 | 4 | igra in reševalec, telefon in monitor | Poglej okno z vklopljenimi in izklopljenimi filtri ter prazen izid. | Jasno je, kateri filtri so vklopljeni (modra obroba), vrstica »Prikazanih …« in »Počisti filtre« sta na pravem mestu; kartice se začnejo dovolj visoko (krajši namig). (potrjeno 18. 10. 2026) | Videz in jasnost presodiš sam; scenarij preveri samo mere. |
 | 5 | igra in reševalec, okno Pomoč | Preberi odstavke o filtrih in razvrščanju (igra: »Filtri in razvrščanje«; reševalec: razdelek »Zbirka ugank«, zadnja dva odstavka). | Besedilo je razumljivo in se ujema z oknom; v reševalcu so podrobnosti, ki so odpadle iz namiga. (potrjeno 18. 10. 2026) | Razumljivost presodi bralec; testi preverijo samo izraze in ločila. |
 
+## Reševalec – legenda rešitve in stari koraki (postavki iz »Kasneje«, 2026-10-18)
+
+Avtomatsko preverjeno: `tests/resevalec-resitev.test.js` (besedilo in barvi legende, skrivanje kartic v nadomestnem
+DOM-u), `tools/preveri-videz-brskalnik.js` (izračunani barvi legende, brez preliva pri 320–1280 px), enkratno
+preverjanje s pravimi tipkami v brskalniku brez glave pri 375 in 1280 px. Pred pregledom osveži stran.
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | reševalec, telefon in monitor | Izberi primer in pritisni »Reši«; preberi vrstico nad rešeno mrežo. | Stavek »Temne števke so začetek uganke, modre so rešitev.« se bere kot razlaga, ne kot štetje; »Temne« je temna in krepka kot dane števke, »modre« modra kot izpeljane. **(nepotrjeno)** | Razumljivost in videz besedila presodiš sam. |
+| 2 | reševalec, telefon | Po »Reši« odpri »Pokaži korake reševanja«, nato se dotakni celice vnosne mreže in na zaslonski tipkovnici vpiši ali izbriši števko. | Kartici »Rešitev« in »Koraki reševanja« izgineta takoj; po ponovnem »Reši« se pokaže nova rešitev, koraki so skriti do »Pokaži korake reševanja«. **(nepotrjeno)** | Zaslonske tipkovnice telefona brskalnik brez glave nima. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

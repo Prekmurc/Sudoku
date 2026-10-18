@@ -28,6 +28,11 @@ inputs.forEach((inp, i) => {
     inp.value = v;
     checkConflicts();
     izrisiOpisPrimera();
+    // Druga uganka kot zadnja rešena: stara rešitev in koraki se skrijejo (kot ob »Reši« z drugimi danostmi).
+    if (lastSolve && currentGivens() !== lastSolve.givens) {
+      resultsEl.style.display = 'none';
+      skrijKorake();
+    }
     const cs = document.getElementById('candSection');
     if (cs.style.display === 'block') renderCandidates();
     if (v) focusCell(i + 1);

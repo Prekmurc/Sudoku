@@ -299,7 +299,8 @@ async function danostiResevalca(b) {
     const vnos = [...document.querySelectorAll('#inputGrid input')].find(i => i.value);
     return { vnos: getComputedStyle(vnos).color, dana: s('#solvedGrid .was-given'), izpeljana: s('#solvedGrid .was-solved'),
       kandDana: s('#candidateGrid .ccell.given'), miniDana: s('.mini-container .mcell.given'), miniIzpeljana: s('.mini-container .mcell.solved-num'),
-      legenda: document.querySelector('.legend-grid').textContent.replace(/\\s+/g, ' ').trim() };
+      legenda: document.querySelector('.legend-grid').textContent.replace(/\\s+/g, ' ').trim(),
+      temne: s('.legend-grid .vz-dana').barva.split(' ')[0], modre: s('.legend-grid .vz-izpeljana').barva.split(' ')[0] };
   })()`);
   const bela = x => x.podlaga === 'rgba(0, 0, 0, 0)' || x.podlaga === 'rgb(255, 255, 255)';
   preveri('reševalec: dana števka v rešitvi kot dana v igri, brez modre podlage', r.dana.barva === igra.dana && bela(r.dana), { r: r.dana, igra: igra.dana });
@@ -307,7 +308,8 @@ async function danostiResevalca(b) {
   preveri('reševalec: dana v kandidatih in mali mreži kot dana v igri', r.kandDana.barva === igra.dana && r.miniDana.barva === igra.dana && bela(r.kandDana) && bela(r.miniDana), r);
   preveri('reševalec: izpeljana v mali mreži modra', r.miniIzpeljana.barva.split(' ')[0] === igra.vpis.split(' ')[0], r.miniIzpeljana);
   preveri('reševalec: števke vnosne mreže temne', r.vnos === 'rgb(36, 48, 61)', r.vnos);
-  preveri('reševalec: legenda »dana / izpeljana«', r.legenda === '5dana 5izpeljana', r.legenda);
+  preveri('reševalec: legenda »Temne števke so začetek uganke, modre so rešitev.«', r.legenda === 'Temne števke so začetek uganke, modre so rešitev.', r.legenda);
+  preveri('reševalec: »Temne« v barvi dane, »modre« v barvi izpeljane števke rešitve', r.temne === r.dana.barva.split(' ')[0] && r.modre === r.izpeljana.barva.split(' ')[0], r);
 }
 
 // Značke ravni v treningu (N10) imajo barve oznake koraka (.tag.t-*), okno zbirke v reševalcu
