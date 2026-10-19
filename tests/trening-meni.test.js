@@ -600,7 +600,9 @@ test('korak 6b-b, naloga 11a-2: slog – en okvir `zadnja` za kartico in vrstico
   assert.ok(parseFloat(/font-size:([\d.]+)px/.exec(ex[1])[1]) < 15, 'manjša od .ex-label');
   assert.match(css, /\.skupina-naslov\{/);
   const html = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
-  assert.ok(html.includes('<p>Kartica tehnike, ki si jo nazadnje vadil, in njena vrstica v kazalu tehnik imata moder okvir – tudi ko stran znova odpreš.</p>'));
+  // Naloga 11a, zadnji popravek: Pomoč treninga razloži moder okvir in turkizno črto izbire v kazalu.
+  assert.ok(html.includes('<p>Moder okvir označuje tehniko, ki si jo nazadnje vadil – na kartici in v kazalu tehnik, tudi ko stran znova odpreš. Turkizna črta na levi označuje kartico, ki si jo izbral v kazalu; ostane, dokler ne izbereš druge.</p>'));
+  assert.ok(!html.includes('imata moder okvir'), 'staro besedilo odpade');
 });
 
 // Naloga 11a, popravek P1 po ročnem pregledu: kartica, do katere pomakne vrstica kazala, ima razred `izbrana` (debela

@@ -2,7 +2,8 @@
 
 Načrt 2026-10-18. Vir odločitev: `docs/uskladitev.md`, 1.1 in 1.3 (»Odločitev 2026-10-18«) in vrstica 11a v »Vrstni red
 po fazi 6«; povzetek `docs/imena-tehnik.md` (ob razhajanju velja `docs/uskladitev.md` – razhajanj pri pregledu nisem
-našel). **Stanje: potrjen 2026-10-18** (odločitve O1–O7 in pomen značke v razdelku 7).
+našel). **Stanje: zaključeno 2026-10-19** (potrjen 2026-10-18 – odločitve O1–O7 in pomen značke v razdelku 7; ročni pregled potrjen
+2026-10-19 po popravkih iz razdelka 11).
 
 Izhodišče: commit `1a1fd5c` (zapis odločitev 2026-10-18).
 
@@ -461,3 +462,9 @@ Testi (najprej padejo na stari kodi): `tests/trening-kontrast.test.js` (P2), `te
 po vaji in »Nazaj na izbiro«; vrh vaje `--ink2`, 700, manjša. Stari scenariji področja: `preveri-naloga6b-` (okvir
 `zadnja`), `-navigacija-` (klik kazala), `-izbris-` (P3). Posnetek igre (igra se ne spremeni) – enak izhodišču.
 Ročni pregled: samo P1 in P2 (`docs/rocni-test.md`, »Naloga 11a – popravki«).
+
+**Izvedba (2026-10-19):** P1–P3 po zgornjem (`34b7db0`); ročni pregled točk 1 in 2 potrjen 2026-10-19. Zadnji popravek
+(P4, brez ročnega pregleda): v Pomoči treninga je stavek o modrem okvirju zamenjan z besedilom, ki razloži še turkizno
+črto – »Moder okvir označuje tehniko, ki si jo nazadnje vadil – na kartici in v kazalu tehnik, tudi ko stran znova
+odpreš. Turkizna črta na levi označuje kartico, ki si jo izbral v kazalu; ostane, dokler ne izbereš druge.«
+(`trening/index.html`, varuje `tests/trening-meni.test.js`). **Naloga 11a je zaključena 2026-10-19.**

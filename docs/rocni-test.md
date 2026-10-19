@@ -467,6 +467,9 @@ preverjanje s pravimi tipkami v brskalniku brez glave pri 375 in 1280 px. Pred p
 
 ## Naloga 11a – imena, težavnost, skupine tehnik (vse tri aplikacije)
 
+**Naloga 11a je zaključena 2026-10-19** – točke 2, 4 in 5 potrjene 2026-10-19, točki 1 in 3 po popravkih P1 in P2
+(spodaj, »Naloga 11a – popravki«) potrjeni 2026-10-19.
+
 Načrt `docs/naloga11a-nacrt.md` (razdelek 8). Avtomatsko preverjeno: vsi testi (med njimi `tests/skupine-tehnik.test.js`,
 `tests/trening-meni.test.js`, `tests/pomoc.test.js`, `tests/izrazi.test.js`, `tests/zbirka-zapis.test.js`), posnetek
 igre `tools/posnetki/igra-po-naloga11a.json` (enak), scenarij `tools/preveri-naloga11a-brskalnik.js --korak 1` in
@@ -483,7 +486,7 @@ igre `tools/posnetki/igra-po-naloga11a.json` (enak), scenarij `tools/preveri-nal
 
 ### Naloga 11a – popravki po ročnem pregledu (2026-10-19)
 
-Načrt `docs/naloga11a-nacrt.md`, razdelek 11 (točke 2, 4 in 5 zgoraj so pregledane in v redu). Avtomatsko preverjeno:
+**Točki 1 in 2 potrjeni 2026-10-19.** Načrt `docs/naloga11a-nacrt.md`, razdelek 11 (točke 2, 4 in 5 zgoraj so pregledane in v redu). Avtomatsko preverjeno:
 vsi testi (`tests/trening-meni.test.js`, `tests/trening-kontrast.test.js`), scenarij
 `tools/preveri-naloga11a-brskalnik.js --korak 2` pri 375 in 1280 px (pravi klik, dotik in miška), stari scenariji
 `preveri-naloga6b-`, `-navigacija-`, `-izbris-brskalnik.js`, posnetek igre. Pred pregledom osveži stran.
