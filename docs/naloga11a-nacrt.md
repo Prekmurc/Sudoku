@@ -435,3 +435,29 @@ Narejeno po 1.6, 5.3–5.7. Odstopanja in pojasnila:
   in 11 ter besedila koraka 9 iz koraka 1 – ti scenariji v koraku 1 niso tekli; v `-izbira-` je `.ex-skupina` dodana še med besedila, skrita pred meritvijo prekrivanja na pikslih – sicer bi necel zamik mreže, 18,25 px, spremenil glajenje robov). `-pomoc-`, `-vklop-`, `-sheme-`, `-po-shemi-` brez spremembe.
 - `tests/trening-po-shemi.js` (vzorec začetka vaje) in `tests/pocasni/trening-uganka-ui.test.js` (vrstica skupine po
   izrisu vaje) – pričakovanje z novo vrstico `.ex-skupina`.
+
+## 11. Popravki po ročnem pregledu (2026-10-19)
+
+Ročni pregled koraka 2: točke 2, 4 in 5 razdelka 8 so v redu; popravka P1 in P2 (točki 1 in 3), P3 je opažanje ob
+izvedbi koraka 2. Naslovi skupin nad karticami ostanejo, kot so (z razponom).
+
+- **P1 – izbira v kazalu treninga.** Kartica, do katere pomakne vrstica kazala, dobi razred `izbrana`: debela navpična
+  črta na levi v turkizni barvi gumba »Vadi v uganki« (`--teal`) – senca `inset 5px 0 0` (sledi zaobljenemu robu,
+  vsebina se ne premakne). Postavi jo samo klik/dotik vrstice kazala, ostane, dokler v kazalu ne izbereš druge
+  (začetek vaje in »Nazaj na izbiro« je ne spremenita); se ne shrani (ob ponovnem odprtju strani je ni). Črta ostane
+  tudi pod miško in ob modrem okviru `zadnja` (»nazadnje vadena« – ta ostane, kot je): pravili `izbrana:hover` in
+  `izbrana.zadnja` združita obe senci. Vrstica kazala se ne spremeni.
+- **P2 – vrh vaje.** Vrstica skupine (`.ex-skupina`) ostane manjša (12,5 px), barva kot opis (`--ink2`, prej
+  `--pencil`), krepkost 700 (prej 600). Nov test kontrasta v `tests/trening-kontrast.test.js`: vsaj 4,5 : 1 na podlagi
+  kartice in strani, manjša od `.ex-label`.
+- **P3 – posnetki scenarija izbrisa.** `tools/preveri-izbris-brskalnik.js` piše posnetke privzeto v `--mapa`
+  (začasna mapa), ne v `docs/slike/izbris/`; nova možnost `--slike <mapa>` (npr. `docs/slike/izbris`, kadar se
+  posnetki za pregled namerno zapišejo na novo). Posnetki v `docs/slike/izbris/` ostanejo nespremenjeni.
+
+Testi (najprej padejo na stari kodi): `tests/trening-kontrast.test.js` (P2), `tests/trening-meni.test.js` (P1 – razred
+`izbrana` ob kliku vrstice, samo ena kartica, ostane ob vaji in vrnitvi, ne shrani se; slog; pričakovanje `.ex-skupina`
+→ `--ink2`, 700). Scenarij `tools/preveri-naloga11a-brskalnik.js --korak 2` pri 375 in 1280 px: izračunan slog črte
+(senca s `--teal`, 5 px) na izbrani kartici, premik na drugo kartico, črta ob modrem okviru `zadnja` in pod miško,
+po vaji in »Nazaj na izbiro«; vrh vaje `--ink2`, 700, manjša. Stari scenariji področja: `preveri-naloga6b-` (okvir
+`zadnja`), `-navigacija-` (klik kazala), `-izbris-` (P3). Posnetek igre (igra se ne spremeni) – enak izhodišču.
+Ročni pregled: samo P1 in P2 (`docs/rocni-test.md`, »Naloga 11a – popravki«).

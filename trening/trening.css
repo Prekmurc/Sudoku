@@ -39,6 +39,12 @@ button.na-vrh{--stolpec-vsebine:528px}
 /* kartica in vrstica kazala tehnike, ki si jo nazadnje vadil (naloga 6b, korak 2, O4 A): obroba in senca 1 px v barvi
    izbire – skupaj 2 px brez premika vsebine; za poudarkom pod miško, zato ostane modra tudi pod miško */
 .menu-card.zadnja,.kazalo-vrstica.zadnja{border-color:var(--izbira);box-shadow:0 0 0 1px var(--izbira)}
+/* kartica, do katere je pomaknilo kazalo (naloga 11a, popravek P1 po ročnem pregledu): debela navpična črta levo v
+   turkizni barvi gumba »Vadi v uganki« – senca inset sledi zaobljenemu robu, vsebina se ne premakne; pod miško in ob
+   okviru zadnja se senci združita (izbrana.zadnja za izbrana:hover – modri okvir tudi pod miško) */
+.menu-card.izbrana{box-shadow:inset 5px 0 0 var(--teal)}
+.menu-card.izbrana:hover{box-shadow:inset 5px 0 0 var(--teal),0 2px 8px rgba(14,122,122,.12)}
+.menu-card.izbrana.zadnja{box-shadow:inset 5px 0 0 var(--teal),0 0 0 1px var(--izbira)}
 .menu-card h3{font-family:'Source Serif 4',serif;font-size:17px;margin:0 0 4px}
 .menu-card h3[data-stevilka]::before{content:attr(data-stevilka) " · ";color:var(--pencil)}
 .menu-card p{font-size:13px;color:var(--ink2);line-height:1.5;margin:0}
@@ -60,8 +66,9 @@ button.na-vrh{--stolpec-vsebine:528px}
 /* Vrstica z imenom tehnike nad vajo (»4 · Skriti par (Hidden Pair) · Vaja 3 / 9«): temno besedilo,
    dovolj velike črke – kontrast vsaj 4,5 : 1 na podlagi kartice (tests/trening-kontrast.test.js;
    prej 11 px sivo velike tiskane, popravek po pregledu koraka 1 faze 3a). */
-/* Vrstica skupine nad njo (»Podmnožice (Subsets)« – naloga 11a, O4): manjša in siva, podrejena imenu tehnike. */
-.ex-skupina{font-size:12.5px;font-weight:600;color:var(--pencil);line-height:1.3;margin:0 0 2px}
+/* Vrstica skupine nad njo (»Podmnožice (Subsets)« – naloga 11a, O4): manjša, podrejena imenu tehnike; barva kot
+   opis (--ink2) in krepka – kontrast vsaj 4,5 : 1 (popravek P2 po ročnem pregledu; prej --pencil, 600). */
+.ex-skupina{font-size:12.5px;font-weight:700;color:var(--ink2);line-height:1.3;margin:0 0 2px}
 .ex-label{font-size:15px;font-weight:600;color:var(--ink);line-height:1.35;margin:0 0 6px}
 .exercise h3{font-family:'Source Serif 4',serif;font-size:17px;margin:0 0 4px}
 .exercise .desc{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 12px}

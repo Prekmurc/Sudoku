@@ -481,6 +481,18 @@ igre `tools/posnetki/igra-po-naloga11a.json` (enak), scenarij `tools/preveri-nal
 | 4 | igra s tvojo pravo zbirko | Odpri »Zbirka ugank«. | Uganke, ki so imele »Ekstrem«, imajo »Ekstremna«; filter Težavnost jih najde, shranjen filter ostane. | Scenarij dela s preskusno shrambo, ne s tvojim brskalnikom. |
 | 5 | vse tri, besedila | Preberi uvod razdelka »Tehnike« (stavek o Zelo težki), opise stopenj v »Nova uganka«, sporočilo koraka 9 v reševalcu in v Pomoči treninga stavek »Z istimi oznakami so naštete tehnike, ki jih uganka potrebuje …«. | Naravna slovenščina, brez »napredna«/»ekspertna« in brez omembe drugih aplikacij. | Jezikovna presoja; testi preverijo samo izraze in ločila. |
 
+### Naloga 11a – popravki po ročnem pregledu (2026-10-19)
+
+Načrt `docs/naloga11a-nacrt.md`, razdelek 11 (točke 2, 4 in 5 zgoraj so pregledane in v redu). Avtomatsko preverjeno:
+vsi testi (`tests/trening-meni.test.js`, `tests/trening-kontrast.test.js`), scenarij
+`tools/preveri-naloga11a-brskalnik.js --korak 2` pri 375 in 1280 px (pravi klik, dotik in miška), stari scenariji
+`preveri-naloga6b-`, `-navigacija-`, `-izbris-brskalnik.js`, posnetek igre. Pred pregledom osveži stran.
+
+| # | Kje | Kaj narediti | Pričakovano | Zakaj ni avtomatsko |
+|---|---|---|---|---|
+| 1 | trening, meni (telefon in monitor) | V kazalu tapni/klikni vrstico (npr. 6), nato drugo (npr. 9); odpri vajo in se vrni z »Nazaj na izbiro«; izberi v kazalu še tehniko z modrim okvirjem (»nazadnje vadena«). | Kartica, do katere te pomakne kazalo, ima na levi debelo turkizno črto (kot gumb »Vadi v uganki«); ob drugi izbiri se črta premakne, po vaji ostane; na kartici z modrim okvirjem sta vidna oba. | Ali je črta dovolj opazna in se ne bije z modrim okvirjem, presodiš sam; scenarij preveri izračunan slog in kdaj se premakne. |
+| 2 | trening, »Spoznaj« in »Vadi v uganki« (npr. 6 · Skrita trojica) | Odpri vajo in poglej vrh kartice. | Vrstica skupine (»Podmnožice (Subsets)«) je manjša od imena tehnike, a temna kot opis in dobro berljiva. | Estetska presoja; test preveri kontrast (vsaj 4,5 : 1), velikost in krepkost. |
+
 ## Zakaj ročno
 
 - **CSS** (barve, obrobe, senčenje, velikost celic na ozkem zaslonu): nadomestni DOM ga

@@ -144,9 +144,12 @@ document.querySelectorAll('.menu-card').forEach(card=>{
 // pomakne do kartice (12 px pod vrh okna; kartica blizu dna – stran do konca), vaje ne začne; fokus gre na
 // »Spoznaj« te kartice. Od naloge 6b (2.5 v docs/naloga6b-nacrt.md) seznam z imeni – vrstica z oznako ter
 // slovenskim in angleškim imenom, od naloge 11a po skupinah v dveh stolpcih (ista oblika kot v oknu Pomoč).
+// Kartica, do katere pomakne, dobi razred izbrana (turkizna črta levo, trening.css – popravek P1 po ročnem pregledu
+// naloge 11a); ostane, dokler v kazalu ne izbereš druge, ne shrani se.
 // Gumb »↑« (O5): samo v meniju, po enem zaslonu drsenja; klik na vrh, fokus na kazalo.
 const kazaloEl=document.getElementById('kazaloTehnik');
 const vrsticeKazala=izrisiKazaloTehnik(kazaloEl,p=>{
+  for(const k of menuEl.querySelectorAll('.menu-card'))k.classList.toggle('izbrana',k.dataset.mode===p.kljuc);
   const card=menuEl.querySelector(`.menu-card[data-mode="${p.kljuc}"]`);
   if(!card)return;
   window.scrollTo({top:Math.max(0,card.getBoundingClientRect().top+window.scrollY-12),behavior:nacinPomika()});

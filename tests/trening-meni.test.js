@@ -591,12 +591,56 @@ test('korak 6b-b, naloga 11a-2: slog – en okvir `zadnja` za kartico in vrstico
   assert.match(base, /\.kazalo-tehnik \{[^}]*display: grid;[^}]*grid-template-columns: repeat\(auto-fit, minmax\(230px, 1fr\)\);/);
   assert.doesNotMatch(base, /\.kazalo-tehnik button\.tag|z-imeni/, 'vrstica samih oznak odpade');
   assert.match(base, /\.kazalo-tehnik \.kazalo-naslov \{/, 'naslov skupine (izbirnik prevlada nad .dialog-navodila p)');
-  // Vrh vaje: vrstica skupine manjša od imena tehnike (15 px) in siva; naslov skupine nad karticami.
+  // Vrh vaje: vrstica skupine manjša od imena tehnike (15 px), temna kot opis (--ink2) in krepka (popravek P2 po
+  // ročnem pregledu – prej siva --pencil, 600; kontrast tests/trening-kontrast.test.js); naslov skupine nad karticami.
   const ex = /\.ex-skupina\{([^}]*)\}/.exec(css);
   assert.ok(ex, '.ex-skupina v trening.css');
-  assert.match(ex[1], /color:var\(--pencil\)/);
+  assert.match(ex[1], /color:var\(--ink2\)/);
+  assert.match(ex[1], /font-weight:700/);
   assert.ok(parseFloat(/font-size:([\d.]+)px/.exec(ex[1])[1]) < 15, 'manjša od .ex-label');
   assert.match(css, /\.skupina-naslov\{/);
   const html = fs.readFileSync(path.join(__dirname, '..', 'trening', 'index.html'), 'utf8');
   assert.ok(html.includes('<p>Kartica tehnike, ki si jo nazadnje vadil, in njena vrstica v kazalu tehnik imata moder okvir – tudi ko stran znova odpreš.</p>'));
+});
+
+// Naloga 11a, popravek P1 po ročnem pregledu: kartica, do katere pomakne vrstica kazala, ima razred `izbrana` (debela
+// turkizna črta levo, trening.css); ostane, dokler v kazalu ne izbereš druge, začetek vaje in vrnitev je ne spremenita,
+// ne shrani se. Izračunan slog in pomik preverja tools/preveri-naloga11a-brskalnik.js --korak 2.
+test('naloga 11a, P1: klik vrstice kazala – natanko ta kartica dobi `izbrana`, ostane do druge izbire, ne shrani se', () => {
+  const dom = domSKarticami();
+  const { run } = loadContext(DATOTEKE, dom.globals);
+  const izbrane = d => d.el('menu').children.filter(k => k.classList.contains('menu-card') && k.classList.contains('izbrana')).map(k => k.dataset.mode);
+  const vrstica = m => vrsticeKazala(dom.el('kazaloTehnik')).find(v => v.dataset.kazalo === m);
+  assert.deepEqual(izbrane(dom), [], 'ob odprtju brez izbire');
+  vrstica('hidden-triple').sprozi('click');
+  assert.deepEqual(izbrane(dom), ['hidden-triple']);
+  vrstica('turbot-fish').sprozi('click');
+  assert.deepEqual(izbrane(dom), ['turbot-fish'], 'druga izbira premakne črto');
+  // Vaja druge tehnike in »Nazaj na izbiro« – izbira ostane, »nazadnje vadena« je ločena.
+  run('zacniKrog("x-wing", "spoznaj")');
+  dom.klikni('backBtn');
+  assert.deepEqual(izbrane(dom), ['turbot-fish']);
+  assert.deepEqual(zadnjeKartice(dom), ['x-wing']);
+  vrstica('x-wing').sprozi('click');
+  assert.deepEqual(izbrane(dom), ['x-wing'], 'tudi na kartici z modrim okvirjem');
+  assert.deepEqual(zadnjeKartice(dom), ['x-wing']);
+  assert.ok(vrsticeKazala(dom.el('kazaloTehnik')).every(v => !v.classList.contains('izbrana')), 'vrstica kazala se ne spremeni');
+  // Ponovno odprtje strani z isto shrambo: brez izbire (modri okvir ostane).
+  const dom2 = domSKarticami(dom.shramba);
+  loadContext(DATOTEKE, dom2.globals);
+  assert.deepEqual(izbrane(dom2), []);
+  assert.deepEqual(zadnjeKartice(dom2), ['x-wing']);
+});
+
+test('naloga 11a, P1: slog – črta `izbrana` je senca inset 5 px v --teal, ostane pod miško in ob okviru `zadnja`', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'trening', 'trening.css'), 'utf8');
+  assert.match(css, /\n\.menu-card\.izbrana\{box-shadow:inset 5px 0 0 var\(--teal\)\}/);
+  assert.match(css, /\n\.menu-card\.izbrana:hover\{box-shadow:inset 5px 0 0 var\(--teal\),0 2px 8px rgba\(14,122,122,\.12\)\}/,
+    'pod miško še senca :hover');
+  assert.match(css, /\n\.menu-card\.izbrana\.zadnja\{box-shadow:inset 5px 0 0 var\(--teal\),0 0 0 1px var\(--izbira\)\}/,
+    'ob okviru zadnja še njegova senca');
+  // Vrstni red: za :hover in zadnja (enaka specifičnost), izbrana.zadnja za izbrana:hover – modri okvir tudi pod miško.
+  assert.ok(css.indexOf('.menu-card.izbrana{') > css.indexOf('.menu-card.zadnja,'));
+  assert.ok(css.indexOf('.menu-card.izbrana.zadnja{') > css.indexOf('.menu-card.izbrana:hover{'));
 });

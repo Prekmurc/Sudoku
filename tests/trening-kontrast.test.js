@@ -74,3 +74,15 @@ test('ime tehnike nad vajo (.ex-label): kontrast vsaj 4,5 : 1 na podlagi kartice
   // Brez velikih tiskanih črk (slabše berljivo pri dolgem imenu).
   assert.notEqual(lastnost(TRENING, '.ex-label', 'text-transform'), 'uppercase');
 });
+
+// Vrstica skupine nad imenom tehnike (».ex-skupina«, naloga 11a, popravek P2 po ročnem pregledu – prej --pencil,
+// kontrast pribl. 2,9): manjša od imena tehnike, a temna kot opis (--ink2) in krepka – vsaj 4,5 : 1.
+test('vrstica skupine nad vajo (.ex-skupina): kontrast vsaj 4,5 : 1 na kartici in strani, manjša od .ex-label, krepka', () => {
+  const barva = razresi(lastnost(TRENING, '.ex-skupina', 'color'));
+  for (const podlaga of [razresi(lastnost(TRENING, '.exercise', 'background')), razresi('var(--paper)')]) {
+    const k = kontrast(hex(barva), hex(podlaga));
+    assert.ok(k >= 4.5, `kontrast ${k.toFixed(2)} (${barva} na ${podlaga})`);
+  }
+  assert.ok(parseFloat(lastnost(TRENING, '.ex-skupina', 'font-size')) < parseFloat(lastnost(TRENING, '.ex-label', 'font-size')));
+  assert.ok(Number(lastnost(TRENING, '.ex-skupina', 'font-weight')) >= 700, 'krepkejša od 600');
+});

@@ -40,10 +40,11 @@
 //   - 5 · Očitna trojica: »Rešitev« v 2. fazi z eno pravilno in eno napačno oznako – kandidati za izbris rdeče
 //     prečrtani, napačna oznaka brez črte s temno rdečim obročem (izračunan slog), legenda;
 //   - brez napak JS.
-// Posnetka za pregled (D2, 375 px, dvojna ločljivost) v docs/slike/izbris/: 3-oznake-375.png (3 · Očitni par z
+// Posnetki za pregled (D2, 375 px, dvojna ločljivost) v --slike (privzeto --mapa, začasna mapa; posnetki v
+// docs/slike/izbris/ se zapišejo na novo samo z --slike docs/slike/izbris): 3-oznake-375.png (3 · Očitni par z
 // oznakami pred »Preveri«) in 5-resitev-375.png (5 · Očitna trojica, »Rešitev« z eno pravilno in eno napačno oznako).
 //
-//   node tools/preveri-izbris-brskalnik.js [--mapa <mapa>] [--izhodisce <commit>]
+//   node tools/preveri-izbris-brskalnik.js [--mapa <mapa>] [--slike <mapa>] [--izhodisce <commit>]
 //
 // Izhod 0 = vse drži, 1 = kaj ne drži. Uporablja tools/brskalnik.js (Edge/Chrome), pribl. 5 min.
 
@@ -60,7 +61,7 @@ const args = process.argv.slice(2);
 const arg = (ime, privzeto) => (args.includes(ime) ? args[args.indexOf(ime) + 1] : privzeto);
 const mapa = arg('--mapa', path.join(os.tmpdir(), 'sudoku-preveri-izbris'));
 const izhodisce = arg('--izhodisce', '705349a');
-const SLIKE = path.join(KOREN, 'docs', 'slike', 'izbris');
+const SLIKE = path.resolve(arg('--slike', mapa));
 
 let napak = 0;
 function preveri(ime, pogoj, podrobno = '') {
@@ -646,6 +647,7 @@ async function main() {
     fs.rmSync(izh.star, { recursive: true, force: true });
   }
   console.log(napak ? `\n${napak} preverjanj ne drži.` : '\nVse drži.');
+  console.log(`Posnetki zaslona: ${SLIKE}`);
   process.exit(napak ? 1 : 0);
 }
 main().catch(e => { console.error(e); process.exit(1); });

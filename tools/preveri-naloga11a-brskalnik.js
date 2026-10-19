@@ -17,8 +17,11 @@
 //     - trening: kazalo – dva stolpca (levo skupine Lahka in Srednja, desno Težka in Ekstremna; pri 1280 px drug ob
 //       drugem, pri 375 px drug pod drugim), nobena skupina ni razdeljena, naslov skupine z značko nad vrsticami,
 //       15 vrstic vsaj 44 px; sedem naslovov skupin, vsak tik nad prvo kartico skupine; pravi klik/dotik vrstice
-//       pomakne do kartice (fokus na »Spoznaj«, vaja se ne začne); vrh vaje v »Spoznaj« in »Vadi v uganki«
-//       (6 · Skrita trojica) in E1 – vrstica skupine nad imenom tehnike, manjša in siva (izračunan slog);
+//       pomakne do kartice (fokus na »Spoznaj«, vaja se ne začne); kartica dobi turkizno črto levo (popravek P1 po
+//       ročnem pregledu – razred izbrana, izračunana senca inset 5 px --teal), natanko ena, druga izbira jo premakne,
+//       ostane pod miško (1280 px), po vajah in »Nazaj na izbiro« in ob modrem okviru »nazadnje vadena« (obe
+//       senci, obroba --izbira); vrh vaje v »Spoznaj« in »Vadi v uganki« (6 · Skrita trojica) in E1 – vrstica
+//       skupine nad imenom tehnike, manjša, barva --ink2, krepkost 700 (popravek P2; izračunan slog);
 //     - okno Pomoč v treningu, igri in reševalcu: kazalo iste zgradbe kot v meniju treninga in iste razporeditve,
 //       naslovi skupin v seznamu tehnik enaki naslovom nad karticami (pred prvo tehniko skupine), pravi klik/dotik
 //       vrstice 9 pomakne do tehnike pod glavo (fokus), »↑ Tehnike« vrne h kazalu (fokus na E1);
@@ -226,7 +229,19 @@ async function igra(b, sirina) {
 // Skupine iz odločitve 2026-10-18 (docs/uskladitev.md 1.1): levi stolpec Lahka in Srednja, desni Težka in Ekstremna.
 const STOLPCA = [['enojcki', 'preseki', 'podmnozice'], ['ribe', 'kratke-verige', 'edinstvenost', 'dolge-verige']];
 const NASLOVI = /^(Enojčki \(Singles\) · E1–E2|Preseki \(Intersections\) · 1–2|Podmnožice \(Subsets\) · 3–6|Ribji vzorci \(Fish\) · 7–8|Kratke verige \(Short Chains\) · 9–11|Edinstvenost \(Uniqueness\) · 12|Dolge verige \(Long Chains\) · [\d–]+)$/;
-const PENCIL = 'rgb(138, 148, 160)'; // --pencil v shared/base.css
+const INK2 = 'rgb(60, 72, 84)'; // --ink2 v shared/base.css
+// Popravek P1: črta izbrane kartice (inset 5 px --teal), modri okvir »nazadnje vadena« (1 px --izbira), senca :hover.
+const CRTA = /rgb\(14, 122, 122\) 5px 0px 0px( 0px)? inset/;
+const OKVIR = /rgb\(74, 134, 216\) 0px 0px 0px 1px/;
+const POD_MISKO = /rgba\(14, 122, 122, 0\.12\) 0px 2px 8px/;
+const IZBIRA = 'rgb(74, 134, 216)';
+// Kartice z razredom izbrana (izračunana senca in obroba) – po koncu prehoda sence (.15s).
+const izbrane = async b => {
+  await b.izvedi('new Promise(r => setTimeout(r, 300))');
+  return b.izvedi(`[...document.querySelectorAll('.menu-card.izbrana')].map(k => ({ m: k.dataset.mode,
+    zadnja: k.classList.contains('zadnja'), senca: getComputedStyle(k).boxShadow, obroba: getComputedStyle(k).borderTopColor }))`);
+};
+const miska = (b, x, y) => b.cdp.poslji('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
 
 // Zgradba in razporeditev kazala (izbirnik elementa .kazalo-tehnik).
 const KAZALO = izb => `(() => { const k = document.querySelector('${izb}'), r = e => e.getBoundingClientRect();
@@ -293,15 +308,28 @@ async function trening2(b, sirina) {
         vaja: document.getElementById('trainer').style.display }; })()`);
     preveri(`kazalo: ${dotik ? 'dotik' : 'klik'} ${m} – kartica 12 px pod vrhom, fokus na »Spoznaj«, vaja se ne začne`,
       Math.abs(s.vrh - 12) <= 2 && s.fokus && s.vaja !== 'block', s);
+    if (!dotik) await miska(b, 0, 0);
+    const iz = await izbrane(b);
+    preveri(`kazalo: ${m} – natanko ta kartica ima turkizno črto levo (senca inset 5 px --teal)`,
+      iz.length === 1 && iz[0].m === m && CRTA.test(iz[0].senca), iz);
   }
+  if (!dotik) {
+    // Pod miško: črta ostane, doda se senca :hover.
+    const t = await b.izvedi(`(() => { const r = document.querySelector('.menu-card.izbrana').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + 20 }; })()`);
+    await miska(b, t.x, t.y);
+    const iz = await izbrane(b);
+    preveri('kazalo: izbrana kartica pod miško – črta ostane, senca :hover', iz.length === 1 && CRTA.test(iz[0].senca) && POD_MISKO.test(iz[0].senca), iz);
+    await miska(b, 0, 0);
+  }
+  await b.posnetek(path.join(mapa, `trening-${sirina}-izbrana.png`), { vsaStran: false });
 
   // Vrh vaje: »Spoznaj« in »Vadi v uganki« (6 · Skrita trojica) in E1.
   const vrh = () => b.izvedi(`(() => { const s = document.querySelector('#exerciseArea .ex-skupina'), l = document.querySelector('#exerciseArea .ex-label');
     if (!s || !l) return null; const cs = getComputedStyle(s), cl = getComputedStyle(l);
     return { skupina: s.textContent, oznaka: l.textContent, manjsa: parseFloat(cs.fontSize) < parseFloat(cl.fontSize), barva: cs.color,
-      nad: s.getBoundingClientRect().bottom <= l.getBoundingClientRect().top + 0.5, vKartici: s.closest('.exercise') === l.closest('.exercise') }; })()`);
-  const preveriVrh = (v, kje, skupina, oznaka) => preveri(`vrh vaje (${kje}): »${skupina}« nad »${oznaka} …«, manjše, sivo (--pencil)`,
-    !!v && v.skupina === skupina && v.oznaka.startsWith(oznaka) && v.manjsa && v.barva === PENCIL && v.nad && v.vKartici, v);
+      teza: cs.fontWeight, nad: s.getBoundingClientRect().bottom <= l.getBoundingClientRect().top + 0.5, vKartici: s.closest('.exercise') === l.closest('.exercise') }; })()`);
+  const preveriVrh = (v, kje, skupina, oznaka) => preveri(`vrh vaje (${kje}): »${skupina}« nad »${oznaka} …«, manjše, barva --ink2, krepkost 700`,
+    !!v && v.skupina === skupina && v.oznaka.startsWith(oznaka) && v.manjsa && v.barva === INK2 && v.teza === '700' && v.nad && v.vKartici, v);
   await b.izvedi('scrollTo(0, 0); true');
   await b.klikni('.menu-card[data-mode="hidden-triple"] .nacin-btn');
   await b.cakaj(`!!document.querySelector('#exerciseArea .ex-label')`);
@@ -319,6 +347,26 @@ async function trening2(b, sirina) {
   await b.cakaj(`!!document.querySelector('#exerciseArea .ex-label')`);
   preveriVrh(await vrh(), 'Spoznaj E1', 'Enojčki (Singles)', 'E1 · Očitni enojček (Naked Single) · Vaja 1 / 9');
   await b.klikni('#backBtn');
+
+  // Izbira v kazalu po vajah in »Nazaj na izbiro« ostane; ob modrem okviru »nazadnje vadena« (E1) obe senci.
+  if (!dotik) await miska(b, 0, 0);
+  let iz = await izbrane(b);
+  preveri('po vajah in »Nazaj na izbiro«: črta ostane na turbot-fish', iz.length === 1 && iz[0].m === 'turbot-fish' && CRTA.test(iz[0].senca), iz);
+  await b.izvedi('scrollTo(0, 0); true');
+  if (dotik) await b.tapni('#kazaloTehnik [data-kazalo="naked-single"]'); else await b.klikni('#kazaloTehnik [data-kazalo="naked-single"]');
+  await b.cakaj(`Math.abs(document.querySelector('.menu-card[data-mode="naked-single"]').getBoundingClientRect().top - 12) < 2`, 5000).catch(() => {});
+  if (!dotik) await miska(b, 0, 0);
+  iz = await izbrane(b);
+  preveri('kazalo: E1 (nazadnje vadena) – črta in modri okvir hkrati (obe senci, obroba --izbira)',
+    iz.length === 1 && iz[0].m === 'naked-single' && iz[0].zadnja && CRTA.test(iz[0].senca) && OKVIR.test(iz[0].senca) && iz[0].obroba === IZBIRA, iz);
+  if (!dotik) {
+    const t = await b.izvedi(`(() => { const r = document.querySelector('.menu-card.izbrana').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + 20 }; })()`);
+    await miska(b, t.x, t.y);
+    iz = await izbrane(b);
+    preveri('kazalo: E1 pod miško – črta in modri okvir ostaneta', iz.length === 1 && CRTA.test(iz[0].senca) && OKVIR.test(iz[0].senca) && iz[0].obroba === IZBIRA, iz);
+    await miska(b, 0, 0);
+  }
+  await b.posnetek(path.join(mapa, `trening-${sirina}-izbrana-zadnja.png`), { vsaStran: false });
   await b.izvedi('localStorage.removeItem("sudoku.trening.zadnja"); true');
 }
 
